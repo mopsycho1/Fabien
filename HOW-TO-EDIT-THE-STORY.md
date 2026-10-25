@@ -97,9 +97,18 @@ The same file also has `terrain`, which says what kind of ground each tile is. I
       ...
     ]
 
-- `s` is sand, `c` is cracked earth, `r` is rock, `g` is dry grass.
-- Small rocks and tufts are scattered on the ground automatically. Raised tiles look best as rock.
+- `s` red sand, `d` dusty sand with pebbles, `c` cracked earth, `r` grey stone, `k` stone split by dark veins, `v` cave floor with a glowing sigil, `g` a withered thicket.
+- Raised tiles look best as `c` (cracked earth), like the ledges in the map picture. Use `v` sparingly: it is the special floor in front of the sigil wall.
 - Keep exactly 8 rows of 8 letters, and a comma after every row except the last.
+
+The file also has `scenery`: decoration around and on the board. It never blocks a tile.
+
+    { "prop": "sigilWall", "col": 6, "row": -1 }
+    { "prop": "sandfall", "col": 1, "row": 1, "side": "left" }
+
+- A block prop stands at a column and row. Use row `-1` (or column `-1`) for just behind the board, and `-2` for one step further back. The props are `cliffLow`, `cliffHigh`, `spire` (a stone spike) and `sigilWall` (the carved cavern wall). Add `"flip": true` to mirror one.
+- A `sandfall` pours sand off the `left` or `right` side of a raised tile, down onto the lower tile in front of it. It only shows if that tile really is lower.
+- The pictures live in `public/art/terrain`. Replacing a picture there with a new one of the same name changes it everywhere.
 
 ## Character pictures (`art.json` and the `public/art` folder)
 

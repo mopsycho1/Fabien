@@ -20,7 +20,7 @@ import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey } fr
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
-import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop } from '../boardArt.js';
+import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery } from '../boardArt.js';
 import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash } from '../effects.js';
 import {
   isMelee,
@@ -88,6 +88,7 @@ export default class BattleScene extends Phaser.Scene {
     createAtmosphere(this);    // clouds, sun glow, blowing sand, embers
     drawUnderside(this);       // the rock hanging under the board
     this.drawBoard();
+    drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
 
     // Things the scene remembers between taps
     //   mode: what the player is doing right now
@@ -312,6 +313,10 @@ export default class BattleScene extends Phaser.Scene {
     const at = (u) => ({ col: u.col, row: u.row });
 
     if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget')) {
+      // A tap on a choosable figure's body (above its feet) means that figure,
+      // even when the top of a raised tile behind it is under the same spot.
+      const torso = bodies.find((u) => this.targetsInRange.includes(u) && this.torsoContains(u, x, y));
+      if (torso) return at(torso);
       if (onTile && this.targetsInRange.includes(onTile)) return tile;
       const target = bodies.find((u) => this.targetsInRange.includes(u));
       if (target) return at(target);
@@ -338,6 +343,14 @@ export default class BattleScene extends Phaser.Scene {
   // True if the point (x, y) is on this unit's figure.
   // A picture is treated as a tall narrow box from its feet to its head;
   // a circle unit as its circle.
+  // The upper part of a figure: its body above the feet. Taps here clearly mean
+  // the figure, while taps around its feet may mean the tile it stands on.
+  torsoContains(unit, x, y) {
+    if (!this.bodyContains(unit, x, y)) return false;
+    if (unit.sprite) return y <= unit.view.y - unit.topY * 0.25;
+    return Math.hypot(x - unit.view.x, y - (unit.view.y - unit.centerY)) <= unit.hitRadius * 0.6;
+  }
+
   bodyContains(unit, x, y) {
     const dx = x - unit.view.x;
     if (unit.sprite) {

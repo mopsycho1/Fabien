@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
 import { startStep } from '../story.js';
 import { preloadArt } from '../art.js';
+import { preloadBoardArt } from '../boardArt.js';
 import { createHudTextures } from '../hud.js';
 import { startAudio, play } from '../audio.js';
 
@@ -12,10 +13,11 @@ export default class StartScene extends Phaser.Scene {
     super('StartScene');
   }
 
-  // Phaser calls preload() first. We load every character picture here, once,
-  // so they are ready for all the scenes that follow.
+  // Phaser calls preload() first. We load every character and terrain picture
+  // here, once, so they are ready for all the scenes that follow.
   preload() {
     preloadArt(this);
+    preloadBoardArt(this);
   }
 
   create() {

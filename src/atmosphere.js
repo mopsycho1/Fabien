@@ -52,7 +52,9 @@ export function createAtmosphere(scene) {
   const parts = { emitters: [] };
 
   // The sun's glow slowly breathes
-  const glow = scene.add.image(560, 600, 'fx-glow').setDepth(-19).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.7);
+  // (with the painted sky, the sun sits low on the left)
+  const sun = scene.textures.exists('terrain:backdrop') ? { x: 84, y: 337 } : { x: 560, y: 600 };
+  const glow = scene.add.image(sun.x, sun.y, 'fx-glow').setDepth(-19).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.7);
   scene.tweens.add({ targets: glow, alpha: 1, scale: 1.08, duration: 3200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 
   // Clouds drift slowly from left to right and come round again

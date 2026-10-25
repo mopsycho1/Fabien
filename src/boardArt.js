@@ -1,23 +1,69 @@
-import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, GAME_WIDTH, GAME_HEIGHT } from './config.js';
+import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, GAME_WIDTH, GAME_HEIGHT, LEVEL_HEIGHT, BASE_DEPTH, BOARD_CENTER_X, BOARD_TOP_Y } from './config.js';
 import { tileToScreen, getHeight, tileSideDepth, depthFor } from './grid.js';
 
-// How the battlefield LOOKS: ground textures, cliff sides, shadows, small
-// rocks and tufts, the rocky underside, and the sky behind. Everything here is
-// drawn in code, so no picture files are needed. When real terrain pictures
-// arrive, they can replace the painted ground textures in paintGround().
+// How the battlefield LOOKS: ground, cliff sides, shadows, the rocky
+// underside, the sky behind, and scenery around the edges. It uses the terrain
+// pictures in public/art/terrain when they are there, and falls back to
+// drawing everything in code when they are not.
 //
 // None of this changes where tiles are or how taps work. That is all in grid.js.
 
 // ---------- Colors for each kind of ground ----------
 // "top" is the surface, "side" is the cliff face below it.
+// These colors are only used if the terrain pictures are missing.
 const PALETTE = {
-  sand: { top: '#c9a66b', side: 0xa98552 },
-  cracked: { top: '#b58a52', side: 0x8f6b3e },
-  rock: { top: '#8a7358', side: 0x6a553f },
-  grass: { top: '#b3a05f', side: 0x8a7a45 },
+  sand: { top: '#b8532c', side: 0x7a3a22 },
+  dust: { top: '#c99a55', side: 0x8f6b3e },
+  cracked: { top: '#b5703a', side: 0x8f5a32 },
+  rock: { top: '#8a8278', side: 0x5a4a3f },
+  rift: { top: '#7a6e64', side: 0x4a3e35 },
+  sigil: { top: '#3a2418', side: 0x2a1a10 },
+  grass: { top: '#b8532c', side: 0x7a3a22 },
 };
-const LETTERS = { s: 'sand', c: 'cracked', r: 'rock', g: 'grass' };
-const VARIANTS = 3; // each kind of ground is painted 3 slightly different ways
+// The letters used in map.json for each kind of ground:
+//   s = red sand        d = dusty sand with pebbles   c = cracked earth
+//   r = grey stone      k = stone split by dark veins  v = cave floor with a glowing sigil
+//   g = a withered thicket on sand
+const LETTERS = { s: 'sand', d: 'dust', c: 'cracked', r: 'rock', k: 'rift', v: 'sigil', g: 'grass' };
+const VARIANTS = 3; // each kind of ground is drawn 3 slightly different ways
+
+// ---------- Terrain pictures ----------
+// The ground, cliff sides, sky and scenery are pictures in public/art/terrain,
+// cut from the tileset my cousin's art tool made. If a picture is missing, the
+// board falls back to the colors above, so the game still runs.
+const TERRAIN_FILES = {
+  'top:sand': 'top_sand.png',
+  'top:dust': 'top_dust.png',
+  'top:cracked': 'top_cracked.png',
+  'top:rock': 'top_stone.png',
+  'top:rift': 'top_rift.png',
+  'top:sigil': 'top_sigil.png',
+  'top:grass': 'top_sand.png', // a thicket stands on red sand
+  'face:leftRock': 'face_left_rock.png',
+  'face:rightRock': 'face_right_rock.png',
+  'face:leftBand': 'face_left_band.png',
+  'face:rightBand': 'face_right_band.png',
+  backdrop: 'backdrop.jpg',
+  stream: 'stream.png',
+  thicket: 'prop_thicket.png',
+  cliffLow: 'prop_cliff_low.png',
+  cliffHigh: 'prop_cliff_high.png',
+  spire: 'prop_spire.png',
+  sigilWall: 'prop_sigil_wall.png',
+};
+
+// Gives every terrain picture to the loader (called from StartScene).
+export function preloadBoardArt(scene) {
+  for (const [key, file] of Object.entries(TERRAIN_FILES)) {
+    scene.load.image('terrain:' + key, './art/terrain/' + file);
+  }
+}
+
+// The picture behind a terrain key, or null if it did not load.
+function terrainImage(scene, key) {
+  const k = 'terrain:' + key;
+  return scene.textures.exists(k) ? scene.textures.get(k).getSourceImage() : null;
+}
 
 // ---------- Small helpers ----------
 
@@ -163,11 +209,21 @@ export function createBoardTextures(scene) {
       const key = 'tile:' + kind + ':' + v;
       if (scene.textures.exists(key)) continue;
 
-      // 1. paint a flat square
+      // 1. a flat square of ground: the picture if we have one, otherwise painted in code
+      const picture = terrainImage(scene, 'top:' + kind);
       const square = document.createElement('canvas');
       square.width = S;
       square.height = S;
-      paintGround(square.getContext('2d'), kind, S, makeRandom(1000 + v * 77 + kind.length * 13));
+      const sq = square.getContext('2d');
+      if (picture) {
+        // The same picture three ways, so the ground does not look stamped:
+        // as it is, mirrored across the diamond, and turned half way round.
+        if (v === 1) sq.setTransform(0, 1, 1, 0, 0, 0);
+        if (v === 2) sq.setTransform(-1, 0, 0, -1, S, S);
+        sq.drawImage(picture, 0, 0, S, S);
+      } else {
+        paintGround(sq, kind, S, makeRandom(1000 + v * 77 + kind.length * 13));
+      }
 
       // 2. bend it into a diamond: the square's corners become the diamond's corners
       const texture = scene.textures.createCanvas(key, W, H);
@@ -204,6 +260,66 @@ export function createBoardTextures(scene) {
   }
 }
 
+// ---------- Cliff side pictures ----------
+
+// Makes (once) the picture of one side of a tile block, or returns null if the
+// cliff pictures are missing. side is 'left' or 'right', height is the tile's
+// height, variant is 0 or 1 (the rock mirrored, so the cliffs do not repeat).
+//
+// A side is a slanted strip: rock on top, and the woven band at the bottom.
+// We draw the straight rock picture through a "skew", which slants it to
+// follow the edge of the diamond.
+function sideTexture(scene, side, height, variant) {
+  const key = 'face:' + side + ':' + height + ':' + variant;
+  if (scene.textures.exists(key)) return key;
+  const rock = terrainImage(scene, 'face:' + side + 'Rock');
+  const band = terrainImage(scene, 'face:' + side + 'Band');
+  if (!rock || !band) return null;
+
+  const hw = TILE_WIDTH / 2;
+  const hh = TILE_HEIGHT / 2;
+  const rockH = height * LEVEL_HEIGHT;
+  const depth = BASE_DEPTH + rockH;
+  const texture = scene.textures.createCanvas(key, Math.ceil(hw) + 1, Math.ceil(hh + depth) + 1);
+  const ctx = texture.getContext();
+
+  // left side: the top edge runs down to the right; right side: up to the right
+  if (side === 'left') ctx.setTransform(1, hh / hw, 0, 1, 0, 0);
+  else ctx.setTransform(1, -hh / hw, 0, 1, 0, hh);
+
+  // rock, stacked up from the band as many times as it takes
+  if (rockH > 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, hw, rockH);
+    ctx.clip();
+    const pieceH = (rock.height * hw) / rock.width;
+    for (let y = rockH - pieceH, i = 0; y > -pieceH; y -= pieceH, i++) {
+      const mirrored = (variant + i) % 2 === 1;
+      ctx.save();
+      if (mirrored) {
+        ctx.translate(hw, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(rock, 0, y, hw, pieceH);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+  // the woven band along the bottom
+  ctx.drawImage(band, 0, rockH, hw, BASE_DEPTH);
+
+  // shade: light comes from the top left, so the right side is darker
+  ctx.fillStyle = side === 'left' ? 'rgba(20, 8, 2, 0.12)' : 'rgba(20, 8, 2, 0.42)';
+  ctx.fillRect(0, 0, hw, depth);
+  // a dark line along the bottom edge
+  ctx.fillStyle = 'rgba(15, 6, 2, 0.6)';
+  ctx.fillRect(0, depth - 2, hw, 2);
+
+  texture.refresh();
+  return key;
+}
+
 // ---------- One tile block ----------
 
 // Draws one tile: cliff sides with rock layers, the ground on top, shadows
@@ -220,6 +336,20 @@ export function drawTileBlock(scene, col, row, map) {
   const rand = makeRandom(col * 131 + row * 17 + 5);
 
   // --- the cliff sides ---
+  // With pictures: two slanted pictures, one each side. Without: drawn in code.
+  const variant = rand() < 0.5 ? 0 : 1;
+  const leftKey = sideTexture(scene, 'left', height, variant);
+  const rightKey = sideTexture(scene, 'right', height, 1 - variant);
+  if (leftKey && rightKey) {
+    scene.add.image(x - hw, y, leftKey).setOrigin(0, 0).setDepth(depth);
+    scene.add.image(x, y, rightKey).setOrigin(0, 0).setDepth(depth);
+    const edge = scene.add.graphics().setDepth(depth);
+    edge.lineStyle(1.5, 0x140802, 0.5); // where the two sides meet
+    edge.lineBetween(x, y + hh, x, y + hh + sideDepth);
+    drawTop(scene, col, row, map, { x, y, hw, hh, height, depth, kind, rand, pictures: true });
+    return;
+  }
+
   const sides = scene.add.graphics().setDepth(depth);
   const sideLeft = shade(palette.side, 0.85);
   const sideRight = shade(palette.side, 0.62);
@@ -261,7 +391,15 @@ export function drawTileBlock(scene, col, row, map) {
   sides.lineTo(x, y + hh + sideDepth);
   sides.strokePath();
 
-  // --- the ground on top ---
+  drawTop(scene, col, row, map, { x, y, hw, hh, height, depth, kind, rand, pictures: false });
+}
+
+// The top of a tile: the ground, shadows from taller tiles behind it, and the
+// small things lying on it (a thicket, or pebbles and tufts drawn in code).
+function drawTop(scene, col, row, map, t) {
+  const { x, y, hw, hh, height, depth, kind, rand, pictures } = t;
+
+  // --- the ground ---
   const variant = Math.floor(rand() * VARIANTS);
   const top = scene.add.image(x, y, 'tile:' + kind + ':' + variant).setDepth(depth);
   top.setTint(shade(0xffffff, Math.min(1, 0.88 + 0.04 * height))); // higher ground is a little lighter
@@ -274,7 +412,7 @@ export function drawTileBlock(scene, col, row, map) {
   const shadowStrip = (ax, ay, bx, by, strength) => {
     const a2 = insetToward(ax, ay);
     const b2 = insetToward(bx, by);
-    details.fillStyle(0x1a1008, Math.min(0.34, 0.16 * strength));
+    details.fillStyle(0x1a1008, Math.min(0.4, 0.2 * strength));
     details.beginPath();
     details.moveTo(ax, ay);
     details.lineTo(bx, by);
@@ -287,6 +425,16 @@ export function drawTileBlock(scene, col, row, map) {
   const behindRight = getHeight(col, row - 1) - height; // the tile up and to the right
   if (col > 0 && behindLeft > 0) shadowStrip(x - hw, y, x, y - hh, behindLeft);
   if (row > 0 && behindRight > 0) shadowStrip(x, y - hh, x + hw, y, behindRight);
+
+  // A withered thicket: the picture covers the whole top, with the tree on it
+  if (kind === 'grass' && scene.textures.exists('terrain:thicket')) {
+    const img = scene.add.image(x, y, 'terrain:thicket').setDepth(depth + 0.05);
+    // the thicket picture's diamond is 148 wide and 101 tall, centred 57 from its top
+    img.setOrigin(0.5, 57 / img.height).setScale(TILE_WIDTH / 148, TILE_HEIGHT / 101);
+    img.setTint(shade(0xffffff, Math.min(1, 0.88 + 0.04 * height)));
+    return;
+  }
+  if (pictures) return; // the pictures already have their own pebbles
 
   // Small things lying on the ground, kept away from the middle where units stand
   const count = rand() < 0.6 ? 1 + Math.floor(rand() * 3) : 0;
@@ -357,6 +505,8 @@ function drawDetail(g, kind, x, y, rand) {
 
 // ---------- Under the board and behind it ----------
 
+let undersideAt = { x: 0, y: 0 }; // where the underside picture goes (it is made once)
+
 // The board is a floating piece of ground. This draws the jagged rock that
 // hangs beneath it, and a soft shadow below.
 export function drawUnderside(scene) {
@@ -407,7 +557,40 @@ export function drawUnderside(scene) {
     g.closePath();
     g.fillPath();
   };
-  drawShape(0x4a3822, 1, 0);
+  const rock = terrainImage(scene, 'face:leftRock');
+  if (rock && !scene.textures.exists('underside')) {
+    // Fill the hanging shape with the cliff rock picture, repeated
+    const minX = Math.min(...path.map((p) => p.x)) - 2;
+    const maxX = Math.max(...path.map((p) => p.x)) + 2;
+    const minY = Math.min(...path.map((p) => p.y)) - 2;
+    const maxY = Math.max(...path.map((p) => p.y)) + 2;
+    const tex = scene.textures.createCanvas('underside', Math.ceil(maxX - minX), Math.ceil(maxY - minY));
+    const ctx = tex.getContext();
+    const small = document.createElement('canvas'); // the rock at board size
+    small.width = Math.round(rock.width * 0.45);
+    small.height = Math.round(rock.height * 0.45);
+    small.getContext('2d').drawImage(rock, 0, 0, small.width, small.height);
+    ctx.beginPath();
+    ctx.moveTo(path[0].x - minX, path[0].y - minY);
+    for (const p of path) ctx.lineTo(p.x - minX, p.y - minY);
+    ctx.closePath();
+    ctx.fillStyle = ctx.createPattern(small, 'repeat');
+    ctx.fill();
+    // darker the further down it hangs
+    const shadow = ctx.createLinearGradient(0, 0, 0, maxY - minY);
+    shadow.addColorStop(0, 'rgba(20, 8, 2, 0.25)');
+    shadow.addColorStop(1, 'rgba(20, 8, 2, 0.8)');
+    ctx.fillStyle = shadow;
+    ctx.fill();
+    tex.refresh();
+    undersideAt = { x: minX, y: minY };
+  }
+  if (scene.textures.exists('underside')) {
+    const at = undersideAt;
+    scene.add.image(at.x, at.y, 'underside').setOrigin(0, 0).setDepth(-3.5);
+  } else {
+    drawShape(0x4a3822, 1, 0);
+  }
 
   // right half darker, for a bit of roundness
   g.fillStyle(0x2e2214, 0.55);
@@ -434,6 +617,20 @@ export function drawUnderside(scene) {
 
 // The sky behind the board: dusk colors, a low sun, and far-off dunes.
 export function drawBackdrop(scene) {
+  // The painted wasteland, if we have it
+  if (scene.textures.exists('terrain:backdrop')) {
+    scene.add.image(0, 0, 'terrain:backdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+    // the ground fades to dark at the bottom, where the buttons are
+    const fade = scene.add.graphics().setDepth(-20);
+    for (let i = 0; i < 12; i++) {
+      fade.fillStyle(0x140e0b, (i + 1) / 12);
+      fade.fillRect(0, 800 + i * 10, GAME_WIDTH, 11);
+    }
+    fade.fillStyle(0x140e0b, 1);
+    fade.fillRect(0, 920, GAME_WIDTH, GAME_HEIGHT - 920);
+    return;
+  }
+
   const g = scene.add.graphics().setDepth(-20);
 
   // sky in bands, from dark at the top to warm near the horizon
@@ -485,4 +682,67 @@ function lerpColor(a, b, t) {
   const ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
   const br = (b >> 16) & 255, bg = (b >> 8) & 255, bb = b & 255;
   return (Math.round(ar + (br - ar) * t) << 16) | (Math.round(ag + (bg - ag) * t) << 8) | Math.round(ab + (bb - ab) * t);
+}
+
+// ---------- Scenery ----------
+
+// Draws the scenery listed in map.json under "scenery". Scenery is only
+// decoration: it never blocks a tile. Each entry is one of:
+//
+//   { "prop": "cliffHigh", "col": 4, "row": -1 }
+//       a block of rock standing at that spot. Use a row or column of -1 to
+//       put it just behind the board. Props: cliffLow, cliffHigh, spire, sigilWall.
+//       Add "flip": true to mirror it.
+//
+//   { "prop": "sandfall", "col": 1, "row": 1, "side": "left" }
+//       sand pouring off the left or right side of that tile, down to the tile
+//       in front of it.
+export function drawScenery(scene, map) {
+  const hw = TILE_WIDTH / 2;
+  const hh = TILE_HEIGHT / 2;
+  for (const item of map.scenery || []) {
+    if (item.prop === 'sandfall') {
+      drawSandfall(scene, item, hw, hh);
+      continue;
+    }
+    const key = 'terrain:' + item.prop;
+    if (!scene.textures.exists(key)) continue;
+    // where a height-0 tile at this spot would have its front bottom corner
+    const x = BOARD_CENTER_X + ((item.col - item.row) * TILE_WIDTH) / 2;
+    const y = BOARD_TOP_Y + ((item.col + item.row) * TILE_HEIGHT) / 2 + hh + BASE_DEPTH;
+    const img = scene.add.image(x, y, key).setOrigin(0.5, 1);
+    img.setScale(TILE_WIDTH / 148).setFlipX(!!item.flip);
+    img.setDepth((item.col + item.row) * 2 - 0.5); // just behind the tiles at the same distance
+  }
+}
+
+function drawSandfall(scene, item, hw, hh) {
+  if (!scene.textures.exists('terrain:stream')) return;
+  const { col, row } = item;
+  const left = item.side !== 'right';
+  // the tile the sand lands on: in front of this one, on that side
+  const nCol = left ? col : col + 1;
+  const nRow = left ? row + 1 : row;
+  const drop = getHeight(col, row) - getHeight(nCol, nRow);
+  if (drop <= 0) return;
+  const { x, y } = tileToScreen(col, row);
+  const sx = left ? x - hw / 2 : x + hw / 2; // the middle of that side's top edge
+  const sy = y + hh / 2;
+  const length = drop * LEVEL_HEIGHT + 8;
+  const stream = scene.add.image(sx, sy - 2, 'terrain:stream').setOrigin(0.5, 0);
+  stream.setDisplaySize(18, length).setDepth(depthFor(col, row) + 0.2);
+  // it shimmers as the sand flows
+  scene.tweens.add({ targets: stream, alpha: 0.82, duration: 420 + Math.random() * 200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  // and puffs a little dust where it lands
+  if (scene.textures.exists('fx-dot')) {
+    scene.add.particles(sx, sy + length - 4, 'fx-dot', {
+      speed: { min: 6, max: 22 },
+      angle: { min: 200, max: 340 },
+      scale: { start: 0.45, end: 0 },
+      alpha: { start: 0.55, end: 0 },
+      tint: 0xe8b878,
+      lifespan: 700,
+      frequency: 140,
+    }).setDepth(depthFor(nCol, nRow) + 0.3);
+  }
 }
