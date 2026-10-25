@@ -752,7 +752,10 @@ export default class BattleScene extends Phaser.Scene {
     // Locked in a stance duel: pick a stance (or More: Auto, Break away, Empower)
     if (unit.engagedWith && isStanceDuel()) {
       const star = (s) => (stanceAffinity(unit, s) === 'strong' ? '  *' : '');
-      if (this.stanceMenu === 'more') {
+      // Already acted this turn: the stances are spent, so offer End turn
+      // (a safety net; normally the turn ends by itself after a beat)
+      const doneAlready = isHero && unit.hasActed && !this.busy;
+      if (this.stanceMenu === 'more' && !doneAlready) {
         a.set('Auto: ' + stanceName(autoStance(unit)), 'star', free, () => this.onStance(autoStance(unit)), { accent: GOLD });
         b.set('Break away', 'run', free, () => this.onStance('break'));
         c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
@@ -761,7 +764,8 @@ export default class BattleScene extends Phaser.Scene {
         a.set('Press' + star('press'), 'press', free, () => this.onStance('press'), { accent: ENGAGE_COLOR, selected: this.empower });
         b.set('Guard' + star('guard'), 'shield', free, () => this.onStance('guard'), { accent: 0xd9b77a, selected: this.empower });
         c.set('Slip' + star('slip'), 'run', free, () => this.onStance('slip'), { accent: 0x9fd4ff, selected: this.empower });
-        d.set('More  >', 'gem', free, () => this.openStanceMenu('more'));
+        if (doneAlready) d.set('End turn', 'hourglass', true, () => this.onEndButton());
+        else d.set('More  >', 'gem', free, () => this.openStanceMenu('more'));
       }
       return;
     }
@@ -2333,6 +2337,13 @@ export default class BattleScene extends Phaser.Scene {
     this.performEngage(attacker, target, () => {
       this.busy = false;
       this.refreshStatus();
+      // In the stance duel the opening beat is this turn's action, and a
+      // locked unit cannot walk, so the turn is over
+      if (isStanceDuel()) {
+        this.time.delayedCall(250, () => {
+          if (!this.battleOver && this.activeUnit === attacker) this.endTurn();
+        });
+      }
     });
   }
 
