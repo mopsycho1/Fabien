@@ -300,3 +300,143 @@ export function clashFlash(scene, x, y) {
     }
   });
 }
+
+// ---------- Heavier hits and defeats ----------
+
+// A wide glowing blade crescent: a soft glow, a bright core and speed lines.
+// dir is 1 for a swing toward the right, -1 toward the left.
+export function heavySlash(scene, x, y, dir = 1, color = 0xffd27a) {
+  const glow = scene.add.graphics().setDepth(EFFECT_DEPTH).setBlendMode(Phaser.BlendModes.ADD);
+  const core = scene.add.graphics().setDepth(EFFECT_DEPTH + 1);
+  const state = { t: 0 };
+  const start = dir === 1 ? 200 : -20; // starts high behind the target and sweeps down through it
+  scene.tweens.add({
+    targets: state,
+    t: 1,
+    duration: 240,
+    onUpdate: () => {
+      const t = state.t;
+      const sweep = 150 * ease(Math.min(1, t * 1.6));
+      const from = rad(start);
+      const to = rad(start + dir * sweep);
+      const fade = 1 - t * t;
+      glow.clear();
+      core.clear();
+      glow.lineStyle(30 * (1 - t) + 6, color, 0.35 * fade);
+      glow.beginPath();
+      glow.arc(x, y, 50, from, to, dir === -1);
+      glow.strokePath();
+      core.lineStyle(10 * (1 - t) + 2, 0xffffff, fade);
+      core.beginPath();
+      core.arc(x, y, 50, from, to, dir === -1);
+      core.strokePath();
+      core.lineStyle(4 * (1 - t) + 1, color, fade);
+      core.beginPath();
+      core.arc(x, y, 60, from, to, dir === -1);
+      core.strokePath();
+    },
+    onComplete: () => {
+      glow.destroy();
+      core.destroy();
+    },
+  });
+}
+
+// The moment of impact: a white flash, a ring bursting outward, and sparks
+// that spray away from the attacker (dir: 1 = attacker on the left).
+// power from about 1 (a light hit) to 2 (a huge one) makes it all bigger.
+export function impactBurst(scene, x, y, dir = 1, color = 0xffe08a, power = 1) {
+  const sparks = [];
+  const n = Math.round(10 + 6 * power);
+  for (let i = 0; i < n; i++) {
+    const spread = (Math.random() - 0.5) * 2.2; // mostly in the direction of the blow
+    const a = (dir === 1 ? 0 : Math.PI) + spread + (Math.random() < 0.2 ? Math.PI : 0);
+    sparks.push({ a, len: 18 + Math.random() * 40 * power, w: 2 + Math.random() * 2.5 });
+  }
+  const g = scene.add.graphics().setDepth(EFFECT_DEPTH + 2).setBlendMode(Phaser.BlendModes.ADD);
+  const state = { t: 0 };
+  scene.tweens.add({
+    targets: state,
+    t: 1,
+    duration: 320,
+    onUpdate: () => {
+      const t = state.t;
+      g.clear();
+      // flash
+      g.fillStyle(0xffffff, 0.9 * (1 - t) * (1 - t));
+      g.fillCircle(x, y, (14 + 26 * power) * (0.4 + t));
+      // ring
+      g.lineStyle(5 * (1 - t) + 1, color, 0.9 * (1 - t));
+      g.strokeCircle(x, y, (20 + 50 * power) * ease(t));
+      // sparks
+      for (const s of sparks) {
+        const r0 = 8 + s.len * 0.6 * ease(t);
+        const r1 = 8 + s.len * 1.4 * ease(t);
+        g.lineStyle(s.w * (1 - t) + 0.5, t < 0.3 ? 0xffffff : color, 1 - t);
+        g.lineBetween(x + Math.cos(s.a) * r0, y + Math.sin(s.a) * r0 * 0.8, x + Math.cos(s.a) * r1, y + Math.sin(s.a) * r1 * 0.8);
+      }
+    },
+    onComplete: () => g.destroy(),
+  });
+}
+
+// A flat ring rushing out along the ground, like a shockwave.
+export function groundRing(scene, x, y, color = 0xffd08a, size = 1) {
+  const g = scene.add.graphics().setDepth(EFFECT_DEPTH - 1).setBlendMode(Phaser.BlendModes.ADD);
+  const state = { t: 0 };
+  scene.tweens.add({
+    targets: state,
+    t: 1,
+    duration: 420,
+    onUpdate: () => {
+      const t = state.t;
+      g.clear();
+      g.lineStyle(6 * (1 - t) + 1, color, 0.8 * (1 - t));
+      g.strokeEllipse(x, y, 140 * size * ease(t) + 10, 56 * size * ease(t) + 4);
+    },
+    onComplete: () => g.destroy(),
+  });
+}
+
+// A burst of glowing embers from a body, drifting up as it burns away.
+// Uses the soft dot made by atmosphere.js.
+export function emberBurst(scene, x, y, colors, count = 40, height = 80) {
+  if (!scene.textures.exists('fx-dot')) return;
+  const emitter = scene.add.particles(0, 0, 'fx-dot', {
+    x: { min: x - 22, max: x + 22 },
+    y: { min: y - height, max: y },
+    speedX: { min: -30, max: 30 },
+    speedY: { min: -120, max: -30 },
+    scale: { start: 0.55, end: 0 },
+    alpha: { start: 1, end: 0 },
+    tint: colors,
+    lifespan: { min: 700, max: 1400 },
+    blendMode: 'ADD',
+    emitting: false,
+  });
+  emitter.setDepth(EFFECT_DEPTH);
+  emitter.explode(count);
+  scene.time.delayedCall(1600, () => emitter.destroy());
+}
+
+// A soft column of light rising from where a fighter fell.
+export function lightColumn(scene, x, y, color = 0xffb35c) {
+  const g = scene.add.graphics().setDepth(EFFECT_DEPTH - 1).setBlendMode(Phaser.BlendModes.ADD);
+  const state = { t: 0 };
+  scene.tweens.add({
+    targets: state,
+    t: 1,
+    duration: 900,
+    onUpdate: () => {
+      const t = state.t;
+      const a = Math.sin(t * Math.PI) * 0.45;
+      const w = 30 * (1 - t * 0.6);
+      g.clear();
+      for (let i = 0; i < 4; i++) {
+        g.fillStyle(color, a / (i + 1));
+        g.fillRect(x - w / 2 - i * 5, y - 220 * ease(t) - 10, w + i * 10, 220 * ease(t) + 10);
+      }
+    },
+    onComplete: () => g.destroy(),
+  });
+}

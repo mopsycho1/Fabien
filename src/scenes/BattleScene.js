@@ -21,7 +21,7 @@ import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, round
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting } from '../boardArt.js';
-import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash } from '../effects.js';
+import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
 import {
   isMelee,
   styleOf,
@@ -90,6 +90,12 @@ export default class BattleScene extends Phaser.Scene {
     this.uiCam.fadeIn(500, 0, 0, 0);
 
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
+    // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
+    this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
+    this.inHitStop = false;
+    this.inCinematic = false;
+    this.setSpeed('base', 1);
+
     setBoardSetting(mapData.setting); // "cave" or "wasteland" (see map.json)
     createBoardTextures(this); // paint the ground textures once
     drawBackdrop(this);        // the cave's darkness, or the sky
@@ -1229,7 +1235,7 @@ export default class BattleScene extends Phaser.Scene {
     // Pause so the player sees the result, then either show the final
     // screen or carry on with the turn.
     const finish = () =>
-      this.time.delayedCall(lethal ? 1000 : 700, () => {
+      this.time.delayedCall(lethal ? 1500 : 800, () => {
         if (outcome) {
           this.busy = false; // nothing is happening any more; the battleOver flag blocks taps
           this.showResult(outcome);
@@ -1385,26 +1391,85 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // Lunge toward the target, land the blow, then step back
-    play('slash');
+    // Close fighters: wind up, dash in leaving after-images, strike, step back
+    this.showPose(attacker, 'windup', dx);
     this.tweens.add({
       targets: attacker.view,
-      x: from.x + (dx / dist) * 18,
-      y: from.y + (dy / dist) * 9,
-      duration: 110,
-      ease: 'Quad.easeIn',
+      x: from.x - (dx / dist) * 8, // draw back a little first
+      y: from.y - (dy / dist) * 4,
+      duration: 150,
+      ease: 'Quad.easeOut',
       onComplete: () => {
-        impact();
+        play('whoosh');
+        this.showAttackPose(attacker, dx);
+        this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
           targets: attacker.view,
-          x: from.x,
-          y: from.y,
-          duration: 170,
-          ease: 'Quad.easeOut',
-          onComplete: () => this.showStanding(attacker),
+          x: from.x + (dx / dist) * 30,
+          y: from.y + (dy / dist) * 15,
+          duration: 90,
+          ease: 'Quad.easeIn',
+          onComplete: () => {
+            impact();
+            this.tweens.add({
+              targets: attacker.view,
+              x: from.x,
+              y: from.y,
+              delay: 140,
+              duration: 220,
+              ease: 'Quad.easeOut',
+              onComplete: () => this.showStanding(attacker),
+            });
+          },
         });
       },
     });
+  }
+
+  // A fading copy of a unit where it is now, for a sense of speed.
+  afterimage(unit) {
+    if (!unit.view || !unit.view.active) return;
+    let ghost;
+    if (unit.sprite) {
+      ghost = this.add.image(unit.view.x + unit.sprite.x, unit.view.y + unit.sprite.y, unit.sprite.texture.key);
+      ghost.setOrigin(unit.sprite.originX, unit.sprite.originY).setScale(unit.sprite.scaleX, unit.sprite.scaleY).setFlipX(unit.sprite.flipX);
+    } else {
+      ghost = this.add.circle(unit.view.x, unit.view.y - unit.centerY, 22, SIDE_COLORS[unit.side]);
+    }
+    ghost.setDepth(unit.view.depth - 0.1).setAlpha(0.45).setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({ targets: ghost, alpha: 0, duration: 240, onComplete: () => ghost.destroy() });
+  }
+
+  // Freezes the action for a split second when a blow lands, so it feels heavy.
+  // It slows the scene's clock almost to a stop, then lets it run again.
+  hitStop(ms) {
+    if (this.inHitStop) return;
+    this.inHitStop = true;
+    ms /= this.speed.base * this.speed.skip; // shorter when the action is sped up
+    this.setSpeed('hitStop', 0.03);
+    // Real time, because the scene's own clock is nearly stopped
+    window.setTimeout(() => {
+      this.setSpeed('hitStop', 1);
+      this.inHitStop = false;
+    }, ms);
+  }
+
+  // The camera jolts in a little toward a hit, then settles.
+  cameraPunch(power) {
+    if (this.inCinematic) return;
+    const cam = this.cameras.main;
+    cam.zoomTo(1 + 0.03 * power, 50, 'Quad.easeOut', true);
+    this.time.delayedCall(70, () => {
+      if (!this.inCinematic) cam.zoomTo(1, 220, 'Quad.easeOut', true);
+    });
+  }
+
+  // Thrown back by a blow, away from the attacker, then steadies.
+  knockback(unit, dx, power) {
+    const push = (dx >= 0 ? 1 : -1) * 14 * power;
+    const x0 = unit.view.x;
+    this.tweens.add({ targets: unit.view, x: x0 + push, duration: 90, ease: 'Quad.easeOut', yoyo: true, hold: 120 });
+    dustPuff(this, unit.view.x + push, unit.view.y);
   }
 
   // What happens at the moment a blow lands (or misses).
@@ -1420,24 +1485,38 @@ export default class BattleScene extends Phaser.Scene {
       this.sidestep(target, dx);
       return;
     }
-    play(style === 'bash' ? 'bash' : 'hit');
+    const dir = dx >= 0 ? 1 : -1;
+    const power = Math.min(2, 0.8 + result.damage / 8) * (lethal ? 1.3 : 1);
+    const color = style === 'spark' ? 0x9fd4ff : 0xffd27a;
 
-    if (style === 'slash') slashArc(this, spot.x, spot.y, dx >= 0 ? 1 : -1);
+    this.hitStop(lethal ? 150 : result.damage >= 8 ? 95 : 65);
+    play(style === 'bash' ? 'bash' : 'impact');
+
+    if (style === 'slash') heavySlash(this, spot.x, spot.y, dir, color);
     if (style === 'bash') {
       dustPuff(this, target.view.x, target.view.y);
       screenShake(this, 0.004, 120);
     }
-    hitSpark(this, spot.x, spot.y, style === 'spark' ? 0x9fd4ff : 0xffe08a);
+    impactBurst(this, spot.x, spot.y, dir, color, power);
+    groundRing(this, target.view.x, target.view.y, color, 0.6 + 0.3 * power);
 
     this.flashUnit(target);
-    this.recoil(target, dx);
     this.updateHpBar(target);
-    this.floatText(target, '-' + result.damage, '#ff6b5a');
+    this.floatText(target, '-' + result.damage, result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9 });
+    this.cameraPunch(power);
 
     // Big hits and finishing blows shake the screen
-    if (result.damage >= 9 || target.hp === 0) screenShake(this, 0.004, 140);
+    if (result.damage >= 9 || target.hp === 0) screenShake(this, 0.005 * power, 160);
 
-    if (target.hp === 0) this.playDefeat(target);
+    if (target.hp === 0) {
+      this.playDefeat(target, dx);
+    } else {
+      this.showPose(target, 'hurt', -dx); // flinch, facing the attacker
+      this.knockback(target, dx, power);
+      this.time.delayedCall(420, () => {
+        if (target.alive) this.showStanding(target);
+      });
+    }
     if (lethal) this.finisherSlowMotion();
   }
 
@@ -1447,11 +1526,9 @@ export default class BattleScene extends Phaser.Scene {
     const flash = this.ui(this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0.55).setDepth(240));
     this.tweens.add({ targets: flash, alpha: 0, duration: 260, onComplete: () => flash.destroy() });
     screenShake(this, 0.008, 220);
-    this.tweens.timeScale *= 0.35;
-    this.time.timeScale *= 0.35;
+    this.setSpeed('slowMo', 0.35);
     this.time.delayedCall(260, () => {
-      this.tweens.timeScale /= 0.35;
-      this.time.timeScale /= 0.35;
+      this.setSpeed('slowMo', 1);
       this.resetCamera(360);
       this.time.delayedCall(300, () => this.endCinematic());
     });
@@ -1493,43 +1570,94 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  // The fall: a puff of dust, then it topples and fades. Pictures tip over.
-  playDefeat(unit) {
+  // The fall. The fighter is thrown back away from the blow, crashes down
+  // with dust and a shockwave, lies still for a moment, then burns away into
+  // rising embers. dx is the direction the blow came from (as in showImpact).
+  playDefeat(unit, dx = 0) {
     if (!unit.view || !unit.view.active) return;
     if (unit.idleTween) unit.idleTween.stop();
-    play('fall');
-    dustPuff(this, unit.view.x, unit.view.y);
+    const away = dx >= 0 ? 1 : -1;
+    const view = unit.view;
 
-    const tip = unit.sprite ? (unit.facing.endsWith('Right') ? 80 : -80) : 0;
+    // the health bar, badge and tags go at once; only the figure is left
+    for (const piece of view.list) if (!unit.idleTargets.includes(piece)) piece.setVisible(false);
+
+    const hasDown = !!poseFrame(unit.id, 'down', 'right');
+    this.showPose(unit, 'knocked', -dx);
+    const x0 = view.x;
+    const y0 = view.y;
+    const flight = { p: 0 };
     this.tweens.add({
-      targets: unit.view,
-      angle: tip,
-      alpha: 0,
-      duration: 520,
-      ease: 'Quad.easeIn',
-      onComplete: () => unit.view.destroy(),
+      targets: flight,
+      p: 1,
+      duration: 380,
+      ease: 'Quad.easeOut',
+      onUpdate: () => {
+        view.x = x0 + away * 36 * flight.p;
+        view.y = y0 - Math.sin(flight.p * Math.PI) * 28;
+        if (!hasDown) view.angle = away * 85 * flight.p; // no lying-down picture: topple over
+      },
+      onComplete: () => {
+        // the crash
+        play('crash');
+        if (hasDown) this.showPose(unit, 'down', -dx);
+        dustPuff(this, view.x, view.y);
+        groundRing(this, view.x, view.y, 0xe8c08a, 1.2);
+        screenShake(this, 0.006, 170);
+        this.tweens.add({ targets: view, y: view.y - 6, duration: 80, yoyo: true });
+
+        // a moment later, it burns away
+        this.time.delayedCall(520, () => {
+          if (!view.active) return;
+          const embers = unit.side === 'enemy' ? [0xff7a2e, 0xffb04a, 0xffd27a] : [0x9fd4ff, 0xffffff, 0x7fd6cf];
+          emberBurst(this, view.x, view.y, embers, 46, unit.sprite ? 50 : 40);
+          lightColumn(this, view.x, view.y, unit.side === 'enemy' ? 0xff9a4a : 0x9fd4ff);
+          this.tweens.add({ targets: view, alpha: 0.25, duration: 60, yoyo: true, repeat: 2 });
+          this.tweens.add({ targets: view, alpha: 0, delay: 360, duration: 520, onComplete: () => view.destroy() });
+        });
+      },
     });
   }
 
   // Text that floats up from a unit and fades, like "-7" or "Miss".
-  floatText(unit, text, color) {
+  floatText(unit, text, color, options = {}) {
+    const big = !!options.big;
     const label = this.add
       .text(unit.view.x, unit.view.y - unit.topY - 20, text, {
         fontFamily: 'Georgia, serif',
-        fontSize: '40px',
+        fontSize: big ? '54px' : '40px',
         fontStyle: 'bold',
         color,
         stroke: '#1a1410',
-        strokeThickness: 6,
+        strokeThickness: big ? 8 : 6,
       })
       .setOrigin(0.5)
       .setDepth(80); // above every tile and unit
 
+    if (!options.pop) {
+      this.tweens.add({
+        targets: label,
+        y: label.y - 60,
+        alpha: 0,
+        duration: 900,
+        onComplete: () => label.destroy(),
+      });
+      return;
+    }
+
+    // Damage numbers pop: they burst out big, bounce up and to the side,
+    // hold for a beat so you can read them, then float away.
+    const drift = (Math.random() < 0.5 ? -1 : 1) * (10 + Math.random() * 14);
+    label.setScale(0.3);
+    this.tweens.add({ targets: label, scale: big ? 1.35 : 1.15, duration: 130, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: label, scale: 1, delay: 130, duration: 120 });
+    this.tweens.add({ targets: label, x: label.x + drift, y: label.y - 34, duration: 260, ease: 'Quad.easeOut' });
     this.tweens.add({
       targets: label,
-      y: label.y - 60,
+      y: label.y - 70,
       alpha: 0,
-      duration: 900,
+      delay: 620,
+      duration: 380,
       onComplete: () => label.destroy(),
     });
   }
@@ -1562,7 +1690,7 @@ export default class BattleScene extends Phaser.Scene {
     survivors.forEach((u, i) => {
       this.time.delayedCall(i * 140, () => {
         const foeSide = won ? 1 : -1;
-        this.showPose(u, 'attack', foeSide);
+        this.showPose(u, poseFrame(u.id, 'victory', 'right') ? 'victory' : 'attack', foeSide); // a victory pose if it has one
         this.tweens.add({ targets: u.idleTargets, y: '-=18', duration: 150, yoyo: true, repeat: 2, ease: 'Sine.easeOut' });
       });
     });
@@ -2076,14 +2204,24 @@ export default class BattleScene extends Phaser.Scene {
     if (this.inCinematic) return;
     this.inCinematic = true;
     this.skipped = false;
-    this.savedSpeed = { tweens: this.tweens.timeScale, time: this.time.timeScale };
   }
 
   skipCinematic() {
     if (!this.inCinematic || this.skipped) return;
     this.skipped = true;
-    this.tweens.timeScale = this.savedSpeed.tweens * 5;
-    this.time.timeScale = this.savedSpeed.time * 5;
+    this.setSpeed('skip', 5);
+  }
+
+  // How fast the battle runs. Several things change the speed, sometimes at
+  // the same moment: skipping a cut-in (5 times faster), the finishing-blow
+  // slow motion, and the split-second freeze when a blow lands. Each keeps its
+  // own factor, and the real speed is all of them multiplied together, so one
+  // can never undo or trap another. "base" is the normal speed (1).
+  setSpeed(name, factor) {
+    this.speed[name] = factor;
+    const total = Object.values(this.speed).reduce((a, b) => a * b, 1);
+    this.tweens.timeScale = total;
+    this.time.timeScale = total;
   }
 
   endCinematic() {
@@ -2094,8 +2232,8 @@ export default class BattleScene extends Phaser.Scene {
     cam.zoomEffect.reset();
     cam.setZoom(1);
     cam.centerOn(GAME_WIDTH / 2, GAME_HEIGHT / 2);
-    this.tweens.timeScale = this.savedSpeed.tweens;
-    this.time.timeScale = this.savedSpeed.time;
+    this.setSpeed('skip', 1);
+    this.setSpeed('slowMo', 1);
     this.inCinematic = false;
     this.skipped = false;
   }

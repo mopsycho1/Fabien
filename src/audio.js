@@ -119,6 +119,23 @@ const SOUNDS = {
   slash() {
     hiss({ length: 0.18, volume: 0.35, from: 900, to: 4200, q: 1.4 });
   },
+  // The quick rush of air as a fighter dashes in
+  whoosh() {
+    hiss({ length: 0.14, volume: 0.32, from: 600, to: 2600, q: 0.9 });
+  },
+  // A blow that really lands: a deep punch, a crack, and a bright edge
+  impact() {
+    tone({ type: 'sine', from: 180, to: 42, length: 0.24, volume: 0.75 });
+    tone({ type: 'square', from: 90, to: 50, length: 0.08, volume: 0.12 });
+    hiss({ length: 0.07, volume: 0.45, filter: 'highpass', from: 2400, to: 900 });
+    hiss({ start: 0.02, length: 0.16, volume: 0.3, filter: 'lowpass', from: 1500, to: 200 });
+  },
+  // A body crashing down, then embers crackling as it burns away
+  crash() {
+    tone({ type: 'sine', from: 110, to: 30, length: 0.55, volume: 0.8 });
+    hiss({ length: 0.35, volume: 0.4, filter: 'lowpass', from: 900, to: 100 });
+    for (let i = 0; i < 7; i++) hiss({ start: 0.45 + i * 0.09 + Math.random() * 0.05, length: 0.03, volume: 0.12, filter: 'highpass', from: 3500 });
+  },
   // A blow landing on a body
   hit() {
     tone({ type: 'sine', from: 140, to: 48, length: 0.18, volume: 0.55 });

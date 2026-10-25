@@ -1,4 +1,62 @@
 {
+  "h1": {
+    "note": "Sudeen, 7. Placed in the hero Guardian slot (he carries a shield) until the cave fight's cast is set.",
+    "height": 88,
+    "standing": {
+      "downRight": {
+        "file": "sudeen_stand_downRight.png",
+        "originX": 0.528
+      },
+      "upLeft": {
+        "file": "sudeen_stand_upLeft.png",
+        "originX": 0.483
+      },
+      "upRight": {
+        "file": "sudeen_stand_upRight.png",
+        "originX": 0.493
+      }
+    },
+    "poses": {
+      "windup": {
+        "file": "sudeen_windup.png",
+        "originX": 0.604
+      },
+      "ready": {
+        "file": "sudeen_ready.png",
+        "originX": 0.519
+      },
+      "attack": {
+        "file": "sudeen_attack.png",
+        "originX": 0.556
+      },
+      "cast": {
+        "file": "sudeen_cast.png",
+        "originX": 0.464
+      },
+      "guard": {
+        "file": "sudeen_guard.png",
+        "originX": 0.493
+      },
+      "hurt": {
+        "file": "sudeen_hurt.png",
+        "originX": 0.507
+      },
+      "knocked": {
+        "file": "sudeen_knocked.png",
+        "originX": 0.606
+      },
+      "down": {
+        "file": "sudeen_down.png",
+        "originX": 0.564
+      },
+      "victory": {
+        "file": "sudeen_victory.png",
+        "originX": 0.475
+      }
+    },
+    "portrait": "sudeen_face.png",
+    "shout": "sudeen_shout.png"
+  },
   "h2": {
     "note": "The red-cloaked swordsman from the new sheets. TEMPORARY placement as the Scout until we know who he is.",
     "height": 100,
