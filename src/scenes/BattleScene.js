@@ -20,7 +20,7 @@ import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey } fr
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
-import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery } from '../boardArt.js';
+import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting } from '../boardArt.js';
 import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash } from '../effects.js';
 import {
   isMelee,
@@ -83,10 +83,11 @@ export default class BattleScene extends Phaser.Scene {
     this.uiCam.fadeIn(500, 0, 0, 0);
 
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
+    setBoardSetting(mapData.setting); // "cave" or "wasteland" (see map.json)
     createBoardTextures(this); // paint the ground textures once
-    drawBackdrop(this);        // sky and far dunes
-    createAtmosphere(this);    // clouds, sun glow, blowing sand, embers
-    drawUnderside(this);       // the rock hanging under the board
+    drawBackdrop(this);        // the cave's darkness, or the sky
+    createAtmosphere(this, mapData.setting); // light and dust in a cave; clouds, sun, sand and embers outside
+    drawUnderside(this);       // the cave floor around the board, or the rock hanging under it
     this.drawBoard();
     drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
 

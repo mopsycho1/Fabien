@@ -47,9 +47,10 @@ function makeTextures(scene) {
   glow.refresh();
 }
 
-export function createAtmosphere(scene) {
+export function createAtmosphere(scene, setting) {
   makeTextures(scene);
   const parts = { emitters: [] };
+  if (setting === 'cave') return caveAtmosphere(scene, parts);
 
   // The sun's glow slowly breathes
   // (with the painted sky, the sun sits low on the left)
@@ -122,5 +123,68 @@ export function createAtmosphere(scene) {
   };
   scene.time.delayedCall(4000 + Math.random() * 4000, gust);
 
+  return parts;
+}
+
+// Inside the cave: no sky, no wind. One shaft of daylight falls through a
+// crack in the ceiling onto the board, dust drifts in it, and the edges of the
+// screen sink into darkness.
+function caveAtmosphere(scene, parts) {
+  // the shaft of light: a soft slanted beam, brighter at the top
+  if (!scene.textures.exists('fx-beam')) {
+    const W = 360;
+    const H = 760;
+    const beam = scene.textures.createCanvas('fx-beam', W, H);
+    const b = beam.getContext();
+    // many faint layers, each a little narrower, so the edges of the beam are soft
+    for (let i = 0; i < 14; i++) {
+      const t = i / 13; // 0 = widest and faintest, 1 = the bright core
+      const grad = b.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, `rgba(255, 214, 150, ${0.05 + 0.03 * t})`);
+      grad.addColorStop(0.75, `rgba(255, 190, 120, ${0.02 + 0.015 * t})`);
+      grad.addColorStop(1, 'rgba(255, 190, 120, 0)');
+      b.fillStyle = grad;
+      const top = 0.06 + 0.1 * t; // half width at the top, as a share of W
+      const bottom = 0.5 - 0.3 * t; // half width at the bottom
+      b.beginPath();
+      b.moveTo(W * (0.5 - top), 0);
+      b.lineTo(W * (0.5 + top), 0);
+      b.lineTo(W * (0.5 + bottom), H);
+      b.lineTo(W * (0.5 - bottom), H);
+      b.closePath();
+      b.fill();
+    }
+    beam.refresh();
+
+    // darkness around the edges of the screen
+    const V = scene.textures.createCanvas('fx-vignette', 360, 640);
+    const v = V.getContext();
+    const vg = v.createRadialGradient(180, 300, 90, 180, 320, 380);
+    vg.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    vg.addColorStop(0.6, 'rgba(5, 2, 1, 0.35)');
+    vg.addColorStop(1, 'rgba(5, 2, 1, 0.92)');
+    v.fillStyle = vg;
+    v.fillRect(0, 0, 360, 640);
+    V.refresh();
+  }
+  const beam = scene.add.image(250, 150, 'fx-beam').setOrigin(0.5, 0).setDepth(70).setBlendMode(Phaser.BlendModes.ADD).setAngle(-11).setAlpha(0.9);
+  scene.tweens.add({ targets: beam, alpha: 0.65, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  scene.add.image(0, 0, 'fx-vignette').setOrigin(0, 0).setDisplaySize(GAME_WIDTH, 1280).setDepth(72);
+
+  // dust floating slowly in the light
+  const dust = scene.add.particles(0, 0, 'fx-dot', {
+    x: { min: 200, max: 470 },
+    y: { min: 200, max: 760 },
+    speedX: { min: -6, max: 6 },
+    speedY: { min: 2, max: 12 },
+    lifespan: 7000,
+    scale: { min: 0.08, max: 0.22 },
+    alpha: { start: 0.65, end: 0 },
+    tint: [0xffe2b0, 0xf0c890],
+    frequency: 160,
+    blendMode: 'ADD',
+  });
+  dust.setDepth(71);
+  parts.emitters.push(dust);
   return parts;
 }

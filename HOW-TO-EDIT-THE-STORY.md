@@ -101,12 +101,15 @@ The same file also has `terrain`, which says what kind of ground each tile is. I
 - Raised tiles look best as `c` (cracked earth), like the ledges in the map picture. Use `v` sparingly: it is the special floor in front of the sigil wall.
 - Keep exactly 8 rows of 8 letters, and a comma after every row except the last.
 
+The file also has `setting`: `"cave"` or `"wasteland"`. A cave is dark, closed in by rock walls, with torchlight and a shaft of daylight, and the floor fades into darkness around the board. The wasteland has the painted desert sky and the board floats over it. The first fight uses the cave.
+
 The file also has `scenery`: decoration around and on the board. It never blocks a tile.
 
     { "prop": "sigilWall", "col": 6, "row": -1 }
     { "prop": "sandfall", "col": 1, "row": 1, "side": "left" }
 
 - A block prop stands at a column and row. Use row `-1` (or column `-1`) for just behind the board, and `-2` for one step further back. The props are `cliffLow`, `cliffHigh`, `spire` (a stone spike) and `sigilWall` (the carved cavern wall). Add `"flip": true` to mirror one.
+- A `torch` hangs on a wall at that spot: `{ "prop": "torch", "col": 4, "row": -1 }`. It flickers and gives off sparks.
 - A `sandfall` pours sand off the `left` or `right` side of a raised tile, down onto the lower tile in front of it. It only shows if that tile really is lower.
 - The pictures live in `public/art/terrain`. Replacing a picture there with a new one of the same name changes it everywhere.
 
