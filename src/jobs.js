@@ -4,10 +4,16 @@
 
 // Used for any number a job or unit forgot to give, so a typo in the data
 // files cannot break a battle.
+//   attack, defense         : weapons (swords, spears, arrows) and armour against them
+//   magicAttack, magicDefense: spells (lightning) and the will to resist them
+//   mp                      : magic points, spent on spells (0 for units with no spells)
 const DEFAULT_STATS = {
   hp: 20,
+  mp: 0,
   attack: 5,
   defense: 1,
+  magicAttack: 1,
+  magicDefense: 1,
   accuracy: 80,
   evade: 10,
   speed: 8,
@@ -45,10 +51,15 @@ export function buildUnit(entry, jobs) {
     ...stats,
     jobName: job ? job.name : 'Unknown',
     badge: job ? job.badge : '?',
-    attackEffect: job && job.attackEffect ? job.attackEffect : 'slash', // how its attack looks: slash, bash or arrow
+    attackEffect: job && job.attackEffect ? job.attackEffect : 'slash', // how its attack looks: slash, bash, arrow or spark
+    attackType: job && job.attackType === 'magic' ? 'magic' : 'weapon', // magic uses magicAttack against magicDefense
+    maxMp: stats.mp, // a full pool of magic points
     contest: job && job.contest ? { ...job.contest } : null, // engagement style and numbers (melee jobs only)
     spells: job && job.spells ? [...job.spells] : [], // spells this job can cast
+    attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
+    chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy
+    closePenalty: job && job.closePenalty ? job.closePenalty : 0, // harder to aim at someone right next to you
     engagedWith: null, // the unit it is locked in an engagement with, if any
-    status: { offBalance: false, buff: null },
+    status: { offBalance: false, buff: null, hex: null, cooldowns: {} },
   };
 }

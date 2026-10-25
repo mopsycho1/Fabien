@@ -12,8 +12,8 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted } from '../combat.js';
-import { chooseMoveTile } from '../enemyAi.js';
+import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage } from '../combat.js';
+import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey } from '../art.js';
@@ -38,11 +38,18 @@ import {
   sumParts,
   contestEdge,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
 import spells from '../data/spells.json';   // the Sage's spells
+
+// Says when a spell can be used, from its "use" tag in spells.json.
+function useText(spell) {
+  if (spell.use === 'both') return 'works in a clash too';
+  if (spell.use === 'engagement') return 'only in a clash';
+  return 'not during a clash';
+}
 
 // One color for each side
 const SIDE_COLORS = { hero: 0x3fa7a0, enemy: 0xb5523b };
@@ -108,6 +115,9 @@ export default class BattleScene extends Phaser.Scene {
     this.targetsInRange = [];       // the enemies the active hero can attack
     this.pendingTarget = null;      // the enemy picked, waiting for a second tap
     this.selectedSpell = null;      // the spell picked, waiting for a target
+    this.spellGroup = null;         // a group of spells opened in the menu, like 'Verse'
+    this.pendingTile = null;        // the tile picked for Husk, waiting for a second tap
+    this.decoys = [];               // Husk decoys: their swarm blocks a tile until the caster's next turn
     this.engageMarks = [];          // the lines and icons drawn between engaged units
     this.inCinematic = false;       // true while a cut-in or clash plays (a tap speeds it up)
     this.viewing = null;            // a unit the player tapped to look at
@@ -236,7 +246,7 @@ export default class BattleScene extends Phaser.Scene {
 
     L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id), { active: unit === this.activeUnit }));
     L.add(this.add.text(160, 990, unit.name, textStyle(27, '#ffe08a')));
-    const role = unit.contest ? STYLE_NAMES[styleOf(unit)] : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
+    const role = unit.contest ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
     L.add(this.add.text(160, 1026, unit.jobName + '  ·  ' + role, textStyle(18, '#e4c27c')));
 
     const frac = Math.max(0, unit.hp / unit.maxHp);
@@ -255,8 +265,11 @@ export default class BattleScene extends Phaser.Scene {
         .setOrigin(1, 0)
     );
 
-    L.add(this.add.text(30, 1122, 'ATK ' + unit.attack + '   DEF ' + unit.defense + '   SPD ' + unit.speed, textStyle(17, '#d8c8a4')));
-    L.add(this.add.text(30, 1148, 'MOV ' + unit.move + '   RNG ' + unit.range, textStyle(17, '#d8c8a4')));
+    // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
+    const now = (stat) => unit[stat] + statMod(unit, stat);
+    L.add(this.add.text(30, 1122, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
+    const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : '';
+    L.add(this.add.text(30, 1148, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
     // conditions as small chips
     let x = 30;
@@ -326,7 +339,7 @@ export default class BattleScene extends Phaser.Scene {
       if (hiddenTile) return at(hiddenTile);
     }
 
-    if (this.mode === 'move') {
+    if (this.mode === 'move' || this.mode === 'huskTile') {
       if (this.reachableKeys.has(tile.col + ',' + tile.row)) return tile;
       // A blue tile partly hidden behind a taller block in front of it
       for (const key of this.reachableKeys) {
@@ -500,6 +513,9 @@ export default class BattleScene extends Phaser.Scene {
     this.turnCount++;
     this.activeUnit = startNextTurn(this.units);
     clearOffBalance(this.activeUnit); // it has found its footing again
+    clearExposed(this.activeUnit);    // and it is on guard again after Meditating
+    restoreMp(this.activeUnit, 1);     // magic points come back slowly, 1 a turn
+    this.removeDecoys(this.activeUnit); // its decoy's swarm scatters
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     for (const unit of this.units) this.faceNearestOpponent(unit);
     this.refreshStatusTags();
@@ -592,10 +608,13 @@ export default class BattleScene extends Phaser.Scene {
       const notes = [];
       if (isDistracted(target, unit)) notes.push('distracted');
       if (isOffBalance(target)) notes.push('off-balance');
+      if (unit.closePenalty && distance(unit, target) <= 1) notes.push('too close to aim');
+      const next = chainTarget(unit, target, this.units);
+      const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
       text =
         target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
-        getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') +
-        '.\nTap again to attack.';
+        getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
+        '\nTap again to attack.';
     } else if (this.mode === 'attack') {
       text = 'Tap a red tile to choose a target';
     } else if (this.mode === 'engage' && this.pendingTarget) {
@@ -608,13 +627,18 @@ export default class BattleScene extends Phaser.Scene {
         'You ' + mine + ' vs them ' + theirs + ', plus dice. Tap again.';
     } else if (this.mode === 'engage') {
       text = 'Tap an orange tile to engage';
+    } else if (this.mode === 'spell' && this.selectedSpell) {
+      const spell = spells[this.selectedSpell];
+      text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
     } else if (this.mode === 'spell') {
-      text = 'Choose a spell';
+      text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTarget) {
       const spell = spells[this.selectedSpell];
-      text = spell.name + ' on ' + this.pendingTarget.name + ':\n' + spell.text + ' Tap again.';
+      text = spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' + spell.text;
     } else if (this.mode === 'spellTarget') {
-      text = 'Tap a gold tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a ' + (spells[this.selectedSpell].kind === 'hex' ? 'purple' : 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+    } else if (this.mode === 'huskTile') {
+      text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith) {
       text =
         (unit.side === 'hero' ? 'Your turn: ' : 'Enemy turn: ') + unit.name +
@@ -644,20 +668,15 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // Choosing a spell: one button per spell, and Back
-    if (isHero && (this.mode === 'spell' || this.mode === 'spellTarget')) {
+    // Choosing a spell: the spells (or groups of spells, like Verse) and Back
+    if (isHero && (this.mode === 'spell' || this.mode === 'spellTarget' || this.mode === 'huskTile')) {
+      const entries = this.spellMenu(unit);
       [a, b, c].forEach((slot, i) => {
-        const id = unit.spells[i];
-        if (id) {
-          slot.set(spells[id].name, 'gem', true, () => this.chooseSpell(id), {
-            selected: this.selectedSpell === id,
-            accent: Phaser.Display.Color.HexStringToColor(spells[id].color).color,
-          });
-        } else {
-          slot.set(null);
-        }
+        const e = entries[i];
+        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent });
+        else slot.set(null);
       });
-      d.set('Back', 'back', true, () => this.cancelMode());
+      d.set('Back', 'back', true, () => this.spellBack());
       return;
     }
 
@@ -672,7 +691,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // Normal turn: Move, Attack, Engage or Spell, End turn
     a.set('Move', 'run', isHero && !unit.hasMoved, () => this.onMoveButton(), { selected: this.mode === 'move' });
-    b.set('Attack', 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: 0xff8a6a });
+    b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
     if (isMelee(unit)) {
       c.set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
@@ -759,15 +778,123 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshStatus();
   }
 
-  // A spell was picked: show who it can reach (anyone, on either side).
+  // The buttons in the spell menu. Spells that share a "group" in spells.json
+  // (like the three Verses) sit behind one button that opens them.
+  spellMenu(unit) {
+    const entry = (id) => {
+      const spell = spells[id];
+      return {
+        label: spell.button + (spell.mp ? '  ' + spell.mp + ' MP' : ''),
+        enabled: canAfford(unit, id) && !this.busy,
+        onTap: () => this.chooseSpell(id),
+        selected: this.selectedSpell === id,
+        accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
+      };
+    };
+    if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map(entry);
+
+    const list = [];
+    const seen = new Set();
+    for (const id of unit.spells) {
+      const group = spells[id].group;
+      if (!group) {
+        list.push(entry(id));
+      } else if (!seen.has(group)) {
+        seen.add(group);
+        list.push({
+          label: group + '  >',
+          enabled: unit.spells.some((s) => spells[s].group === group && canAfford(unit, s)),
+          onTap: () => this.openSpellGroup(group),
+          selected: false,
+          accent: GOLD,
+        });
+      }
+    }
+    return list;
+  }
+
+  openSpellGroup(group) {
+    play('select');
+    this.spellGroup = group;
+    this.selectedSpell = null;
+    this.refreshStatus();
+  }
+
+  // Back: from a target to the list, from a group to the top, then out.
+  spellBack() {
+    if (this.mode === 'spellTarget' || this.mode === 'huskTile' || this.selectedSpell) {
+      play('cancel');
+      this.clearHighlights();
+      this.pendingTarget = null;
+      this.pendingTile = null;
+      this.selectedSpell = null;
+      this.targetsInRange = [];
+      this.reachableKeys.clear();
+      this.mode = 'spell';
+      this.refreshOutlines();
+      this.refreshStatus();
+      return;
+    }
+    if (this.spellGroup) {
+      play('cancel');
+      this.spellGroup = null;
+      this.refreshStatus();
+      return;
+    }
+    this.cancelMode();
+  }
+
+  // A spell was picked. What happens next depends on its kind:
+  //   buff   : gold tiles on anyone in range, friend or foe
+  //   hex    : purple tiles on enemies in range
+  //   escape : green tiles where the caster can slip away to (Husk)
+  //   rest   : nothing to choose; tap the button again to Meditate
   chooseSpell(id) {
     const unit = this.activeUnit;
+    const spell = spells[id];
+    if (!canAfford(unit, id)) {
+      this.showMessage('Not enough MP');
+      return;
+    }
+    play('select');
     this.clearHighlights();
     this.pendingTarget = null;
+    this.pendingTile = null;
+    this.targetsInRange = [];
+    this.reachableKeys.clear();
+
+    if (spell.kind === 'rest') {
+      if (this.selectedSpell === id) {
+        this.confirmSpell();
+        return;
+      }
+      this.selectedSpell = id;
+      this.mode = 'spell';
+      this.refreshStatus();
+      return;
+    }
+
     this.selectedSpell = id;
+    if (spell.kind === 'escape') {
+      this.mode = 'huskTile';
+      const tiles = [];
+      for (let col = 0; col < GRID_SIZE; col++) {
+        for (let row = 0; row < GRID_SIZE; row++) {
+          const d = distance(unit, { col, row });
+          if (d > 0 && d <= spell.range && !this.isBlocked(col, row)) tiles.push({ col, row });
+        }
+      }
+      this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
+      this.showHighlights(tiles, 0x8fd18a);
+      this.refreshStatus();
+      return;
+    }
+
     this.mode = 'spellTarget';
-    this.targetsInRange = this.units.filter((u) => u.alive && distance(unit, u) <= spells[id].range);
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), GOLD);
+    this.targetsInRange = this.units.filter(
+      (u) => u.alive && distance(unit, u) <= spell.range && (spell.kind !== 'hex' || u.side !== unit.side)
+    );
+    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), spell.kind === 'hex' ? 0xb48cff : GOLD);
     this.refreshOutlines();
     this.refreshStatus();
   }
@@ -854,6 +981,24 @@ export default class BattleScene extends Phaser.Scene {
       this.cancelMode();
       return;
     }
+    // Choosing where Husk slips away to: first tap picks the tile, second casts
+    if (this.mode === 'huskTile') {
+      if (this.reachableKeys.has(col + ',' + row)) {
+        if (this.pendingTile && this.pendingTile.col === col && this.pendingTile.row === row) {
+          this.confirmSpell();
+        } else {
+          play('select');
+          this.pendingTile = { col, row };
+          const tiles = [...this.reachableKeys].map((k) => k.split(',').map(Number)).map(([c, r]) => ({ col: c, row: r }));
+          this.showHighlights(tiles, 0x8fd18a);
+          this.showHighlights([{ col, row }], 0xffe08a, { keep: true, alpha: 0.85 });
+          this.refreshStatus();
+        }
+        return;
+      }
+      this.cancelMode();
+      return;
+    }
     if (this.mode === 'spell') {
       this.cancelMode();
       return;
@@ -901,7 +1046,12 @@ export default class BattleScene extends Phaser.Scene {
 
   // True if a living unit is standing on the tile.
   isBlocked(col, row) {
-    return this.getUnitAt(col, row) !== undefined;
+    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row);
+  }
+
+  // True if a Husk decoy's swarm is on the tile.
+  isDecoyAt(col, row) {
+    return this.decoys.some((d) => d.col === col && d.row === row);
   }
 
   // ---------- Choosing a move ----------
@@ -918,7 +1068,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'move';
-    const tiles = getReachableTiles(unit.col, unit.row, unit.move, (c, r) => this.isBlocked(c, r));
+    const tiles = getReachableTiles(unit.col, unit.row, moveOf(unit), (c, r) => this.isBlocked(c, r));
     this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
     this.showHighlights(tiles, 0x4aa3ff);
     play('select');
@@ -933,7 +1083,7 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.busy = true;
 
-    let path = getPath(unit.col, unit.row, col, row, unit.move, (c, r) => this.isBlocked(c, r));
+    let path = getPath(unit.col, unit.row, col, row, moveOf(unit), (c, r) => this.isBlocked(c, r));
     if (path.length === 0) path = [{ col, row }];
 
     unit.col = col;
@@ -990,7 +1140,18 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'attack';
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), 0xe05a47);
+    // For ranged attacks, a faint red area shows how far it reaches; the enemies in it are bright red
+    if (unit.range > 1) {
+      const area = [];
+      for (let col = 0; col < GRID_SIZE; col++) {
+        for (let row = 0; row < GRID_SIZE; row++) {
+          const d = distance(unit, { col, row });
+          if (d > 0 && d <= unit.range) area.push({ col, row });
+        }
+      }
+      this.showHighlights(area, 0xe05a47, { alpha: 0.16 });
+    }
+    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), 0xe05a47, { keep: unit.range > 1 });
     this.refreshStatus();
   }
 
@@ -1034,6 +1195,31 @@ export default class BattleScene extends Phaser.Scene {
     }
     const lethal = result.hit && target.hp === 0;
 
+    // Lightning jumps to a second enemy near the first, if the first bolt hit
+    let jump = null;
+    if (result.hit && attacker.chain) {
+      const next = chainTarget(attacker, target, this.units);
+      if (next) {
+        const hit = Math.random() * 100 < getHitChance(attacker, next);
+        const damage = hit ? chainDamage(attacker, next) : 0;
+        if (hit) {
+          next.hp = Math.max(0, next.hp - damage);
+          if (next.hp === 0) this.defeat(next);
+        }
+        jump = { target: next, result: { hit, damage } };
+      }
+    }
+    const playJump = () => {
+      if (!jump) return;
+      this.time.delayedCall(380, () => {
+        const a = this.centerOf(target);
+        const b = this.centerOf(jump.target);
+        lightning(this, a.x, a.y, b.x, b.y);
+        play('spark');
+        this.time.delayedCall(120, () => this.showImpact(attacker, jump.target, jump.result, b.x - a.x));
+      });
+    };
+
     this.refreshButtons();
 
     // Did that attack wipe out a whole side?
@@ -1056,11 +1242,14 @@ export default class BattleScene extends Phaser.Scene {
       this.beginCinematic();
       this.cutIn(attacker, 'FINISHING BLOW', () => {
         this.playAttack(attacker, target, result, true);
+        playJump();
         finish();
       });
     } else {
       this.playAttack(attacker, target, result, false);
-      finish();
+      playJump();
+      if (jump) this.time.delayedCall(450, finish);
+      else finish();
     }
   }
 
@@ -1427,7 +1616,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const tile = chooseMoveTile(unit, this.units);
+    const tile = chooseMoveTile(unit, this.units, (c, r) => this.isDecoyAt(c, r));
 
     if (tile) {
       this.moveUnit(unit, tile.col, tile.row, () => this.enemyAttack(unit));
@@ -1464,9 +1653,9 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Exploit openings first: Off-Balance targets, then distracted (engaged) ones,
-    // then whoever has the least health.
+    // then casters (fragile and dangerous), then whoever has the least health.
     const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
-    targets.sort((a, b) => opening(b) - opening(a) || a.hp - b.hp);
+    targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
     this.busy = true;
     this.performAttack(unit, targets[0], () => {
       this.busy = false;
@@ -1694,7 +1883,7 @@ export default class BattleScene extends Phaser.Scene {
 
   confirmSpell() {
     const caster = this.activeUnit;
-    const target = this.pendingTarget;
+    const target = this.pendingTarget || this.pendingTile || caster;
     const id = this.selectedSpell;
     this.cancelMode();
     this.busy = true;
@@ -1704,23 +1893,112 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  // Casts a spell on any unit (friend or foe). It costs the caster's action.
+  // Casts a spell. It costs the caster's action and the spell's MP.
+  // target is a unit (buff or hex), a tile (Husk), or the caster (Meditate).
   castSpell(caster, target, id, onDone) {
+    const spell = spells[id];
+    spendMp(caster, id);
     caster.hasActed = true;
-    applyBuff(target, id);
+    if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
+    if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
+
+    if (spell.kind === 'hex') applySlow(target, id);
+    else applyBuff(target, id);
     this.refreshButtons();
 
-    const spell = spells[id];
     const color = Phaser.Display.Color.HexStringToColor(spell.color).color;
     this.showPose(caster, 'cast', target.view.x - caster.view.x);
     this.time.delayedCall(250, () => {
       play('spell');
       buffAura(this, target.view.x, target.view.y, color);
-      this.floatText(target, spell.name, spell.color);
+      this.floatText(target, spell.button, spell.color);
       this.refreshStatusTags();
+      if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });
     this.time.delayedCall(800, () => this.showStanding(caster));
     this.time.delayedCall(950, onDone);
+  }
+
+  // Husk: the caster leaves a decoy wrapped in a swarm and reappears on the
+  // chosen tile. It always breaks free of a clash.
+  castHusk(caster, tile, onDone) {
+    if (caster.engagedWith) {
+      endEngagement(caster);
+      this.refreshEngagementMarks();
+    }
+    this.addDecoy(caster, caster.col, caster.row);
+    caster.col = tile.col;
+    caster.row = tile.row;
+    caster.hasMoved = true;
+    this.refreshButtons();
+    play('spell');
+    dustPuff(this, caster.view.x, caster.view.y);
+    this.tweens.add({
+      targets: caster.view,
+      alpha: 0,
+      duration: 160,
+      onComplete: () => {
+        const p = tileToScreen(tile.col, tile.row);
+        caster.view.setPosition(p.x, p.y).setDepth(depthFor(tile.col, tile.row) + 1);
+        dustPuff(this, p.x, p.y);
+        this.tweens.add({ targets: caster.view, alpha: 1, duration: 220 });
+        this.faceNearestOpponent(caster);
+        this.floatText(caster, 'Husk', spells.husk.color);
+        this.refreshStatusTags();
+      },
+    });
+    this.time.delayedCall(800, onDone);
+  }
+
+  // A see-through copy of the unit, with a buzzing swarm around it.
+  addDecoy(owner, col, row) {
+    const p = tileToScreen(col, row);
+    const parts = [];
+    if (owner.sprite) {
+      const img = this.add.image(p.x, p.y + 6, owner.sprite.texture.key).setOrigin(owner.sprite.originX, 1);
+      img.setScale(owner.sprite.scaleX, owner.sprite.scaleY).setFlipX(owner.sprite.flipX).setAlpha(0.45);
+      img.setDepth(depthFor(col, row) + 1);
+      parts.push(img);
+    } else {
+      parts.push(this.add.circle(p.x, p.y - 24, 22, SIDE_COLORS[owner.side], 0.4).setDepth(depthFor(col, row) + 1));
+    }
+    const swarm = this.add.particles(p.x, p.y - 40, 'fx-dot', {
+      speed: { min: 20, max: 55 },
+      lifespan: 520,
+      scale: { start: 0.22, end: 0 },
+      alpha: { start: 0.9, end: 0 },
+      tint: [0x1a1410, 0x3a2a1a],
+      frequency: 35,
+    }).setDepth(depthFor(col, row) + 1.5);
+    parts.push(swarm);
+    this.decoys.push({ owner, col, row, parts });
+  }
+
+  // The decoy's swarm scatters (at the start of its owner's next turn).
+  removeDecoys(owner) {
+    for (const decoy of this.decoys.filter((d) => d.owner === owner)) {
+      for (const part of decoy.parts) {
+        if (part.stop) part.stop();
+        this.tweens.add({ targets: part, alpha: 0, duration: 300, onComplete: () => part.destroy() });
+      }
+    }
+    this.decoys = this.decoys.filter((d) => d.owner !== owner);
+  }
+
+  // Meditate: get MP back, but stand Exposed until the next turn. Ends the turn.
+  castMeditate(caster, spell, onDone) {
+    restoreMp(caster, spell.restore);
+    applyExposed(caster, spell.exposed);
+    caster.hasMoved = true;
+    this.refreshButtons();
+    play('spell');
+    buffAura(this, caster.view.x, caster.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
+    this.floatText(caster, '+' + spell.restore + ' MP', spell.color);
+    this.refreshStatusTags();
+    this.time.delayedCall(900, () => {
+      onDone();
+      if (this.activeUnit === caster && !this.battleOver) this.endTurn();
+    });
   }
 
   // ---------- Showing engagements and conditions ----------
@@ -1931,8 +2209,10 @@ export default class BattleScene extends Phaser.Scene {
 
   // Draws colored diamonds on a list of tiles, replacing any shown before.
   // Each one sits on top of its tile, just under the units standing on it.
-  showHighlights(tiles, color) {
-    this.clearHighlights();
+  // options: { alpha: how solid (0.6), keep: true to add to the squares already shown }
+  showHighlights(tiles, color, options = {}) {
+    if (!options.keep) this.clearHighlights();
+    const alpha = options.alpha !== undefined ? options.alpha : 0.6;
 
     for (const tile of tiles) {
       const { x, y } = tileToScreen(tile.col, tile.row);
@@ -1940,7 +2220,7 @@ export default class BattleScene extends Phaser.Scene {
       const hh = TILE_HEIGHT / 2 - 3;
 
       const diamond = this.add.graphics().setDepth(depthFor(tile.col, tile.row) + 0.5);
-      diamond.fillStyle(color, 0.6);
+      diamond.fillStyle(color, alpha);
       diamond.beginPath();
       diamond.moveTo(x, y - hh);
       diamond.lineTo(x + hw, y);
@@ -1965,7 +2245,9 @@ export default class BattleScene extends Phaser.Scene {
     if (this.mode !== 'idle' && this.activeUnit && this.activeUnit.side === 'hero') play('cancel');
     this.mode = 'idle';
     this.selectedSpell = null;
+    this.spellGroup = null;
     this.pendingTarget = null;
+    this.pendingTile = null;
     this.targetsInRange = [];
     this.reachableKeys.clear();
     this.clearHighlights();

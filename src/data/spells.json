@@ -1,34 +1,101 @@
 {
-  "swiftWind": {
-    "name": "Swift Wind",
-    "short": "WIND",
+  "swiftness": {
+    "name": "Verse of Swiftness",
+    "button": "Swiftness",
+    "short": "SWIFT",
+    "kind": "buff",
+    "group": "Verse",
     "color": "#9fd4ff",
+    "range": 3,
+    "turns": 2,
     "stat": "agility",
     "amount": 3,
     "slipChance": 30,
+    "boosts": {
+      "evade": 15,
+      "move": 1
+    },
+    "text": "+15 evade, +1 move. In a clash: +3 agility.",
+    "mp": 3,
+    "use": "both"
+  },
+  "stone": {
+    "name": "Verse of Stone",
+    "button": "Stone",
+    "short": "STONE",
+    "kind": "buff",
+    "group": "Verse",
+    "color": "#d9b77a",
     "range": 3,
     "turns": 2,
-    "text": "+3 agility. Easier to slip being caught off-balance."
-  },
-  "stoneSkin": {
-    "name": "Stone Skin",
-    "short": "STONE",
-    "color": "#d9b77a",
     "stat": "guard",
     "amount": 3,
     "holdChance": 30,
+    "boosts": {
+      "defense": 2
+    },
+    "text": "+2 defense. In a clash: +3 guard, harder to push.",
+    "mp": 3,
+    "use": "both"
+  },
+  "fury": {
+    "name": "Verse of Fury",
+    "button": "Fury",
+    "short": "FURY",
+    "kind": "buff",
+    "group": "Verse",
+    "color": "#ff8a5c",
     "range": 3,
     "turns": 2,
-    "text": "+3 guard. Harder to push back."
-  },
-  "warCry": {
-    "name": "War Cry",
-    "short": "MIGHT",
-    "color": "#ff8a5c",
     "stat": "power",
     "amount": 3,
-    "range": 3,
+    "boosts": {
+      "attack": 2
+    },
+    "text": "+2 attack. In a clash: +3 power.",
+    "mp": 3,
+    "use": "both"
+  },
+  "slow": {
+    "name": "Slow",
+    "button": "Slow",
+    "short": "SLOW",
+    "kind": "hex",
+    "color": "#b48cff",
+    "range": 4,
     "turns": 2,
-    "text": "+3 power. Better at overpowering."
+    "delay": 50,
+    "speedLoss": 4,
+    "text": "Its next turn comes later, and it is slower for 2 turns.",
+    "mp": 4,
+    "use": "battlefield",
+    "group": "Escape"
+  },
+  "husk": {
+    "name": "Husk",
+    "button": "Husk",
+    "short": "HUSK",
+    "kind": "escape",
+    "color": "#8fd18a",
+    "range": 3,
+    "text": "Leave a decoy and slip up to 3 tiles away, even out of a clash.",
+    "mp": 5,
+    "use": "both",
+    "group": "Escape"
+  },
+  "meditate": {
+    "name": "Meditate",
+    "button": "Meditate",
+    "short": "CALM",
+    "kind": "rest",
+    "color": "#7fd6c4",
+    "mp": 0,
+    "use": "battlefield",
+    "restore": 6,
+    "exposed": {
+      "defense": 2,
+      "evade": 10
+    },
+    "text": "Restore 6 MP. Ends your turn; you are Exposed until your next."
   }
 }

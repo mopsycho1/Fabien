@@ -1,18 +1,22 @@
 import spells from './data/spells.json';
 import rules from './data/engagement.json';
 
-// Short-lived conditions on a unit: being Off-Balance, and a spell (buff)
-// from the Sage. Nothing here draws anything.
+// Short-lived conditions on a unit: being Off-Balance, a helpful spell (a
+// buff, like a Verse), a harmful one (a hex, like Slow), and spells waiting to
+// be ready again (cooldowns). Nothing here draws anything.
 //
 // A unit keeps them in unit.status:
 //   unit.status.offBalance : true until the start of that unit's next turn
-//   unit.status.buff       : { id: 'stoneSkin', turnsLeft: 2 } or null
+//   unit.status.buff       : { id: 'stone', turnsLeft: 2 } or null
+//   unit.status.hex        : { id: 'slow', turnsLeft: 2 } or null
+//   unit.status.cooldowns  : { husk: 2 } turns until a spell can be cast again
+//   unit.status.exposed    : { defense: 2, evade: 10 } while Meditating, or null
 //
 // A unit only ever has one buff. A new one replaces the old one, so spells
 // cannot pile up (the design notes ask us to avoid unlimited stacking).
 
 function statusOf(unit) {
-  if (!unit.status) unit.status = { offBalance: false, buff: null };
+  if (!unit.status) unit.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
   return unit.status;
 }
 
@@ -31,13 +35,53 @@ export function clearOffBalance(unit) {
   statusOf(unit).offBalance = false;
 }
 
-// How much a condition changes one of the unit's numbers in an ordinary attack.
-// Only "defense" and "evade" are affected, and only while Off-Balance.
+// How much the unit's conditions change one of its numbers in ordinary
+// fighting: "attack", "defense", "evade" or "move".
+//   - Off-Balance lowers defense and evade.
+//   - A buff adds its "boosts" from spells.json (a Verse of Stone adds defense).
 export function statMod(unit, stat) {
-  if (!isOffBalance(unit)) return 0;
-  if (stat === 'defense') return -rules.offBalance.defense;
-  if (stat === 'evade') return -rules.offBalance.evade;
-  return 0;
+  let mod = 0;
+  if (isOffBalance(unit)) {
+    if (stat === 'defense') mod -= rules.offBalance.defense;
+    if (stat === 'evade') mod -= rules.offBalance.evade;
+  }
+  const buff = buffOf(unit);
+  if (buff && buff.boosts && buff.boosts[stat]) mod += buff.boosts[stat];
+  const exposed = statusOf(unit).exposed;
+  if (exposed && exposed[stat]) mod -= exposed[stat];
+  return mod;
+}
+
+// ---------- Exposed (while Meditating) ----------
+
+export function applyExposed(unit, amounts) {
+  statusOf(unit).exposed = { ...amounts };
+}
+
+// Called at the start of the unit's own turn: it is on guard again.
+export function clearExposed(unit) {
+  statusOf(unit).exposed = null;
+}
+
+// ---------- Magic points ----------
+
+// True if the unit has enough MP for the spell.
+export function canAfford(unit, spellId) {
+  return (unit.mp || 0) >= (spells[spellId].mp || 0);
+}
+
+export function spendMp(unit, spellId) {
+  unit.mp = Math.max(0, (unit.mp || 0) - (spells[spellId].mp || 0));
+}
+
+// Gives back MP, never above the unit's full pool.
+export function restoreMp(unit, amount) {
+  unit.mp = Math.min(unit.maxMp || 0, (unit.mp || 0) + amount);
+}
+
+// How far a unit can walk this turn (a Verse of Swiftness adds a step).
+export function moveOf(unit) {
+  return Math.max(0, unit.move + statMod(unit, 'move'));
 }
 
 // ---------- Buffs ----------
@@ -56,12 +100,58 @@ export function buffOf(unit) {
   return { id: buff.id, turnsLeft: buff.turnsLeft, ...spells[buff.id] };
 }
 
-// Called at the end of the unit's own turn. The spell fades when its turns run out.
+// ---------- Hexes ----------
+
+// Slow: the unit's next turn is pushed back, and it is slower for a while.
+// Its speed comes back when the hex fades. A new Slow replaces an old one.
+export function applySlow(unit, spellId) {
+  const spell = spells[spellId];
+  const status = statusOf(unit);
+  if (status.hex) unit.speed += status.hex.speedLoss; // undo the old one first
+  const loss = Math.min(spell.speedLoss, unit.speed - 1); // never stop a unit completely
+  unit.speed -= loss;
+  unit.ct -= spell.delay;
+  status.hex = { id: spellId, turnsLeft: spell.turns, speedLoss: loss };
+}
+
+export function hexOf(unit) {
+  const hex = statusOf(unit).hex;
+  return hex ? { ...hex, ...spells[hex.id] } : null;
+}
+
+// ---------- Cooldowns ----------
+
+export function startCooldown(unit, spellId) {
+  const turns = spells[spellId].cooldown || 0;
+  if (turns > 0) statusOf(unit).cooldowns[spellId] = turns;
+}
+
+// How many more of its own turns the unit must wait to cast this spell (0 = ready).
+export function cooldownOf(unit, spellId) {
+  return statusOf(unit).cooldowns[spellId] || 0;
+}
+
+// ---------- End of turn ----------
+
+// Called at the end of the unit's own turn: spells on it get one turn
+// shorter, and its spells come one turn closer to being ready.
 export function tickBuff(unit) {
   const status = statusOf(unit);
-  if (!status.buff) return;
-  status.buff.turnsLeft -= 1;
-  if (status.buff.turnsLeft <= 0) status.buff = null;
+  if (status.buff) {
+    status.buff.turnsLeft -= 1;
+    if (status.buff.turnsLeft <= 0) status.buff = null;
+  }
+  if (status.hex) {
+    status.hex.turnsLeft -= 1;
+    if (status.hex.turnsLeft <= 0) {
+      unit.speed += status.hex.speedLoss;
+      status.hex = null;
+    }
+  }
+  for (const id of Object.keys(status.cooldowns)) {
+    status.cooldowns[id] -= 1;
+    if (status.cooldowns[id] <= 0) delete status.cooldowns[id];
+  }
 }
 
 // Short words shown above a unit: ENGAGED, OFF-BAL, and its spell.
@@ -71,5 +161,8 @@ export function statusTags(unit) {
   if (isOffBalance(unit)) tags.push({ text: 'OFF-BAL', color: '#ff6b5a' });
   const buff = buffOf(unit);
   if (buff) tags.push({ text: buff.short, color: buff.color });
+  const hex = hexOf(unit);
+  if (hex) tags.push({ text: hex.short, color: hex.color });
+  if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a' });
   return tags;
 }

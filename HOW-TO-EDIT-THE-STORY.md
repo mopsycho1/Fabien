@@ -61,7 +61,13 @@ Two more files in `src/data` control the battle. You can edit these too.
     }
 
 - `name` is what the player sees. `badge` is the one letter shown on the unit.
-- `hp` is health. `attack` and `defense` set damage: damage = attack minus defense, never below 1.
+- `hp` is health. `mp` is magic points for spells (leave it out for units without spells).
+- There are two kinds of damage, never below 1:
+  - weapons (swords, spears, arrows): `attack` minus the target's `defense`
+  - magic (lightning): `magicAttack` minus the target's `magicDefense`
+- A job with `"attackType": "magic"` attacks with magic. `attackName` is the name on its attack button (the Sage's says Lightning).
+- `chain` makes the attack jump to a second enemy: `range` is how far it jumps from the first target, `share` is the part of the damage it does (0.5 is half).
+- `closePenalty` makes the attack harder to aim at someone right next to the attacker (the Sage's lightning: 25 less).
 - `accuracy` and `evade` set the chance to hit: accuracy minus evade, kept between 5 and 95 percent.
 - `speed` decides how often the unit gets a turn. A unit with speed 10 acts twice as often as one with speed 5.
 - `move` is how many tiles it can walk. `range` is how many tiles away it can attack (1 means next to it).
@@ -165,8 +171,17 @@ Each melee job in `jobs.json` has a `contest` line, for example:
 
 ## Spells (`spells.json`)
 
-The Sage's spells. Each has a `stat` it raises in contests (and by how much), a `range` in tiles, and `turns` it lasts.
-`slipChance` and `holdChance` add to the target's chance to slip Off-Balance or hold its ground. A unit can only have one spell at a time: a new one replaces the old.
+The Sage's spells. Every spell has:
+- `name` (the full name), `button` (the short name on its button), `short` (the tag above the unit), `text` (one line explaining it, kept short so it fits on screen).
+- `mp`: what it costs. `range`: how many tiles away it reaches. `turns`: how many of the target's turns it lasts.
+- `use`: `"both"` works during a clash too, `"battlefield"` only outside one, `"engagement"` only in one.
+- `group`: spells with the same group share one button in the menu (Verse, Escape).
+- `kind` says what it does:
+  - `buff` (the Verses): `boosts` changes normal fighting (for example `"defense": 2`), and `stat` and `amount` change clash contests. `slipChance` and `holdChance` add to the chance to slip Off-Balance or hold ground. A unit has one buff at a time: a new one replaces the old.
+  - `hex` (Slow): `delay` pushes the enemy's next turn back, `speedLoss` lowers its speed while it lasts.
+  - `escape` (Husk): the caster slips up to `range` tiles away and leaves a decoy that blocks the old tile until the caster's next turn.
+  - `rest` (Meditate): gives back `restore` MP, ends the turn, and leaves the caster `exposed` (lower defense and evade) until its next turn.
+- Every unit with MP also gets 1 MP back at the start of each of its turns.
 
 ## Sound
 

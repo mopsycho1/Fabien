@@ -15,9 +15,12 @@ export function distance(a, b) {
 // Two things make a target easier to hit:
 //   - being Off-Balance (it lost an engagement contest)
 //   - being busy fighting someone else in an engagement (it is distracted)
+//   - (and one makes it harder: lightning aimed at someone right next to the
+//     caster, see closePenalty in jobs.json)
 export function getHitChance(attacker, defender) {
   let chance = attacker.accuracy - (defender.evade + statMod(defender, 'evade'));
   if (isDistracted(defender, attacker)) chance += rules.distractedHitBonus;
+  if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
   return Math.min(95, Math.max(5, chance));
 }
 
@@ -26,9 +29,35 @@ export function isDistracted(defender, attacker) {
   return !!defender.engagedWith && defender.engagedWith !== attacker;
 }
 
-// Damage if the attack lands: attack minus defense, but always at least 1.
+// Damage if the attack lands, always at least 1.
+//   weapon attacks (swords, spears, arrows): attack minus defense
+//   magic attacks (lightning):               magicAttack minus magicDefense
+// Spells count too (a Verse of Fury adds attack, a Verse of Stone adds defense).
 export function getDamage(attacker, defender) {
-  return Math.max(1, attacker.attack - (defender.defense + statMod(defender, 'defense')));
+  if (attacker.attackType === 'magic') {
+    const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
+    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense')));
+  }
+  const attack = attacker.attack + statMod(attacker, 'attack');
+  return Math.max(1, attack - (defender.defense + statMod(defender, 'defense')));
+}
+
+// Lightning jumps: the enemy nearest to the one just struck (within the
+// chain's range, not the one struck, still standing), or null.
+export function chainTarget(attacker, struck, units) {
+  if (!attacker.chain) return null;
+  let best = null;
+  for (const u of units) {
+    if (!u.alive || u === struck || u.side === attacker.side) continue;
+    const d = distance(struck, u);
+    if (d <= attacker.chain.range && (best === null || d < distance(struck, best))) best = u;
+  }
+  return best;
+}
+
+// Damage from the jump: a share of the full damage, at least 1.
+export function chainDamage(attacker, defender) {
+  return Math.max(1, Math.round(getDamage(attacker, defender) * attacker.chain.share));
 }
 
 // Every living unit on the other side that this attacker can reach right now.
