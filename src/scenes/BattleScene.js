@@ -317,11 +317,15 @@ export default class BattleScene extends Phaser.Scene {
   // cover the tile (and the figure) behind it. To make sure you can always
   // reach the one you mean:
   //   1. While choosing a target (attack, engage, spell), a unit you can
-  //      actually choose wins: first the one on the tile under your finger,
-  //      then any choosable figure under your finger, even one standing behind.
-  //   2. While choosing where to walk, a blue tile under your finger wins.
-  //   3. Otherwise the unit whose turn it is wins (so you can always select it),
-  //      then the figure whose middle is closest to your finger, then the tile itself.
+  //      actually choose wins: first the one you can see under your finger
+  //      (drawn in front), then the one on the tile under your finger, then
+  //      any choosable figure under your finger, even one standing behind.
+  //   2. An enemy you can see under your finger (drawn in front) means that
+  //      enemy, even where it overlaps your own unit or a blue tile: tapping
+  //      it attacks it.
+  //   3. While choosing where to walk, a blue tile under your finger wins.
+  //   4. Otherwise the unit whose turn it is wins (so you can always select it),
+  //      then the figure drawn in front under your finger, then the tile itself.
   tileAtPoint(x, y) {
     const tile = screenToTile(x, y);
     const onTile = isInsideGrid(tile.col, tile.row) ? this.getUnitAt(tile.col, tile.row) : undefined;
@@ -332,8 +336,13 @@ export default class BattleScene extends Phaser.Scene {
       .filter((u) => u.alive && this.bodyContains(u, x, y))
       .sort((a, b) => closeness(a) - closeness(b));
     const at = (u) => ({ col: u.col, row: u.row });
+    // The figure the player actually sees under the finger: of all the figures
+    // there, the one drawn in front
+    const seen = bodies.slice().sort((a, b) => b.view.depth - a.view.depth)[0];
+    const active = this.activeUnit;
 
     if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach')) {
+      if (seen && this.targetsInRange.includes(seen)) return at(seen);
       // A tap on a choosable figure's body (above its feet) means that figure,
       // even when the top of a raised tile behind it is under the same spot.
       const torso = bodies.find((u) => this.targetsInRange.includes(u) && this.torsoContains(u, x, y));
@@ -346,6 +355,12 @@ export default class BattleScene extends Phaser.Scene {
       if (hiddenTile) return at(hiddenTile);
     }
 
+    // An enemy you can see under your finger means that enemy, even where it
+    // overlaps your own unit's figure or a blue tile: tapping it attacks it
+    if (seen && active && seen.side !== active.side && (this.mode === 'idle' || this.mode === 'move' || this.mode === 'approach')) {
+      return at(seen);
+    }
+
     if (this.mode === 'move' || this.mode === 'huskTile' || this.mode === 'approach') {
       if (this.reachableKeys.has(tile.col + ',' + tile.row)) return tile;
       // A blue tile partly hidden behind a taller block in front of it
@@ -355,9 +370,8 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
 
-    const active = this.activeUnit;
     if (active && active.alive && (onTile === active || bodies.includes(active))) return at(active);
-    if (bodies.length > 0) return at(bodies[0]);
+    if (seen) return at(seen);
     return tile;
   }
 
