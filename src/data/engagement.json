@@ -4,15 +4,96 @@
   "diceSides": 6,
   "stalemateWithin": 1,
   "decisiveMargin": 6,
-  "styleStat": { "overpower": "power", "defence": "guard", "evasion": "agility" },
-  "pressBonus": { "overpower": 2 },
-  "holdBonus": { "defence": 2 },
-  "breakBonus": { "evasion": 2 },
-  "keepHoldBonus": { "defence": 2 },
+  "styleStat": {
+    "overpower": "power",
+    "defence": "guard",
+    "evasion": "agility"
+  },
+  "pressBonus": {
+    "overpower": 2
+  },
+  "holdBonus": {
+    "defence": 2
+  },
+  "breakBonus": {
+    "evasion": 2
+  },
+  "keepHoldBonus": {
+    "defence": 2
+  },
   "heightBonusPerLevel": 1,
-  "offBalance": { "contest": 2, "defense": 2, "evade": 15 },
-  "holdGroundChance": { "defence": 50 },
-  "slipChance": { "evasion": 50 },
-  "decisivePush": { "overpower": 2 },
-  "distractedHitBonus": 10
+  "offBalance": {
+    "contest": 2,
+    "defense": 2,
+    "evade": 15
+  },
+  "holdGroundChance": {
+    "defence": 50
+  },
+  "slipChance": {
+    "evasion": 50
+  },
+  "decisivePush": {
+    "overpower": 2
+  },
+  "distractedHitBonus": 10,
+  "mode": "stance",
+  "modeNote": "\"stance\" = the stance duel (v0.4). \"classic\" = the older Engage with Press / Break away.",
+  "stances": {
+    "press": {
+      "name": "Press",
+      "stat": "power",
+      "hint": "attack hard"
+    },
+    "guard": {
+      "name": "Guard",
+      "stat": "guard",
+      "hint": "hold firm"
+    },
+    "slip": {
+      "name": "Slip",
+      "stat": "agility",
+      "hint": "dodge and counter"
+    },
+    "break": {
+      "name": "Break away",
+      "stat": "agility",
+      "hint": "get out of the clash"
+    }
+  },
+  "beats": {
+    "guard": "press",
+    "slip": "guard",
+    "press": "slip"
+  },
+  "matchupBonus": 3,
+  "breakVs": {
+    "press": -3,
+    "guard": 2,
+    "slip": 0
+  },
+  "affinityBonus": {
+    "strong": 1,
+    "average": 0,
+    "weak": -1
+  },
+  "momentum": {
+    "max": 3,
+    "leadAt": 2,
+    "leadBonus": 2,
+    "winShift": 1,
+    "pressWinShift": 2,
+    "decisiveExtra": 1
+  },
+  "poise": {
+    "max": 3,
+    "start": 2,
+    "refill": 1,
+    "empower": 3
+  },
+  "decisiveStrike": true,
+  "aiReadChance": 40,
+  "beatDice": 3,
+  "statWeight": 0.5,
+  "beatOddsNote": "With these numbers: same stance, a class strong in it beats one weak in it about 79% of the time; equal fighters where one stance beats the other, 64%; a strong class that picked the beaten stance, 55%."
 }

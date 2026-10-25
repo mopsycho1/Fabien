@@ -153,6 +153,12 @@ export function drawIcon(g, name, x, y, size, color = UI.bronzeLight) {
       g.fillTriangle(x - 4 * s, y - 14 * s, x + 16 * s, y, x - 4 * s, y + 14 * s);
       L(-16, 0, -2, 0, 6);
       break;
+    case 'shield':
+      // a round shield with a boss in the middle
+      g.fillCircle(x, y, 15 * s);
+      g.fillStyle(0x1a1410, 1);
+      g.fillCircle(x, y, 5 * s);
+      break;
     case 'run':
       L(-14, 0, 12, 0, 4);
       L(4, -9, 14, 0, 4);

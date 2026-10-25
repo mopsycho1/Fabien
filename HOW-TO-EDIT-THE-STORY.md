@@ -169,6 +169,21 @@ Each melee job in `jobs.json` has a `contest` line, for example:
 
     "contest": { "style": "defence", "power": 4, "guard": 8, "agility": 3 }
 
+### The stance duel (also in `engagement.json`)
+
+`mode` picks how clashes work: `"stance"` is the stance duel from the v0.4 design, `"classic"` is the older Engage with Press / Break away. Everything below is for the stance duel.
+
+- Every turn of a unit locked in a clash is a **beat**: it picks a stance, and its foe answers. An enemy answers by its class habits (the player cannot see it in advance); a hero answers with the stance it last used (shown as a tag over the hero).
+- `stances`: Press, Guard, Slip and Break away, and the number (`stat`) each one uses.
+- `beats`: which stance beats which. Now: Guard beats Press, Slip beats Guard, Press beats Slip. `matchupBonus` is the points for having the stance that wins.
+- `breakVs`: points for breaking away against each stance (easy against a Guard, hard against a Press).
+- `affinityBonus`: points for a class's strong stance (+1) and weak stance (-1). Each melee job in `jobs.json` has a `stances` line, for example `"stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" }`. A strong stance shows a * on its button, and Auto picks it.
+- `beatDice`: dice per side in a beat (3). `statWeight`: how much the stat counts (0.5 = half). These keep beats uncertain; `beatOddsNote` lists the odds they give.
+- `momentum`: the track runs to `max` (3) each way. `leadAt`/`leadBonus`: points for the side that is ahead by 2. `winShift`: how far a win moves it, `pressWinShift` for a winning Press, `decisiveExtra` for a big win.
+- At +3 the beat is **decisive**: the loser is thrown Off-Balance and pushed back (`holdGroundChance` and `slipChance` still let some classes resist), the winner lands a free strike if `decisiveStrike` is true, and the track goes back to 0.
+- `poise`: the pool for Empower (`max`, `start`, `refill` each turn, `empower` = the points it adds).
+- `aiReadChance`: how often (percent) an enemy picks the stance that beats the hero's last one.
+
 ## Spells (`spells.json`)
 
 The Sage's spells. Every spell has:

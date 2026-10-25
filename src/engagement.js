@@ -78,9 +78,9 @@ export function endEngagement(a) {
 // ---------- The contest ----------
 
 // Rolls the dice: by default two six-sided dice, so 2 to 12, usually near 7.
-export function rollDice(random) {
+export function rollDice(random, count = rules.dice) {
   let total = 0;
-  for (let i = 0; i < rules.dice; i++) total += 1 + Math.floor(random() * rules.diceSides);
+  for (let i = 0; i < count; i++) total += 1 + Math.floor(random() * rules.diceSides);
   return total;
 }
 
@@ -233,4 +233,210 @@ export function escapeTile(runner, holder, isFree) {
 // Positive means the presser is favoured.
 export function contestEdge(presser, holder, ctx = DEFAULT_CTX) {
   return sumParts(contestParts(presser, 'press', holder, ctx)) - sumParts(contestParts(holder, 'hold', presser, ctx));
+}
+
+// ======================================================================
+// The stance duel (combat design v0.4)
+// ======================================================================
+//
+// Used when engagement.json says "mode": "stance".
+//
+// While two units are locked together, every turn of each of them is a BEAT:
+// the unit whose turn it is picks a STANCE, and its foe answers with one.
+//   Press : attack hard (uses power)
+//   Guard : hold firm (uses guard)
+//   Slip  : dodge and counter (uses agility)
+//   Break : try to get out of the clash (uses agility)
+// Stances beat each other in a circle (see "beats" in engagement.json):
+// Guard beats Press, Slip beats Guard, Press beats Slip. Beating the other
+// stance is a bonus, not a guarantee: the dice still roll.
+//
+// Each class is strong or weak in each stance (see "stances" in jobs.json).
+//
+// MOMENTUM is a track from -3 to +3 shared by the two. Winning a beat moves it
+// your way (a winning Press moves it further). At +2 the leader fights better.
+// At +3 the beat is DECISIVE: the loser is thrown Off-Balance and pushed back,
+// the winner gets a free strike, and the track goes back to 0.
+//
+// POISE is a small pool (3) that comes back slowly. Spending 1 EMPOWERS a
+// stance for that beat.
+
+const STANCE_IDS = ['press', 'guard', 'slip'];
+
+// The numbers from engagement.json, for the battle screen (it checks "mode").
+export const engagementRules = rules;
+
+// True when clashes use the stance duel, false for the older Press / Break away.
+export function isStanceDuel() {
+  return rules.mode !== 'classic';
+}
+
+// ---------- Momentum ----------
+
+// The momentum from this unit's side: positive means it is winning.
+export function momentumOf(unit) {
+  const e = unit.engagement;
+  if (!e) return 0;
+  return e.first === unit ? e.track : -e.track;
+}
+
+// Moves the momentum toward "unit" by "amount" (never past the ends).
+export function shiftMomentum(unit, amount) {
+  const e = unit.engagement;
+  if (!e) return;
+  const toward = e.first === unit ? 1 : -1;
+  e.track = Math.max(-rules.momentum.max, Math.min(rules.momentum.max, e.track + toward * amount));
+}
+
+export function resetMomentum(unit) {
+  if (unit.engagement) unit.engagement.track = 0;
+}
+
+// Locks two units into a stance duel: like startEngagement, plus a shared
+// momentum track. "first" is the one who started it.
+export function startDuel(first, second) {
+  startEngagement(first, second);
+  const e = { first, second, track: 0 };
+  first.engagement = e;
+  second.engagement = e;
+}
+
+export function endDuel(unit) {
+  const foe = unit.engagedWith;
+  endEngagement(unit);
+  unit.engagement = null;
+  if (foe) foe.engagement = null;
+}
+
+// ---------- Poise ----------
+
+export function poiseOf(unit) {
+  if (unit.poise === undefined) unit.poise = rules.poise.start;
+  return unit.poise;
+}
+
+// Called at the start of the unit's own turn.
+export function refillPoise(unit) {
+  unit.poise = Math.min(rules.poise.max, poiseOf(unit) + rules.poise.refill);
+}
+
+// ---------- Stances ----------
+
+export function stanceName(stance) {
+  return rules.stances[stance] ? rules.stances[stance].name : stance;
+}
+
+// 'strong', 'average' or 'weak' for this unit in this stance.
+export function stanceAffinity(unit, stance) {
+  return (unit.stances && unit.stances[stance]) || 'average';
+}
+
+// The stance this unit's class fights with by default (its strongest).
+export function autoStance(unit) {
+  const order = { strong: 2, average: 1, weak: 0 };
+  return STANCE_IDS.reduce((best, s) => (order[stanceAffinity(unit, s)] > order[stanceAffinity(unit, best)] ? s : best), 'guard');
+}
+
+// +matchupBonus if "stance" beats "against", minus it if beaten, else 0.
+export function matchup(stance, against) {
+  if (!against || stance === against) return 0;
+  if (rules.beats[stance] === against) return rules.matchupBonus;
+  if (rules.beats[against] === stance) return -rules.matchupBonus;
+  return 0;
+}
+
+// The stance that beats this one.
+export function counterTo(stance) {
+  return Object.keys(rules.beats).find((s) => rules.beats[s] === stance) || 'guard';
+}
+
+// The unit's number for a stance: the stat it uses, plus a spell that boosts that stat.
+export function stanceRating(unit, stance) {
+  const stat = rules.stances[stance].stat;
+  let rating = unit.contest ? unit.contest[stat] || 0 : 0;
+  const buff = buffOf(unit);
+  if (buff && buff.stat === stat) rating += buff.amount;
+  return rating;
+}
+
+// Everything that adds up to one side's score in a beat, before the dice.
+export function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empowered = false) {
+  const lead = momentumOf(unit) >= rules.momentum.leadAt ? rules.momentum.leadBonus : 0;
+  const heightDiff = ctx.heightOf(unit.col, unit.row) - ctx.heightOf(foe.col, foe.row);
+  return {
+    rating: stanceRating(unit, stance) * rules.statWeight, // stats count for half, so class strengths matter without deciding every beat
+    affinity: rules.affinityBonus[stanceAffinity(unit, stance)] || 0,
+    // only the side whose stance beats the other's gets the bonus (a soft edge, not a 6-point swing)
+    matchup: stance === 'break' ? rules.breakVs[foeStance] || 0 : Math.max(0, matchup(stance, foeStance)),
+    momentum: lead,
+    height: heightDiff * rules.heightBonusPerLevel,
+    offBalance: isOffBalance(unit) ? -rules.offBalance.contest : 0,
+    empower: empowered ? rules.poise.empower : 0,
+  };
+}
+
+export function sumBeat(parts) {
+  return Object.values(parts).reduce((a, b) => a + b, 0);
+}
+
+// One beat. "actor" is the unit whose turn it is.
+// Returns what happened; nothing has been changed yet except momentum and Poise.
+export function resolveBeat(actor, actorStance, holder, holderStance, ctx = DEFAULT_CTX, empowered = false) {
+  if (empowered) actor.poise = poiseOf(actor) - 1;
+  const actorParts = beatParts(actor, actorStance, holder, holderStance, ctx, empowered);
+  const holderParts = beatParts(holder, holderStance, actor, actorStance, ctx, false);
+  const actorRoll = rollDice(ctx.random, rules.beatDice);
+  const holderRoll = rollDice(ctx.random, rules.beatDice);
+  const actorScore = sumBeat(actorParts) + actorRoll;
+  const holderScore = sumBeat(holderParts) + holderRoll;
+  const margin = actorScore - holderScore;
+  actor.stance = actorStance;
+  holder.stance = holderStance;
+
+  const base = {
+    actor, holder, actorStance, holderStance, actorParts, holderParts,
+    actorRoll, holderRoll, actorScore, holderScore, margin, empowered,
+  };
+
+  // Breaking away: succeed and the clash is over, fail and lose a little ground
+  if (actorStance === 'break') {
+    const success = margin >= 0;
+    if (!success) shiftMomentum(holder, 1);
+    return { ...base, kind: 'break', success, winner: success ? actor : holder, loser: success ? null : actor, shift: success ? 0 : 1, decisive: false };
+  }
+
+  let winner = null;
+  if (margin > rules.stalemateWithin) winner = actor;
+  if (margin < -rules.stalemateWithin) winner = holder;
+  if (!winner) return { ...base, kind: 'even', winner: null, loser: null, shift: 0, decisive: false };
+
+  const loser = winner === actor ? holder : actor;
+  const winStance = winner === actor ? actorStance : holderStance;
+  let shift = winStance === 'press' ? rules.momentum.pressWinShift : rules.momentum.winShift;
+  if (Math.abs(margin) >= rules.decisiveMargin) shift += rules.momentum.decisiveExtra;
+  shiftMomentum(winner, shift);
+  const decisive = momentumOf(winner) >= rules.momentum.max;
+  return { ...base, kind: 'win', winner, loser, shift, decisive };
+}
+
+// ---------- Choosing a stance for the computer ----------
+
+// The enemy picks a stance. Mostly what its class is good at; sometimes it
+// reads its foe's last stance and picks the one that beats it.
+export function aiStance(unit, foe, ctx = DEFAULT_CTX) {
+  if (foe && foe.stance && foe.stance !== 'break' && ctx.random() * 100 < rules.aiReadChance) return counterTo(foe.stance);
+  const weight = { strong: 5, average: 2, weak: 1 };
+  const total = STANCE_IDS.reduce((sum, s) => sum + weight[stanceAffinity(unit, s)], 0);
+  let roll = ctx.random() * total;
+  for (const s of STANCE_IDS) {
+    roll -= weight[stanceAffinity(unit, s)];
+    if (roll < 0) return s;
+  }
+  return autoStance(unit);
+}
+
+// A stance picked by a unit that is answering (not acting): its class habits only,
+// with no read, because both stances are chosen at the same moment.
+export function answerStance(unit, ctx = DEFAULT_CTX) {
+  return aiStance(unit, null, ctx);
 }

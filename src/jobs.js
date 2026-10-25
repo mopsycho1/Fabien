@@ -55,6 +55,8 @@ export function buildUnit(entry, jobs) {
     attackType: job && job.attackType === 'magic' ? 'magic' : 'weapon', // magic uses magicAttack against magicDefense
     maxMp: stats.mp, // a full pool of magic points
     contest: job && job.contest ? { ...job.contest } : null, // engagement style and numbers (melee jobs only)
+    stances: job && job.stances ? { ...job.stances } : null, // which clash stances this job is strong or weak in
+    stance: null, // the stance it last fought with in a clash
     spells: job && job.spells ? [...job.spells] : [], // spells this job can cast
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy

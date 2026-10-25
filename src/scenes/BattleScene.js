@@ -37,6 +37,20 @@ import {
   contestParts,
   sumParts,
   contestEdge,
+  isStanceDuel,
+  engagementRules,
+  startDuel,
+  endDuel,
+  momentumOf,
+  resetMomentum,
+  poiseOf,
+  refillPoise,
+  stanceName,
+  stanceAffinity,
+  autoStance,
+  resolveBeat,
+  aiStance,
+  answerStance,
 } from '../engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
@@ -124,6 +138,8 @@ export default class BattleScene extends Phaser.Scene {
     this.spellGroup = null;         // a group of spells opened in the menu, like 'Verse'
     this.pendingTile = null;        // the tile picked for Husk, waiting for a second tap
     this.approach = null;           // tap-to-attack: { target, tile, options, optionKeys } while previewing
+    this.stanceMenu = 'main';       // in a clash: 'main' (Press, Guard, Slip, More) or 'more'
+    this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
     this.decoys = [];               // Husk decoys: their swarm blocks a tile until the caster's next turn
     this.engageMarks = [];          // the lines and icons drawn between engaged units
     this.inCinematic = false;       // true while a cut-in or clash plays (a tap speeds it up)
@@ -275,7 +291,7 @@ export default class BattleScene extends Phaser.Scene {
     // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
     const now = (stat) => unit[stat] + statMod(unit, stat);
     L.add(this.add.text(30, 1122, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
-    const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : '';
+    const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
     L.add(this.add.text(30, 1148, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
     // conditions as small chips
@@ -536,6 +552,9 @@ export default class BattleScene extends Phaser.Scene {
     clearOffBalance(this.activeUnit); // it has found its footing again
     clearExposed(this.activeUnit);    // and it is on guard again after Meditating
     restoreMp(this.activeUnit, 1);     // magic points come back slowly, 1 a turn
+    if (this.activeUnit.contest) refillPoise(this.activeUnit); // and so does Poise, for fighters
+    this.stanceMenu = 'main';
+    this.empower = false;
     this.removeDecoys(this.activeUnit); // its decoy's swarm scatters
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     for (const unit of this.units) this.faceNearestOpponent(unit);
@@ -678,6 +697,17 @@ export default class BattleScene extends Phaser.Scene {
       text = 'Tap a ' + (spells[this.selectedSpell].kind === 'hex' ? 'purple' : 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
+    } else if (unit.engagedWith && isStanceDuel()) {
+      const m = momentumOf(unit);
+      const lead = m > 0 ? ' (you lead)' : m < 0 ? ' (they lead)' : '';
+      text =
+        (unit.side === 'hero' ? 'Locked with ' : unit.name + ' is locked with ') + unit.engagedWith.name +
+        '. Momentum ' + (m > 0 ? '+' : '') + m + lead + '.' +
+        (unit.side === 'hero'
+          ? this.stanceMenu === 'more'
+            ? '\nEmpower: +3 to your stance for 1 Poise' + (this.empower ? ' (on)' : '')
+            : '\nGuard beats Press, Press beats Slip, Slip beats Guard' + (this.empower ? ' (Empowered)' : '')
+          : '');
     } else if (unit.engagedWith) {
       text =
         (unit.side === 'hero' ? 'Your turn: ' : 'Enemy turn: ') + unit.name +
@@ -716,6 +746,23 @@ export default class BattleScene extends Phaser.Scene {
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
+      return;
+    }
+
+    // Locked in a stance duel: pick a stance (or More: Auto, Break away, Empower)
+    if (unit.engagedWith && isStanceDuel()) {
+      const star = (s) => (stanceAffinity(unit, s) === 'strong' ? '  *' : '');
+      if (this.stanceMenu === 'more') {
+        a.set('Auto: ' + stanceName(autoStance(unit)), 'star', free, () => this.onStance(autoStance(unit)), { accent: GOLD });
+        b.set('Break away', 'run', free, () => this.onStance('break'));
+        c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
+        d.set('Back', 'back', isHero, () => this.openStanceMenu('main'));
+      } else {
+        a.set('Press' + star('press'), 'press', free, () => this.onStance('press'), { accent: ENGAGE_COLOR, selected: this.empower });
+        b.set('Guard' + star('guard'), 'shield', free, () => this.onStance('guard'), { accent: 0xd9b77a, selected: this.empower });
+        c.set('Slip' + star('slip'), 'run', free, () => this.onStance('slip'), { accent: 0x9fd4ff, selected: this.empower });
+        d.set('More  >', 'gem', free, () => this.openStanceMenu('more'));
+      }
       return;
     }
 
@@ -961,6 +1008,43 @@ export default class BattleScene extends Phaser.Scene {
     this.tryBreakAway(unit, () => {
       this.busy = false;
       this.refreshStatus();
+    });
+  }
+
+  // ---------- Stance duel buttons ----------
+
+  openStanceMenu(which) {
+    play(which === 'more' ? 'select' : 'cancel');
+    this.stanceMenu = which;
+    this.refreshStatus();
+  }
+
+  toggleEmpower() {
+    if (poiseOf(this.activeUnit) <= 0) return;
+    play('select');
+    this.empower = !this.empower;
+    this.stanceMenu = 'main'; // back to the stances, now empowered
+    this.refreshStatus();
+  }
+
+  // The player picked a stance: this turn's beat.
+  onStance(stance) {
+    const unit = this.activeUnit;
+    if (unit.side !== 'hero' || this.busy || this.battleOver || unit.hasActed || !unit.engagedWith) return;
+    const foe = unit.engagedWith;
+    // The foe answers at the same moment, so it cannot see your choice: an
+    // enemy answers by its class habits; a hero keeps the stance it last used
+    const foeStance = foe.side === 'enemy' ? answerStance(foe, CONTEST_CTX) : foe.stance || autoStance(foe);
+    const empowered = this.empower && poiseOf(unit) > 0;
+    this.empower = false;
+    this.stanceMenu = 'main';
+    this.cancelMode();
+    this.busy = true;
+    this.duelBeat(unit, stance, foe, foeStance, empowered, false, () => {
+      this.busy = false;
+      this.time.delayedCall(250, () => {
+        if (!this.battleOver && this.activeUnit === unit) this.endTurn();
+      });
     });
   }
 
@@ -1499,7 +1583,7 @@ export default class BattleScene extends Phaser.Scene {
   defeat(unit) {
     unit.alive = false;
     if (unit.engagedWith) {
-      endEngagement(unit); // a fallen unit cannot stay locked in a fight
+      endDuel(unit); // a fallen unit cannot stay locked in a fight
       this.refreshEngagementMarks();
       this.refreshStatusTags();
     }
@@ -2015,6 +2099,10 @@ export default class BattleScene extends Phaser.Scene {
 
   // An enemy's turn while locked: Press, unless it is hurt and the odds are against it.
   enemyEngagedTurn(unit) {
+    if (isStanceDuel()) {
+      this.enemyDuelTurn(unit);
+      return;
+    }
     const foe = unit.engagedWith;
     const edge = contestEdge(unit, foe, CONTEST_CTX);
     const hurt = unit.hp < unit.maxHp * 0.35;
@@ -2026,6 +2114,212 @@ export default class BattleScene extends Phaser.Scene {
     };
     if (hurt && edge < 0) this.tryBreakAway(unit, done);
     else this.pressEngagement(unit, done);
+  }
+
+  // An enemy's turn in a stance duel. It breaks away when badly hurt and
+  // losing; otherwise it picks a stance by its class habits, sometimes reading
+  // the hero's last stance. It empowers when it has Poise to spare.
+  enemyDuelTurn(unit) {
+    const foe = unit.engagedWith;
+    const hurt = unit.hp < unit.maxHp * 0.35;
+    const stance = hurt && momentumOf(unit) <= -1 ? 'break' : aiStance(unit, foe, CONTEST_CTX);
+    const foeStance = foe.stance || autoStance(foe);
+    const empowered = stance !== 'break' && poiseOf(unit) >= 2 && (momentumOf(unit) >= 1 || Math.random() < 0.3);
+    unit.hasActed = true;
+    this.busy = true;
+    this.duelBeat(unit, stance, foe, foeStance, empowered, false, () => {
+      this.busy = false;
+      this.time.delayedCall(300, () => this.endTurn());
+    });
+  }
+
+  // One beat of a stance duel: work it out, then show it.
+  duelBeat(actor, stance, holder, holderStance, empowered, opening, onDone) {
+    actor.hasActed = true;
+    this.refreshButtons();
+    const beat = resolveBeat(actor, stance, holder, holderStance, CONTEST_CTX, empowered);
+    const outcome = this.applyBeat(beat);
+    if (opening) {
+      this.beginCinematic();
+      play('drum');
+      this.cutIn(actor, 'ENGAGE!', () => this.playBeat(outcome, true, onDone));
+    } else {
+      this.playBeat(outcome, false, onDone);
+    }
+  }
+
+  // Changes the board for a beat's result (the animation shows it afterwards):
+  //   a clean break away: the duel ends and the runner steps off
+  //   a decisive beat (momentum reached 3): the loser is thrown Off-Balance
+  //     and pushed back (its class may hold its ground or slip the Off-Balance),
+  //     the winner lands a free strike, and the momentum starts again from 0
+  applyBeat(beat) {
+    const out = { beat, response: null, path: [], ended: false, strike: null, escape: null };
+    const isFree = (c, r) => isInsideGrid(c, r) && !this.isBlocked(c, r);
+
+    if (beat.kind === 'break' && beat.success) {
+      const foe = beat.holder;
+      endDuel(beat.actor);
+      out.ended = true;
+      out.escape = escapeTile(beat.actor, foe, isFree);
+      if (out.escape) {
+        beat.actor.col = out.escape.col;
+        beat.actor.row = out.escape.row;
+      }
+      return out;
+    }
+    if (!beat.decisive) return out;
+
+    const { winner, loser } = beat;
+    resetMomentum(winner);
+    out.response = lossResponse(loser, CONTEST_CTX);
+    if (!out.response.slipped) applyOffBalance(loser);
+
+    // the free strike, which always lands
+    if (engagementRules.decisiveStrike) {
+      const damage = getDamage(winner, loser);
+      loser.hp = Math.max(0, loser.hp - damage);
+      out.strike = { hit: true, damage };
+      if (loser.hp === 0) {
+        this.defeat(loser);
+        out.ended = true;
+        return out;
+      }
+    }
+
+    if (!out.response.held) {
+      const steps = engagementRules.decisivePush[styleOf(winner)] || 1;
+      out.path = displacementPath(loser, winner, steps, isFree);
+      if (out.path.length > 0) {
+        loser.col = out.path[out.path.length - 1].col;
+        loser.row = out.path[out.path.length - 1].row;
+      }
+    }
+    if (distance(winner, loser) > 1) {
+      endDuel(winner);
+      out.ended = true;
+    }
+    return out;
+  }
+
+  // The beat animation: both fighters show their stance, close in, the blades
+  // meet, then the result. A decisive beat adds the free strike and the push.
+  playBeat(outcome, opening, onDone) {
+    const { beat, response, path, ended, strike, escape } = outcome;
+    const a = beat.actor;
+    const b = beat.holder;
+    const aHome = { x: a.view.x, y: a.view.y };
+    const bHome = { x: b.view.x, y: b.view.y };
+    const dx = bHome.x - aHome.x;
+    const dy = bHome.y - aHome.y;
+    const mid = { x: (aHome.x + bHome.x) / 2, y: (aHome.y - a.centerY + bHome.y - b.centerY) / 2 };
+    const headY = Math.min(aHome.y - a.topY, bHome.y - b.topY);
+    const stancePose = { press: 'windup', guard: 'guard', slip: 'dodge', break: 'dodge' };
+
+    this.beginCinematic();
+    this.focusCamera(mid.x, mid.y + 30, opening || beat.decisive ? 1.35 : 1.18, 260);
+    this.faceToward(a, dx, dy);
+    this.faceToward(b, -dx, -dy);
+    this.showPose(a, stancePose[beat.actorStance], dx);
+    this.showPose(b, stancePose[beat.holderStance], -dx);
+
+    const steps = [];
+    const at = (ms, fn) => steps.push([ms, fn]);
+    const stanceColor = { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff', break: '#cfe8ff' };
+
+    // both stances appear above the fighters
+    at(80, () => {
+      this.floatText(a, stanceName(beat.actorStance).toUpperCase() + (beat.empowered ? '+' : ''), stanceColor[beat.actorStance]);
+      this.floatText(b, stanceName(beat.holderStance).toUpperCase(), stanceColor[beat.holderStance]);
+    });
+
+    if (beat.kind === 'break') {
+      at(380, () => {
+        play(beat.success ? 'miss' : 'bash');
+        this.showPose(b, 'attack', -dx);
+        if (beat.success) {
+          this.banner(mid.x, headY - 70, 'Broke free!', '#9fd4ff', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          if (escape) this.slideAlong(a, [escape]);
+        } else {
+          this.banner(mid.x, headY - 70, 'Held fast!', '#ff6b5a', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          this.recoil(a, -dx);
+        }
+        this.refreshEngagementMarks();
+      });
+    } else {
+      // close in and the blades meet
+      at(380, () => {
+        this.showPose(a, beat.actorStance === 'press' ? 'attack' : 'ready', dx);
+        this.showPose(b, beat.holderStance === 'press' ? 'attack' : 'ready', -dx);
+        this.tweens.add({ targets: a.view, x: aHome.x + dx * 0.2, y: aHome.y + dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
+        this.tweens.add({ targets: b.view, x: bHome.x - dx * 0.2, y: bHome.y - dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
+      });
+      at(490, () => {
+        clashFlash(this, mid.x, mid.y);
+        screenShake(this, 0.004, 120);
+        play('clash');
+        this.refreshEngagementMarks(); // the momentum bar moves
+      });
+      at(700, () => {
+        let title = 'Even';
+        let color = '#e8d5a8';
+        if (beat.winner) {
+          const winStance = beat.winner === a ? beat.actorStance : beat.holderStance;
+          const loseStance = beat.winner === a ? beat.holderStance : beat.actorStance;
+          const beaten = engagementRules.beats[winStance] === loseStance;
+          title = beaten ? stanceName(winStance) + ' beats ' + stanceName(loseStance) + '!' : beat.winner.name + ' wins the beat';
+          color = beat.winner.side === 'hero' ? '#9fe0c8' : '#ff8a6a';
+        }
+        if (beat.decisive) {
+          title = 'DECISIVE!';
+          color = '#ffe08a';
+        }
+        this.banner(mid.x, headY - 70, title, color, a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+        if (!beat.winner) {
+          this.showPose(a, 'ready', dx);
+          this.showPose(b, 'ready', -dx);
+        }
+      });
+    }
+
+    // a decisive beat: the free strike, then the loser's reaction and push
+    if (beat.decisive) {
+      const winner = beat.winner;
+      const loser = beat.loser;
+      const awayX = loser.view.x - winner.view.x;
+      at(1050, () => {
+        if (strike) this.showImpact(winner, loser, strike, -awayX >= 0 ? -1 : 1, false);
+      });
+      // the loser's reaction, once the banner has gone
+      at(1500, () => {
+        if (loser.alive) {
+          if (response.held) this.floatText(loser, 'Held ground!', '#d9b77a');
+          else if (response.slipped) this.floatText(loser, 'Slipped!', '#9fd4ff');
+          else this.floatText(loser, 'Off-balance!', '#ff6b5a');
+          if (path.length > 0) this.slideAlong(loser, path);
+        }
+      });
+      if (ended && loser.alive) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
+    }
+
+    const last = beat.decisive ? 2300 : beat.kind === 'break' ? 1100 : 1300;
+    at(last - 380, () => this.resetCamera(300));
+    at(last, () => {
+      for (const u of [a, b]) if (u.alive) this.faceNearestOpponent(u);
+      this.refreshEngagementMarks();
+      this.refreshStatusTags();
+      this.endCinematic();
+      if (this.checkBattleEnd()) {
+        this.battleOver = true;
+        this.busy = false;
+        this.showResult(this.checkBattleEnd());
+      }
+    });
+    at(last + 200, () => {
+      if (!this.battleOver) onDone();
+    });
+
+    for (const [ms, fn] of steps) this.time.delayedCall(ms, fn);
   }
 
   // ---------- Engagements ----------
@@ -2045,6 +2339,14 @@ export default class BattleScene extends Phaser.Scene {
   // Starts an engagement. It costs the attacker's action, locks both units
   // together, and opens with a cut-in and a contest.
   performEngage(attacker, target, onDone) {
+    if (isStanceDuel()) {
+      // The opening beat: the one engaging drives in with Press; the other
+      // answers by its class habits (an enemy) or its last stance (a hero)
+      startDuel(attacker, target);
+      const answer = target.side === 'enemy' ? answerStance(target, CONTEST_CTX) : target.stance || autoStance(target);
+      this.duelBeat(attacker, 'press', target, answer, false, true, onDone);
+      return;
+    }
     attacker.hasActed = true;
     startEngagement(attacker, target);
     this.refreshButtons();
@@ -2084,7 +2386,7 @@ export default class BattleScene extends Phaser.Scene {
       }
       // Pushed out of reach: the engagement is over
       if (distance(presser, holder) > 1) {
-        endEngagement(presser);
+        endDuel(presser);
         ended = true;
       }
     }
@@ -2196,7 +2498,7 @@ export default class BattleScene extends Phaser.Scene {
     const attempt = breakAwayContest(unit, foe, CONTEST_CTX);
     let tile = null;
     if (attempt.success) {
-      endEngagement(unit);
+      endDuel(unit);
       const isFree = (c, r) => isInsideGrid(c, r) && !this.isBlocked(c, r);
       tile = escapeTile(unit, foe, isFree);
       if (tile) {
@@ -2274,7 +2576,7 @@ export default class BattleScene extends Phaser.Scene {
   // chosen tile. It always breaks free of a clash.
   castHusk(caster, tile, onDone) {
     if (caster.engagedWith) {
-      endEngagement(caster);
+      endDuel(caster);
       this.refreshEngagementMarks();
     }
     this.addDecoy(caster, caster.col, caster.row);
@@ -2382,6 +2684,29 @@ export default class BattleScene extends Phaser.Scene {
       icon.lineStyle(4, 0xffe08a, 1);
       icon.lineBetween(mx - 9, my - 9, mx + 9, my + 9);
       icon.lineBetween(mx + 9, my - 9, mx - 9, my + 9);
+
+      // In a stance duel, the momentum bar under the crossed blades: 7 pips,
+      // filling from the middle toward the side that is winning, in its colour
+      if (isStanceDuel() && u.engagement) {
+        const max = engagementRules.momentum.max;
+        const first = u.engagement.first;
+        const other = first === u ? v : u;
+        const track = u.engagement.track; // from "first"'s side
+        const firstOnLeft = first.view.x <= other.view.x;
+        const pip = 11;
+        for (let i = -max; i <= max; i++) {
+          const px = mx + i * (pip + 3);
+          const py = my + 26;
+          // pip i counts toward the left side when i < 0, the right side when i > 0
+          const towardFirst = firstOnLeft ? i < 0 : i > 0;
+          const filled = i !== 0 && Math.abs(i) <= Math.abs(track) && (track > 0 ? towardFirst : !towardFirst);
+          const leader = track > 0 ? first : other;
+          icon.fillStyle(filled ? SIDE_COLORS[leader.side] : i === 0 ? 0xe8d5a8 : 0x1a1410, filled || i === 0 ? 1 : 0.85);
+          icon.fillRect(px - pip / 2, py - 4, pip, 8);
+          icon.lineStyle(1, 0xe8d5a8, 0.7);
+          icon.strokeRect(px - pip / 2, py - 4, pip, 8);
+        }
+      }
 
       this.engageMarks.push(ground, icon);
     }
