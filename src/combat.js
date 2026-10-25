@@ -1,5 +1,24 @@
 import { statMod } from './status.js';
 import rules from './data/engagement.json';
+import terrain from './data/terrain.json';
+
+// How high a tile is. The battle screen hands in the real map (grid.js);
+// until then everything counts as flat ground.
+let heightOf = () => 0;
+export function setHeightLookup(fn) {
+  heightOf = fn;
+}
+
+// How many levels higher the attacker stands than the defender (negative if lower).
+export function heightEdge(attacker, defender) {
+  return heightOf(attacker.col, attacker.row) - heightOf(defender.col, defender.row);
+}
+
+// Ranged attacks (archers, the Sage) aim better from above and worse uphill.
+export function heightAccuracy(attacker, defender) {
+  if (attacker.range <= 1) return 0;
+  return heightEdge(attacker, defender) * terrain.rangedAccuracyPerLevel;
+}
 
 // The rules of attacking. Nothing in this file draws anything. It only does
 // maths, so it is easy to test and easy to change.
@@ -17,10 +36,12 @@ export function distance(a, b) {
 //   - being busy fighting someone else in an engagement (it is distracted)
 //   - (and one makes it harder: lightning aimed at someone right next to the
 //     caster, see closePenalty in jobs.json)
+//   - height, for ranged attacks: better from above, worse uphill (terrain.json)
 export function getHitChance(attacker, defender) {
   let chance = attacker.accuracy - (defender.evade + statMod(defender, 'evade'));
   if (isDistracted(defender, attacker)) chance += rules.distractedHitBonus;
   if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
+  chance += heightAccuracy(attacker, defender); // shooting from high ground, or uphill
   return Math.min(95, Math.max(5, chance));
 }
 

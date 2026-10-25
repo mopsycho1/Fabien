@@ -1,0 +1,8 @@
+{
+  "note": "How the lie of the land changes a fight. First guesses for playtesting.",
+  "rangedAccuracyPerLevel": 10,
+  "openingHeightBonusPerLevel": 2,
+  "fallDamagePerLevel": 4,
+  "pushClimbLimit": 1,
+  "downhillPushExtra": 1
+}

@@ -12,7 +12,8 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
+import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -51,6 +52,7 @@ import {
   resolveBeat,
   aiStance,
   answerStance,
+  openingHeightBonus,
 } from '../engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
@@ -104,6 +106,7 @@ export default class BattleScene extends Phaser.Scene {
     this.uiCam.fadeIn(500, 0, 0, 0);
 
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
+    setHeightLookup(getHeight);       // and the attack rules, for shooting from high ground
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
     this.inHitStop = false;
@@ -679,6 +682,8 @@ export default class BattleScene extends Phaser.Scene {
       if (isDistracted(target, unit)) notes.push('distracted');
       if (isOffBalance(target)) notes.push('off-balance');
       if (unit.closePenalty && distance(unit, target) <= 1) notes.push('too close to aim');
+      const hAcc = heightAccuracy(unit, target);
+      if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const next = chainTarget(unit, target, this.units);
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
       text =
@@ -693,6 +698,8 @@ export default class BattleScene extends Phaser.Scene {
       if (isDistracted(a.target, unit)) notes.push('distracted');
       if (isOffBalance(a.target)) notes.push('off-balance');
       if (unit.closePenalty && distance(from, a.target) <= 1) notes.push('too close to aim');
+      const hAcc = heightAccuracy(from, a.target);
+      if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const next = chainTarget(from, a.target, this.units);
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
       text =
@@ -701,6 +708,12 @@ export default class BattleScene extends Phaser.Scene {
         '\nTap it again to go' + (a.options.length > 1 ? ', or a blue tile to stand elsewhere.' : '.');
     } else if (this.mode === 'attack') {
       text = 'Tap a red tile to choose a target';
+    } else if (this.mode === 'engage' && this.pendingTarget && isStanceDuel()) {
+      const target = this.pendingTarget;
+      const bonus = openingHeightBonus(unit, target, CONTEST_CTX);
+      text =
+        'Engage ' + target.name + ' (' + target.jobName + ')? You open with Press' +
+        (bonus ? ', +' + bonus + ' from high ground' : '') + '.\nTap again.';
     } else if (this.mode === 'engage' && this.pendingTarget) {
       // Show both sides' numbers before the dice, so the choice is an informed one
       const target = this.pendingTarget;
@@ -1962,7 +1975,7 @@ export default class BattleScene extends Phaser.Scene {
   floatText(unit, text, color, options = {}) {
     const big = !!options.big;
     const label = this.add
-      .text(unit.view.x, unit.view.y - unit.topY - 20, text, {
+      .text(unit.view.x, unit.view.y - unit.topY - 20 - (options.rise || 0), text, {
         fontFamily: 'Georgia, serif',
         fontSize: big ? '54px' : '40px',
         fontStyle: 'bold',
@@ -2166,11 +2179,53 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
+  // Pushes the loser of a clash away from the winner, and works out any fall.
+  //   - it cannot be shoved up a step of more than pushClimbLimit levels (a wall)
+  //   - a push that goes downhill carries one tile further
+  //   - every level it drops on the way costs fallDamagePerLevel health
+  // Changes the loser's tile and health straight away; returns what happened.
+  pushLoser(loser, winner, steps) {
+    const isFree = (c, r, fc, fr) =>
+      isInsideGrid(c, r) && !this.isBlocked(c, r) && getHeight(c, r) - getHeight(fc, fr) <= terrain.pushClimbLimit;
+    let path = displacementPath(loser, winner, steps, isFree);
+    if (path.length > 0 && getHeight(path[0].col, path[0].row) < getHeight(loser.col, loser.row)) {
+      path = displacementPath(loser, winner, steps + terrain.downhillPushExtra, isFree); // downhill: further
+    }
+    let levels = 0;
+    let prev = { col: loser.col, row: loser.row };
+    for (const step of path) {
+      levels += Math.max(0, getHeight(prev.col, prev.row) - getHeight(step.col, step.row));
+      prev = step;
+    }
+    if (path.length > 0) {
+      loser.col = path[path.length - 1].col;
+      loser.row = path[path.length - 1].row;
+    }
+    const fall = levels > 0 ? { levels, damage: levels * terrain.fallDamagePerLevel } : null;
+    if (fall) {
+      loser.hp = Math.max(0, loser.hp - fall.damage);
+      if (loser.hp === 0) this.defeat(loser);
+    }
+    return { path, fall };
+  }
+
+  // Shows a fall at the end of a push: a thud, dust, and the damage.
+  showFall(unit, fall, awayX) {
+    if (!fall || !unit.view || !unit.view.active) return;
+    play('crash');
+    dustPuff(this, unit.view.x, unit.view.y);
+    groundRing(this, unit.view.x, unit.view.y, 0xe8c08a, 1);
+    screenShake(this, 0.006, 160);
+    this.updateHpBar(unit);
+    this.floatText(unit, 'Fall -' + fall.damage, '#ff9a5a', { pop: true, big: fall.damage >= 8 });
+    if (unit.hp === 0) this.playDefeat(unit, awayX);
+  }
+
   // One beat of a stance duel: work it out, then show it.
   duelBeat(actor, stance, holder, holderStance, empowered, opening, onDone) {
     actor.hasActed = true;
     this.refreshButtons();
-    const beat = resolveBeat(actor, stance, holder, holderStance, CONTEST_CTX, empowered);
+    const beat = resolveBeat(actor, stance, holder, holderStance, CONTEST_CTX, empowered, opening);
     const outcome = this.applyBeat(beat);
     if (opening) {
       this.beginCinematic();
@@ -2221,11 +2276,12 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     if (!out.response.held) {
-      const steps = engagementRules.decisivePush[styleOf(winner)] || 1;
-      out.path = displacementPath(loser, winner, steps, isFree);
-      if (out.path.length > 0) {
-        loser.col = out.path[out.path.length - 1].col;
-        loser.row = out.path[out.path.length - 1].row;
+      const pushed = this.pushLoser(loser, winner, engagementRules.decisivePush[styleOf(winner)] || 1);
+      out.path = pushed.path;
+      out.fall = pushed.fall;
+      if (!loser.alive) {
+        out.ended = true;
+        return out;
       }
     }
     if (distance(winner, loser) > 1) {
@@ -2238,7 +2294,7 @@ export default class BattleScene extends Phaser.Scene {
   // The beat animation: both fighters show their stance, close in, the blades
   // meet, then the result. A decisive beat adds the free strike and the push.
   playBeat(outcome, opening, onDone) {
-    const { beat, response, path, ended, strike, escape } = outcome;
+    const { beat, response, path, ended, strike, escape } = outcome; // (outcome.fall: a fall at the end of the push)
     const a = beat.actor;
     const b = beat.holder;
     const aHome = { x: a.view.x, y: a.view.y };
@@ -2326,13 +2382,15 @@ export default class BattleScene extends Phaser.Scene {
       // the loser's reaction, once the banner has gone
       at(1500, () => {
         if (loser.alive) {
-          if (response.held) this.floatText(loser, 'Held ground!', '#d9b77a');
-          else if (response.slipped) this.floatText(loser, 'Slipped!', '#9fd4ff');
-          else this.floatText(loser, 'Off-balance!', '#ff6b5a');
+          const above = { rise: 46 }; // above the damage number from the strike
+          if (response.held) this.floatText(loser, 'Held ground!', '#d9b77a', above);
+          else if (response.slipped) this.floatText(loser, 'Slipped!', '#9fd4ff', above);
+          else this.floatText(loser, 'Off-balance!', '#ff6b5a', above);
           if (path.length > 0) this.slideAlong(loser, path);
         }
+        if (outcome.fall) this.time.delayedCall(170 * Math.max(1, path.length) + 40, () => this.showFall(loser, outcome.fall, awayX));
       });
-      if (ended && loser.alive) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
+      if (ended && loser.alive && !outcome.fall) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
     }
 
     const last = beat.decisive ? 2300 : beat.kind === 'break' ? 1100 : 1300;
@@ -2410,6 +2468,7 @@ export default class BattleScene extends Phaser.Scene {
     const result = resolveContest(presser, holder, CONTEST_CTX);
     let response = null;
     let path = [];
+    let fall = null;
     let ended = false;
 
     if (result.loser) {
@@ -2417,27 +2476,24 @@ export default class BattleScene extends Phaser.Scene {
       response = lossResponse(loser, CONTEST_CTX);
       if (!response.slipped) applyOffBalance(loser);
       if (!response.held) {
-        const isFree = (c, r) => isInsideGrid(c, r) && !this.isBlocked(c, r);
-        path = displacementPath(loser, result.winner, pushDistance(result), isFree);
-        if (path.length > 0) {
-          loser.col = path[path.length - 1].col;
-          loser.row = path[path.length - 1].row;
-        }
+        const pushed = this.pushLoser(loser, result.winner, pushDistance(result));
+        path = pushed.path;
+        fall = pushed.fall;
       }
-      // Pushed out of reach: the engagement is over
-      if (distance(presser, holder) > 1) {
+      // Pushed out of reach (or fell to its death): the engagement is over
+      if (!loser.alive || distance(presser, holder) > 1) {
         endDuel(presser);
         ended = true;
       }
     }
-    return { result, response, path, ended };
+    return { result, response, path, ended, fall };
   }
 
   // The engagement animation. It plays out what runContest decided:
   //   wind up, both lunge, the blades meet, the result, then the loser's
   //   reaction and push back. A tap anywhere speeds it up.
   playContest(contest, opening, onDone) {
-    const { result, response, path, ended } = contest;
+    const { result, response, path, ended, fall } = contest;
     const a = result.presser;
     const b = result.holder;
     const aHome = { x: a.view.x, y: a.view.y };
@@ -2502,6 +2558,7 @@ export default class BattleScene extends Phaser.Scene {
         }
         if (path.length > 0) this.slideAlong(loser, path);
         else if (!response.held) this.recoil(loser, awayX);
+        if (fall) this.time.delayedCall(170 * Math.max(1, path.length) + 40, () => this.showFall(loser, fall, awayX));
       });
       if (ended) at(1650, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
     }

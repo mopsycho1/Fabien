@@ -1,6 +1,7 @@
 import { getReachableTiles } from './movement.js';
 import { distance } from './combat.js';
 import { moveOf } from './status.js';
+import { getHeight } from './grid.js';
 
 // Decides where an enemy should walk this turn.
 // It returns a tile like { col: 2, row: 4 }, or null if the enemy should
@@ -41,14 +42,21 @@ export function chooseMoveTile(unit, units, extraBlocked = () => false) {
   let bestGap = gap(unit); // staying where we are is the starting point to beat
   let bestSteps = 0;
 
+  // Ranged units also like high ground (they aim better from above)
+  const lift = (t) => (unit.range > 1 ? getHeight(t.col, t.row) : 0);
+  let bestLift = lift(unit);
   for (const tile of tiles) {
     const g = gap(tile);
     const steps = distance(unit, tile);
-    const better = g < bestGap || (best !== null && g === bestGap && steps < bestSteps);
+    const better =
+      g < bestGap ||
+      (g === bestGap && lift(tile) > bestLift) ||
+      (best !== null && g === bestGap && lift(tile) === bestLift && steps < bestSteps);
     if (better) {
       best = tile;
       bestGap = g;
       bestSteps = steps;
+      bestLift = lift(tile);
     }
   }
 

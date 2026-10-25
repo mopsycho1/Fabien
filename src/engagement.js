@@ -1,4 +1,5 @@
 import rules from './data/engagement.json';
+import terrain from './data/terrain.json';
 import { distance } from './combat.js';
 import { isOffBalance, buffOf } from './status.js';
 
@@ -181,7 +182,7 @@ export function displacementPath(loser, winner, steps, isFree) {
   let col = loser.col;
   let row = loser.row;
   for (let i = 0; i < steps; i++) {
-    if (!isFree(col + dc, row + dr)) break;
+    if (!isFree(col + dc, row + dr, col, row)) break; // isFree also gets the tile it comes from (to block climbing)
     col += dc;
     row += dr;
     path.push({ col, row });
@@ -190,7 +191,7 @@ export function displacementPath(loser, winner, steps, isFree) {
 
   // Straight back is blocked: try stepping to the side (at a right angle)
   for (const [sc, sr] of [[dr, dc], [-dr, -dc]]) {
-    if (isFree(loser.col + sc, loser.row + sr)) return [{ col: loser.col + sc, row: loser.row + sr }];
+    if (isFree(loser.col + sc, loser.row + sr, loser.col, loser.row)) return [{ col: loser.col + sc, row: loser.row + sr }];
   }
   return [];
 }
@@ -360,7 +361,9 @@ export function stanceRating(unit, stance) {
 }
 
 // Everything that adds up to one side's score in a beat, before the dice.
-export function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empowered = false) {
+// highGround: true only for the one who started the clash, on the opening beat:
+// engaging from higher ground gives a bonus for each level (terrain.json).
+export function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empowered = false, highGround = false) {
   const lead = momentumOf(unit) >= rules.momentum.leadAt ? rules.momentum.leadBonus : 0;
   const heightDiff = ctx.heightOf(unit.col, unit.row) - ctx.heightOf(foe.col, foe.row);
   return {
@@ -369,10 +372,15 @@ export function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empow
     // only the side whose stance beats the other's gets the bonus (a soft edge, not a 6-point swing)
     matchup: stance === 'break' ? rules.breakVs[foeStance] || 0 : Math.max(0, matchup(stance, foeStance)),
     momentum: lead,
-    height: heightDiff * rules.heightBonusPerLevel,
+    height: highGround ? Math.max(0, heightDiff) * terrain.openingHeightBonusPerLevel : 0,
     offBalance: isOffBalance(unit) ? -rules.offBalance.contest : 0,
     empower: empowered ? rules.poise.empower : 0,
   };
+}
+
+// The opening-beat bonus "unit" would get for engaging "foe" from where it stands.
+export function openingHeightBonus(unit, foe, ctx = DEFAULT_CTX) {
+  return Math.max(0, ctx.heightOf(unit.col, unit.row) - ctx.heightOf(foe.col, foe.row)) * terrain.openingHeightBonusPerLevel;
 }
 
 export function sumBeat(parts) {
@@ -381,9 +389,10 @@ export function sumBeat(parts) {
 
 // One beat. "actor" is the unit whose turn it is.
 // Returns what happened; nothing has been changed yet except momentum and Poise.
-export function resolveBeat(actor, actorStance, holder, holderStance, ctx = DEFAULT_CTX, empowered = false) {
+// opening: true for the first beat of a clash (the one engaging may have high ground).
+export function resolveBeat(actor, actorStance, holder, holderStance, ctx = DEFAULT_CTX, empowered = false, opening = false) {
   if (empowered) actor.poise = poiseOf(actor) - 1;
-  const actorParts = beatParts(actor, actorStance, holder, holderStance, ctx, empowered);
+  const actorParts = beatParts(actor, actorStance, holder, holderStance, ctx, empowered, opening);
   const holderParts = beatParts(holder, holderStance, actor, actorStance, ctx, false);
   const actorRoll = rollDice(ctx.random, rules.beatDice);
   const holderRoll = rollDice(ctx.random, rules.beatDice);

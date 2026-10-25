@@ -119,6 +119,14 @@ The file also has `scenery`: decoration around and on the board. It never blocks
 - A `sandfall` pours sand off the `left` or `right` side of a raised tile, down onto the lower tile in front of it. It only shows if that tile really is lower.
 - The pictures live in `public/art/terrain`. Replacing a picture there with a new one of the same name changes it everywhere.
 
+### `terrain.json` (how height changes a fight)
+
+- `rangedAccuracyPerLevel`: archers and the Sage get this much more chance to hit (percent) for each level they stand above the target, and this much less shooting uphill. Swords and spears are not affected.
+- `openingHeightBonusPerLevel`: points on the opening beat of a clash for each level the one engaging stands above the other.
+- `pushClimbLimit`: a fighter pushed in a clash cannot be shoved up a step higher than this (a taller step acts like a wall).
+- `downhillPushExtra`: a push that goes downhill carries this many tiles further.
+- `fallDamagePerLevel`: health lost for each level a pushed fighter drops. A fall can finish a fighter off.
+
 ## Character pictures (`art.json` and the `public/art` folder)
 
 Picture files go in the folder `public/art`. The file `src/data/art.json` says which pictures belong to which unit.
