@@ -123,6 +123,7 @@ export default class BattleScene extends Phaser.Scene {
     this.selectedSpell = null;      // the spell picked, waiting for a target
     this.spellGroup = null;         // a group of spells opened in the menu, like 'Verse'
     this.pendingTile = null;        // the tile picked for Husk, waiting for a second tap
+    this.approach = null;           // tap-to-attack: { target, tile, options, optionKeys } while previewing
     this.decoys = [];               // Husk decoys: their swarm blocks a tile until the caster's next turn
     this.engageMarks = [];          // the lines and icons drawn between engaged units
     this.inCinematic = false;       // true while a cut-in or clash plays (a tap speeds it up)
@@ -332,7 +333,7 @@ export default class BattleScene extends Phaser.Scene {
       .sort((a, b) => closeness(a) - closeness(b));
     const at = (u) => ({ col: u.col, row: u.row });
 
-    if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget')) {
+    if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach')) {
       // A tap on a choosable figure's body (above its feet) means that figure,
       // even when the top of a raised tile behind it is under the same spot.
       const torso = bodies.find((u) => this.targetsInRange.includes(u) && this.torsoContains(u, x, y));
@@ -345,7 +346,7 @@ export default class BattleScene extends Phaser.Scene {
       if (hiddenTile) return at(hiddenTile);
     }
 
-    if (this.mode === 'move' || this.mode === 'huskTile') {
+    if (this.mode === 'move' || this.mode === 'huskTile' || this.mode === 'approach') {
       if (this.reachableKeys.has(tile.col + ',' + tile.row)) return tile;
       // A blue tile partly hidden behind a taller block in front of it
       for (const key of this.reachableKeys) {
@@ -527,6 +528,7 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshStatusTags();
     this.activeUnit.hasMoved = false;
     this.activeUnit.hasActed = false;
+    this.activeUnit.moveFrom = null;
     this.viewing = null;
 
     this.cancelMode(); // clears any leftover choice and refreshes the screen
@@ -621,6 +623,20 @@ export default class BattleScene extends Phaser.Scene {
         target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
         getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
         '\nTap again to attack.';
+    } else if (this.mode === 'approach') {
+      // The odds from the tile the unit will stand on
+      const a = this.approach;
+      const from = { ...unit, col: a.tile.col, row: a.tile.row };
+      const notes = [];
+      if (isDistracted(a.target, unit)) notes.push('distracted');
+      if (isOffBalance(a.target)) notes.push('off-balance');
+      if (unit.closePenalty && distance(from, a.target) <= 1) notes.push('too close to aim');
+      const next = chainTarget(from, a.target, this.units);
+      const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
+      text =
+        a.target.name + ': ' + getHitChance(from, a.target) + '% to hit, ' + getDamage(unit, a.target) + ' damage' +
+        (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
+        '\nTap it again to go' + (a.options.length > 1 ? ', or a blue tile to stand elsewhere.' : '.');
     } else if (this.mode === 'attack') {
       text = 'Tap a red tile to choose a target';
     } else if (this.mode === 'engage' && this.pendingTarget) {
@@ -699,7 +715,11 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Normal turn: Move, Attack, Engage or Spell, End turn
-    a.set('Move', 'run', isHero && !unit.hasMoved, () => this.onMoveButton(), { selected: this.mode === 'move' });
+    if (isHero && unit.hasMoved && !unit.hasActed && unit.moveFrom) {
+      a.set('Undo move', 'back', !this.busy, () => this.undoMove());
+    } else {
+      a.set('Move', 'run', isHero && !unit.hasMoved, () => this.onMoveButton(), { selected: this.mode === 'move' });
+    }
     b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
     if (isMelee(unit)) {
       c.set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
@@ -951,8 +971,32 @@ export default class BattleScene extends Phaser.Scene {
 
     const unit = this.activeUnit;
 
-    // Tapping any other unit, when nothing is being chosen, shows its details
     const tapped = this.getUnitAt(col, row);
+
+    // Previewing a walk-up attack: the enemy again goes, a blue tile changes
+    // where to stand, another enemy changes the target, anything else cancels
+    if (this.mode === 'approach' && unit.side === 'hero') {
+      const a = this.approach;
+      if (tapped === a.target) {
+        this.confirmApproach();
+        return;
+      }
+      if (a.optionKeys.has(col + ',' + row)) {
+        this.chooseApproachTile({ col, row });
+        return;
+      }
+      if (tapped && tapped.side !== unit.side && this.startApproach(tapped)) return;
+      this.cancelMode();
+      return;
+    }
+
+    // Tapping an enemy you can reach (on your turn, before acting): get ready
+    // to walk up to it and attack, in one go
+    if ((this.mode === 'idle' || this.mode === 'move') && unit.side === 'hero' && tapped && tapped.side !== unit.side) {
+      if (this.startApproach(tapped)) return;
+    }
+
+    // Tapping any other unit, when nothing is being chosen, shows its details
     if (this.mode === 'idle' && tapped && tapped !== unit) {
       this.inspect(tapped);
       return;
@@ -1095,6 +1139,7 @@ export default class BattleScene extends Phaser.Scene {
     let path = getPath(unit.col, unit.row, col, row, moveOf(unit), (c, r) => this.isBlocked(c, r));
     if (path.length === 0) path = [{ col, row }];
 
+    unit.moveFrom = { col: unit.col, row: unit.row, facing: unit.facing }; // for Undo move
     unit.col = col;
     unit.row = row;
     unit.hasMoved = true;
@@ -1133,6 +1178,126 @@ export default class BattleScene extends Phaser.Scene {
         if (onDone) onDone();
       },
     });
+  }
+
+  // ---------- Walk up and attack (tap an enemy) ----------
+
+  // Every tile the unit could attack this target from this turn: where it
+  // stands now, or anywhere it can still walk to, within its attack range.
+  approachTiles(unit, target) {
+    const here = { col: unit.col, row: unit.row };
+    const spots = unit.hasMoved
+      ? [here]
+      : [here, ...getReachableTiles(unit.col, unit.row, moveOf(unit), (c, r) => this.isBlocked(c, r))];
+    return spots.filter((t) => {
+      const d = distance(t, target);
+      return d >= 1 && d <= unit.range;
+    });
+  }
+
+  // Picks the best of those tiles. Fighters take the shortest walk and like
+  // high ground, and avoid being surrounded. Ranged units (archers, the Sage)
+  // stand as far back as their range allows, away from other enemies.
+  bestApproachTile(unit, target, options) {
+    const foes = this.units.filter((u) => u.alive && u.side !== unit.side);
+    const score = (t) => {
+      const steps = distance(unit, t);
+      const nextToFoes = foes.filter((f) => distance(t, f) === 1).length;
+      let s = getHeight(t.col, t.row) * 2 - steps;
+      if (unit.range > 1) s += distance(t, target) * 3 - nextToFoes * 6;
+      else s -= Math.max(0, nextToFoes - 1) * 2;
+      return s;
+    };
+    return options.reduce((best, t) => (score(t) > score(best) ? t : best));
+  }
+
+  // First tap on an enemy: show where the unit will stand, the path, and the odds.
+  // Returns false (and does nothing) if the enemy is out of reach this turn.
+  startApproach(target) {
+    const unit = this.activeUnit;
+    if (unit.hasActed || unit.engagedWith || this.busy || !target.alive) return false;
+    const options = this.approachTiles(unit, target);
+    if (options.length === 0) return false;
+    this.clearHighlights();
+    this.reachableKeys = new Set(options.map((t) => t.col + ',' + t.row));
+    this.mode = 'approach';
+    this.approach = {
+      target,
+      options,
+      optionKeys: this.reachableKeys,
+      tile: this.bestApproachTile(unit, target, options),
+    };
+    this.pendingTarget = target;
+    this.targetsInRange = [target];
+    play('select');
+    this.showApproach();
+    return true;
+  }
+
+  // The player tapped a different blue tile to stand on.
+  chooseApproachTile(tile) {
+    play('select');
+    this.approach.tile = tile;
+    this.showApproach();
+  }
+
+  // Draws the choice: faint blue where it could stand, gold where it will
+  // stand, small gold steps along the way, and the target outlined in red.
+  showApproach() {
+    const unit = this.activeUnit;
+    const a = this.approach;
+    this.showHighlights(a.options, 0x4aa3ff, { alpha: 0.38 });
+    this.showHighlights([a.tile], 0xffd27a, { keep: true, alpha: 0.7 });
+    this.showHighlights([{ col: a.target.col, row: a.target.row }], 0xe05a47, { keep: true, alpha: 0.5 });
+    const path = getPath(unit.col, unit.row, a.tile.col, a.tile.row, moveOf(unit), (c, r) => this.isBlocked(c, r));
+    for (const step of path.slice(0, -1)) {
+      const p = tileToScreen(step.col, step.row);
+      const dot = this.add.circle(p.x, p.y, 6, 0xffd27a, 0.9).setDepth(depthFor(step.col, step.row) + 0.6);
+      this.highlights.push(dot);
+    }
+    this.refreshOutlines();
+    this.refreshStatus();
+  }
+
+  // Second tap on the enemy: walk to the tile (if needed), then attack.
+  confirmApproach() {
+    const unit = this.activeUnit;
+    const { target, tile } = this.approach;
+    const strike = () => {
+      this.busy = true;
+      this.performAttack(unit, target, () => {
+        this.busy = false;
+      });
+    };
+    if (tile.col === unit.col && tile.row === unit.row) {
+      this.approach = null;
+      this.mode = 'idle';
+      this.pendingTarget = null;
+      this.clearHighlights();
+      this.refreshOutlines();
+      strike();
+      return;
+    }
+    this.moveUnit(unit, tile.col, tile.row, strike); // moveUnit tidies up the choice itself
+  }
+
+  // Undo move: back to where the unit started this turn (only before it acts).
+  undoMove() {
+    const unit = this.activeUnit;
+    if (this.busy || unit.hasActed || !unit.moveFrom) return;
+    play('cancel');
+    this.cancelMode();
+    const from = unit.moveFrom;
+    unit.col = from.col;
+    unit.row = from.row;
+    unit.hasMoved = false;
+    unit.moveFrom = null;
+    const p = tileToScreen(from.col, from.row);
+    unit.view.setDepth(depthFor(from.col, from.row) + 1);
+    this.tweens.add({ targets: unit.view, x: p.x, y: p.y, duration: 160, ease: 'Sine.easeOut' });
+    unit.facing = from.facing;
+    this.showStanding(unit);
+    this.refreshStatus();
   }
 
   // ---------- Choosing an attack ----------
@@ -2390,6 +2555,7 @@ export default class BattleScene extends Phaser.Scene {
     this.spellGroup = null;
     this.pendingTarget = null;
     this.pendingTile = null;
+    this.approach = null;
     this.targetsInRange = [];
     this.reachableKeys.clear();
     this.clearHighlights();
