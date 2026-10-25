@@ -352,9 +352,9 @@ export default class BattleScene extends Phaser.Scene {
       .filter((u) => u.alive && this.bodyContains(u, x, y))
       .sort((a, b) => closeness(a) - closeness(b));
     const at = (u) => ({ col: u.col, row: u.row });
-    // The figure the player actually sees under the finger: of all the figures
-    // there, the one drawn in front
-    const seen = bodies.slice().sort((a, b) => b.view.depth - a.view.depth)[0];
+    // The figure the player actually sees under the finger: checked against the
+    // real pictures (front to back), or failing that, the tap boxes
+    const seen = this.figureAt(x, y) || bodies.slice().sort((a, b) => b.view.depth - a.view.depth)[0];
     const active = this.activeUnit;
 
     if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach')) {
@@ -389,6 +389,35 @@ export default class BattleScene extends Phaser.Scene {
     if (active && active.alive && (onTile === active || bodies.includes(active))) return at(active);
     if (seen) return at(seen);
     return tile;
+  }
+
+  // The figure whose picture is actually drawn at (x, y), checking the
+  // figures from front to back, so the one you see is the one you get. A
+  // fingertip is bigger than a mouse pointer, so a tap a few pixels off a
+  // figure's edge still counts. Returns undefined if no figure is there.
+  figureAt(x, y) {
+    const order = this.units.filter((u) => u.alive && u.view.active).sort((a, b) => b.view.depth - a.view.depth);
+    for (const reach of [0, 6, 12]) {
+      const spots = reach === 0 ? [[0, 0]] : [[reach, 0], [-reach, 0], [0, reach], [0, -reach], [reach * 0.7, reach * 0.7], [-reach * 0.7, reach * 0.7], [reach * 0.7, -reach * 0.7], [-reach * 0.7, -reach * 0.7]];
+      for (const u of order) {
+        if (spots.some(([dx, dy]) => this.drawnAt(u, x + dx, y + dy))) return u;
+      }
+    }
+    return undefined;
+  }
+
+  // True if this unit's picture has a solid (not see-through) pixel at (x, y).
+  // A unit drawn as a circle counts its circle.
+  drawnAt(unit, x, y) {
+    const s = unit.sprite;
+    if (!s) return Math.hypot(x - unit.view.x, y - (unit.view.y - unit.centerY)) <= unit.hitRadius * 0.8;
+    const sx = unit.view.x + s.x;
+    const sy = unit.view.y + s.y;
+    let lx = (x - sx) / s.scaleX + s.originX * s.width;
+    const ly = (y - sy) / s.scaleY + s.originY * s.height;
+    if (s.flipX) lx = s.width - lx;
+    if (lx < 0 || ly < 0 || lx >= s.width || ly >= s.height) return false;
+    return this.textures.getPixelAlpha(Math.floor(lx), Math.floor(ly), s.texture.key, s.frame.name) > 80;
   }
 
   // True if the point (x, y) is on this unit's figure.
