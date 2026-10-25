@@ -1,0 +1,34 @@
+{
+  "swiftWind": {
+    "name": "Swift Wind",
+    "short": "WIND",
+    "color": "#9fd4ff",
+    "stat": "agility",
+    "amount": 3,
+    "slipChance": 30,
+    "range": 3,
+    "turns": 2,
+    "text": "+3 agility. Easier to slip being caught off-balance."
+  },
+  "stoneSkin": {
+    "name": "Stone Skin",
+    "short": "STONE",
+    "color": "#d9b77a",
+    "stat": "guard",
+    "amount": 3,
+    "holdChance": 30,
+    "range": 3,
+    "turns": 2,
+    "text": "+3 guard. Harder to push back."
+  },
+  "warCry": {
+    "name": "War Cry",
+    "short": "MIGHT",
+    "color": "#ff8a5c",
+    "stat": "power",
+    "amount": 3,
+    "range": 3,
+    "turns": 2,
+    "text": "+3 power. Better at overpowering."
+  }
+}

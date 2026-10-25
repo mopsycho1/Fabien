@@ -1,0 +1,112 @@
+{
+  "prologue": {
+    "background": "#2b1e14",
+    "place": "The Yoba Settlement",
+    "lines": [
+      {"speaker": "", "text": "A child wails in a dimly lit cavern. A man and a woman in tattered robes, weathered by the sands, ready themselves."},
+      {"speaker": "", "text": "The man draws a dagger and motions toward the child. The woman stops him. He lowers the knife, trusting the blade to the priestess."},
+      {"speaker": "", "text": "The woman hurries to embrace the two children, then presses the sheathed blade into the hands of the oldest boy."},
+      {"speaker": "", "text": "Clearly distressed, the boy accepts the blade, resting the younger boy in a single arm."},
+      {"speaker": "", "text": "The woman turns to the man. He draws a line through a sigil etched into the wall."},
+      {"speaker": "", "text": "The cavern's face shifts out of place. The earth shifts once more. The two boys get one last look at the man and the woman as they disappear beyond the shifting stone."},
+      {"speaker": "", "text": "The man and the woman emerge to find themselves surrounded by a unit of masked men, each wearing feathers as distinct as the masks themselves.", "place": "The Wasteland"},
+      {"speaker": "", "text": "A single masked man steps forward and removes his mask. He has the very face of the man who stands ready to face him in mortal combat."},
+      {"speaker": "", "text": "The man in tattered robes primes his spear."},
+      {"speaker": "", "text": "The priestess drops to the ground and slams both palms into the earth. The ground ripples, and pillars of stalagmite erupt, changing the terrain. Each masked man answers the attack in a different way."}
+    ]
+  },
+  "ship": {
+    "background": "#1d2a30",
+    "place": "Wings of Oren, the Shores of Ido",
+    "lines": [
+      {"speaker": "", "text": "Fog hangs above the water, wafting away as giant oars mirror beating wings. The crashing of surf announces the coming of a large ship. On its hull is an ominous sight: the feathered skull of a large bird."},
+      {"speaker": "", "text": "Men in sparsely feathered raiment busy themselves on the deck. They urge a latched trap door open and draw at chains that seem to reach into the ocean itself. A man entombed in leather etched with ancient markings is pulled onto the deck."},
+      {"speaker": "", "text": "From above watches Sadare the Sullen, 54, in garments of frayed grey feathers, the mark of his rank. He makes his way below and urges his men to release the man's bindings."},
+      {"speaker": "", "text": "The seal on the man's face is released. It is Ligali the Black, gasping for air as he coils on the wet deck."},
+      {"speaker": "", "text": "Sadare offers a leather gaskin. Ligali takes it eagerly and drinks with great thirst."},
+      {"speaker": "ligali", "text": "I recall a time the great texts held these to be divine waters—"},
+      {"speaker": "", "text": "Chains rattle as the scouts move to bind Ligali's feet and ankles."},
+      {"speaker": "ligali", "text": "You would think it a provocation."},
+      {"speaker": "sadare", "text": "To the heathenous perhaps, less so the pious."},
+      {"speaker": "ligali", "text": "Are all men not prone to righteous folly?"},
+      {"speaker": "sadare", "text": "Now? Now, you seek my counsel!?"},
+      {"speaker": "ligali", "text": "I've few in the way of friends, Sadare—"},
+      {"speaker": "sadare", "text": "Be sure, your worries exceed camaraderie."},
+      {"speaker": "ligali", "text": "Were it only a question of my well being."},
+      {"speaker": "sadare", "text": "You'd be a fool to think otherwise. I'll have no further stake in this."},
+      {"speaker": "ligali", "text": "Then what of those who march with you?"},
+      {"speaker": "sadare", "text": "You place the onus elsewhere, yet would feign concern in the same breath? Does your hypocrisy know no bounds?!"},
+      {"speaker": "", "text": "Sadare steps away to collect himself."},
+      {"speaker": "ligali", "text": "The road to death is scarce walked alone. Your presence itself is proof of that."},
+      {"speaker": "", "text": "Sadare charges at him, standing inches from Ligali's face, and hoists him up by his cloth."},
+      {"speaker": "sadare", "text": "Spare me your musings! Though you have averted the sea's gaze, Ligali! In time all will bear witness to your folly!"},
+      {"speaker": "ligali", "text": "If it is to be so, then better the beasts we know."},
+      {"speaker": "", "text": "Sadare lets go of Ligali. The ship's lookout cries out from atop his nest, and the men below deck scurry to see. Beyond the murk, a great barrier reaches toward the heavens, dappled with constructs of wood and mud in the design of the Ido."}
+    ]
+  },
+  "nest": {
+    "background": "#2a2a1a",
+    "place": "Oren's Nest",
+    "lines": [
+      {"speaker": "", "text": "Hammocks fashioned from the stalks of great leaves hang in an intercrossed manner. Biola, 16, emerges from the base of the great beam, a trio of fireflies buzzing atop his head and lighting the path before him. Sudeen, 7, trails cautiously behind him."},
+      {"speaker": "sudeen", "text": "Did we really have to wake up so early?"},
+      {"speaker": "biola", "text": "We'll have plenty of time to sleep, when the day's done."},
+      {"speaker": "", "text": "Biola quietly begins his ascent, gesturing for Sudeen to search the bunks below with the aid of a firefly. Sudeen hovers over the face of a stranger."},
+      {"speaker": "sudeen", "text": "Gaha?"},
+      {"speaker": "", "text": "Biola scans the sleeping frames of his fellow scouts and fails to find his charge. He motions on."},
+      {"speaker": "", "text": "The vast shadow of an Orenian vulture glides over the red desert sands of Orba and comes to perch above the crown of Oren's nest, where Gaha, 15, is huddled in a corner with the remnants of his dinner clutched to his chest. The great bird pushes its beak through a small opening and steals what it can of the boy's meal.", "place": "The Crown of Oren's Nest"},
+      {"speaker": "", "text": "Gaha wakes just in time to catch himself at the edge of the nest. He reaches through the opening for the winged thief, but it soars away with cries that sound like mockery."},
+      {"speaker": "", "text": "The young scout falls to his back, defeated, his upper body hanging over the edge. Two fireflies hover to meet his eyes, and he spots Biola and Sudeen. Biola silences him with a gesture, and Gaha smiles."},
+      {"speaker": "biola", "text": "We've tarried long enough.", "place": "The Thickets"},
+      {"speaker": "sudeen", "text": "But she said she'd come."},
+      {"speaker": "", "text": "Gaha shakes his head and sighs. Biola leads the way, and the trio makes its way sneakily under the dawning sky, past a guard fast asleep at his post."}
+    ]
+  },
+  "camp": {
+    "background": "#3a2a18",
+    "place": "The Campsite",
+    "lines": [
+      {"speaker": "", "text": "A nearly withered tree bearing the likeness of a crescent moon stands before them, its stump guarded by a face of stone. In the distance, a great wall of sand traces across the earth like a stream to the sea."},
+      {"speaker": "biola", "text": "We'll make camp here. Shouldn't be long before the others arrive."},
+      {"speaker": "", "text": "Gaha and Biola run a length of copper around two prods nestled in the earth. Biola strikes two stones together and starts a fire. The top of Gaha's hat catches flame, and he pats it out in a panic. Biola rests his buckler on the fire and sets three large nuts in its frame. They stir lightly in the heat."},
+      {"speaker": "biola", "text": "Now we wait."},
+      {"speaker": "sudeen", "text": "How long will it take?"},
+      {"speaker": "biola", "text": "...The texts didn't say."},
+      {"speaker": "", "text": "A montage: the trio tries to hide their growing impatience while the sun advances. Gaha hangs Sudeen from a branch, and the boy comes to resemble a strange fruit. Then the calming winds win, and Gaha falls asleep."},
+      {"speaker": "", "text": "The cries of the large bird wake him. Gaha shoots to his feet, spear in hand, and climbs the rock face to the nest, intending to end the matter with one decisive strike. But the thieving bird has only returned to tend to its sire's hunger. Gaha turns his strike into a flip and slides back into his seat, failing to notice an odd presence in the nest."},
+      {"speaker": "", "text": "Biola is seated by the splayed palms he set down. Water flows from within their veins."}
+    ]
+  },
+  "meeting": {
+    "background": "#3a2a18",
+    "place": "The Campsite",
+    "lines": [
+      {"speaker": "", "text": "Gaha looks up to see the marked face of Orana, 14, inches away. Startled, he rolls aside."},
+      {"speaker": "biola", "text": "You're late."},
+      {"speaker": "", "text": "Garo, 17, leaps from beyond the veil of the tree's branches and lands before Biola. His skin is marked with tribal patterns that denote his origin."},
+      {"speaker": "garo", "text": "Had to make sure you weren't followed."},
+      {"speaker": "", "text": "Biola shoots him an annoyed glance."},
+      {"speaker": "biola", "text": "Have you got the herbs?"},
+      {"speaker": "garo", "text": "Wouldn't be here otherwise."},
+      {"speaker": "", "text": "Garo reaches into a satchel and presents the herbs, wrapped neatly in pockets of leather and bound by a piece of string. Biola reaches for them. Garo withdraws."},
+      {"speaker": "garo", "text": "Not so fast!"},
+      {"speaker": "garo", "text": "Where's the rest of your team?"},
+      {"speaker": "", "text": "Biola remains quiet. Garo glances around."},
+      {"speaker": "garo", "text": "You brought the mute and the halfling?"},
+      {"speaker": "", "text": "Gaha looks to Garo."},
+      {"speaker": "biola", "text": "There's only two of you."},
+      {"speaker": "orana", "text": "Garo's worth more than all of you put together."},
+      {"speaker": "", "text": "Gaha looks downcast. Sudeen descends from his resting place."},
+      {"speaker": "biola", "text": "It matters not, we're leaving."},
+      {"speaker": "", "text": "Garo grows visibly angry."},
+      {"speaker": "garo", "text": "The deal's off!"},
+      {"speaker": "", "text": "Biola and Gaha ignore him. Garo grows visibly irritated and turns to leave himself, but is stunned by the sight before them."},
+      {"speaker": "", "text": "As though out of nowhere, a clothed hybrid of a bird with the posture of a dog (but really a woman in ceremonial garb) hovers over the children. The kids are struck with panic."},
+      {"speaker": "biola", "text": "(Thinking) It's too soon!"},
+      {"speaker": "", "text": "The garbed bird lets out an unearthly cry. The sands heed the call of their name, and the kids soon find themselves ensnared within its coil, their frames slowly sinking out of sight."},
+      {"speaker": "", "text": "Biola grabs Sudeen and hurls him upward. Sudeen spirals skyward, reaching for the branch above him. He misses it by an inch."},
+      {"speaker": "", "text": "Gaining his footing, Sudeen looks toward their assailant, but finds no one there. The rest of the group is nowhere to be found."},
+      {"speaker": "", "text": "Cut to dark."}
+    ]
+  }
+}

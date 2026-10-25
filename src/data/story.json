@@ -1,0 +1,11 @@
+{
+  "steps": [
+    {"type": "dialogue", "scene": "prologue"},
+    {"type": "battle"},
+    {"type": "dialogue", "scene": "ship"},
+    {"type": "dialogue", "scene": "nest"},
+    {"type": "dialogue", "scene": "camp"},
+    {"type": "dialogue", "scene": "meeting"},
+    {"type": "end"}
+  ]
+}

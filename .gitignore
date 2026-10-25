@@ -1,0 +1,6 @@
+# Installed packages (anyone can rebuild these with "npm install")
+node_modules/
+# The built game (GitHub builds its own copy when publishing)
+dist/
+# Mac clutter
+.DS_Store
