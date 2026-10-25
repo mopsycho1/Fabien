@@ -1255,8 +1255,48 @@ export default class BattleScene extends Phaser.Scene {
       const dot = this.add.circle(p.x, p.y, 6, 0xffd27a, 0.9).setDepth(depthFor(step.col, step.row) + 0.6);
       this.highlights.push(dot);
     }
+
+    // Two markers that float above every figure, so a unit standing in front
+    // can never hide them: a gold arrow over the tile to stand on, and a red
+    // target sign over the chosen enemy's head.
+    const spot = tileToScreen(a.tile.col, a.tile.row);
+    this.highlights.push(this.tileEdge(a.tile, 0xffd27a));
+    this.highlights.push(this.floatingMarker(spot.x, spot.y - 30, 'arrow', 0xffd27a));
+    this.highlights.push(this.floatingMarker(a.target.view.x, a.target.view.y - a.target.topY - 46, 'target', 0xff6b5a));
     this.refreshOutlines();
     this.refreshStatus();
+  }
+
+  // A bright outline around a tile's top.
+  tileEdge(tile, color) {
+    const { x, y } = tileToScreen(tile.col, tile.row);
+    const hw = TILE_WIDTH / 2 - 4;
+    const hh = TILE_HEIGHT / 2 - 3;
+    const g = this.add.graphics().setDepth(depthFor(tile.col, tile.row) + 0.55);
+    g.lineStyle(3, color, 1);
+    g.strokePoints([{ x, y: y - hh }, { x: x + hw, y }, { x, y: y + hh }, { x: x - hw, y }], true);
+    return g;
+  }
+
+  // A small bobbing marker drawn above everything on the board.
+  //   'arrow'  : a down-pointing arrow (stand here)
+  //   'target' : a ring with four ticks (this one)
+  floatingMarker(x, y, kind, color) {
+    const g = this.add.graphics().setDepth(78).setPosition(x, y);
+    g.lineStyle(3, 0x1a1410, 0.9);
+    g.fillStyle(color, 1);
+    if (kind === 'arrow') {
+      g.fillTriangle(-15, -14, 15, -14, 0, 8);
+      g.strokeTriangle(-15, -14, 15, -14, 0, 8);
+    } else {
+      g.lineStyle(6, 0x1a1410, 0.9);
+      g.strokeCircle(0, 0, 11);
+      g.lineStyle(3, color, 1);
+      g.strokeCircle(0, 0, 11);
+      for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) g.lineBetween(dx * 6, dy * 6, dx * 17, dy * 17);
+    }
+    this.tweens.add({ targets: g, y: y - 7, duration: 420, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    return g;
   }
 
   // Second tap on the enemy: walk to the tile (if needed), then attack.
@@ -2542,6 +2582,7 @@ export default class BattleScene extends Phaser.Scene {
 
   clearHighlights() {
     for (const diamond of this.highlights) {
+      this.tweens.killTweensOf(diamond); // markers bob up and down
       diamond.destroy();
     }
     this.highlights = [];
