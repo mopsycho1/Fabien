@@ -94,10 +94,31 @@ export function applyBuff(unit, spellId) {
 }
 
 // The spell on a unit, with its numbers from spells.json, or null.
+// A spell is stronger on the class it suits (its "affinity" in spells.json):
+// a Verse of Stone on a shield-bearing Guardian works twice as well.
 export function buffOf(unit) {
   const buff = statusOf(unit).buff;
   if (!buff) return null;
-  return { id: buff.id, turnsLeft: buff.turnsLeft, ...spells[buff.id] };
+  const spell = spells[buff.id];
+  const times = affinityTimes(unit, buff.id);
+  const boosts = {};
+  for (const [stat, value] of Object.entries(spell.boosts || {})) boosts[stat] = value * times;
+  return {
+    id: buff.id,
+    turnsLeft: buff.turnsLeft,
+    ...spell,
+    boosts,
+    amount: (spell.amount || 0) * times,
+    holdChance: spell.holdChance ? spell.holdChance * times : undefined,
+    slipChance: spell.slipChance ? spell.slipChance * times : undefined,
+    times,
+  };
+}
+
+// How many times stronger a spell is on this unit: 2 on the class it suits, otherwise 1.
+export function affinityTimes(unit, spellId) {
+  const a = spells[spellId] && spells[spellId].affinity;
+  return a && a.jobs.includes(unit.job) ? a.times : 1;
 }
 
 // ---------- Hexes ----------

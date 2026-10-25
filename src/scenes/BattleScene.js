@@ -38,7 +38,7 @@ import {
   sumParts,
   contestEdge,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -640,7 +640,10 @@ export default class BattleScene extends Phaser.Scene {
       text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTarget) {
       const spell = spells[this.selectedSpell];
-      text = spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' + spell.text;
+      const double = affinityTimes(this.pendingTarget, this.selectedSpell) > 1;
+      text =
+        spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' +
+        (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
     } else if (this.mode === 'spellTarget') {
       text = 'Tap a ' + (spells[this.selectedSpell].kind === 'hex' ? 'purple' : 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
@@ -2039,7 +2042,8 @@ export default class BattleScene extends Phaser.Scene {
     this.time.delayedCall(250, () => {
       play('spell');
       buffAura(this, target.view.x, target.view.y, color);
-      this.floatText(target, spell.button, spell.color);
+      const double = spell.kind === 'buff' && affinityTimes(target, id) > 1;
+      this.floatText(target, spell.button + (double ? ' x2' : ''), spell.color, double ? { pop: true } : {});
       this.refreshStatusTags();
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });

@@ -181,6 +181,7 @@ The Sage's spells. Every spell has:
   - `hex` (Slow): `delay` pushes the enemy's next turn back, `speedLoss` lowers its speed while it lasts.
   - `escape` (Husk): the caster slips up to `range` tiles away and leaves a decoy that blocks the old tile until the caster's next turn.
   - `rest` (Meditate): gives back `restore` MP, ends the turn, and leaves the caster `exposed` (lower defense and evade) until its next turn.
+- `affinity`: the class a spell suits, and how much stronger it is on that class. `{ "jobs": ["guardian"], "times": 2, "who": "a shield-bearer" }` makes a Verse of Stone twice as strong on a Guardian. `who` is the wording the game uses when it tells the player.
 - Every unit with MP also gets 1 MP back at the start of each of its turns.
 
 ## Sound

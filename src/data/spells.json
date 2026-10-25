@@ -17,7 +17,14 @@
     },
     "text": "+15 evade, +1 move. In a clash: +3 agility.",
     "mp": 3,
-    "use": "both"
+    "use": "both",
+    "affinity": {
+      "jobs": [
+        "scout"
+      ],
+      "times": 2,
+      "who": "a scout"
+    }
   },
   "stone": {
     "name": "Verse of Stone",
@@ -36,7 +43,14 @@
     },
     "text": "+2 defense. In a clash: +3 guard, harder to push.",
     "mp": 3,
-    "use": "both"
+    "use": "both",
+    "affinity": {
+      "jobs": [
+        "guardian"
+      ],
+      "times": 2,
+      "who": "a shield-bearer"
+    }
   },
   "fury": {
     "name": "Verse of Fury",
@@ -54,7 +68,15 @@
     },
     "text": "+2 attack. In a clash: +3 power.",
     "mp": 3,
-    "use": "both"
+    "use": "both",
+    "affinity": {
+      "jobs": [
+        "warlord",
+        "striker"
+      ],
+      "times": 2,
+      "who": "a heavy hitter"
+    }
   },
   "slow": {
     "name": "Slow",
