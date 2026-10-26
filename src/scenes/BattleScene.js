@@ -376,8 +376,11 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // An enemy you can see under your finger means that enemy, even where it
-    // overlaps your own unit's figure or a blue tile: tapping it attacks it
-    if (seen && active && seen.side !== active.side && (this.mode === 'idle' || this.mode === 'move' || this.mode === 'approach')) {
+    // overlaps your own unit's figure or a blue tile: tapping it attacks it.
+    // Only when it really can be attacked this turn, though. After attacking
+    // (or when it is out of reach) the blue tile behind it wins instead.
+    const canStrike = (u) => active.side === 'hero' && !active.hasActed && !active.engagedWith && this.approachTiles(active, u).length > 0;
+    if (seen && active && seen.side !== active.side && (this.mode === 'idle' || this.mode === 'move' || this.mode === 'approach') && canStrike(seen)) {
       return at(seen);
     }
 
