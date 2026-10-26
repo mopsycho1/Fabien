@@ -66,8 +66,9 @@ export function clearExposed(unit) {
 // ---------- Magic points ----------
 
 // True if the unit has enough MP for the spell.
+// True if the unit has the MP for this spell and it is not cooling down.
 export function canAfford(unit, spellId) {
-  return (unit.mp || 0) >= (spells[spellId].mp || 0);
+  return (unit.mp || 0) >= (spells[spellId].mp || 0) && cooldownOf(unit, spellId) === 0;
 }
 
 export function spendMp(unit, spellId) {
@@ -185,6 +186,10 @@ export function statusTags(unit) {
   const hex = hexOf(unit);
   if (hex) tags.push({ text: hex.short, color: hex.color });
   if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a' });
+  // signature stances (see signature.js)
+  if (unit.fury) tags.push({ text: 'BLOODIED ' + unit.fury, color: '#ff6b5a' });
+  if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a' });
+  if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a' });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

@@ -15,6 +15,7 @@ import { startNextTurn, previewTurns } from '../turnOrder.js';
 import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
+import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey, ALERT_RANGE } from '../art.js';
@@ -54,7 +55,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -62,6 +63,7 @@ import spells from '../data/spells.json';   // the Sage's spells
 
 // Says when a spell can be used, from its "use" tag in spells.json.
 function useText(spell) {
+  if (spell.use === 'enemy' || spell.use === 'ally') return spell.cooldown ? 'ready again after ' + spell.cooldown + ' turns' : 'a skill';
   if (spell.use === 'both') return 'works in a clash too';
   if (spell.use === 'engagement') return 'only in a clash';
   return 'not during a clash';
@@ -144,7 +146,15 @@ export default class BattleScene extends Phaser.Scene {
     this.approach = null;           // tap-to-attack: { target, tile, options, optionKeys } while previewing
     this.stanceMenu = 'main';       // in a clash: 'main' (Press, Guard, Slip, More) or 'more'
     this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
-    this.decoys = [];               // Husk decoys: their swarm blocks a tile until the caster's next turn
+    this.decoys = [];
+    // clash stances: 'auto' (the default, from engagement.json) or 'manual', remembered on this device
+    let savedChoice = null;
+    try {
+      savedChoice = window.localStorage.getItem('fabien.stanceChoice');
+    } catch (e) {
+      savedChoice = null;
+    }
+    this.stanceChoice = savedChoice === 'auto' || savedChoice === 'manual' ? savedChoice : engagementRules.stanceChoice || 'auto';               // Husk decoys: their swarm blocks a tile until the caster's next turn
     this.engageMarks = [];          // the lines and icons drawn between engaged units
     this.inCinematic = false;       // true while a cut-in or clash plays (a tap speeds it up)
     this.viewing = null;            // a unit the player tapped to look at
@@ -735,8 +745,18 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spell' && this.selectedSpell) {
       const spell = spells[this.selectedSpell];
       text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
+    } else if (this.mode === 'spell' && isMelee(unit)) {
+      text = 'Choose a skill';
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'throw') {
+      const t = this.pendingTarget;
+      text =
+        'Spear Throw at ' + t.name + ': ' + getHitChance({ ...unit, range: 3 }, t) + '% to hit, ' + getDamage(unit, t) +
+        ' damage, knocked back a tile.\nTap again to throw.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'heal') {
+      const t = this.pendingTarget;
+      text = 'Herbs on ' + t.name + ': +' + Math.min(spells.herbs.heal, t.maxHp - t.hp) + ' health. Tap again.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget) {
       const spell = spells[this.selectedSpell];
       const double = affinityTimes(this.pendingTarget, this.selectedSpell) > 1;
@@ -744,7 +764,8 @@ export default class BattleScene extends Phaser.Scene {
         spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' +
         (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
     } else if (this.mode === 'spellTarget') {
-      text = 'Tap a ' + (spells[this.selectedSpell].kind === 'hex' ? 'purple' : 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      const kind = spells[this.selectedSpell].kind;
+      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', heal: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -754,7 +775,9 @@ export default class BattleScene extends Phaser.Scene {
         (unit.side === 'hero' ? 'Locked with ' : unit.name + ' is locked with ') + unit.engagedWith.name +
         '. Momentum ' + (m > 0 ? '+' : '') + m + lead + '.' +
         (unit.side === 'hero'
-          ? this.stanceMenu === 'more'
+          ? this.stanceChoice === 'auto' && !unit.hasActed
+            ? '\nAuto picks ' + stanceName(this.autoStanceFor(unit)) + (unit.signature && this.autoStanceFor(unit) === unit.signature.stance ? ' (' + unit.signature.name + ')' : '') + (this.empower ? ', Empowered' : '') + '.'
+            : this.stanceMenu === 'more'
             ? '\nEmpower: +3 to your stance for 1 Poise' + (this.empower ? ' (on)' : '')
             : '\nGuard beats Press, Press beats Slip, Slip beats Guard' + (this.empower ? ' (Empowered)' : '')
           : '');
@@ -805,8 +828,17 @@ export default class BattleScene extends Phaser.Scene {
       // Already acted this turn: the stances are spent, so offer End turn
       // (a safety net; normally the turn ends by itself after a beat)
       const doneAlready = isHero && unit.hasActed && !this.busy;
+      // Auto (the default): one Fight button picks the stance for you
+      if (this.stanceChoice === 'auto' && !doneAlready) {
+        const pick = this.autoStanceFor(unit);
+        a.set('Fight: ' + stanceName(pick) + star(pick), 'press', free, () => this.onStance(pick), { accent: ENGAGE_COLOR, selected: this.empower });
+        b.set('Break away', 'run', free, () => this.onStance('break'));
+        c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
+        d.set('Manual  >', 'gem', isHero, () => this.setStanceChoice('manual'));
+        return;
+      }
       if (this.stanceMenu === 'more' && !doneAlready) {
-        a.set('Auto: ' + stanceName(autoStance(unit)), 'star', free, () => this.onStance(autoStance(unit)), { accent: GOLD });
+        a.set('Auto mode', 'star', isHero, () => this.setStanceChoice('auto'), { accent: GOLD });
         b.set('Break away', 'run', free, () => this.onStance('break'));
         c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
         d.set('Back', 'back', isHero, () => this.openStanceMenu('main'));
@@ -840,7 +872,10 @@ export default class BattleScene extends Phaser.Scene {
       a.set(label, 'run', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
     }
     b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
-    if (isMelee(unit)) {
+    if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
+      // a fighter with skills (Spear Throw, Herbs): Engage sits in the Skills menu with them
+      c.set('Skills  >', 'crossed', free, () => this.onSpellButton(), { selected: this.mode === 'engage', accent: ENGAGE_COLOR });
+    } else if (isMelee(unit)) {
       c.set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
         accent: ENGAGE_COLOR,
@@ -931,8 +966,9 @@ export default class BattleScene extends Phaser.Scene {
   spellMenu(unit) {
     const entry = (id) => {
       const spell = spells[id];
+      const wait = cooldownOf(unit, id);
       return {
-        label: spell.button + (spell.mp ? '  ' + spell.mp + ' MP' : ''),
+        label: spell.button + (wait ? '  (' + wait + ')' : spell.mp ? '  ' + spell.mp + ' MP' : ''),
         enabled: canAfford(unit, id) && !this.busy,
         onTap: () => this.chooseSpell(id),
         selected: this.selectedSpell === id,
@@ -942,6 +978,19 @@ export default class BattleScene extends Phaser.Scene {
     if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map(entry);
 
     const list = [];
+    // fighters: Engage comes first in their Skills menu
+    if (isMelee(unit)) {
+      list.push({
+        label: 'Engage',
+        enabled: engageTargets(unit, this.units).length > 0 && !this.busy,
+        onTap: () => {
+          this.cancelMode();
+          this.onEngageButton();
+        },
+        selected: false,
+        accent: ENGAGE_COLOR,
+      });
+    }
     const seen = new Set();
     for (const id of unit.spells) {
       const group = spells[id].group;
@@ -1001,7 +1050,7 @@ export default class BattleScene extends Phaser.Scene {
     const unit = this.activeUnit;
     const spell = spells[id];
     if (!canAfford(unit, id)) {
-      this.showMessage('Not enough MP');
+      this.showMessage(cooldownOf(unit, id) ? spell.button + ' is ready again in ' + cooldownOf(unit, id) + ' turns' : 'Not enough MP');
       return;
     }
     play('select');
@@ -1039,10 +1088,22 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
+    const foesOnly = spell.kind === 'hex' || spell.kind === 'throw';
+    const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
-      (u) => u.alive && distance(unit, u) <= spell.range && (spell.kind !== 'hex' || u.side !== unit.side)
+      (u) =>
+        u.alive && distance(unit, u) <= spell.range &&
+        (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
+        (spell.kind !== 'heal' || u.hp < u.maxHp)
     );
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), spell.kind === 'hex' ? 0xb48cff : GOLD);
+    if (this.targetsInRange.length === 0) {
+      this.showMessage(spell.kind === 'heal' ? 'Nobody next to you needs healing' : 'No enemy in reach');
+      this.selectedSpell = null;
+      this.mode = 'spell';
+      return;
+    }
+    const color = spell.kind === 'hex' ? 0xb48cff : spell.kind === 'throw' ? 0xe05a47 : spell.kind === 'heal' ? 0x9fdc8a : GOLD;
+    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
   }
@@ -1070,6 +1131,26 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // ---------- Stance duel buttons ----------
+
+  // The stance a hero on Auto fights with: its signature (or best) stance,
+  // switching to the counter when the foe's last stance would beat it.
+  autoStanceFor(unit) {
+    return autoPick(unit, unit.engagedWith, engagementRules.beats, autoStance(unit));
+  }
+
+  // Auto or Manual stances in a clash. Remembered on this device.
+  setStanceChoice(choice) {
+    play('select');
+    this.stanceChoice = choice;
+    this.stanceMenu = 'main';
+    this.empower = false;
+    try {
+      window.localStorage.setItem('fabien.stanceChoice', choice);
+    } catch (e) {
+      // private browsing: it just will not be remembered
+    }
+    this.refreshStatus();
+  }
 
   openStanceMenu(which) {
     play(which === 'more' ? 'select' : 'cancel');
@@ -1569,6 +1650,9 @@ export default class BattleScene extends Phaser.Scene {
     // The numbers change right away. The pictures and effects catch up a
     // moment later, when the blow lands (see playAttack and showImpact).
     if (result.hit) {
+      const landed = this.landHit(target, result.damage); // a signature stance may soften it
+      result.damage = landed.damage;
+      result.note = landed.note;
       target.hp = Math.max(0, target.hp - result.damage);
 
       if (target.hp === 0) {
@@ -1583,8 +1667,9 @@ export default class BattleScene extends Phaser.Scene {
       const next = chainTarget(attacker, target, this.units);
       if (next) {
         const hit = Math.random() * 100 < getHitChance(attacker, next);
-        const damage = hit ? chainDamage(attacker, next) : 0;
+        let damage = hit ? chainDamage(attacker, next) : 0;
         if (hit) {
+          damage = this.landHit(next, damage).damage;
           next.hp = Math.max(0, next.hp - damage);
           if (next.hp === 0) this.defeat(next);
         }
@@ -1633,6 +1718,12 @@ export default class BattleScene extends Phaser.Scene {
       if (jump) this.time.delayedCall(450, finish);
       else finish();
     }
+  }
+
+  // A blow is about to land on a unit: its signature stance may soak or soften
+  // it (and builds up its stacks). Returns { damage, note }.
+  landHit(target, damage) {
+    return takeHit(target, damage);
   }
 
   // Shrinks the green health bar to match the unit's health.
@@ -1887,7 +1978,9 @@ export default class BattleScene extends Phaser.Scene {
 
     this.flashUnit(target);
     this.updateHpBar(target);
-    this.floatText(target, '-' + result.damage, result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9 });
+    this.floatText(target, result.damage > 0 ? '-' + result.damage : 'Blocked', result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9 });
+    if (result.note) this.floatText(target, result.note, '#ffd27a', { rise: 52 }); // a signature stance at work
+    this.refreshStatusTags(); // stacks and Charge may have changed
     this.cameraPunch(power);
 
     // Big hits and finishing blows shake the screen
@@ -2152,7 +2245,8 @@ export default class BattleScene extends Phaser.Scene {
     const rested = !unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6;
     const seen = this.enemyEyes();
     const pins = engageTargets(unit, seen).filter((t) => !t.isDecoy && allyNear(t));
-    if (styleOf(unit) === 'defence' && rested && pins.length > 0) {
+    // (tanks with a signature stance, like the Bruiser and the Warlord, want clashes too)
+    if ((styleOf(unit) === 'defence' || unit.signature) && rested && pins.length > 0) {
       pins.sort((a, b) => b.attack - a.attack); // the most dangerous one
       this.busy = true;
       this.performEngage(unit, pins[0], () => {
@@ -2226,6 +2320,8 @@ export default class BattleScene extends Phaser.Scene {
   //   - every level it drops on the way costs fallDamagePerLevel health
   // Changes the loser's tile and health straight away; returns what happened.
   pushLoser(loser, winner, steps) {
+    steps = Math.max(0, steps - pushResist(loser)); // Bulwark: a warden in Guard is hard to move
+    if (steps === 0) return { path: [], fall: null, held: true };
     const isFree = (c, r, fc, fr) =>
       isInsideGrid(c, r) && !this.isBlocked(c, r) && getHeight(c, r) - getHeight(fc, fr) <= terrain.pushClimbLimit;
     let path = displacementPath(loser, winner, steps, isFree);
@@ -2297,6 +2393,23 @@ export default class BattleScene extends Phaser.Scene {
       }
       return out;
     }
+
+    // Signature stances: extra blows (Bloodied Press, Counter!) and Bulwark's standoff
+    out.sig = [];
+    for (const fx of afterBeat(beat)) {
+      if (fx.kind === 'hit' && fx.to.alive && fx.from.alive) {
+        const landed = this.landHit(fx.to, fx.damage);
+        fx.to.hp = Math.max(0, fx.to.hp - landed.damage);
+        out.sig.push({ ...fx, damage: landed.damage, note: landed.note });
+        if (fx.to.hp === 0) {
+          this.defeat(fx.to);
+          out.ended = true;
+        }
+      } else if (fx.kind === 'heal') {
+        out.sig.push(fx);
+      }
+    }
+    if (out.ended) return out;
     if (!beat.decisive) return out;
 
     const { winner, loser } = beat;
@@ -2306,9 +2419,9 @@ export default class BattleScene extends Phaser.Scene {
 
     // the free strike, which always lands
     if (engagementRules.decisiveStrike) {
-      const damage = getDamage(winner, loser);
-      loser.hp = Math.max(0, loser.hp - damage);
-      out.strike = { hit: true, damage };
+      const landed = this.landHit(loser, getDamage(winner, loser));
+      loser.hp = Math.max(0, loser.hp - landed.damage);
+      out.strike = { hit: true, damage: landed.damage, note: landed.note };
       if (loser.hp === 0) {
         this.defeat(loser);
         out.ended = true;
@@ -2317,7 +2430,8 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     if (!out.response.held) {
-      const pushed = this.pushLoser(loser, winner, engagementRules.decisivePush[styleOf(winner)] || 1);
+      const winStance = winner === beat.actor ? beat.actorStance : beat.holderStance;
+      const pushed = this.pushLoser(loser, winner, (engagementRules.decisivePush[styleOf(winner)] || 1) + pushExtra(winner, winStance));
       out.path = pushed.path;
       out.fall = pushed.fall;
       if (!loser.alive) {
@@ -2411,6 +2525,20 @@ export default class BattleScene extends Phaser.Scene {
         }
       });
     }
+
+    // signature stances: extra blows and standoff heals
+    (outcome.sig || []).forEach((fx, i) => {
+      at(880 + i * 260, () => {
+        if (fx.kind === 'hit') {
+          this.floatText(fx.from, fx.word, fx.word === 'Counter!' ? '#ffd27a' : '#ff6b5a', { rise: 46 });
+          this.showImpact(fx.from, fx.to, { hit: true, damage: fx.damage, note: fx.note }, fx.to.view.x - fx.from.view.x, fx.to.hp === 0);
+        } else {
+          play('spell');
+          this.floatText(fx.unit, 'Standoff +' + fx.amount, '#9fdc8a', { rise: 46 });
+          this.updateHpBar(fx.unit);
+        }
+      });
+    });
 
     // a decisive beat: the free strike, then the loser's reaction and push
     if (beat.decisive) {
@@ -2688,7 +2816,10 @@ export default class BattleScene extends Phaser.Scene {
   castSpell(caster, target, id, onDone) {
     const spell = spells[id];
     spendMp(caster, id);
+    startCooldown(caster, id);
     caster.hasActed = true;
+    if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
+    if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
 
@@ -2709,6 +2840,73 @@ export default class BattleScene extends Phaser.Scene {
     });
     this.time.delayedCall(800, () => this.showStanding(caster));
     this.time.delayedCall(950, onDone);
+  }
+
+  // Spear Throw: the spear flies at an enemy. A hit hurts it and knocks it
+  // back a tile, away from the thrower (off a ledge, it falls). A knock that
+  // carries it out of a clash breaks the clash.
+  castThrow(thrower, target, spell, onDone) {
+    const result = rollAttack({ ...thrower, range: spell.range }, target);
+    const dx = target.view.x - thrower.view.x;
+    this.faceToward(thrower, dx, target.view.y - thrower.view.y);
+    this.showPose(thrower, 'windup', dx);
+    let pushed = null;
+    if (result.hit) {
+      const landed = this.landHit(target, result.damage);
+      result.damage = landed.damage;
+      result.note = landed.note;
+      target.hp = Math.max(0, target.hp - result.damage);
+      if (target.hp === 0) this.defeat(target);
+      else {
+        pushed = this.pushLoser(target, thrower, spell.push || 1);
+        if (target.engagedWith && distance(target, target.engagedWith) > 1) {
+          endDuel(target);
+          this.refreshEngagementMarks();
+        }
+      }
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    this.time.delayedCall(220, () => {
+      this.showPose(thrower, 'attack', dx);
+      play('arrow');
+      const a = this.centerOf(thrower);
+      const b = this.centerOf(target);
+      arrowShot(this, a.x, a.y, b.x, b.y, () => {
+        this.showImpact(thrower, target, result, dx, target.hp === 0);
+        if (pushed && pushed.path.length) {
+          this.time.delayedCall(120, () => {
+            this.slideAlong(target, pushed.path);
+            this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
+          });
+        }
+      });
+    });
+    this.time.delayedCall(700, () => this.showStanding(thrower));
+    this.time.delayedCall(1400, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // Herbs: a little health back for the unit itself or an ally next to it.
+  castHeal(healer, target, spell, onDone) {
+    const amount = Math.min(spell.heal, target.maxHp - target.hp);
+    target.hp += amount;
+    this.updateHpBar(target);
+    this.refreshButtons();
+    if (target !== healer) this.faceToward(healer, target.view.x - healer.view.x, target.view.y - healer.view.y);
+    play('spell');
+    buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
+    this.floatText(target, '+' + amount, spell.color, { pop: true });
+    if (target.lowGlow && target.hp / target.maxHp > 0.3) {
+      target.lowGlow.destroy();
+      target.lowGlow = null;
+    }
+    this.time.delayedCall(900, onDone);
   }
 
   // Husk: the caster leaves a decoy that looks exactly like her and slips away

@@ -5,7 +5,8 @@
     "attackEffect": "bash",
     "stats": { "hp": 40, "attack": 6, "defense": 4, "magicAttack": 1, "magicDefense": 2, "accuracy": 85, "evade": 10, "speed": 9, "move": 3, "range": 1 },
     "contest": { "style": "defence", "power": 4, "guard": 8, "agility": 3 },
-    "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" }
+    "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
+    "spells": ["herbs"]
   },
   "scout": {
     "name": "Scout",
@@ -21,7 +22,8 @@
     "attackEffect": "slash",
     "stats": { "hp": 40, "attack": 8, "defense": 3, "magicAttack": 1, "magicDefense": 1, "accuracy": 85, "evade": 8, "speed": 8, "move": 3, "range": 1 },
     "contest": { "style": "overpower", "power": 8, "guard": 4, "agility": 3 },
-    "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" }
+    "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" },
+    "signature": { "id": "bloodied", "stance": "press", "name": "Bloodied Press" }
   },
   "striker": {
     "name": "Striker",
@@ -30,6 +32,35 @@
     "stats": { "hp": 30, "attack": 9, "defense": 2, "magicAttack": 1, "magicDefense": 1, "accuracy": 85, "evade": 10, "speed": 7, "move": 3, "range": 1 },
     "contest": { "style": "overpower", "power": 8, "guard": 3, "agility": 4 },
     "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" }
+  },
+  "spearman": {
+    "name": "Spearman",
+    "badge": "P",
+    "attackEffect": "slash",
+    "attackName": "Thrust",
+    "stats": { "hp": 34, "attack": 8, "defense": 2, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 16, "speed": 11, "move": 4, "range": 1 },
+    "contest": { "style": "evasion", "power": 6, "guard": 4, "agility": 6 },
+    "stances": { "press": "average", "guard": "average", "slip": "strong", "break": "average" },
+    "spells": ["spearThrow"]
+  },
+  "bruiser": {
+    "name": "Bruiser",
+    "badge": "B",
+    "attackEffect": "bash",
+    "attackName": "Punch",
+    "stats": { "hp": 44, "attack": 7, "defense": 4, "magicAttack": 1, "magicDefense": 2, "accuracy": 85, "evade": 10, "speed": 9, "move": 3, "range": 1 },
+    "contest": { "style": "overpower", "power": 7, "guard": 6, "agility": 3 },
+    "stances": { "press": "strong", "guard": "average", "slip": "weak", "break": "weak" },
+    "signature": { "id": "counter", "stance": "press", "name": "Counter-Press" }
+  },
+  "warden": {
+    "name": "Warden",
+    "badge": "D",
+    "attackEffect": "bash",
+    "stats": { "hp": 42, "attack": 6, "defense": 5, "magicAttack": 1, "magicDefense": 2, "accuracy": 85, "evade": 8, "speed": 8, "move": 3, "range": 1 },
+    "contest": { "style": "defence", "power": 5, "guard": 8, "agility": 2 },
+    "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "weak" },
+    "signature": { "id": "bulwark", "stance": "guard", "name": "Bulwark" }
   },
   "sage": {
     "name": "Sage",

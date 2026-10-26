@@ -20,10 +20,11 @@
     "use": "both",
     "affinity": {
       "jobs": [
-        "scout"
+        "scout",
+        "spearman"
       ],
       "times": 2,
-      "who": "a scout"
+      "who": "a scout or spearman"
     }
   },
   "stone": {
@@ -46,7 +47,8 @@
     "use": "both",
     "affinity": {
       "jobs": [
-        "guardian"
+        "guardian",
+        "warden"
       ],
       "times": 2,
       "who": "a shield-bearer"
@@ -119,5 +121,31 @@
       "evade": 10
     },
     "text": "Restore 6 MP. Ends your turn; you are Exposed until your next."
+  },
+  "spearThrow": {
+    "name": "Spear Throw",
+    "button": "Spear Throw",
+    "short": "THROW",
+    "kind": "throw",
+    "color": "#e8c690",
+    "range": 3,
+    "push": 1,
+    "cooldown": 3,
+    "text": "Hurl the spear at an enemy up to 3 tiles away. A hit knocks it back a tile (off a ledge, it falls). Ready again after 3 turns.",
+    "mp": 0,
+    "use": "enemy"
+  },
+  "herbs": {
+    "name": "Herbs",
+    "button": "Herbs",
+    "short": "HERBS",
+    "kind": "heal",
+    "color": "#9fdc8a",
+    "range": 1,
+    "heal": 10,
+    "cooldown": 3,
+    "text": "Press healing herbs on yourself or an ally next to you: +10 health. Ready again after 3 turns.",
+    "mp": 0,
+    "use": "ally"
   }
 }

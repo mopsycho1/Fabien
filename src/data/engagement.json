@@ -97,5 +97,31 @@
   "statWeight": 0.5,
   "beatOddsNote": "With these numbers: same stance, a class strong in it beats one weak in it about 79% of the time; equal fighters where one stance beats the other, 64%; a strong class that picked the beaten stance, 55%.",
   "rangedBreakChance": 50,
-  "rangedBreakNote": "An archer caught in a clash cannot shoot, so on its turn it tries to Break away this often (in %), unless it is winning the clash."
+  "rangedBreakNote": "An archer caught in a clash cannot shoot, so on its turn it tries to Break away this often (in %), unless it is winning the clash.",
+  "signatures": {
+    "note": "Signature stances (Suleiman's tank design). A unit has one if its job in jobs.json has a signature line. Its defence works while it is in a clash and its last stance is the signature stance.",
+    "bloodied": {
+      "note": "Bloodied Press (Warlord, Berserker): every hit taken adds a stack. In Press, each stack takes 1 off every hit. Winning a beat with Press lands a quick hit of winHitBase + stacks, and a decisive win pushes 1 tile further.",
+      "maxStacks": 3,
+      "reducePerStack": 1,
+      "winHitBase": 1,
+      "decisivePushExtra": 1
+    },
+    "counter": {
+      "note": "Counter-Press (Bruiser): in Press, the gauntlet soaks up to absorb damage of the first hit after each beat. Every chargePer damage soaked is 1 Charge. Losing a beat releases all Charge as a counter-punch of damagePerCharge per Charge.",
+      "absorb": 4,
+      "chargePer": 4,
+      "maxCharge": 3,
+      "damagePerCharge": 3
+    },
+    "bulwark": {
+      "note": "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
+      "max": 3,
+      "pushResistPerLevel": 1,
+      "standoffHeal": 2,
+      "standoffPoise": 1
+    }
+  },
+  "stanceChoice": "auto",
+  "stanceChoiceNote": "How heroes pick stances in a clash, until the player switches: \"auto\" (one Fight button picks for you) or \"manual\" (Press, Guard and Slip buttons). The player's switch is remembered on their device."
 }

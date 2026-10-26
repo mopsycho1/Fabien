@@ -219,3 +219,22 @@ All sounds and the battle music are made in code, so there are no sound files. T
 ## Moving
 
 A unit can walk as many tiles as its Move each turn, split into as many walks as you like. Walk 2 of 5, and the blue tiles come straight back for the other 3. Steps left over can still be used after attacking: the first button then reads "Move  3 left". Undo move (before attacking) goes back to where the unit started the turn, with every step back.
+
+## Skills (Spear Throw, Herbs)
+
+Skills live in `spells.json` like spells, with `"mp": 0` and a `cooldown` (how many of the unit's own turns before it can be used again). A job lists them in `jobs.json` under `"spells"`. A fighter with skills gets a **Skills** button, which holds Engage and its skills.
+
+- `spearThrow` (Spearman): `kind` "throw". Hits an enemy up to `range` tiles away and knocks it back `push` tiles (off a ledge, it falls).
+- `herbs` (Guardian): `kind` "heal". Heals the unit itself or an ally next to it by `heal`.
+
+## Signature stances
+
+A job with a `"signature"` line in `jobs.json` has a signature stance in a clash. Its defence works while it is in a clash and its last stance is the signature stance. The numbers are in `engagement.json` under `"signatures"`, each with a note saying what it does.
+
+- **Bloodied Press** (`bloodied`, on the Warlord): every hit taken adds a stack (BLOODIED 1 to 3). In Press each stack takes 1 off every hit. Winning a beat with Press lands a quick hit of 1 + stacks, and a decisive win pushes 1 tile further.
+- **Counter-Press** (`counter`, on the Bruiser): in Press the gauntlet soaks up to 4 of the first hit after each beat. Every 4 soaked is 1 Charge (up to 3). Losing a beat releases all Charge as a counter-punch of 3 per Charge.
+- **Bulwark** (`bulwark`, on the Warden): each beat in a row held in Guard adds a level (BULWARK 1 to 3), and each level pushes him 1 tile less. An even beat in Guard gives back 1 Poise and 2 health.
+
+## Auto or Manual stances
+
+`stanceChoice` in `engagement.json` is how heroes pick stances in a clash until the player switches: `"auto"` (one Fight button picks the signature or best stance, and switches to the counter if the foe's last stance would beat it) or `"manual"` (Press, Guard and Slip buttons). The player's choice is remembered on their device.

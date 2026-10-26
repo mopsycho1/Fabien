@@ -311,5 +311,67 @@
     },
     "portrait": "archer_face.png",
     "shout": "archer_shout.png"
+  },
+  "e1": {
+    "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",
+    "height": 104,
+    "standing": {
+      "downLeft": {
+        "file": "tayo_stand_downLeft.png",
+        "originX": 0.535
+      },
+      "downRight": {
+        "file": "tayo_stand_downRight.png",
+        "originX": 0.517
+      },
+      "upLeft": {
+        "file": "tayo_stand_upLeft.png",
+        "originX": 0.529
+      },
+      "upRight": {
+        "file": "tayo_stand_upRight.png",
+        "originX": 0.483
+      }
+    },
+    "poses": {
+      "windup": {
+        "file": "tayo_windup.png",
+        "originX": 0.438
+      },
+      "attack": {
+        "file": "tayo_attack.png",
+        "originX": 0.494
+      },
+      "ready": {
+        "file": "tayo_ready.png",
+        "originX": 0.463
+      },
+      "guard": {
+        "file": "tayo_guard.png",
+        "originX": 0.515
+      },
+      "dodge": {
+        "file": "tayo_dodge.png",
+        "originX": 0.506
+      },
+      "hurt": {
+        "file": "tayo_hurt.png",
+        "originX": 0.496
+      },
+      "knocked": {
+        "file": "tayo_knocked.png",
+        "originX": 0.48
+      },
+      "down": {
+        "file": "tayo_down.png",
+        "originX": 0.494
+      },
+      "victory": {
+        "file": "tayo_victory.png",
+        "originX": 0.464
+      }
+    },
+    "portrait": "tayo_face.png",
+    "shout": "tayo_face_angry.png"
   }
 }

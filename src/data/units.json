@@ -1,8 +1,8 @@
 [
   { "id": "h1", "name": "Hero 1",  "label": "H1", "side": "hero",  "job": "guardian", "col": 2, "row": 6, "hp": 48 },
-  { "id": "h2", "name": "Gaha",    "label": "H2", "side": "hero",  "job": "scout",    "col": 4, "row": 6, "hp": 36 },
+  { "id": "h2", "name": "Gaha",    "label": "H2", "side": "hero",  "job": "spearman", "col": 4, "row": 6, "hp": 36 },
   { "id": "h3", "name": "Hero 3",  "label": "H3", "side": "hero",  "job": "sage",     "col": 3, "row": 7, "hp": 28 },
-  { "id": "e1", "name": "Enemy 1", "label": "E1", "side": "enemy", "job": "guardian", "col": 2, "row": 1 },
+  { "id": "e1", "name": "Tayo",    "label": "E1", "side": "enemy", "job": "bruiser",  "col": 2, "row": 1 },
   { "id": "e2", "name": "Enemy 2", "label": "E2", "side": "enemy", "job": "warlord",  "col": 4, "row": 1 },
   { "id": "e3", "name": "Enemy 3", "label": "E3", "side": "enemy", "job": "ranger",   "col": 3, "row": 0, "attack": 5 }
 ]

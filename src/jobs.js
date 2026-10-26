@@ -57,7 +57,8 @@ export function buildUnit(entry, jobs) {
     contest: job && job.contest ? { ...job.contest } : null, // engagement style and numbers (melee jobs only)
     stances: job && job.stances ? { ...job.stances } : null, // which clash stances this job is strong or weak in
     stance: null, // the stance it last fought with in a clash
-    spells: job && job.spells ? [...job.spells] : [], // spells this job can cast
+    spells: job && job.spells ? [...job.spells] : [], // spells and skills this job can use
+    signature: job && job.signature ? { ...job.signature } : null, // its signature stance in a clash, if any
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy
     closePenalty: job && job.closePenalty ? job.closePenalty : 0, // harder to aim at someone right next to you
