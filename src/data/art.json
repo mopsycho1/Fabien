@@ -52,10 +52,46 @@
       "victory": {
         "file": "sudeen_victory.png",
         "originX": 0.475
+      },
+      "heal": {
+        "file": "sudeen_heal.png",
+        "originX": 0.51
       }
     },
     "portrait": "sudeen_face.png",
-    "shout": "sudeen_shout.png"
+    "shout": "sudeen_shout.png",
+    "buffed": {
+      "stone": {
+        "downLeft": {
+          "file": "sudeen_stone_downLeft.png",
+          "originX": 0.543
+        },
+        "upLeft": {
+          "file": "sudeen_stone_upLeft.png",
+          "originX": 0.456
+        }
+      },
+      "fury": {
+        "downLeft": {
+          "file": "sudeen_fury_downLeft.png",
+          "originX": 0.581
+        },
+        "upLeft": {
+          "file": "sudeen_fury_upLeft.png",
+          "originX": 0.494
+        }
+      },
+      "swiftness": {
+        "downLeft": {
+          "file": "sudeen_swift_downLeft.png",
+          "originX": 0.555
+        },
+        "upLeft": {
+          "file": "sudeen_swift_upLeft.png",
+          "originX": 0.392
+        }
+      }
+    }
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -191,80 +227,140 @@
     "shout": "gaha_shout.png"
   },
   "h3": {
-    "note": "The staff-bearer. TEMPORARY placement as the Sage (support mage) until we know who she is.",
+    "note": "Layra, the staff-bearer (enchantress). Cut from Suleiman's Layra sheets (Oct 26): standing, casting, hurt and defeated.",
     "height": 100,
     "standing": {
       "downLeft": {
-        "file": "sage_stand_downLeft.png",
-        "originX": 0.594
+        "file": "layra_stand_downLeft.png",
+        "originX": 0.434
       },
       "downRight": {
-        "file": "sage_stand_downRight.png",
-        "originX": 0.556
+        "file": "layra_stand_downRight.png",
+        "originX": 0.516
       },
       "upLeft": {
-        "file": "sage_stand_upLeft.png",
-        "originX": 0.37
+        "file": "layra_stand_upLeft.png",
+        "originX": 0.53
       },
       "upRight": {
-        "file": "sage_stand_upRight.png",
-        "originX": 0.371
+        "file": "layra_stand_upRight.png",
+        "originX": 0.493
       }
     },
     "poses": {
       "attack": {
-        "file": "sage_attack.png",
-        "originX": 0.303
+        "file": "layra_attack.png",
+        "originX": 0.486
       },
       "cast": {
-        "file": "sage_cast.png",
-        "originX": 0.472
+        "file": "layra_cast.png",
+        "originX": 0.561
+      },
+      "chant": {
+        "file": "layra_chant.png",
+        "originX": 0.518
+      },
+      "meditate": {
+        "file": "layra_meditate.png",
+        "originX": 0.443
       },
       "guard": {
         "file": "sage_guard.png",
         "originX": 0.444
+      },
+      "hurt": {
+        "file": "layra_hurt.png",
+        "originX": 0.605
+      },
+      "knocked": {
+        "file": "layra_knocked.png",
+        "originX": 0.502
+      },
+      "down": {
+        "file": "layra_down.png",
+        "originX": 0.491
       }
     },
-    "portrait": "sage_face.png",
-    "shout": "sage_shout.png"
+    "portrait": "layra_face.png",
+    "portraitHurt": "layra_face_hurt.png",
+    "shout": "layra_face.png"
   },
   "e2": {
-    "note": "The bull-helmed commander of the opposing empire, used as the Warlord. He has three standing views, so the fourth is a mirror.",
+    "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
     "height": 112,
     "standing": {
       "downLeft": {
-        "file": "warlord_stand_downLeft.png",
-        "originX": 0.545
+        "file": "bull_stand_downLeft.png",
+        "originX": 0.47
+      },
+      "downRight": {
+        "file": "bull_stand_downRight.png",
+        "originX": 0.473
       },
       "upLeft": {
-        "file": "warlord_stand_upLeft.png",
-        "originX": 0.416
+        "file": "bull_stand_upLeft.png",
+        "originX": 0.468
       },
       "upRight": {
-        "file": "warlord_stand_upRight.png",
-        "originX": 0.554
+        "file": "bull_stand_upRight.png",
+        "originX": 0.494
+      }
+    },
+    "battle": {
+      "downLeft": {
+        "file": "bull_battle_downLeft.png",
+        "originX": 0.428
+      },
+      "downRight": {
+        "file": "bull_battle_downRight.png",
+        "originX": 0.561
+      },
+      "upLeft": {
+        "file": "bull_battle_upLeft.png",
+        "originX": 0.394
       }
     },
     "poses": {
-      "attack": {
-        "file": "warlord_attack.png",
-        "originX": 0.281
+      "ready": {
+        "file": "bull_ready.png",
+        "originX": 0.542
       },
       "windup": {
-        "file": "warlord_windup.png",
-        "originX": 0.345
+        "file": "bull_windup.png",
+        "originX": 0.517
       },
-      "ready": {
-        "file": "warlord_ready.png",
-        "originX": 0.496
+      "attack": {
+        "file": "bull_attack.png",
+        "originX": 0.453
       },
       "guard": {
-        "file": "warlord_guard.png",
-        "originX": 0.504
+        "file": "bull_guard.png",
+        "originX": 0.475
+      },
+      "dodge": {
+        "file": "bull_dodge.png",
+        "originX": 0.508
+      },
+      "hurt": {
+        "file": "bull_hurt.png",
+        "originX": 0.493
+      },
+      "knocked": {
+        "file": "bull_knocked.png",
+        "originX": 0.489
+      },
+      "down": {
+        "file": "bull_down.png",
+        "originX": 0.516
+      },
+      "victory": {
+        "file": "bull_victory.png",
+        "originX": 0.547
       }
     },
-    "portrait": "warlord_face.png",
-    "shout": "warlord_shout.png"
+    "portrait": "bull_face.png",
+    "portraitHurt": "bull_face_hurt.png",
+    "shout": "bull_face.png"
   },
   "e3": {
     "note": "The horned archer from the new sheet, used as the enemy Ranger until we know her name and side.",

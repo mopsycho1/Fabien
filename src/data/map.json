@@ -1,6 +1,8 @@
 {
   "name": "The cavern under Yoba",
   "setting": "cave",
+  "figureScale": 0.86,
+  "figureScaleNote": "How big the characters are drawn (1 = full size). Smaller leaves more room between figures on neighbouring tiles.",
   "heights": [
     [2, 2, 2, 1, 0, 0, 0, 0],
     [2, 2, 1, 0, 0, 0, 0, 0],

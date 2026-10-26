@@ -305,6 +305,13 @@ export default class BattleScene extends Phaser.Scene {
       this.ui(button.view);
       return button;
     });
+    // Two half buttons that share the third row, for fighters with skills: Engage | Skills
+    this.halves = [540 - 81, 540 + 81].map((x) => {
+      const button = new CommandButton(this, x, 1156, 156, 64, { compact: true });
+      this.ui(button.view);
+      button.set(null);
+      return button;
+    });
     this.moveButton = this.slots[0];
     this.attackButton = this.slots[1];
     this.endButton = this.slots[3];
@@ -614,7 +621,7 @@ export default class BattleScene extends Phaser.Scene {
     let bodyHalfWidth = 0;
 
     if (usePicture) {
-      const height = artHeight(data.id);
+      const height = artHeight(data.id) * (mapData.figureScale || 1); // map.json can shrink everyone to leave more room
 
       // A ring on the ground in the side's color. It turns gold on this unit's turn.
       ringColor = SIDE_COLORS[data.side];
@@ -719,7 +726,7 @@ export default class BattleScene extends Phaser.Scene {
     if (this.activeUnit.contest) refillPoise(this.activeUnit); // and so does Poise, for fighters
     this.stanceMenu = 'main';
     this.empower = false;
-    this.removeDecoys(this.activeUnit); // its decoy's swarm scatters
+    this.wakeDecoy(this.activeUnit); // a decoy nobody struck is ready to echo her next spell
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     for (const unit of this.units) this.faceNearestOpponent(unit);
     this.refreshStatusTags();
@@ -762,6 +769,8 @@ export default class BattleScene extends Phaser.Scene {
     if (this.battleOver) return;
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
+    // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
+    if (this.decoys.some((d) => d.owner === this.activeUnit && d.woken)) this.removeDecoys(this.activeUnit);
     this.cancelMode();
     this.startTurn();
   }
@@ -868,9 +877,10 @@ export default class BattleScene extends Phaser.Scene {
       text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'throw') {
       const t = this.pendingTarget;
+      const extra = this.spellReach(unit, t, spells.spearThrow) - spells.spearThrow.range;
       text =
         'Spear Throw at ' + t.name + ': ' + getHitChance({ ...unit, range: 3 }, t) + '% to hit, ' + getDamage(unit, t) +
-        ' damage, knocked back a tile.\nTap again to throw.';
+        ' damage, knocked back a tile' + (extra > 0 ? ' (+' + extra + ' reach from high ground)' : '') + '.\nTap again to throw.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'heal') {
       const t = this.pendingTarget;
       text = 'Herbs on ' + t.name + ': +' + Math.min(spells.herbs.heal, t.maxHp - t.hp) + ' health. Tap again.';
@@ -921,6 +931,7 @@ export default class BattleScene extends Phaser.Scene {
     const isHero = unit.side === 'hero';
     const free = isHero && !unit.hasActed;
     const [a, b, c, d] = this.slots;
+    for (const half of this.halves) half.set(null); // only used by fighters with skills (below)
 
     if (this.battleOver) {
       for (const slot of this.slots) slot.set(null);
@@ -990,8 +1001,13 @@ export default class BattleScene extends Phaser.Scene {
     }
     b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
-      // a fighter with skills (Spear Throw, Herbs): Engage sits in the Skills menu with them
-      c.set('Skills  >', 'crossed', free, () => this.onSpellButton(), { selected: this.mode === 'engage', accent: ENGAGE_COLOR });
+      // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
+      c.set(null);
+      this.halves[0].set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
+        selected: this.mode === 'engage',
+        accent: ENGAGE_COLOR,
+      });
+      this.halves[1].set('Skills', 'star', free, () => this.onSpellButton(), { accent: GOLD });
     } else if (isMelee(unit)) {
       c.set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
@@ -1095,19 +1111,6 @@ export default class BattleScene extends Phaser.Scene {
     if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map(entry);
 
     const list = [];
-    // fighters: Engage comes first in their Skills menu
-    if (isMelee(unit)) {
-      list.push({
-        label: 'Engage',
-        enabled: engageTargets(unit, this.units).length > 0 && !this.busy,
-        onTap: () => {
-          this.cancelMode();
-          this.onEngageButton();
-        },
-        selected: false,
-        accent: ENGAGE_COLOR,
-      });
-    }
     const seen = new Set();
     for (const id of unit.spells) {
       const group = spells[id].group;
@@ -1209,7 +1212,7 @@ export default class BattleScene extends Phaser.Scene {
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
-        u.alive && distance(unit, u) <= spell.range &&
+        u.alive && distance(unit, u) <= this.spellReach(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp)
     );
@@ -1223,6 +1226,14 @@ export default class BattleScene extends Phaser.Scene {
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
+  }
+
+  // How far a spell or skill reaches from the caster to this target. A Spear
+  // Throw from higher ground reaches rangePerLevel tiles further for each
+  // level the thrower stands above the target (spells.json).
+  spellReach(caster, target, spell) {
+    const lift = Math.max(0, getHeight(caster.col, caster.row) - getHeight(target.col, target.row));
+    return spell.range + lift * (spell.rangePerLevel || 0);
   }
 
   onPressButton() {
@@ -1793,6 +1804,38 @@ export default class BattleScene extends Phaser.Scene {
         jump = { target: next, result: { hit, damage } };
       }
     }
+    // Husk echo: the decoy nobody struck fires a second bolt at the same target
+    let echo = null;
+    const echoDecoy = attacker.echoReady ? this.decoys.find((d) => d.owner === attacker) : null;
+    if (echoDecoy) {
+      attacker.echoReady = false;
+      echo = { decoy: echoDecoy, target: null, result: null };
+      if (target.alive) {
+        const hit = Math.random() * 100 < getHitChance(attacker, target);
+        let damage = hit ? getDamage(attacker, target) : 0;
+        if (hit) {
+          damage = this.landHit(target, damage).damage;
+          target.hp = Math.max(0, target.hp - damage);
+          if (target.hp === 0) this.defeat(target);
+        }
+        echo.target = target;
+        echo.result = { hit, damage };
+      }
+    }
+    const playEcho = () => {
+      if (!echo) return;
+      this.time.delayedCall(jump ? 820 : 420, () => {
+        const from = { x: echo.decoy.view.x, y: echo.decoy.view.y - attacker.centerY };
+        if (echo.target) {
+          const to = this.centerOf(echo.target);
+          lightning(this, from.x, from.y, to.x, to.y);
+          play('spark');
+          this.floatText({ view: echo.decoy.view, topY: attacker.topY }, 'Echo!', '#c9a8ff', { pop: true });
+          this.time.delayedCall(120, () => this.showImpact(attacker, echo.target, echo.result, to.x - from.x, echo.target.hp === 0));
+        }
+        this.time.delayedCall(300, () => this.burstDecoys(attacker));
+      });
+    };
     const playJump = () => {
       if (!jump) return;
       this.time.delayedCall(380, () => {
@@ -1827,12 +1870,16 @@ export default class BattleScene extends Phaser.Scene {
       this.cutIn(attacker, 'FINISHING BLOW', () => {
         this.playAttack(attacker, target, result, true);
         playJump();
-        finish();
+        playEcho();
+        if (echo) this.time.delayedCall(500, finish);
+        else finish();
       });
     } else {
       this.playAttack(attacker, target, result, false);
       playJump();
-      if (jump) this.time.delayedCall(450, finish);
+      playEcho();
+      const extra = (jump ? 450 : 0) + (echo ? 600 : 0);
+      if (extra) this.time.delayedCall(extra, finish);
       else finish();
     }
   }
@@ -2940,17 +2987,30 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
 
-    if (spell.kind === 'hex') applySlow(target, id);
-    else applyBuff(target, id);
+    // Husk echo: the decoy nobody struck casts it too, so it works twice as well
+    const echoed = caster.echoReady && this.decoys.some((d) => d.owner === caster);
+    const power = echoed ? 2 : 1;
+    if (echoed) caster.echoReady = false;
+    if (spell.kind === 'hex') applySlow(target, id, power);
+    else applyBuff(target, id, power);
     this.refreshButtons();
+    if (echoed) {
+      const decoy = this.decoys.find((d) => d.owner === caster);
+      this.time.delayedCall(250, () => {
+        lightning(this, decoy.view.x, decoy.view.y - caster.centerY, target.view.x, target.view.y - target.centerY);
+        this.floatText({ view: decoy.view, topY: caster.topY }, 'Echo x2', '#c9a8ff', { pop: true });
+      });
+      this.time.delayedCall(650, () => this.burstDecoys(caster));
+    }
 
     const color = Phaser.Display.Color.HexStringToColor(spell.color).color;
-    this.showPose(caster, 'cast', target.view.x - caster.view.x);
+    // a Verse reaches out to the ally; Slow is a curse thrown with the staff
+    this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', target.view.x - caster.view.x);
     this.time.delayedCall(250, () => {
       play('spell');
       buffAura(this, target.view.x, target.view.y, color);
-      const double = spell.kind === 'buff' && affinityTimes(target, id) > 1;
-      this.floatText(target, spell.button + (double ? ' x2' : ''), spell.color, double ? { pop: true } : {});
+      const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
+      this.floatText(target, spell.button + (times > 1 ? ' x' + times : ''), spell.color, times > 1 ? { pop: true } : {});
       this.refreshStatusTags();
       if (spell.kind === 'buff' && !target.engagedWith) this.showStanding(target); // some units look different under a Verse
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
@@ -3016,6 +3076,8 @@ export default class BattleScene extends Phaser.Scene {
     this.updateHpBar(target);
     this.refreshButtons();
     if (target !== healer) this.faceToward(healer, target.view.x - healer.view.x, target.view.y - healer.view.y);
+    this.showPose(healer, 'heal', target.view.x - healer.view.x || 1); // the herb pouch held up
+    this.time.delayedCall(800, () => healer.alive && this.showStanding(healer));
     play('spell');
     buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
     this.floatText(target, '+' + amount, spell.color, { pop: true });
@@ -3032,6 +3094,7 @@ export default class BattleScene extends Phaser.Scene {
   // until the decoy is struck or until the caster's next turn.
   // It always breaks free of a clash.
   castHusk(caster, tile, onDone) {
+    this.removeDecoys(caster); // one decoy at a time
     if (caster.engagedWith) {
       endDuel(caster);
       this.refreshEngagementMarks();
@@ -3112,19 +3175,41 @@ export default class BattleScene extends Phaser.Scene {
     this.removeDecoys(decoy.owner);
   }
 
-  // The decoy vanishes (struck, or at the start of its owner's next turn),
-  // and the caster is in plain sight again.
+  // The start of the caster's turn and her decoy is still standing: nobody
+  // struck it. She shows herself, and the decoy waits to echo her next spell
+  // this turn (a second bolt of Lightning, or a Verse or Slow twice as strong).
+  wakeDecoy(owner) {
+    const decoy = this.decoys.find((d) => d.owner === owner);
+    if (!decoy) return;
+    owner.hidden = false;
+    owner.echoReady = true;
+    decoy.woken = true;
+    if (owner.view && owner.view.active) this.tweens.add({ targets: owner.view, alpha: 1, duration: 300 });
+    decoy.view.list.forEach((part) => part.setTint && part.setTint(0xd8c4ff)); // a violet sheen: it is charged
+    this.floatText({ view: decoy.view, topY: owner.topY }, 'Echo ready', '#c9a8ff');
+    this.refreshStatusTags();
+  }
+
+  // The decoy bursts into the swarm after echoing a spell.
+  burstDecoys(owner) {
+    for (const decoy of this.decoys.filter((d) => d.owner === owner)) this.huskSwarm(decoy.view.x, decoy.view.y - owner.centerY, 22);
+    this.removeDecoys(owner);
+  }
+
+  // The decoy vanishes (struck, after echoing a spell, or at the end of its
+  // owner's next turn), and the caster is in plain sight again.
   removeDecoys(owner) {
     for (const decoy of this.decoys.filter((d) => d.owner === owner)) {
       const view = decoy.view;
       this.tweens.add({ targets: view, alpha: 0, duration: 300, onComplete: () => view.destroy() });
     }
     this.decoys = this.decoys.filter((d) => d.owner !== owner);
+    owner.echoReady = false;
     if (owner.hidden) {
       owner.hidden = false;
       if (owner.view && owner.view.active && owner.alive) this.tweens.add({ targets: owner.view, alpha: 1, duration: 300 });
-      this.refreshStatusTags();
     }
+    this.refreshStatusTags();
   }
 
   // The board as the enemies see it. A hidden caster is not there at all:
@@ -3157,6 +3242,7 @@ export default class BattleScene extends Phaser.Scene {
   castMeditate(caster, spell, onDone) {
     restoreMp(caster, spell.restore);
     applyExposed(caster, spell.exposed);
+    this.showPose(caster, 'meditate', 1); // kneeling still, if the unit has the picture
     caster.hasMoved = true;
     this.refreshButtons();
     play('spell');

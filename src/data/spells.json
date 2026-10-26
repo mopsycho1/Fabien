@@ -102,7 +102,7 @@
     "kind": "escape",
     "color": "#8fd18a",
     "range": 3,
-    "text": "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy until they strike it or until your next turn.",
+    "text": "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by your next turn, it echoes your next spell: a second bolt of Lightning, or a Verse or Slow twice as strong.",
     "mp": 5,
     "use": "both",
     "group": "Escape"
@@ -131,9 +131,10 @@
     "range": 3,
     "push": 1,
     "cooldown": 3,
-    "text": "Hurl the spear at an enemy up to 3 tiles away. A hit knocks it back a tile (off a ledge, it falls). Ready again after 3 turns.",
+    "text": "Hurl the spear at an enemy up to 3 tiles away, 1 tile further for each level you stand above it. A hit knocks it back a tile (off a ledge, it falls). Ready again after 3 turns.",
     "mp": 0,
-    "use": "enemy"
+    "use": "enemy",
+    "rangePerLevel": 1
   },
   "herbs": {
     "name": "Herbs",

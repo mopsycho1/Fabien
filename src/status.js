@@ -88,10 +88,11 @@ export function moveOf(unit) {
 // ---------- Buffs ----------
 
 // Puts a spell on a unit for its next few turns, replacing any spell it had.
-export function applyBuff(unit, spellId) {
+// power 2 is a doubled Verse (echoed by a Husk decoy).
+export function applyBuff(unit, spellId, power = 1) {
   const spell = spells[spellId];
   if (!spell) throw new Error('spells.json has no spell called ' + spellId);
-  statusOf(unit).buff = { id: spellId, turnsLeft: spell.turns };
+  statusOf(unit).buff = { id: spellId, turnsLeft: spell.turns, power };
 }
 
 // The spell on a unit, with its numbers from spells.json, or null.
@@ -101,7 +102,7 @@ export function buffOf(unit) {
   const buff = statusOf(unit).buff;
   if (!buff) return null;
   const spell = spells[buff.id];
-  const times = affinityTimes(unit, buff.id);
+  const times = affinityTimes(unit, buff.id) * (buff.power || 1);
   const boosts = {};
   for (const [stat, value] of Object.entries(spell.boosts || {})) boosts[stat] = value * times;
   return {
@@ -126,13 +127,14 @@ export function affinityTimes(unit, spellId) {
 
 // Slow: the unit's next turn is pushed back, and it is slower for a while.
 // Its speed comes back when the hex fades. A new Slow replaces an old one.
-export function applySlow(unit, spellId) {
+// power 2 is a doubled Slow (echoed by a Husk decoy).
+export function applySlow(unit, spellId, power = 1) {
   const spell = spells[spellId];
   const status = statusOf(unit);
   if (status.hex) unit.speed += status.hex.speedLoss; // undo the old one first
-  const loss = Math.min(spell.speedLoss, unit.speed - 1); // never stop a unit completely
+  const loss = Math.min(spell.speedLoss * power, unit.speed - 1); // never stop a unit completely
   unit.speed -= loss;
-  unit.ct -= spell.delay;
+  unit.ct -= spell.delay * power;
   status.hex = { id: spellId, turnsLeft: spell.turns, speedLoss: loss };
 }
 
@@ -191,6 +193,7 @@ export function statusTags(unit) {
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a' });
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a' });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
+  if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {
     tags.push({ text: unit.stance.toUpperCase(), color: { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff' }[unit.stance] });

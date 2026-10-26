@@ -19,7 +19,7 @@
   "warlord": {
     "name": "Warlord",
     "badge": "W",
-    "attackEffect": "slash",
+    "attackEffect": "bash",
     "stats": { "hp": 40, "attack": 8, "defense": 3, "magicAttack": 1, "magicDefense": 1, "accuracy": 85, "evade": 8, "speed": 8, "move": 3, "range": 1 },
     "contest": { "style": "overpower", "power": 8, "guard": 4, "agility": 3 },
     "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" },

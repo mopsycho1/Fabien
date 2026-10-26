@@ -259,8 +259,10 @@ export function portraitMedallion(scene, x, y, radius, unit, portraitKey, { acti
 // A command button: a leather bar with a bronze edge, an icon and a word.
 // It reacts to presses and can be dimmed or highlighted.
 export class CommandButton {
-  constructor(scene, x, y, w, h) {
+  // compact: a half-width button (smaller icon and words), two side by side in one row
+  constructor(scene, x, y, w, h, { compact = false } = {}) {
     this.scene = scene;
+    this.compact = compact;
     this.x = x;
     this.y = y;
     this.w = w;
@@ -272,7 +274,7 @@ export class CommandButton {
 
     this.bg = scene.add.graphics();
     this.icon = scene.add.graphics();
-    this.label = scene.add.text(x - w / 2 + 70, y, '', textStyle(28, '#f1e6c8')).setOrigin(0, 0.5);
+    this.label = scene.add.text(x - w / 2 + (compact ? 50 : 70), y, '', textStyle(compact ? 23 : 28, '#f1e6c8')).setOrigin(0, 0.5);
     this.hit = scene.add.rectangle(x, y, w, h, 0x000000, 0.001).setInteractive({ useHandCursor: true });
     this.view = scene.add.container(0, 0, [this.bg, this.icon, this.label, this.hit]);
 
@@ -314,14 +316,15 @@ export class CommandButton {
     g.lineStyle(1, UI.bronzeLight, on ? 0.5 : 0.15);
     g.strokeRoundedRect(x - w / 2 + 4, y - h / 2 + 4, w - 8, h - 8, 7);
     // icon socket
-    const ix = x - w / 2 + 36;
+    const ix = x - w / 2 + (this.compact ? 26 : 36);
+    const r = this.compact ? 17 : 22;
     g.fillStyle(UI.ink, 1);
-    g.fillCircle(ix, y, 22);
+    g.fillCircle(ix, y, r);
     g.lineStyle(2, on ? this.accent : UI.bronzeDark, 1);
-    g.strokeCircle(ix, y, 22);
+    g.strokeCircle(ix, y, r);
 
     this.icon.clear();
-    if (this.iconName) drawIcon(this.icon, this.iconName, ix, y, 30, on ? this.accent : 0x6a5434);
+    if (this.iconName) drawIcon(this.icon, this.iconName, ix, y, this.compact ? 23 : 30, on ? this.accent : 0x6a5434);
     this.label.setColor(on ? '#f1e6c8' : '#7a6a52');
     this.view.setAlpha(on ? 1 : 0.7);
   }
