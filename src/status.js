@@ -185,6 +185,7 @@ export function statusTags(unit) {
   const hex = hexOf(unit);
   if (hex) tags.push({ text: hex.short, color: hex.color });
   if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a' });
+  if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {
     tags.push({ text: unit.stance.toUpperCase(), color: { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff' }[unit.stance] });

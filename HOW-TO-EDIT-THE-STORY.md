@@ -148,6 +148,7 @@ Picture files go in the folder `public/art`. The file `src/data/art.json` says w
 - The name on top (`h2`) is the unit's `id` in `units.json`. A unit with no entry here is drawn as a colored circle.
 - `height` is how tall the figure is drawn when standing, in pixels.
 - `standing` has one picture for each way a unit can face: `downLeft` and `downRight` face the player, `upLeft` and `upRight` face away. If one is missing, the mirror image of the other side is used.
+- `battle` (optional) is the same four facings in a fighting stance. A unit shows its `standing` pictures when relaxed and switches to `battle` whenever an enemy is within 3 tiles. Leave it out and the unit always stands relaxed.
 - `poses` are action pictures, all facing RIGHT: `attack`, `windup`, `ready` (the stance while locked in an engagement), `guard`, `dodge`, `cast`. Facing left uses the mirror image. Missing poses are fine: the standing picture is used instead.
 - `portrait` is a calm face picture, used in the turn order and the unit card. `shout` is a battle-cry face, used in the cut-ins (the banner that sweeps across for an engagement or a finishing blow). Units without them get a round token with their job letter.
 - `originX` says where the body is across the picture (0 is the left edge, 1 is the right edge), so a figure with a long sword still stands in the middle of its tile.
@@ -202,7 +203,7 @@ The Sage's spells. Every spell has:
 - `kind` says what it does:
   - `buff` (the Verses): `boosts` changes normal fighting (for example `"defense": 2`), and `stat` and `amount` change clash contests. `slipChance` and `holdChance` add to the chance to slip Off-Balance or hold ground. A unit has one buff at a time: a new one replaces the old.
   - `hex` (Slow): `delay` pushes the enemy's next turn back, `speedLoss` lowers its speed while it lasts.
-  - `escape` (Husk): the caster slips up to `range` tiles away and leaves a decoy that blocks the old tile until the caster's next turn.
+  - `escape` (Husk): the caster slips up to `range` tiles away and leaves a decoy that looks exactly like her. She is drawn faded and enemies cannot see her: they chase and strike the decoy instead. The trick ends when the decoy is struck (it bursts and she shows herself) or at the start of her next turn. Using Husk spends the rest of her steps.
   - `rest` (Meditate): gives back `restore` MP, ends the turn, and leaves the caster `exposed` (lower defense and evade) until its next turn.
 - `affinity`: the class a spell suits, and how much stronger it is on that class. `{ "jobs": ["guardian"], "times": 2, "who": "a shield-bearer" }` makes a Verse of Stone twice as strong on a Guardian. `who` is the wording the game uses when it tells the player.
 - Every unit with MP also gets 1 MP back at the start of each of its turns.
@@ -210,3 +211,7 @@ The Sage's spells. Every spell has:
 ## Sound
 
 All sounds and the battle music are made in code, so there are no sound files. The speaker button at the top right of the battle turns sound on and off, and the game remembers the choice. Sound starts after the first tap on the title screen, because browsers do not allow sound before the player has tapped something.
+
+## Moving
+
+A unit can walk as many tiles as its Move each turn, split into as many walks as you like. Walk 2 of 5, and the blue tiles come straight back for the other 3. Steps left over can still be used after attacking: the first button then reads "Move  3 left". Undo move (before attacking) goes back to where the unit started the turn, with every step back.

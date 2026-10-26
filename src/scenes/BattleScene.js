@@ -17,7 +17,7 @@ import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pu
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey } from '../art.js';
+import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey, ALERT_RANGE } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -75,6 +75,7 @@ const UNIT_RADIUS = 22;  // size of a unit's circle
 const UNIT_LIFT = 26;    // how far above its tile the circle floats, so it looks like it stands on it
 const HIT_RADIUS = 26;   // how close a tap must be to a unit's circle to count as tapping that unit (a little bigger than the circle)
 const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
+const HIDDEN_ALPHA = 0.35; // a caster hidden by Husk is drawn this faint (1 = solid)
 const STYLE_NAMES = { overpower: 'Overpower', defence: 'Defence', evasion: 'Evasion' };
 
 // The helpers the engagement rules use: real dice, and the real tile heights
@@ -455,7 +456,8 @@ export default class BattleScene extends Phaser.Scene {
   //   maxHp    : its full health (hp goes down as it is hurt)
   //   ct       : its turn meter (see turnOrder.js)
   //   alive    : false once it is defeated
-  //   hasMoved : true once it has walked this turn
+  //   hasMoved : true once it has walked this turn (it may still have steps left)
+  //   stepsUsed: how many tiles it has walked this turn
   //   hasActed : true once it has attacked this turn
   createUnit(data) {
     const { x, y } = tileToScreen(data.col, data.row);
@@ -594,6 +596,7 @@ export default class BattleScene extends Phaser.Scene {
     this.activeUnit.hasMoved = false;
     this.activeUnit.hasActed = false;
     this.activeUnit.moveFrom = null;
+    this.activeUnit.stepsUsed = 0; // steps walked so far this turn (see stepsLeft)
     this.viewing = null;
 
     this.cancelMode(); // clears any leftover choice and refreshes the screen
@@ -822,10 +825,14 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Normal turn: Move, Attack, Engage or Spell, End turn
+    // Once it has walked, the first button undoes the walk (until it acts).
+    // After acting, any steps it has left can still be used: "Move  3 left".
     if (isHero && unit.hasMoved && !unit.hasActed && unit.moveFrom) {
       a.set('Undo move', 'back', !this.busy, () => this.undoMove());
     } else {
-      a.set('Move', 'run', isHero && !unit.hasMoved, () => this.onMoveButton(), { selected: this.mode === 'move' });
+      const left = this.stepsLeft(unit);
+      const label = unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
+      a.set(label, 'run', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
     }
     b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
     if (isMelee(unit)) {
@@ -878,7 +885,7 @@ export default class BattleScene extends Phaser.Scene {
 
   onMoveButton() {
     const unit = this.activeUnit;
-    if (unit.side !== 'hero' || this.busy || this.battleOver || unit.hasMoved) return;
+    if (unit.side !== 'hero' || this.busy || this.battleOver || this.stepsLeft(unit) === 0) return;
     if (this.mode === 'move') {
       this.cancelMode();
       return;
@@ -1257,15 +1264,16 @@ export default class BattleScene extends Phaser.Scene {
   startMove() {
     const unit = this.activeUnit;
 
-    // Each unit may walk once per turn, and not at all while locked in an engagement
-    if (unit.hasMoved) return;
+    // A unit may walk as many tiles as its Move each turn, split into as many
+    // walks as it likes, but not at all while locked in an engagement
+    if (this.stepsLeft(unit) === 0) return;
     if (unit.engagedWith) {
       this.showMessage('Locked with ' + unit.engagedWith.name + '. Press or Break away.');
       return;
     }
 
     this.mode = 'move';
-    const tiles = getReachableTiles(unit.col, unit.row, moveOf(unit), (c, r) => this.isBlocked(c, r));
+    const tiles = getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
     this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
     this.showHighlights(tiles, 0x4aa3ff);
     play('select');
@@ -1280,13 +1288,15 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.busy = true;
 
-    let path = getPath(unit.col, unit.row, col, row, moveOf(unit), (c, r) => this.isBlocked(c, r));
+    let path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
     if (path.length === 0) path = [{ col, row }];
 
-    unit.moveFrom = { col: unit.col, row: unit.row, facing: unit.facing }; // for Undo move
+    // Undo move goes back to where it stood at the start of the turn
+    if (!unit.moveFrom) unit.moveFrom = { col: unit.col, row: unit.row, facing: unit.facing };
     unit.col = col;
     unit.row = row;
     unit.hasMoved = true;
+    unit.stepsUsed = (unit.stepsUsed || 0) + path.length;
 
     let prev = { x: unit.view.x, y: unit.view.y };
     let prevTile = null;
@@ -1317,11 +1327,20 @@ export default class BattleScene extends Phaser.Scene {
         unit.view.setDepth(depthFor(col, row) + 1); // settle into its new place in the drawing order
         dustPuff(this, unit.view.x, unit.view.y);
         this.faceNearestOpponent(unit); // on arriving, look at the nearest enemy
+        // everyone else may now be closer to (or further from) an enemy: relaxed or battle stance
+        for (const u of this.units) if (u !== unit && u.alive && !u.engagedWith) this.showStanding(u);
         this.busy = false;
         this.refreshStatus();
         if (onDone) onDone();
+        // A hero with steps to spare sees where else it can still go
+        else if (unit === this.activeUnit && unit.side === 'hero' && this.stepsLeft(unit) > 0 && !this.battleOver) this.startMove();
       },
     });
+  }
+
+  // How many more tiles a unit can walk this turn.
+  stepsLeft(unit) {
+    return Math.max(0, moveOf(unit) - (unit.stepsUsed || 0));
   }
 
   // ---------- Walk up and attack (tap an enemy) ----------
@@ -1330,9 +1349,7 @@ export default class BattleScene extends Phaser.Scene {
   // stands now, or anywhere it can still walk to, within its attack range.
   approachTiles(unit, target) {
     const here = { col: unit.col, row: unit.row };
-    const spots = unit.hasMoved
-      ? [here]
-      : [here, ...getReachableTiles(unit.col, unit.row, moveOf(unit), (c, r) => this.isBlocked(c, r))];
+    const spots = [here, ...getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r))];
     return spots.filter((t) => {
       const d = distance(t, target);
       return d >= 1 && d <= unit.range;
@@ -1393,7 +1410,7 @@ export default class BattleScene extends Phaser.Scene {
     this.showHighlights(a.options, 0x4aa3ff, { alpha: 0.38 });
     this.showHighlights([a.tile], 0xffd27a, { keep: true, alpha: 0.7 });
     this.showHighlights([{ col: a.target.col, row: a.target.row }], 0xe05a47, { keep: true, alpha: 0.5 });
-    const path = getPath(unit.col, unit.row, a.tile.col, a.tile.row, moveOf(unit), (c, r) => this.isBlocked(c, r));
+    const path = getPath(unit.col, unit.row, a.tile.col, a.tile.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
     for (const step of path.slice(0, -1)) {
       const p = tileToScreen(step.col, step.row);
       const dot = this.add.circle(p.x, p.y, 6, 0xffd27a, 0.9).setDepth(depthFor(step.col, step.row) + 0.6);
@@ -1465,7 +1482,8 @@ export default class BattleScene extends Phaser.Scene {
     this.moveUnit(unit, tile.col, tile.row, strike); // moveUnit tidies up the choice itself
   }
 
-  // Undo move: back to where the unit started this turn (only before it acts).
+  // Undo move: back to where the unit started this turn, with all its steps
+  // back (only before it acts).
   undoMove() {
     const unit = this.activeUnit;
     if (this.busy || unit.hasActed || !unit.moveFrom) return;
@@ -1475,6 +1493,7 @@ export default class BattleScene extends Phaser.Scene {
     unit.col = from.col;
     unit.row = from.row;
     unit.hasMoved = false;
+    unit.stepsUsed = 0; // every step comes back
     unit.moveFrom = null;
     const p = tileToScreen(from.col, from.row);
     unit.view.setDepth(depthFor(from.col, from.row) + 1);
@@ -1687,12 +1706,19 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // At rest. A unit locked in an engagement stays in its fighting stance.
+  // Otherwise it stands relaxed, or in its battle stance when an enemy is near.
   showStanding(unit) {
     if (unit.engagedWith && unit.engagedWith.view) {
       const side = unit.engagedWith.view.x >= unit.view.x ? 'right' : 'left';
       if (this.showFrame(unit, poseFrame(unit.id, 'ready', side))) return;
     }
-    this.showFrame(unit, standingFrame(unit.id, unit.facing));
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit)));
+  }
+
+  // True when an enemy (as this unit sees it) is within ALERT_RANGE tiles.
+  isAlert(unit) {
+    if (!this.units) return false;
+    return this.units.some((o) => o.alive && o.side !== unit.side && !o.hidden && distance(o, unit) <= ALERT_RANGE);
   }
 
   // An action picture (attack, windup, ready, guard, dodge, cast) facing a direction.
@@ -1717,7 +1743,8 @@ export default class BattleScene extends Phaser.Scene {
     this.faceToward(attacker, dx, dy);
     this.showAttackPose(attacker, dx);
 
-    const impact = () => this.showImpact(attacker, target, result, dx, lethal);
+    // striking a Husk decoy bursts it instead of hurting anyone
+    const impact = target.isDecoy ? () => this.popDecoy(target.decoy) : () => this.showImpact(attacker, target, result, dx, lethal);
     if (lethal) this.focusCamera((attacker.view.x + target.view.x) / 2, (attacker.view.y + target.view.y) / 2 - 50, 1.35, 220);
 
     if (style === 'spark') {
@@ -2096,7 +2123,10 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const tile = chooseMoveTile(unit, this.units, (c, r) => this.isDecoyAt(c, r));
+    // It plans with what it can see: a hidden caster's decoy instead of her.
+    // Her real tile still blocks the way, even if they do not know why.
+    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r);
+    const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
       this.moveUnit(unit, tile.col, tile.row, () => this.enemyAttack(unit));
@@ -2114,7 +2144,8 @@ export default class BattleScene extends Phaser.Scene {
     // After an engagement ends it waits one of its own turns before pinning
     // again, so it does not lock the same hero down turn after turn.
     const rested = !unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6;
-    const pins = engageTargets(unit, this.units).filter(allyNear);
+    const seen = this.enemyEyes();
+    const pins = engageTargets(unit, seen).filter((t) => !t.isDecoy && allyNear(t));
     if (styleOf(unit) === 'defence' && rested && pins.length > 0) {
       pins.sort((a, b) => b.attack - a.attack); // the most dangerous one
       this.busy = true;
@@ -2125,7 +2156,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const targets = getTargetsInRange(unit, this.units);
+    const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
       this.time.delayedCall(400, () => this.endTurn());
@@ -2137,10 +2168,12 @@ export default class BattleScene extends Phaser.Scene {
     const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
     targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
     this.busy = true;
-    this.performAttack(unit, targets[0], () => {
+    const done = () => {
       this.busy = false;
       this.time.delayedCall(300, () => this.endTurn());
-    });
+    };
+    if (targets[0].isDecoy) this.strikeDecoy(unit, targets[0].decoy, done); // fooled by Husk
+    else this.performAttack(unit, targets[0], done);
   }
 
   // An enemy's turn while locked: Press, unless it is hurt and the odds are against it.
@@ -2669,20 +2702,25 @@ export default class BattleScene extends Phaser.Scene {
     this.time.delayedCall(950, onDone);
   }
 
-  // Husk: the caster leaves a decoy wrapped in a swarm and reappears on the
-  // chosen tile. It always breaks free of a clash.
+  // Husk: the caster leaves a decoy that looks exactly like her and slips away
+  // to the chosen tile, faded and hidden. Enemies cannot see the real caster:
+  // they chase and strike the decoy instead (see enemyEyes). The trick lasts
+  // until the decoy is struck or until the caster's next turn.
+  // It always breaks free of a clash.
   castHusk(caster, tile, onDone) {
     if (caster.engagedWith) {
       endDuel(caster);
       this.refreshEngagementMarks();
     }
     this.addDecoy(caster, caster.col, caster.row);
+    caster.hidden = true;
     caster.col = tile.col;
     caster.row = tile.row;
     caster.hasMoved = true;
+    caster.stepsUsed = Infinity; // vanishing uses up the rest of her steps
     this.refreshButtons();
     play('spell');
-    dustPuff(this, caster.view.x, caster.view.y);
+    this.huskSwarm(caster.view.x, caster.view.y - caster.centerY, 14);
     this.tweens.add({
       targets: caster.view,
       alpha: 0,
@@ -2690,49 +2728,105 @@ export default class BattleScene extends Phaser.Scene {
       onComplete: () => {
         const p = tileToScreen(tile.col, tile.row);
         caster.view.setPosition(p.x, p.y).setDepth(depthFor(tile.col, tile.row) + 1);
-        dustPuff(this, p.x, p.y);
-        this.tweens.add({ targets: caster.view, alpha: 1, duration: 220 });
+        this.huskSwarm(p.x, p.y - caster.centerY, 10);
+        this.tweens.add({ targets: caster.view, alpha: HIDDEN_ALPHA, duration: 220 });
         this.faceNearestOpponent(caster);
-        this.floatText(caster, 'Husk', spells.husk.color);
+        this.floatText(caster, 'Hidden', spells.husk.color);
         this.refreshStatusTags();
       },
     });
     this.time.delayedCall(800, onDone);
   }
 
-  // A see-through copy of the unit, with a buzzing swarm around it.
-  addDecoy(owner, col, row) {
-    const p = tileToScreen(col, row);
-    const parts = [];
-    if (owner.sprite) {
-      const img = this.add.image(p.x, p.y + 6, owner.sprite.texture.key).setOrigin(owner.sprite.originX, 1);
-      img.setScale(owner.sprite.scaleX, owner.sprite.scaleY).setFlipX(owner.sprite.flipX).setAlpha(0.45);
-      img.setDepth(depthFor(col, row) + 1);
-      parts.push(img);
-    } else {
-      parts.push(this.add.circle(p.x, p.y - 24, 22, SIDE_COLORS[owner.side], 0.4).setDepth(depthFor(col, row) + 1));
-    }
-    const swarm = this.add.particles(p.x, p.y - 40, 'fx-dot', {
-      speed: { min: 20, max: 55 },
-      lifespan: 520,
-      scale: { start: 0.22, end: 0 },
-      alpha: { start: 0.9, end: 0 },
-      tint: [0x1a1410, 0x3a2a1a],
-      frequency: 35,
-    }).setDepth(depthFor(col, row) + 1.5);
-    parts.push(swarm);
-    this.decoys.push({ owner, col, row, parts });
+  // A puff of dark insects, for Husk vanishing and decoys bursting.
+  huskSwarm(x, y, count) {
+    const swarm = this.add.particles(x, y, 'fx-dot', {
+      speed: { min: 60, max: 170 },
+      lifespan: 650,
+      scale: { start: 0.3, end: 0 },
+      alpha: { start: 1, end: 0 },
+      tint: [0x1a1410, 0x3a2a1a, 0x2a3a20],
+      emitting: false,
+    }).setDepth(79);
+    swarm.explode(count);
+    this.time.delayedCall(800, () => swarm.destroy());
   }
 
-  // The decoy's swarm scatters (at the start of its owner's next turn).
+  // The decoy: a solid copy of the unit, ring and shadow and all, standing on
+  // the tile it vanished from. It looks just like the real one.
+  addDecoy(owner, col, row) {
+    const p = tileToScreen(col, row);
+    const pieces = [this.add.ellipse(0, 0, 46, 20, 0x000000, 0.3)];
+    if (owner.sprite) {
+      pieces.push(this.add.ellipse(0, 2, 62, 28).setStrokeStyle(3, owner.ringColor));
+      const img = this.add.image(0, 6, owner.sprite.texture.key).setOrigin(owner.sprite.originX, 1);
+      img.setScale(owner.artScale).setFlipX(owner.sprite.flipX);
+      pieces.push(img);
+      // it breathes like a living unit
+      this.tweens.add({ targets: img, scaleY: owner.artScale * 1.035, duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    } else {
+      pieces.push(this.add.circle(0, -UNIT_LIFT, UNIT_RADIUS, SIDE_COLORS[owner.side]).setStrokeStyle(3, 0xffffff));
+    }
+    // her health bar and job badge too, so nothing gives it away
+    const fraction = owner.hp / owner.maxHp;
+    pieces.push(this.add.rectangle(-BAR_WIDTH / 2, -owner.topY, BAR_WIDTH, 9, 0x2a1d12).setOrigin(0, 0.5));
+    pieces.push(this.add.rectangle(-BAR_WIDTH / 2, -owner.topY, BAR_WIDTH * fraction, 9, fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f).setOrigin(0, 0.5));
+    const bx = owner.sprite ? 34 : UNIT_RADIUS - 2;
+    const by = owner.sprite ? -6 : -UNIT_LIFT + UNIT_RADIUS - 2;
+    pieces.push(this.add.circle(bx, by, 10, 0x1a1410).setStrokeStyle(2, 0xe8d5a8));
+    pieces.push(this.add.text(bx, by, owner.badge, { fontFamily: 'Georgia, serif', fontSize: '13px', color: '#ffe08a' }).setOrigin(0.5));
+    const view = this.add.container(p.x, p.y, pieces).setDepth(depthFor(col, row) + 1);
+    this.decoys.push({ owner, col, row, view });
+  }
+
+  // The decoy is struck: it bursts into the swarm, and the caster shows herself.
+  popDecoy(decoy) {
+    if (!this.decoys.includes(decoy)) return;
+    play('spell');
+    this.huskSwarm(decoy.view.x, decoy.view.y - decoy.owner.centerY, 24);
+    this.floatText({ view: decoy.view, topY: decoy.owner.topY }, 'Fooled!', spells.husk.color, { pop: true });
+    this.removeDecoys(decoy.owner);
+  }
+
+  // The decoy vanishes (struck, or at the start of its owner's next turn),
+  // and the caster is in plain sight again.
   removeDecoys(owner) {
     for (const decoy of this.decoys.filter((d) => d.owner === owner)) {
-      for (const part of decoy.parts) {
-        if (part.stop) part.stop();
-        this.tweens.add({ targets: part, alpha: 0, duration: 300, onComplete: () => part.destroy() });
-      }
+      const view = decoy.view;
+      this.tweens.add({ targets: view, alpha: 0, duration: 300, onComplete: () => view.destroy() });
     }
     this.decoys = this.decoys.filter((d) => d.owner !== owner);
+    if (owner.hidden) {
+      owner.hidden = false;
+      if (owner.view && owner.view.active && owner.alive) this.tweens.add({ targets: owner.view, alpha: 1, duration: 300 });
+      this.refreshStatusTags();
+    }
+  }
+
+  // The board as the enemies see it. A hidden caster is not there at all:
+  // in her place stands her decoy, which they treat as the real thing.
+  // Each decoy is a copy of its owner, moved to the decoy's tile and marked
+  // with isDecoy, so the usual enemy logic chases it without knowing.
+  enemyEyes() {
+    const seen = [];
+    for (const u of this.units) {
+      if (!u.hidden) {
+        seen.push(u);
+        continue;
+      }
+      const decoy = this.decoys.find((d) => d.owner === u);
+      if (decoy) seen.push({ ...u, col: decoy.col, row: decoy.row, isDecoy: true, decoy });
+    }
+    return seen;
+  }
+
+  // An enemy attacks a decoy: the usual attack, but the blow pops the decoy.
+  strikeDecoy(attacker, decoy, onDone) {
+    attacker.hasActed = true;
+    this.refreshButtons();
+    const fake = { isDecoy: true, decoy, view: { x: decoy.view.x, y: decoy.view.y }, centerY: decoy.owner.centerY };
+    this.playAttack(attacker, fake, { hit: true, damage: 0 }, false);
+    this.time.delayedCall(1100, onDone);
   }
 
   // Meditate: get MP back, but stand Exposed until the next turn. Ends the turn.

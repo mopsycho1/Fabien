@@ -9,6 +9,10 @@ import art from './data/art.json';
 //   downLeft, downRight (toward the player), upLeft, upRight (away)
 // If a facing is missing, the mirror image of the opposite side is used.
 //
+// "standing" is the relaxed pose. "battle" (optional) is the same four
+// facings in a fighting stance, shown instead whenever an enemy is within
+// ALERT_RANGE tiles. A unit with no "battle" pictures just stays relaxed.
+//
 // "poses" are action pictures, all drawn facing RIGHT on the screen:
 //   attack, windup, ready (engaged stance), guard, dodge, cast
 // Facing left uses the mirror image.
@@ -32,7 +36,7 @@ export function preloadArt(scene) {
 
 function allFiles(entry) {
   const files = new Set();
-  for (const group of [entry.standing, entry.poses, entry.attack]) {
+  for (const group of [entry.standing, entry.battle, entry.poses, entry.attack]) {
     for (const value of Object.values(group || {})) files.add(fileOf(value));
   }
   if (entry.portrait) files.add(entry.portrait);
@@ -92,10 +96,16 @@ const OPPOSITE_SIDE = {
   upRight: 'upLeft',
 };
 
+// How close (in tiles) an enemy must be before a unit switches from its
+// relaxed standing pose to its battle stance.
+export const ALERT_RANGE = 3;
+
 // The standing picture for a facing, or null if there is none.
-export function standingFrame(id, facing) {
-  const standing = art[id] && art[id].standing;
-  if (!standing) return null;
+// alert = true asks for the battle stance, if the unit has one.
+export function standingFrame(id, facing, alert = false) {
+  const entry = art[id];
+  if (!entry || !entry.standing) return null;
+  const standing = alert && entry.battle ? entry.battle : entry.standing;
   if (standing[facing]) return makeFrame(id, standing[facing], false);
   const opposite = standing[OPPOSITE_SIDE[facing]];
   if (opposite) return makeFrame(id, opposite, true);
