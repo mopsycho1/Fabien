@@ -5,7 +5,8 @@ import { isOffBalance, buffOf } from './status.js';
 
 // Skirmish / Distraction: the engagement rules from the combat design notes.
 //
-// A melee unit can spend its action to ENGAGE an enemy melee unit next to it.
+// A melee unit can spend its action to ENGAGE an enemy next to it: another
+// fighter, or an archer (anyone with clash numbers in jobs.json, see canBeCaught).
 // Both are then locked together: neither can walk or make ordinary attacks,
 // while the rest of the battle carries on around them.
 //
@@ -40,6 +41,13 @@ export function isMelee(unit) {
   return !!unit.contest && unit.range === 1;
 }
 
+// A unit that can be caught in a clash: any unit with clash numbers. That is
+// every fighter, and archers too (who then cannot shoot until they get free).
+// Casters like the Sage have none, so they cannot be caught.
+export function canBeCaught(unit) {
+  return !!unit.contest;
+}
+
 export function styleOf(unit) {
   return unit.contest ? unit.contest.style : null;
 }
@@ -52,7 +60,7 @@ export function canEngage(attacker, target) {
     attacker.side !== target.side &&
     !attacker.hasActed &&
     isMelee(attacker) &&
-    isMelee(target) &&
+    canBeCaught(target) &&
     !attacker.engagedWith &&
     !target.engagedWith &&
     distance(attacker, target) === 1

@@ -95,5 +95,7 @@
   "aiReadChance": 40,
   "beatDice": 3,
   "statWeight": 0.5,
-  "beatOddsNote": "With these numbers: same stance, a class strong in it beats one weak in it about 79% of the time; equal fighters where one stance beats the other, 64%; a strong class that picked the beaten stance, 55%."
+  "beatOddsNote": "With these numbers: same stance, a class strong in it beats one weak in it about 79% of the time; equal fighters where one stance beats the other, 64%; a strong class that picked the beaten stance, 55%.",
+  "rangedBreakChance": 50,
+  "rangedBreakNote": "An archer caught in a clash cannot shoot, so on its turn it tries to Break away this often (in %), unless it is winning the clash."
 }

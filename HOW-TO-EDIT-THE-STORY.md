@@ -178,6 +178,8 @@ Each melee job in `jobs.json` has a `contest` line, for example:
 
     "contest": { "style": "defence", "power": 4, "guard": 8, "agility": 3 }
 
+Only fighters (range 1) can start a clash, but anyone with a `contest` line can be caught in one. The Ranger has one, so a fighter standing next to an archer can Engage it. A caught archer cannot shoot until it gets free, and everyone else hits it 10% more easily (`distractedHitBonus`), so the team can pile onto it. Give a job no `contest` line (like the Sage) and it can never be caught. `rangedBreakChance` in `engagement.json` is how often (in %) a caught enemy archer tries to Break away on its turn, unless it is winning the clash.
+
 ### The stance duel (also in `engagement.json`)
 
 `mode` picks how clashes work: `"stance"` is the stance duel from the v0.4 design, `"classic"` is the older Engage with Press / Break away. Everything below is for the stance duel.

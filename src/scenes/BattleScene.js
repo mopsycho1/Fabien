@@ -273,7 +273,7 @@ export default class BattleScene extends Phaser.Scene {
 
     L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id), { active: unit === this.activeUnit }));
     L.add(this.add.text(160, 990, unit.name, textStyle(27, '#ffe08a')));
-    const role = unit.contest ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
+    const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
     L.add(this.add.text(160, 1026, unit.jobName + '  ·  ' + role, textStyle(18, '#e4c27c')));
 
     const frac = Math.max(0, unit.hp / unit.maxHp);
@@ -719,7 +719,8 @@ export default class BattleScene extends Phaser.Scene {
       const bonus = openingHeightBonus(unit, target, CONTEST_CTX);
       text =
         'Engage ' + target.name + ' (' + target.jobName + ')? You open with Press' +
-        (bonus ? ', +' + bonus + ' from high ground' : '') + '.\nTap again.';
+        (bonus ? ', +' + bonus + ' from high ground' : '') + '.' +
+        (target.range > 1 ? ' Caught, it cannot shoot.' : '') + '\nTap again.';
     } else if (this.mode === 'engage' && this.pendingTarget) {
       // Show both sides' numbers before the dice, so the choice is an informed one
       const target = this.pendingTarget;
@@ -2204,7 +2205,9 @@ export default class BattleScene extends Phaser.Scene {
   enemyDuelTurn(unit) {
     const foe = unit.engagedWith;
     const hurt = unit.hp < unit.maxHp * 0.35;
-    const stance = hurt && momentumOf(unit) <= -1 ? 'break' : aiStance(unit, foe, CONTEST_CTX);
+    // An archer cannot shoot while caught, so unless it is winning it tries to get free
+    const archerWantsOut = unit.range > 1 && momentumOf(unit) <= 0 && Math.random() * 100 < (engagementRules.rangedBreakChance || 0);
+    const stance = (hurt && momentumOf(unit) <= -1) || archerWantsOut ? 'break' : aiStance(unit, foe, CONTEST_CTX);
     const foeStance = foe.stance || autoStance(foe);
     const empowered = stance !== 'break' && poiseOf(unit) >= 2 && (momentumOf(unit) >= 1 || Math.random() < 0.3);
     unit.hasActed = true;
