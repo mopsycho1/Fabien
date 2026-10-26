@@ -18,6 +18,7 @@ import { startNextTurn, previewTurns } from '../turnOrder.js';
 import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
+import { lightningStrike, verseAura, speedStreak } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -1530,6 +1531,8 @@ export default class BattleScene extends Phaser.Scene {
           const fromDepth = fromTile ? depthFor(fromTile.col, fromTile.row) : unit.view.depth - 1;
           unit.view.setDepth(Math.max(fromDepth, depthFor(tile.col, tile.row)) + 1);
           this.tweens.add({ targets: unit.idleTargets, y: '-=9', duration: 75, yoyo: true, ease: 'Sine.easeOut' });
+          const buff = buffOf(unit);
+          if (buff && buff.id === 'swiftness') speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x); // wind trails under Swiftness
           play('step');
         },
       };
@@ -1829,6 +1832,7 @@ export default class BattleScene extends Phaser.Scene {
         if (echo.target) {
           const to = this.centerOf(echo.target);
           lightning(this, from.x, from.y, to.x, to.y);
+          lightningStrike(this, echo.target.view.x, echo.target.view.y);
           play('spark');
           this.floatText({ view: echo.decoy.view, topY: attacker.topY }, 'Echo!', '#c9a8ff', { pop: true });
           this.time.delayedCall(120, () => this.showImpact(attacker, echo.target, echo.result, to.x - from.x, echo.target.hp === 0));
@@ -2012,7 +2016,9 @@ export default class BattleScene extends Phaser.Scene {
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
       this.time.delayedCall(140, () => {
-        lightning(this, start.x, start.y, end.x, end.y);
+        lightning(this, start.x, start.y - 20, end.x, end.y);
+        // a bolt crashes down on the target (from Layra's effect sheet)
+        if (!target.isDecoy) lightningStrike(this, target.view.x, target.view.y, { big: lethal });
         play('spark');
       });
       this.time.delayedCall(260, impact);
@@ -3008,7 +3014,7 @@ export default class BattleScene extends Phaser.Scene {
     this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', target.view.x - caster.view.x);
     this.time.delayedCall(250, () => {
       play('spell');
-      buffAura(this, target.view.x, target.view.y, color);
+      if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
       const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
       this.floatText(target, spell.button + (times > 1 ? ' x' + times : ''), spell.color, times > 1 ? { pop: true } : {});
       this.refreshStatusTags();

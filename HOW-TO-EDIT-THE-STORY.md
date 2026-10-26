@@ -244,3 +244,15 @@ A job with a `"signature"` line in `jobs.json` has a signature stance in a clash
 The two round buttons at the bottom corners of the board (or Q and E on a keyboard) turn the camera a quarter turn around the board. The battle does not change, only the view. The small diamond next to the left button shows which side you are looking from: the gold dot is the board's first corner.
 
 Scenery in `map.json` with a `col` or `row` outside the board (the cave walls, the torches, the sigil wall) is the room around the board. Its `col` and `row` are places in the view, so it always stays on the far side and never blocks the board. Scenery on the board (the sandfalls) turns with the board; a sandfall is only shown while its cliff face points toward the camera.
+
+## Spell pictures
+
+The pictures in `public/art/fx` come from the effect sheets: `strike_0` to `strike_6` (lightning crashing down), `crackle_0` to `crackle_4` (the ground crackling), and the Fury, Swift and Stone auras. They are drawn with their black background turned to light, so a new picture should also be on a black or plain dark background. If a picture is missing, the game falls back to the effect it drew before.
+
+## Figure size
+
+`figureScale` in `map.json` sets how big every character is drawn (1 = full size). It is 0.86 now, so figures on neighbouring tiles overlap less.
+
+## Husk echo
+
+If nobody strikes the Husk decoy before the caster's next turn, she shows herself and the decoy glows violet (ECHO). Her next spell that turn is echoed by the decoy: Lightning fires a second bolt at the same target, and a Verse or Slow is twice as strong. The decoy then bursts. An echo she does not use fades at the end of her turn.

@@ -3,6 +3,7 @@ import { GAME_WIDTH } from '../config.js';
 import { startStep } from '../story.js';
 import { preloadArt } from '../art.js';
 import { preloadBoardArt } from '../boardArt.js';
+import { preloadSpellArt } from '../spellArt.js';
 import { createHudTextures } from '../hud.js';
 import { startAudio, play } from '../audio.js';
 
@@ -18,6 +19,7 @@ export default class StartScene extends Phaser.Scene {
   preload() {
     preloadArt(this);
     preloadBoardArt(this);
+    preloadSpellArt(this); // lightning and Verse effects from the effect sheets
   }
 
   create() {
