@@ -200,7 +200,7 @@ export function drawIcon(g, name, x, y, size, color = UI.bronzeLight) {
 // Makes (once) a round picture of a unit's face and returns its name.
 // Units without a portrait get a token in their side's color with their job letter.
 export function roundPortrait(scene, unit, portraitKey, size) {
-  const key = 'round:' + unit.id + ':' + size;
+  const key = 'round:' + unit.id + ':' + size + ':' + (portraitKey || 'token'); // one per face, so a hurt face gets its own
   if (scene.textures.exists(key)) return key;
   const tex = scene.textures.createCanvas(key, size, size);
   const c = tex.getContext();

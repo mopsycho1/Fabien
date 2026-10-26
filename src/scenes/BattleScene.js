@@ -271,7 +271,7 @@ export default class BattleScene extends Phaser.Scene {
     L.removeAll(true);
     if (!unit) return;
 
-    L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id), { active: unit === this.activeUnit }));
+    L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
     L.add(this.add.text(160, 990, unit.name, textStyle(27, '#ffe08a')));
     const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
     L.add(this.add.text(160, 1026, unit.jobName + '  ·  ' + role, textStyle(18, '#e4c27c')));
@@ -634,6 +634,7 @@ export default class BattleScene extends Phaser.Scene {
   endTurn() {
     if (this.battleOver) return;
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
+    if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     this.cancelMode();
     this.startTurn();
   }
@@ -646,7 +647,7 @@ export default class BattleScene extends Phaser.Scene {
     lineup.forEach((unit, i) => {
       const now = i === 0;
       const x = now ? 72 : 158 + (i - 1) * 74;
-      const medal = portraitMedallion(this, x, 108, now ? 34 : 24, unit, portraitKey(unit.id), { active: now });
+      const medal = portraitMedallion(this, x, 108, now ? 34 : 24, unit, portraitKey(unit.id, unit), { active: now });
       this.turnStripLayer.add(medal);
       if (now) {
         const arrow = this.add.graphics();
@@ -1716,7 +1717,8 @@ export default class BattleScene extends Phaser.Scene {
       const side = unit.engagedWith.view.x >= unit.view.x ? 'right' : 'left';
       if (this.showFrame(unit, poseFrame(unit.id, 'ready', side))) return;
     }
-    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit)));
+    const buff = buffOf(unit);
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null));
   }
 
   // True when an enemy (as this unit sees it) is within ALERT_RANGE tiles.
@@ -2702,6 +2704,7 @@ export default class BattleScene extends Phaser.Scene {
       const double = spell.kind === 'buff' && affinityTimes(target, id) > 1;
       this.floatText(target, spell.button + (double ? ' x2' : ''), spell.color, double ? { pop: true } : {});
       this.refreshStatusTags();
+      if (spell.kind === 'buff' && !target.engagedWith) this.showStanding(target); // some units look different under a Verse
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });
     this.time.delayedCall(800, () => this.showStanding(caster));

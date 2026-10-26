@@ -58,50 +58,137 @@
     "shout": "sudeen_shout.png"
   },
   "h2": {
-    "note": "The red-cloaked swordsman from the new sheets. TEMPORARY placement as the Scout until we know who he is.",
+    "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
     "height": 100,
     "standing": {
       "downLeft": {
-        "file": "scout_stand_downLeft.png",
-        "originX": 0.433
+        "file": "gaha_stand_downLeft.png",
+        "originX": 0.508
       },
       "downRight": {
-        "file": "scout_stand_downRight.png",
-        "originX": 0.469
+        "file": "gaha_stand_downRight.png",
+        "originX": 0.482
       },
       "upLeft": {
-        "file": "scout_stand_upLeft.png",
-        "originX": 0.486
+        "file": "gaha_stand_upLeft.png",
+        "originX": 0.544
       },
       "upRight": {
-        "file": "scout_stand_upRight.png",
-        "originX": 0.449
+        "file": "gaha_stand_upRight.png",
+        "originX": 0.452
+      }
+    },
+    "battle": {
+      "downLeft": {
+        "file": "gaha_battle_downLeft.png",
+        "originX": 0.446
+      },
+      "downRight": {
+        "file": "gaha_battle_downRight.png",
+        "originX": 0.548
+      },
+      "upLeft": {
+        "file": "gaha_battle_upLeft.png",
+        "originX": 0.541
+      }
+    },
+    "buffed": {
+      "stone": {
+        "downLeft": {
+          "file": "gaha_stone_downLeft.png",
+          "originX": 0.457
+        },
+        "downRight": {
+          "file": "gaha_stone_downRight.png",
+          "originX": 0.501
+        },
+        "upLeft": {
+          "file": "gaha_stone_upLeft.png",
+          "originX": 0.482
+        },
+        "upRight": {
+          "file": "gaha_stone_upRight.png",
+          "originX": 0.465
+        }
+      },
+      "fury": {
+        "downLeft": {
+          "file": "gaha_stone_downLeft.png",
+          "originX": 0.457
+        },
+        "downRight": {
+          "file": "gaha_stone_downRight.png",
+          "originX": 0.501
+        },
+        "upLeft": {
+          "file": "gaha_stone_upLeft.png",
+          "originX": 0.482
+        },
+        "upRight": {
+          "file": "gaha_stone_upRight.png",
+          "originX": 0.465
+        }
+      },
+      "swiftness": {
+        "downLeft": {
+          "file": "gaha_swift_downLeft.png",
+          "originX": 0.524
+        },
+        "downRight": {
+          "file": "gaha_swift_downRight.png",
+          "originX": 0.512
+        },
+        "upLeft": {
+          "file": "gaha_swift_upLeft.png",
+          "originX": 0.48
+        },
+        "upRight": {
+          "file": "gaha_swift_upRight.png",
+          "originX": 0.49
+        }
       }
     },
     "poses": {
-      "attack": {
-        "file": "scout_attack.png",
-        "originX": 0.348
-      },
       "windup": {
-        "file": "scout_windup.png",
-        "originX": 0.477
+        "file": "gaha_windup.png",
+        "originX": 0.367
+      },
+      "attack": {
+        "file": "gaha_attack.png",
+        "originX": 0.496
       },
       "ready": {
-        "file": "scout_ready.png",
-        "originX": 0.366
+        "file": "gaha_ready.png",
+        "originX": 0.456
       },
       "guard": {
-        "file": "scout_guard.png",
-        "originX": 0.445
+        "file": "gaha_guard.png",
+        "originX": 0.564
       },
       "dodge": {
-        "file": "scout_dodge.png",
-        "originX": 0.513
+        "file": "gaha_dodge.png",
+        "originX": 0.565
+      },
+      "hurt": {
+        "file": "gaha_hurt.png",
+        "originX": 0.49
+      },
+      "knocked": {
+        "file": "gaha_knocked.png",
+        "originX": 0.429
+      },
+      "down": {
+        "file": "gaha_down.png",
+        "originX": 0.514
+      },
+      "victory": {
+        "file": "gaha_victory.png",
+        "originX": 0.504
       }
     },
-    "portrait": "scout_face.png",
-    "shout": "scout_shout.png"
+    "portrait": "gaha_face.png",
+    "portraitHurt": "gaha_face_hurt.png",
+    "shout": "gaha_shout.png"
   },
   "h3": {
     "note": "The staff-bearer. TEMPORARY placement as the Sage (support mage) until we know who she is.",

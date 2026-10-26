@@ -13,6 +13,13 @@ import art from './data/art.json';
 // facings in a fighting stance, shown instead whenever an enemy is within
 // ALERT_RANGE tiles. A unit with no "battle" pictures just stays relaxed.
 //
+// "buffed" (optional) has a set of four facings for each Verse, for example
+//   "buffed": { "stone": { ...four facings... }, "swiftness": { ... } }
+// While that Verse is on the unit, those pictures replace its standing ones.
+//
+// "portraitHurt" (optional) is a face for when the unit is badly hurt (35%
+// health or less). It replaces the calm face on the card and the turn bar.
+//
 // "poses" are action pictures, all drawn facing RIGHT on the screen:
 //   attack, windup, ready (engaged stance), guard, dodge, cast
 // Facing left uses the mirror image.
@@ -36,17 +43,24 @@ export function preloadArt(scene) {
 
 function allFiles(entry) {
   const files = new Set();
-  for (const group of [entry.standing, entry.battle, entry.poses, entry.attack]) {
+  const buffed = Object.values(entry.buffed || {});
+  for (const group of [entry.standing, entry.battle, ...buffed, entry.poses, entry.attack]) {
     for (const value of Object.values(group || {})) files.add(fileOf(value));
   }
   if (entry.portrait) files.add(entry.portrait);
   if (entry.shout) files.add(entry.shout);
+  if (entry.portraitHurt) files.add(entry.portraitHurt);
   return [...files];
 }
 
-// The calm face picture for menus, or null.
-export function portraitKey(id) {
-  return art[id] && art[id].portrait ? textureKey(id, art[id].portrait) : null;
+// The face picture for menus, or null. Pass the unit to get its hurt face
+// when it is badly hurt (if it has one).
+export const HURT_FACE_AT = 0.35;
+export function portraitKey(id, unit = null) {
+  const entry = art[id];
+  if (!entry) return null;
+  if (unit && entry.portraitHurt && unit.alive !== false && unit.hp / unit.maxHp <= HURT_FACE_AT) return textureKey(id, entry.portraitHurt);
+  return entry.portrait ? textureKey(id, entry.portrait) : null;
 }
 
 // The battle-cry face picture for cut-ins (falls back to the calm one), or null.
@@ -102,10 +116,12 @@ export const ALERT_RANGE = 3;
 
 // The standing picture for a facing, or null if there is none.
 // alert = true asks for the battle stance, if the unit has one.
-export function standingFrame(id, facing, alert = false) {
+// buff is the id of a Verse on the unit (like "stone"): its pictures win.
+export function standingFrame(id, facing, alert = false, buff = null) {
   const entry = art[id];
   if (!entry || !entry.standing) return null;
-  const standing = alert && entry.battle ? entry.battle : entry.standing;
+  let standing = alert && entry.battle ? entry.battle : entry.standing;
+  if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
   if (standing[facing]) return makeFrame(id, standing[facing], false);
   const opposite = standing[OPPOSITE_SIDE[facing]];
   if (opposite) return makeFrame(id, opposite, true);

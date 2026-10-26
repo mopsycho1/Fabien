@@ -149,6 +149,8 @@ Picture files go in the folder `public/art`. The file `src/data/art.json` says w
 - `height` is how tall the figure is drawn when standing, in pixels.
 - `standing` has one picture for each way a unit can face: `downLeft` and `downRight` face the player, `upLeft` and `upRight` face away. If one is missing, the mirror image of the other side is used.
 - `battle` (optional) is the same four facings in a fighting stance. A unit shows its `standing` pictures when relaxed and switches to `battle` whenever an enemy is within 3 tiles. Leave it out and the unit always stands relaxed.
+- `buffed` (optional) has four facings for each Verse, like `"buffed": { "stone": {...}, "fury": {...}, "swiftness": {...} }`. While that Verse is on the unit, those pictures replace its standing ones. Gaha has them.
+- `portraitHurt` (optional) is a face for when the unit is down to 35% health or less. It replaces the calm face on the unit card and in the turn bar.
 - `poses` are action pictures, all facing RIGHT: `attack`, `windup`, `ready` (the stance while locked in an engagement), `guard`, `dodge`, `cast`. Facing left uses the mirror image. Missing poses are fine: the standing picture is used instead.
 - `portrait` is a calm face picture, used in the turn order and the unit card. `shout` is a battle-cry face, used in the cut-ins (the banner that sweeps across for an engagement or a finishing blow). Units without them get a round token with their job letter.
 - `originX` says where the body is across the picture (0 is the left edge, 1 is the right edge), so a figure with a long sword still stands in the middle of its tile.
