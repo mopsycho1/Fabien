@@ -81,15 +81,15 @@
     "battle": {
       "downLeft": {
         "file": "gaha_battle_downLeft.png",
-        "originX": 0.446
+        "originX": 0.447
       },
       "downRight": {
         "file": "gaha_battle_downRight.png",
-        "originX": 0.548
+        "originX": 0.547
       },
       "upLeft": {
         "file": "gaha_battle_upLeft.png",
-        "originX": 0.541
+        "originX": 0.543
       }
     },
     "buffed": {
@@ -132,42 +132,42 @@
       "swiftness": {
         "downLeft": {
           "file": "gaha_swift_downLeft.png",
-          "originX": 0.524
+          "originX": 0.523
         },
         "downRight": {
           "file": "gaha_swift_downRight.png",
-          "originX": 0.512
+          "originX": 0.511
         },
         "upLeft": {
           "file": "gaha_swift_upLeft.png",
-          "originX": 0.48
+          "originX": 0.485
         },
         "upRight": {
           "file": "gaha_swift_upRight.png",
-          "originX": 0.49
+          "originX": 0.495
         }
       }
     },
     "poses": {
       "windup": {
         "file": "gaha_windup.png",
-        "originX": 0.367
+        "originX": 0.368
       },
       "attack": {
         "file": "gaha_attack.png",
-        "originX": 0.496
+        "originX": 0.499
       },
       "ready": {
         "file": "gaha_ready.png",
-        "originX": 0.456
+        "originX": 0.458
       },
       "guard": {
         "file": "gaha_guard.png",
-        "originX": 0.564
+        "originX": 0.566
       },
       "dodge": {
         "file": "gaha_dodge.png",
-        "originX": 0.565
+        "originX": 0.562
       },
       "hurt": {
         "file": "gaha_hurt.png",
@@ -183,7 +183,7 @@
       },
       "victory": {
         "file": "gaha_victory.png",
-        "originX": 0.504
+        "originX": 0.506
       }
     },
     "portrait": "gaha_face.png",
