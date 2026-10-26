@@ -27,6 +27,48 @@ export function getHeight(col, row) {
   return (heights[row] && heights[row][col]) || 0;
 }
 
+// ---------- Turning the camera ----------
+
+// The camera can look at the board from four sides, a quarter turn apart.
+// The battle rules never change: a tile keeps its column and row. Only where
+// it is drawn changes. "View" columns and rows are the tile's place as seen
+// from the current side (view column 0, view row 0 is the far corner).
+let rotation = 0; // 0, 1, 2 or 3 quarter turns
+
+export function setRotation(quarterTurns) {
+  rotation = ((quarterTurns % 4) + 4) % 4;
+}
+export function getRotation() {
+  return rotation;
+}
+
+// A tile's place as seen from the current side. Works for spots off the
+// board too (used for decorations around the edge).
+export function toView(col, row) {
+  const n = GRID_SIZE - 1;
+  if (rotation === 1) return { vc: n - row, vr: col };
+  if (rotation === 2) return { vc: n - col, vr: n - row };
+  if (rotation === 3) return { vc: row, vr: n - col };
+  return { vc: col, vr: row };
+}
+
+// The other way: the tile at a place in the view.
+export function fromView(vc, vr) {
+  const n = GRID_SIZE - 1;
+  if (rotation === 1) return { col: vr, row: n - vc };
+  if (rotation === 2) return { col: n - vc, row: n - vr };
+  if (rotation === 3) return { col: n - vr, row: vc };
+  return { col: vc, row: vr };
+}
+
+// Where a spot in the VIEW is on screen, for a given height (decorations).
+export function viewToScreen(vc, vr, height = 0) {
+  return {
+    x: BOARD_CENTER_X + ((vc - vr) * TILE_WIDTH) / 2,
+    y: BOARD_TOP_Y + ((vc + vr) * TILE_HEIGHT) / 2 - height * LEVEL_HEIGHT,
+  };
+}
+
 // ---------- Tile to screen ----------
 
 // Turns a tile position (column 3, row 6) into a screen position in pixels.
@@ -36,11 +78,10 @@ export function getHeight(col, row) {
 // Moving one column to the right goes down and to the right on screen.
 // Moving one row down goes down and to the left. That is what makes the board
 // look like a diamond.
+// (With the camera turned, "right" and "down" are the view's, not the map's.)
 export function tileToScreen(col, row) {
-  return {
-    x: BOARD_CENTER_X + ((col - row) * TILE_WIDTH) / 2,
-    y: BOARD_TOP_Y + ((col + row) * TILE_HEIGHT) / 2 - getHeight(col, row) * LEVEL_HEIGHT,
-  };
+  const { vc, vr } = toView(col, row);
+  return viewToScreen(vc, vr, getHeight(col, row));
 }
 
 // How thick the block under a tile is, in pixels.
@@ -51,7 +92,8 @@ export function tileSideDepth(col, row) {
 // Drawing order. Tiles nearer the bottom of the screen must be drawn on top
 // of tiles behind them. A bigger number is drawn later, so on top.
 export function depthFor(col, row) {
-  return (col + row) * 2;
+  const { vc, vr } = toView(col, row);
+  return (vc + vr) * 2;
 }
 
 // ---------- Screen to tile ----------
@@ -96,9 +138,10 @@ function pointInShape(px, py, points) {
 // contains the tap.
 export function screenToTile(x, y) {
   for (let sum = (GRID_SIZE - 1) * 2; sum >= 0; sum--) {
-    for (let col = 0; col < GRID_SIZE; col++) {
-      const row = sum - col;
-      if (row < 0 || row >= GRID_SIZE) continue;
+    for (let vc = 0; vc < GRID_SIZE; vc++) {
+      const vr = sum - vc;
+      if (vr < 0 || vr >= GRID_SIZE) continue;
+      const { col, row } = fromView(vc, vr);
       if (pointInShape(x, y, blockOutline(col, row))) {
         return { col, row };
       }

@@ -9,6 +9,9 @@ import {
   tileSideDepth,
   depthFor,
   pointInTileTop,
+  setRotation,
+  getRotation,
+  toView,
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
@@ -120,9 +123,9 @@ export default class BattleScene extends Phaser.Scene {
     createBoardTextures(this); // paint the ground textures once
     drawBackdrop(this);        // the cave's darkness, or the sky
     createAtmosphere(this, mapData.setting); // light and dust in a cave; clouds, sun, sand and embers outside
-    drawUnderside(this);       // the cave floor around the board, or the rock hanging under it
-    this.drawBoard();
-    drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
+    setRotation(0);            // a new battle starts with the camera on its first side
+    this.rotating = false;
+    this.buildBoard();         // the tiles, the floor around them and the scenery
 
     // Things the scene remembers between taps
     //   mode: what the player is doing right now
@@ -146,7 +149,7 @@ export default class BattleScene extends Phaser.Scene {
     this.approach = null;           // tap-to-attack: { target, tile, options, optionKeys } while previewing
     this.stanceMenu = 'main';       // in a clash: 'main' (Press, Guard, Slip, More) or 'more'
     this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
-    this.decoys = [];
+    this.decoys = [];               // Husk decoys (see addDecoy)
     // clash stances: 'auto' (the default, from engagement.json) or 'manual', remembered on this device
     let savedChoice = null;
     try {
@@ -154,7 +157,7 @@ export default class BattleScene extends Phaser.Scene {
     } catch (e) {
       savedChoice = null;
     }
-    this.stanceChoice = savedChoice === 'auto' || savedChoice === 'manual' ? savedChoice : engagementRules.stanceChoice || 'auto';               // Husk decoys: their swarm blocks a tile until the caster's next turn
+    this.stanceChoice = savedChoice === 'auto' || savedChoice === 'manual' ? savedChoice : engagementRules.stanceChoice || 'auto';
     this.engageMarks = [];          // the lines and icons drawn between engaged units
     this.inCinematic = false;       // true while a cut-in or clash plays (a tap speeds it up)
     this.viewing = null;            // a unit the player tapped to look at
@@ -245,6 +248,38 @@ export default class BattleScene extends Phaser.Scene {
     this.ui(muteIcon);
     this.ui(muteHit);
 
+    // Turn the camera: two round buttons at the bottom corners of the board
+    // (or Q and E on a keyboard)
+    const turnButton = (x, dir) => {
+      const g = this.add.graphics();
+      g.fillStyle(UI.ink, 0.92);
+      g.fillCircle(x, 818, 30);
+      g.lineStyle(2, UI.bronze, 1);
+      g.strokeCircle(x, 818, 30);
+      // a curved arrow going round
+      g.lineStyle(4, UI.bronzeLight, 1);
+      g.beginPath();
+      g.arc(x, 818, 15, dir > 0 ? Math.PI * 1.1 : Math.PI * 1.9, dir > 0 ? Math.PI * 0.35 : Math.PI * 0.65, dir < 0);
+      g.strokePath();
+      const ax = x + (dir > 0 ? 15 * Math.cos(Math.PI * 0.35) : 15 * Math.cos(Math.PI * 0.65));
+      const ay = 818 + 15 * Math.sin(Math.PI * 0.35);
+      g.fillStyle(UI.bronzeLight, 1);
+      g.fillTriangle(ax - 7, ay - 3, ax + 7, ay - 3, ax + (dir > 0 ? -2 : 2), ay + 8);
+      const hit = this.add.circle(x, 818, 34, 0x000000, 0.001).setInteractive({ useHandCursor: true });
+      hit.on('pointerdown', () => this.rotateCamera(dir));
+      this.ui(g);
+      this.ui(hit);
+    };
+    turnButton(50, -1);
+    turnButton(W - 50, 1);
+    this.input.keyboard?.on('keydown-Q', () => this.rotateCamera(-1));
+    this.input.keyboard?.on('keydown-E', () => this.rotateCamera(1));
+
+    // A small map of the board by the left button: the gold dot is the
+    // board's first corner, so you can tell which side you are looking from
+    this.compass = this.ui(this.add.graphics());
+    this.refreshCompass();
+
     // Bottom panel
     this.ui(bronzePanel(this, 10, 948, W - 20, 324));
 
@@ -331,7 +366,89 @@ export default class BattleScene extends Phaser.Scene {
   // Draws the whole board, one tile block at a time.
   // We go from the far corner to the near corner, so tiles in front are drawn
   // over tiles behind them.
+  // Draws everything that belongs to the board (and changes when the camera
+  // turns): the floor around it, the tiles, and the scenery. It remembers what
+  // it drew, so turning the camera can clear it and draw it again.
+  buildBoard() {
+    const before = new Set(this.children.list);
+    drawUnderside(this); // the cave floor around the board, or the rock hanging under it
+    this.drawBoard();
+    drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
+    this.boardObjects = this.children.list.filter((o) => !before.has(o));
+  }
+
+  // Turns the camera a quarter turn around the board: dir 1 = clockwise
+  // (the board turns left), -1 = the other way. The battle itself does not
+  // change at all, only where things are drawn: a quick fade, the board is
+  // drawn again from the new side, and every figure moves to its tile.
+  rotateCamera(dir) {
+    if (this.rotating || this.busy || this.inCinematic || this.battleOver) return;
+    this.rotating = true;
+    play('select');
+    const cam = this.cameras.main;
+    cam.fadeOut(110, 10, 6, 4);
+    cam.once('camerafadeoutcomplete', () => {
+      setRotation(getRotation() + dir);
+      for (const o of this.boardObjects) {
+        this.tweens.killTweensOf(o);
+        o.destroy();
+      }
+      this.buildBoard();
+      this.placeEveryone();
+      cam.fadeIn(170, 10, 6, 4);
+      this.rotating = false;
+      this.refreshCompass();
+    });
+  }
+
+  // The little board diamond by the turn button, with a dot on the corner
+  // where the map's first tile is.
+  refreshCompass() {
+    const g = this.compass;
+    if (!g) return;
+    const cx = 108;
+    const cy = 818;
+    g.clear();
+    g.fillStyle(UI.ink, 0.85);
+    g.fillPoints([{ x: cx, y: cy - 13 }, { x: cx + 22, y: cy }, { x: cx, y: cy + 13 }, { x: cx - 22, y: cy }], true);
+    g.lineStyle(2, UI.bronze, 1);
+    g.strokePoints([{ x: cx, y: cy - 13 }, { x: cx + 22, y: cy }, { x: cx, y: cy + 13 }, { x: cx - 22, y: cy }], true);
+    const { vc, vr } = toView(0, 0);
+    const n = GRID_SIZE - 1;
+    const fx = (vc - vr) / n; // -1 .. 1 across
+    const fy = (vc + vr) / n - 1; // -1 .. 1 down
+    g.fillStyle(GOLD, 1);
+    g.fillCircle(cx + fx * 15, cy + fy * 9, 4);
+  }
+
+  // Puts every figure, decoy and marker back on its tile (after the camera turns).
+  placeEveryone() {
+    for (const u of this.units) {
+      if (!u.view || !u.view.active) continue;
+      const p = tileToScreen(u.col, u.row);
+      u.view.setPosition(p.x, p.y).setDepth(depthFor(u.col, u.row) + 1);
+    }
+    for (const d of this.decoys) {
+      const p = tileToScreen(d.col, d.row);
+      d.view.setPosition(p.x, p.y).setDepth(depthFor(d.col, d.row) + 1);
+    }
+    for (const u of this.units) if (u.alive) this.faceNearestOpponent(u);
+    this.refreshEngagementMarks();
+    // the colored tiles of the current choice are drawn again from the new side
+    const mode = this.mode;
+    if (mode === 'move') {
+      this.cancelMode();
+      this.startMove();
+    } else if (mode === 'attack') {
+      this.cancelMode();
+      this.startAttack();
+    } else if (mode !== 'idle' && mode !== 'spell') {
+      this.cancelMode();
+    }
+  }
+
   drawBoard() {
+    // (each piece sets its own drawing depth, so the order here does not matter)
     for (let sum = 0; sum <= (GRID_SIZE - 1) * 2; sum++) {
       for (let col = 0; col < GRID_SIZE; col++) {
         const row = sum - col;

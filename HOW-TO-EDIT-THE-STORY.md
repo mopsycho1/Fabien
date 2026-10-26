@@ -238,3 +238,9 @@ A job with a `"signature"` line in `jobs.json` has a signature stance in a clash
 ## Auto or Manual stances
 
 `stanceChoice` in `engagement.json` is how heroes pick stances in a clash until the player switches: `"auto"` (one Fight button picks the signature or best stance, and switches to the counter if the foe's last stance would beat it) or `"manual"` (Press, Guard and Slip buttons). The player's choice is remembered on their device.
+
+## Turning the camera
+
+The two round buttons at the bottom corners of the board (or Q and E on a keyboard) turn the camera a quarter turn around the board. The battle does not change, only the view. The small diamond next to the left button shows which side you are looking from: the gold dot is the board's first corner.
+
+Scenery in `map.json` with a `col` or `row` outside the board (the cave walls, the torches, the sigil wall) is the room around the board. Its `col` and `row` are places in the view, so it always stays on the far side and never blocks the board. Scenery on the board (the sandfalls) turns with the board; a sandfall is only shown while its cliff face points toward the camera.

@@ -1,5 +1,5 @@
 import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, GAME_WIDTH, GAME_HEIGHT, LEVEL_HEIGHT, BASE_DEPTH, BOARD_CENTER_X, BOARD_TOP_Y } from './config.js';
-import { tileToScreen, getHeight, tileSideDepth, depthFor } from './grid.js';
+import { tileToScreen, getHeight, tileSideDepth, depthFor, toView, fromView } from './grid.js';
 
 // How the battlefield LOOKS: ground, cliff sides, shadows, the rocky
 // underside, the sky behind, and scenery around the edges. It uses the terrain
@@ -462,10 +462,14 @@ function drawTop(scene, col, row, map, t) {
     details.closePath();
     details.fillPath();
   };
-  const behindLeft = getHeight(col - 1, row) - height; // the tile up and to the left
-  const behindRight = getHeight(col, row - 1) - height; // the tile up and to the right
-  if (col > 0 && behindLeft > 0) shadowStrip(x - hw, y, x, y - hh, behindLeft);
-  if (row > 0 && behindRight > 0) shadowStrip(x, y - hh, x + hw, y, behindRight);
+  // (the tiles behind are found in the view, so this works with the camera turned)
+  const { vc, vr } = toView(col, row);
+  const upLeft = fromView(vc - 1, vr);
+  const upRight = fromView(vc, vr - 1);
+  const behindLeft = getHeight(upLeft.col, upLeft.row) - height; // the tile up and to the left
+  const behindRight = getHeight(upRight.col, upRight.row) - height; // the tile up and to the right
+  if (vc > 0 && behindLeft > 0) shadowStrip(x - hw, y, x, y - hh, behindLeft);
+  if (vr > 0 && behindRight > 0) shadowStrip(x, y - hh, x + hw, y, behindRight);
 
   // A withered thicket: the picture covers the whole top, with the tree on it
   if (kind === 'grass' && scene.textures.exists('terrain:thicket')) {
@@ -556,20 +560,24 @@ export function drawUnderside(scene) {
     return;
   }
   const last = GRID_SIZE - 1;
-  const left = tileToScreen(0, last);
-  const bottom = tileToScreen(last, last);
-  const right = tileToScreen(last, 0);
+  // the three front corners of the board, as the camera sees it now
+  const cLeft = fromView(0, last);
+  const cBottom = fromView(last, last);
+  const cRight = fromView(last, 0);
+  const left = tileToScreen(cLeft.col, cLeft.row);
+  const bottom = tileToScreen(cBottom.col, cBottom.row);
+  const right = tileToScreen(cRight.col, cRight.row);
   const hw = TILE_WIDTH / 2;
   const hh = TILE_HEIGHT / 2;
-  const baseDepth = tileSideDepth(0, last);
+  const baseDepth = tileSideDepth(cLeft.col, cLeft.row);
 
   // the edge of the board along the bottom: left corner, bottom corner, right corner
   const lx = left.x - hw;
   const ly = left.y + baseDepth;
   const bx = bottom.x;
-  const by = bottom.y + hh + tileSideDepth(last, last);
+  const by = bottom.y + hh + tileSideDepth(cBottom.col, cBottom.row);
   const rx = right.x + hw;
-  const ry = right.y + tileSideDepth(last, 0);
+  const ry = right.y + tileSideDepth(cRight.col, cRight.row);
 
   const rand = makeRandom(4242);
   const g = scene.add.graphics().setDepth(-3);
@@ -759,6 +767,9 @@ export function drawScenery(scene, map) {
       continue;
     }
     if (!scene.textures.exists('terrain:' + item.prop)) continue;
+    // Props off the board (the cave walls) are the room around the board:
+    // they stay on the far side whichever way the camera turns, so they
+    // never block the view. Their col and row are places in the VIEW.
     const key = sceneryKey(scene, 'terrain:' + item.prop);
     // where a height-0 tile at this spot would have its front bottom corner
     const x = BOARD_CENTER_X + ((item.col - item.row) * TILE_WIDTH) / 2;
@@ -772,12 +783,18 @@ export function drawScenery(scene, map) {
 function drawSandfall(scene, item, hw, hh) {
   if (!scene.textures.exists('terrain:stream')) return;
   const { col, row } = item;
-  const left = item.side !== 'right';
-  // the tile the sand lands on: in front of this one, on that side
-  const nCol = left ? col : col + 1;
-  const nRow = left ? row + 1 : row;
+  // the tile the sand lands on (as the map was drawn: "left" is the next row, "right" the next column)
+  const nCol = item.side !== 'right' ? col : col + 1;
+  const nRow = item.side !== 'right' ? row + 1 : row;
   const drop = getHeight(col, row) - getHeight(nCol, nRow);
   if (drop <= 0) return;
+  // With the camera turned, that cliff face may now face away (hidden), or be the other front face
+  const a = toView(col, row);
+  const b = toView(nCol, nRow);
+  let left;
+  if (b.vc - a.vc === 0 && b.vr - a.vr === 1) left = true; // pours down the front-left face
+  else if (b.vc - a.vc === 1 && b.vr - a.vr === 0) left = false; // the front-right face
+  else return; // that face points away from the camera now
   const { x, y } = tileToScreen(col, row);
   const sx = left ? x - hw / 2 : x + hw / 2; // the middle of that side's top edge
   const sy = y + hh / 2;
