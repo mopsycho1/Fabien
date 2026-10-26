@@ -42,8 +42,9 @@ export function chooseMoveTile(unit, units, extraBlocked = () => false) {
   let bestGap = gap(unit); // staying where we are is the starting point to beat
   let bestSteps = 0;
 
-  // Ranged units also like high ground (they aim better from above)
-  const lift = (t) => (unit.range > 1 ? getHeight(t.col, t.row) : 0);
+  // Ranged units also like high ground (they aim better from above), and
+  // keep a tile away from foes (right next to one, an archer only has a dagger).
+  const lift = (t) => (unit.range > 1 ? getHeight(t.col, t.row) - (opponents.some((o) => distance(t, o) <= 1) ? 3 : 0) : 0);
   let bestLift = lift(unit);
   for (const tile of tiles) {
     const g = gap(tile);

@@ -59,8 +59,14 @@ export function getDamage(attacker, defender) {
     const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
     return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense')));
   }
-  const attack = attacker.attack + statMod(attacker, 'attack');
+  const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
   return Math.max(1, attack - (defender.defense + statMod(defender, 'defense')));
+}
+
+// True when an archer is right next to its target: it fights with its close
+// weapon (a dagger, weaker than the bow), not its bow. See closeWeapon in jobs.json.
+export function usesCloseWeapon(attacker, defender) {
+  return !!attacker.closeWeapon && distance(attacker, defender) <= 1;
 }
 
 // Lightning jumps: the enemy nearest to the one just struck (within the

@@ -143,6 +143,35 @@ export function hexOf(unit) {
   return hex ? { ...hex, ...spells[hex.id] } : null;
 }
 
+// ---------- Poison ----------
+
+// Poison: a few points of health lost at the start of each of the unit's
+// next few turns. A new poison replaces an old one.
+export function applyPoison(unit, spellId) {
+  const spell = spells[spellId];
+  statusOf(unit).poison = { id: spellId, turnsLeft: spell.turns, damage: spell.poison };
+}
+
+export function isPoisoned(unit) {
+  return !!statusOf(unit).poison;
+}
+
+export function curePoison(unit) {
+  statusOf(unit).poison = null;
+}
+
+// The start of a poisoned unit's turn: it loses health (never the last
+// point). Returns how much it lost (0 if not poisoned).
+export function tickPoison(unit) {
+  const p = statusOf(unit).poison;
+  if (!p) return 0;
+  const lost = Math.min(p.damage, unit.hp - 1);
+  unit.hp -= lost;
+  p.turnsLeft -= 1;
+  if (p.turnsLeft <= 0) statusOf(unit).poison = null;
+  return lost;
+}
+
 // ---------- Cooldowns ----------
 
 export function startCooldown(unit, spellId) {
@@ -193,6 +222,7 @@ export function statusTags(unit) {
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a' });
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a' });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
+  if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a' });
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

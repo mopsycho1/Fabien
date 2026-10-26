@@ -15,7 +15,7 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, rollAttack, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { lightningStrike, verseAura, speedStreak } from '../spellArt.js';
@@ -59,7 +59,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -724,6 +724,11 @@ export default class BattleScene extends Phaser.Scene {
     clearOffBalance(this.activeUnit); // it has found its footing again
     clearExposed(this.activeUnit);    // and it is on guard again after Meditating
     restoreMp(this.activeUnit, 1);     // magic points come back slowly, 1 a turn
+    const poisoned = tickPoison(this.activeUnit); // poison bites at the start of the turn (never the last point)
+    if (poisoned > 0) {
+      this.updateHpBar(this.activeUnit);
+      this.floatText(this.activeUnit, 'Poison -' + poisoned, '#9fdc6a', { pop: true });
+    }
     if (this.activeUnit.contest) refillPoise(this.activeUnit); // and so does Poise, for fighters
     this.stanceMenu = 'main';
     this.empower = false;
@@ -826,6 +831,7 @@ export default class BattleScene extends Phaser.Scene {
       if (isDistracted(target, unit)) notes.push('distracted');
       if (isOffBalance(target)) notes.push('off-balance');
       if (unit.closePenalty && distance(unit, target) <= 1) notes.push('too close to aim');
+      if (usesCloseWeapon(unit, target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
       const hAcc = heightAccuracy(unit, target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const next = chainTarget(unit, target, this.units);
@@ -842,6 +848,7 @@ export default class BattleScene extends Phaser.Scene {
       if (isDistracted(a.target, unit)) notes.push('distracted');
       if (isOffBalance(a.target)) notes.push('off-balance');
       if (unit.closePenalty && distance(from, a.target) <= 1) notes.push('too close to aim');
+      if (usesCloseWeapon(from, a.target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
       const hAcc = heightAccuracy(from, a.target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const next = chainTarget(from, a.target, this.units);
@@ -872,7 +879,7 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spell' && this.selectedSpell) {
       const spell = spells[this.selectedSpell];
       text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
-    } else if (this.mode === 'spell' && isMelee(unit)) {
+    } else if (this.mode === 'spell' && (isMelee(unit) || !unit.maxMp)) {
       text = 'Choose a skill';
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
@@ -882,6 +889,12 @@ export default class BattleScene extends Phaser.Scene {
       text =
         'Spear Throw at ' + t.name + ': ' + getHitChance({ ...unit, range: 3 }, t) + '% to hit, ' + getDamage(unit, t) +
         ' damage, knocked back a tile' + (extra > 0 ? ' (+' + extra + ' reach from high ground)' : '') + '.\nTap again to throw.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'poison') {
+      const t = this.pendingTarget;
+      const p = spells.poisonArrow;
+      text =
+        'Poison Arrow at ' + t.name + ': ' + getHitChance({ ...unit, closeWeapon: null }, t) + '% to hit, ' + this.poisonHit(unit, t, p) +
+        ' damage now, then ' + p.poison + ' a turn for ' + p.turns + ' turns.\nTap again to shoot.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'heal') {
       const t = this.pendingTarget;
       text = 'Herbs on ' + t.name + ': +' + Math.min(spells.herbs.heal, t.maxHp - t.hp) + ' health. Tap again.';
@@ -893,7 +906,7 @@ export default class BattleScene extends Phaser.Scene {
         (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
-      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', heal: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -1015,7 +1028,7 @@ export default class BattleScene extends Phaser.Scene {
         accent: ENGAGE_COLOR,
       });
     } else if (unit.spells && unit.spells.length > 0) {
-      c.set('Spell', 'star', free, () => this.onSpellButton(), { accent: GOLD });
+      c.set(unit.maxMp > 0 ? 'Spell' : 'Skills', 'star', free, () => this.onSpellButton(), { accent: GOLD }); // no MP pool: skills, not spells
     } else {
       c.set(null);
     }
@@ -1209,13 +1222,13 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = spell.kind === 'hex' || spell.kind === 'throw';
+    const foesOnly = spell.kind === 'hex' || spell.kind === 'throw' || spell.kind === 'poison';
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
         u.alive && distance(unit, u) <= this.spellReach(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
-        (spell.kind !== 'heal' || u.hp < u.maxHp)
+        (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u))
     );
     if (this.targetsInRange.length === 0) {
       this.showMessage(spell.kind === 'heal' ? 'Nobody next to you needs healing' : 'No enemy in reach');
@@ -1223,7 +1236,7 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : spell.kind === 'throw' ? 0xe05a47 : spell.kind === 'heal' ? 0x9fdc8a : GOLD;
+    const color = spell.kind === 'hex' ? 0xb48cff : spell.kind === 'throw' ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
@@ -2003,10 +2016,14 @@ export default class BattleScene extends Phaser.Scene {
     const dx = target.view.x - from.x;
     const dy = target.view.y - from.y;
     const dist = Math.hypot(dx, dy) || 1;
-    const style = attacker.attackEffect;
+    // an archer right next to its target fights with its dagger instead of the bow
+    const close = !target.isDecoy && usesCloseWeapon(attacker, target);
+    const style = close ? 'slash' : attacker.attackEffect;
+    const strikePose = close ? attacker.closeWeapon.pose : 'attack';
+    const readyPose = close ? 'ready' : 'windup';
 
     this.faceToward(attacker, dx, dy);
-    this.showAttackPose(attacker, dx);
+    this.showPose(attacker, strikePose, dx);
 
     // striking a Husk decoy bursts it instead of hurting anyone
     const impact = target.isDecoy ? () => this.popDecoy(target.decoy) : () => this.showImpact(attacker, target, result, dx, lethal);
@@ -2038,7 +2055,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Close fighters: wind up, dash in leaving after-images, strike, step back
-    this.showPose(attacker, 'windup', dx);
+    this.showPose(attacker, readyPose, dx);
     this.tweens.add({
       targets: attacker.view,
       x: from.x - (dx / dist) * 8, // draw back a little first
@@ -2047,7 +2064,7 @@ export default class BattleScene extends Phaser.Scene {
       ease: 'Quad.easeOut',
       onComplete: () => {
         play('whoosh');
-        this.showAttackPose(attacker, dx);
+        this.showPose(attacker, strikePose, dx);
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
           targets: attacker.view,
@@ -2123,7 +2140,7 @@ export default class BattleScene extends Phaser.Scene {
     if (!target.view || !target.view.active) return;
 
     const spot = this.centerOf(target);
-    const style = attacker.attackEffect;
+    const style = usesCloseWeapon(attacker, target) ? 'slash' : attacker.attackEffect; // a dagger cuts
 
     if (!result.hit) {
       play('miss');
@@ -2437,6 +2454,22 @@ export default class BattleScene extends Phaser.Scene {
     // then casters (fragile and dangerous), then whoever has the least health.
     const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
     targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
+    // An archer with Poison Arrow ready poisons the healthiest foe in reach that is not poisoned yet
+    if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow')) {
+      const reach = spells.poisonArrow.range;
+      const marks = targets.filter((t) => !t.isDecoy && !isPoisoned(t) && distance(unit, t) <= reach).sort((a, b) => b.hp - a.hp);
+      if (marks.length > 0) {
+        this.busy = true;
+        spendMp(unit, 'poisonArrow');
+        startCooldown(unit, 'poisonArrow');
+        unit.hasActed = true;
+        this.castPoisonArrow(unit, marks[0], spells.poisonArrow, () => {
+          this.busy = false;
+          this.time.delayedCall(300, () => this.endTurn());
+        });
+        return;
+      }
+    }
     this.busy = true;
     const done = () => {
       this.busy = false;
@@ -2710,8 +2743,9 @@ export default class BattleScene extends Phaser.Scene {
       });
     });
 
-    // a decisive beat: the free strike, then the loser's reaction and push
-    if (beat.decisive) {
+    // a decisive beat: the free strike, then the loser's reaction and push.
+    // (No reaction when a signature blow, like a Counter!, already ended the fight.)
+    if (beat.decisive && response) {
       const winner = beat.winner;
       const loser = beat.loser;
       const awayX = loser.view.x - winner.view.x;
@@ -2989,6 +3023,7 @@ export default class BattleScene extends Phaser.Scene {
     startCooldown(caster, id);
     caster.hasActed = true;
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
+    if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
@@ -3075,10 +3110,64 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
+  // How much a Poison Arrow hurts on landing: a share of a bow shot (never the dagger).
+  poisonHit(shooter, target, spell) {
+    return Math.max(1, Math.round(getDamage({ ...shooter, closeWeapon: null }, target) * spell.damageShare));
+  }
+
+  // Poison Arrow: she crouches, dips an arrow, and shoots. A hit does a little
+  // damage now and poisons the target for a few turns (see tickPoison).
+  castPoisonArrow(shooter, target, spell, onDone) {
+    const bow = { ...shooter, closeWeapon: null };
+    const hit = Math.random() * 100 < getHitChance(bow, target);
+    let damage = 0;
+    let note = null;
+    if (hit) {
+      const landed = this.landHit(target, this.poisonHit(shooter, target, spell));
+      damage = landed.damage;
+      note = landed.note;
+      target.hp = Math.max(0, target.hp - damage);
+      if (target.hp === 0) this.defeat(target);
+      else applyPoison(target, 'poisonArrow');
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    const dx = target.view.x - shooter.view.x;
+    this.faceToward(shooter, dx, target.view.y - shooter.view.y);
+    this.showPose(shooter, 'poison', dx); // dipping the arrow
+    play('select');
+    this.time.delayedCall(380, () => {
+      this.showPose(shooter, 'poisonShot', dx);
+      play('arrow');
+      const a = this.centerOf(shooter);
+      const b = this.centerOf(target);
+      arrowShot(this, a.x, a.y, b.x, b.y, () => {
+        this.showImpact(bow, target, { hit, damage, note }, dx, target.hp === 0);
+        if (hit && target.alive) {
+          buffAura(this, target.view.x, target.view.y, 0x9fdc6a);
+          this.floatText(target, 'Poisoned', '#9fdc6a', { rise: 46 });
+          this.refreshStatusTags();
+        }
+      });
+    });
+    this.time.delayedCall(900, () => shooter.alive && this.showStanding(shooter));
+    this.time.delayedCall(1500, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
   // Herbs: a little health back for the unit itself or an ally next to it.
   castHeal(healer, target, spell, onDone) {
     const amount = Math.min(spell.heal, target.maxHp - target.hp);
     target.hp += amount;
+    const cured = isPoisoned(target);
+    curePoison(target); // the herbs draw out poison too
+    if (cured) this.time.delayedCall(350, () => this.floatText(target, 'Cured', '#9fdc6a', { rise: 46 }));
+    this.refreshStatusTags();
     this.updateHpBar(target);
     this.refreshButtons();
     if (target !== healer) this.faceToward(healer, target.view.x - healer.view.x, target.view.y - healer.view.y);

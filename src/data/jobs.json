@@ -89,6 +89,8 @@
     "attackEffect": "arrow",
     "contest": { "style": "evasion", "power": 2, "guard": 3, "agility": 5 },
     "stances": { "press": "weak", "guard": "weak", "slip": "average", "break": "average" },
+    "closeWeapon": { "name": "Dagger", "attack": -2, "pose": "dagger" },
+    "spells": ["poisonArrow"],
     "stats": { "hp": 24, "attack": 7, "defense": 1, "magicAttack": 1, "magicDefense": 3, "accuracy": 90, "evade": 15, "speed": 11, "move": 3, "range": 2 }
   }
 }

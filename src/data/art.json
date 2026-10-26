@@ -363,50 +363,75 @@
     "shout": "bull_face.png"
   },
   "e3": {
-    "note": "The horned archer from the new sheet, used as the enemy Ranger until we know her name and side.",
+    "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side.",
     "height": 100,
     "standing": {
       "downLeft": {
         "file": "archer_stand_downLeft.png",
-        "originX": 0.514
+        "originX": 0.465
       },
       "downRight": {
         "file": "archer_stand_downRight.png",
-        "originX": 0.537
+        "originX": 0.429
       },
       "upLeft": {
         "file": "archer_stand_upLeft.png",
-        "originX": 0.491
+        "originX": 0.505
       },
       "upRight": {
         "file": "archer_stand_upRight.png",
-        "originX": 0.499
+        "originX": 0.514
       }
     },
     "poses": {
       "attack": {
         "file": "archer_attack.png",
-        "originX": 0.455
+        "originX": 0.431
       },
       "windup": {
         "file": "archer_windup.png",
-        "originX": 0.475
+        "originX": 0.397
       },
       "ready": {
         "file": "archer_ready.png",
-        "originX": 0.393
+        "originX": 0.557
       },
       "guard": {
         "file": "archer_guard.png",
-        "originX": 0.456
+        "originX": 0.436
       },
       "dodge": {
         "file": "archer_dodge.png",
-        "originX": 0.462
+        "originX": 0.412
+      },
+      "dagger": {
+        "file": "archer_dagger.png",
+        "originX": 0.493
+      },
+      "hurt": {
+        "file": "archer_hurt.png",
+        "originX": 0.448
+      },
+      "knocked": {
+        "file": "archer_knocked.png",
+        "originX": 0.447
+      },
+      "down": {
+        "file": "archer_down.png",
+        "originX": 0.447
+      },
+      "poison": {
+        "file": "archer_poison.png",
+        "originX": 0.461
+      },
+      "poisonShot": {
+        "file": "archer_poisonShot.png",
+        "originX": 0.477
       }
     },
     "portrait": "archer_face.png",
-    "shout": "archer_shout.png"
+    "portraitHurt": "archer_face_hurt.png",
+    "shout": "archer_face.png"
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",

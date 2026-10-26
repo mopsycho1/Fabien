@@ -256,3 +256,9 @@ The pictures in `public/art/fx` come from the effect sheets: `strike_0` to `stri
 ## Husk echo
 
 If nobody strikes the Husk decoy before the caster's next turn, she shows herself and the decoy glows violet (ECHO). Her next spell that turn is echoed by the decoy: Lightning fires a second bolt at the same target, and a Verse or Slow is twice as strong. The decoy then bursts. An echo she does not use fades at the end of her turn.
+
+## The archer: dagger and Poison Arrow
+
+- `closeWeapon` in `jobs.json` (on the Ranger): right next to a foe she fights with her dagger instead of the bow. `attack` is how much weaker it is (-2), and `pose` is the picture she strikes with.
+- `poisonArrow` in `spells.json`: `damageShare` of a bow shot lands now, then `poison` damage at the start of each of the target's next `turns` turns. Poison never takes the last point of health, and Herbs cures it. `cooldown` is the wait between arrows.
+- The enemy archer uses Poison Arrow on the healthiest foe in reach that is not poisoned yet, and steps away from fighters before she shoots.

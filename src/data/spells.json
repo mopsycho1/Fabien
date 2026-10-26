@@ -145,8 +145,23 @@
     "range": 1,
     "heal": 10,
     "cooldown": 3,
-    "text": "Press healing herbs on yourself or an ally next to you: +10 health. Ready again after 3 turns.",
+    "text": "Press healing herbs on yourself or an ally next to you: +10 health, and it cures poison. Ready again after 3 turns.",
     "mp": 0,
     "use": "ally"
+  },
+  "poisonArrow": {
+    "name": "Poison Arrow",
+    "button": "Poison Arrow",
+    "short": "POISON",
+    "kind": "poison",
+    "color": "#9fdc6a",
+    "range": 2,
+    "damageShare": 0.5,
+    "poison": 2,
+    "turns": 3,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "text": "An arrow dipped in poison: half damage now, then 2 damage at the start of each of the target's next 3 turns. Poison never takes the last point of health. Herbs cures it. Ready again after 3 turns."
   }
 }
