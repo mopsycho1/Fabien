@@ -952,12 +952,12 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'charge') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
-      const what = isOffBalance(t) ? 'knocked back ' + sp.push + ' tiles (it is Off-Balance)' : 'stunned for a turn';
-      text = 'Intercept ' + t.name + ': charge in and slam, ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.\nTap again to charge.';
+      const what = isOffBalance(t) ? 'knocked back ' + sp.push + ' (Off-Balance)' : 'stunned 1 turn';
+      text = 'Charge ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.\nTap again to charge.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'toss') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
-      text = 'Shield Toss at ' + t.name + ': ' + getHitChance(unit, t) + '% to hit, ' + this.skillHit(unit, t, sp) + ' damage, stunned for a turn.\nTap again to throw.';
+      text = 'Toss at ' + t.name + ': ' + getHitChance(unit, t) + '%, ' + this.skillHit(unit, t, sp) + ' damage, stunned 1 turn.\nTap again to throw.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'poison') {
       const t = this.pendingTarget;
       const p = spells.poisonArrow;
