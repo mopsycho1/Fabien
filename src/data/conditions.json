@@ -1,0 +1,8 @@
+{
+  "note": "Conditions a unit can be put in by skills. Every number here is a first guess for playtesting.",
+  "stun": {
+    "note": "Stunned (Shield Toss, Intercept): the unit loses its next turn. While stunned it cannot dodge, and every hit on it lands as a flank hit for flankDamage extra damage.",
+    "flankDamage": 3,
+    "canDodge": false
+  }
+}

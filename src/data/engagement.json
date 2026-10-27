@@ -89,7 +89,9 @@
     "max": 3,
     "start": 2,
     "refill": 1,
-    "empower": 3
+    "empower": 3,
+    "refillInClash": 0,
+    "note": "Poise: up to max, a battle starts with start. Each turn OUT of a clash gives back refill; a turn IN a clash gives back refillInClash. Empower spends 1 for +empower to one beat."
   },
   "decisiveStrike": true,
   "aiReadChance": 40,

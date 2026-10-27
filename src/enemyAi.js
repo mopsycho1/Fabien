@@ -19,8 +19,9 @@ import { getHeight } from './grid.js';
 export const CASTER_DETOUR = 2;
 
 // True for units that cast spells: the ones enemies most want to reach.
+// (Fighters with skills like Herbs or Spear Throw are not casters: casters use MP.)
 export function isCaster(unit) {
-  return unit.attackType === 'magic' || (unit.spells && unit.spells.length > 0);
+  return unit.attackType === 'magic' || (unit.maxMp || 0) > 0;
 }
 
 export function chooseMoveTile(unit, units, extraBlocked = () => false) {

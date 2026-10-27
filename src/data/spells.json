@@ -163,5 +163,32 @@
     "mp": 0,
     "use": "enemy",
     "text": "Take aim this turn; the arrow flies at the start of your next turn if the target is still within reach. Half damage, then 3 damage at the start of each of its next 3 turns. Poison never takes the last point of health, and Herbs cures it. Ready again after 3 turns."
+  },
+  "intercept": {
+    "name": "Intercept",
+    "button": "Intercept",
+    "short": "CHARGE",
+    "kind": "charge",
+    "color": "#ffd27a",
+    "range": 4,
+    "damageShare": 0.5,
+    "push": 2,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "text": "Charge up to 4 tiles to an enemy and slam it with the shield: half damage, and it is stunned for a turn. If it is Off-Balance it is knocked back 2 tiles instead. Ready again after 3 turns."
+  },
+  "shieldToss": {
+    "name": "Shield Toss",
+    "button": "Shield Toss",
+    "short": "TOSS",
+    "kind": "toss",
+    "color": "#c9d6e8",
+    "range": 3,
+    "damageShare": 0.5,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "text": "Hurl the shield at an enemy up to 3 tiles away: half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
   }
 }

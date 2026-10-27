@@ -2,7 +2,7 @@
   { "id": "h1", "name": "Sudeen",  "label": "H1", "side": "hero",  "job": "guardian", "col": 2, "row": 6, "hp": 48 },
   { "id": "h2", "name": "Gaha",    "label": "H2", "side": "hero",  "job": "spearman", "col": 4, "row": 6, "hp": 36 },
   { "id": "h3", "name": "Layra",   "label": "H3", "side": "hero",  "job": "sage",     "col": 3, "row": 7, "hp": 28 },
-  { "id": "e1", "name": "Tayo",    "label": "E1", "side": "enemy", "job": "bruiser",  "col": 2, "row": 1 },
-  { "id": "e2", "name": "Bull Commander", "label": "E2", "side": "enemy", "job": "warlord",  "col": 4, "row": 1 },
-  { "id": "e3", "name": "Enemy 3", "label": "E3", "side": "enemy", "job": "ranger",   "col": 3, "row": 0, "attack": 5 }
+  { "id": "e1", "name": "Tayo",    "label": "E1", "side": "enemy", "job": "bruiser",  "col": 2, "row": 1, "hp": 53 },
+  { "id": "e2", "name": "Bull Commander", "label": "E2", "side": "enemy", "job": "warlord",  "col": 4, "row": 1, "hp": 48 },
+  { "id": "e3", "name": "Enemy 3", "label": "E3", "side": "enemy", "job": "ranger",   "col": 3, "row": 0, "attack": 5, "hp": 29 }
 ]

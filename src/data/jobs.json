@@ -6,7 +6,7 @@
     "stats": { "hp": 40, "attack": 6, "defense": 4, "magicAttack": 1, "magicDefense": 2, "accuracy": 85, "evade": 10, "speed": 9, "move": 3, "range": 1 },
     "contest": { "style": "defence", "power": 4, "guard": 8, "agility": 3 },
     "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
-    "spells": ["herbs"]
+    "spells": ["herbs", "intercept"]
   },
   "scout": {
     "name": "Scout",
@@ -23,7 +23,8 @@
     "stats": { "hp": 40, "attack": 8, "defense": 3, "magicAttack": 1, "magicDefense": 1, "accuracy": 85, "evade": 8, "speed": 8, "move": 3, "range": 1 },
     "contest": { "style": "overpower", "power": 8, "guard": 4, "agility": 3 },
     "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" },
-    "signature": { "id": "bloodied", "stance": "press", "name": "Bloodied Press" }
+    "signature": { "id": "bloodied", "stance": "press", "name": "Bloodied Press" },
+    "spells": ["shieldToss"]
   },
   "striker": {
     "name": "Striker",

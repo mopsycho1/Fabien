@@ -275,3 +275,18 @@ If nobody strikes the Husk decoy before the caster's next turn, she shows hersel
 - Spearman: `"range": 2` with `"melee": true` (still a close fighter who can Engage and clash) and `"lineReach": true` (past the next tile, only in a straight line).
 - Meditate: she sinks into a trance. Her next turn is spent in it too (she can't act), then 6 MP come back. She is Exposed the whole time.
 - Poison Arrow: she takes aim this turn (AIMING over her, MARKED over the target) and the arrow flies at the start of her next turn, if the target is still within reach and she isn't caught in a clash. Poison is 3 a turn again.
+
+## Stun, Shield Toss and Intercept (Oct 27)
+
+- **Stunned** (`src/data/conditions.json`): the unit loses its next turn. While stunned it cannot dodge, and every hit on it is a flank hit for `flankDamage` extra damage (3).
+- **Shield Toss** (`shieldToss` in `spells.json`, on the Warlord, so the bull has it): hurl the shield at an enemy up to `range` tiles away for `damageShare` of a normal hit; a hit stuns it. The enemy bull uses it on a foe he can't reach this turn, a caster first.
+- **Intercept** (`intercept`, on the Guardian, so Sudeen has it): charge up to `range` tiles to an enemy and slam it for `damageShare` of a normal hit. The slam always lands. It stuns the target, or knocks it back `push` tiles instead if it is Off-Balance. The charge uses up the rest of his steps.
+
+## Interruptions and Poise (Oct 27)
+
+- A hit (or a fall) breaks a Sage's meditation (no MP comes back) and an archer's aim (the Poison Arrow never flies). Poison ticks do not.
+- Poise only comes back while a fighter is out of a clash (`refill`), not during one (`refillInClash`, 0), so every Empower in a clash really costs.
+
+## Balance (Oct 27)
+
+The enemies have about 20% more health than their jobs give them, set in `units.json` (`"hp"` on Tayo 53, the bull 48, the archer 29). With that, the automated test player wins about 4 battles in 10; a person plays better than it. To make battles easier or harder, change those three numbers.

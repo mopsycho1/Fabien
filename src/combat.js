@@ -1,4 +1,5 @@
-import { statMod } from './status.js';
+import { statMod, isStunned } from './status.js';
+import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
 
@@ -38,7 +39,9 @@ export function distance(a, b) {
 //     caster, see closePenalty in jobs.json)
 //   - height, for ranged attacks: better from above, worse uphill (terrain.json)
 export function getHitChance(attacker, defender) {
-  let chance = attacker.accuracy - (defender.evade + statMod(defender, 'evade'));
+  // a stunned unit cannot dodge (conditions.json)
+  const evade = isStunned(defender) && !conditions.stun.canDodge ? 0 : defender.evade + statMod(defender, 'evade');
+  let chance = attacker.accuracy - evade;
   if (isDistracted(defender, attacker)) chance += rules.distractedHitBonus;
   if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
   chance += heightAccuracy(attacker, defender); // shooting from high ground, or uphill
@@ -55,12 +58,14 @@ export function isDistracted(defender, attacker) {
 //   magic attacks (lightning):               magicAttack minus magicDefense
 // Spells count too (a Verse of Fury adds attack, a Verse of Stone adds defense).
 export function getDamage(attacker, defender) {
+  // hits on a stunned unit are flank hits: extra damage (conditions.json)
+  const flank = isStunned(defender) ? conditions.stun.flankDamage : 0;
   if (attacker.attackType === 'magic') {
     const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
-    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense')));
+    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank;
   }
   const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
-  return Math.max(1, attack - (defender.defense + statMod(defender, 'defense')));
+  return Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank;
 }
 
 // True when an archer is right next to its target: it fights with its close

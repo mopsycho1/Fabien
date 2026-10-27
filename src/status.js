@@ -143,6 +143,22 @@ export function hexOf(unit) {
   return hex ? { ...hex, ...spells[hex.id] } : null;
 }
 
+// ---------- Stun ----------
+
+// Stunned: the unit loses its next turn (see the battle's startTurn).
+// While stunned it cannot dodge, and hits on it are flank hits (combat.js).
+export function applyStun(unit) {
+  statusOf(unit).stunned = true;
+}
+
+export function isStunned(unit) {
+  return !!(unit && unit.status && unit.status.stunned);
+}
+
+export function clearStun(unit) {
+  statusOf(unit).stunned = false;
+}
+
 // ---------- Poison ----------
 
 // Poison: a few points of health lost at the start of each of the unit's
@@ -226,6 +242,7 @@ export function statusTags(unit) {
   if (unit.aiming) tags.push({ text: 'AIMING', color: '#9fdc6a' }); // a Poison Arrow, released next turn
   if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a' }); // an archer's Poison Arrow is aimed at it
   if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a' });
+  if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a' });
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

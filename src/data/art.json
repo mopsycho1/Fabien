@@ -280,10 +280,6 @@
       },
       "upLeft": {
         "file": "layra_stand_upLeft.png",
-        "originX": 0.493
-      },
-      "upRight": {
-        "file": "layra_stand_upRight.png",
         "originX": 0.53
       }
     },
@@ -322,7 +318,17 @@
     "shout": "layra_face.png",
     "weak": {
       "file": "layra_weak.png",
-      "originX": 0.532
+      "originX": 0.599
+    },
+    "battle": {
+      "downRight": {
+        "file": "layra_battle_downRight.png",
+        "originX": 0.532
+      },
+      "upLeft": {
+        "file": "layra_stand_upLeft.png",
+        "originX": 0.53
+      }
     }
   },
   "e2": {

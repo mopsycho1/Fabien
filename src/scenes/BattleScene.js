@@ -59,7 +59,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -750,6 +750,25 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshTurnStrip();
     this.markActive();
 
+    // A stunned unit loses this turn (Shield Toss, Intercept)
+    const dazed = this.activeUnit;
+    if (isStunned(dazed)) {
+      clearStun(dazed);
+      dazed.hasActed = true;
+      dazed.hasMoved = true;
+      dazed.stepsUsed = Infinity;
+      this.busy = true;
+      this.refreshButtons();
+      this.refreshStatusTags();
+      this.statusText.setText(dazed.name + ' is stunned and loses the turn.');
+      this.floatText(dazed, 'Stunned', '#ffe08a');
+      this.time.delayedCall(1100, () => {
+        this.busy = false;
+        if (!this.battleOver && this.activeUnit === dazed) this.endTurn();
+      });
+      return;
+    }
+
     // An archer who took aim last turn lets the Poison Arrow fly first
     const archer = this.activeUnit;
     if (archer.aiming) {
@@ -930,6 +949,15 @@ export default class BattleScene extends Phaser.Scene {
       text =
         'Spear Throw at ' + t.name + ': ' + getHitChance({ ...unit, range: 3 }, t) + '% to hit, ' + getDamage(unit, t) +
         ' damage, knocked back a tile' + (extra > 0 ? ' (+' + extra + ' reach from high ground)' : '') + '.\nTap again to throw.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'charge') {
+      const t = this.pendingTarget;
+      const sp = spells[this.selectedSpell];
+      const what = isOffBalance(t) ? 'knocked back ' + sp.push + ' tiles (it is Off-Balance)' : 'stunned for a turn';
+      text = 'Intercept ' + t.name + ': charge in and slam, ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.\nTap again to charge.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'toss') {
+      const t = this.pendingTarget;
+      const sp = spells[this.selectedSpell];
+      text = 'Shield Toss at ' + t.name + ': ' + getHitChance(unit, t) + '% to hit, ' + this.skillHit(unit, t, sp) + ' damage, stunned for a turn.\nTap again to throw.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'poison') {
       const t = this.pendingTarget;
       const p = spells.poisonArrow;
@@ -947,7 +975,7 @@ export default class BattleScene extends Phaser.Scene {
         (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
-      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -1263,11 +1291,11 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = spell.kind === 'hex' || spell.kind === 'throw' || spell.kind === 'poison';
+    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
-        u.alive && distance(unit, u) <= this.spellReach(unit, u, spell) &&
+        u.alive && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u))
     );
@@ -1277,7 +1305,7 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : spell.kind === 'throw' ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
+    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
@@ -1944,8 +1972,33 @@ export default class BattleScene extends Phaser.Scene {
 
   // A blow is about to land on a unit: its signature stance may soak or soften
   // it (and builds up its stacks). Returns { damage, note }.
+  // A hit that does damage also breaks a Sage's meditation and an archer's aim.
   landHit(target, damage) {
-    return takeHit(target, damage);
+    const landed = takeHit(target, damage);
+    if (landed.damage > 0) this.interrupt(target);
+    return landed;
+  }
+
+  // Breaks a meditation trance (no MP comes back) or an archer's aim (the
+  // arrow never flies). She stays Exposed until her next turn.
+  interrupt(unit) {
+    let word = null;
+    if (unit.meditating) {
+      unit.meditating = null;
+      word = 'Trance broken';
+    }
+    if (unit.aiming) {
+      if (unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null;
+      unit.aiming = null;
+      word = 'Aim broken';
+    }
+    if (!word) return;
+    this.time.delayedCall(520, () => {
+      if (!unit.alive) return;
+      this.floatText(unit, word, '#e8d5a8', { rise: 52 });
+      this.refreshStatusTags();
+      if (!this.inCinematic) this.showStanding(unit);
+    });
   }
 
   // Shrinks the green health bar to match the unit's health.
@@ -1973,6 +2026,7 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
     unit.aiming = null;
     unit.meditating = null;
+    if (unit.status) unit.status.stunned = false;
     if (unit.engagedWith) {
       endDuel(unit); // a fallen unit cannot stay locked in a fight
       this.refreshEngagementMarks();
@@ -2504,6 +2558,25 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // A Shield Toss from a distance: stun a foe it cannot reach this turn (a caster first)
+    if (unit.spells.includes('shieldToss') && canAfford(unit, 'shieldToss') && getTargetsInRange(unit, seen).length === 0) {
+      const reach = spells.shieldToss.range;
+      const marks = seen
+        .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && !isStunned(t) && distance(unit, t) >= 2 && distance(unit, t) <= reach)
+        .sort((a, b) => isCaster(b) - isCaster(a) || b.attack - a.attack);
+      if (marks.length > 0) {
+        this.busy = true;
+        spendMp(unit, 'shieldToss');
+        startCooldown(unit, 'shieldToss');
+        unit.hasActed = true;
+        this.castShieldToss(unit, marks[0], spells.shieldToss, () => {
+          this.busy = false;
+          this.time.delayedCall(300, () => this.endTurn());
+        });
+        return;
+      }
+    }
+
     const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
@@ -2606,6 +2679,7 @@ export default class BattleScene extends Phaser.Scene {
     if (fall) {
       loser.hp = Math.max(0, loser.hp - fall.damage);
       if (loser.hp === 0) this.defeat(loser);
+      else this.interrupt(loser); // a fall breaks a trance or an aim too
     }
     return { path, fall };
   }
@@ -3085,6 +3159,8 @@ export default class BattleScene extends Phaser.Scene {
     caster.hasActed = true;
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
+    if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
+    if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
@@ -3169,6 +3245,158 @@ export default class BattleScene extends Phaser.Scene {
         this.showResult(outcome);
       } else onDone();
     });
+  }
+
+  // Damage of a skill that hits for a share of a normal blow (Shield Toss, Intercept).
+  skillHit(user, target, spell) {
+    return Math.max(1, Math.round(getDamage(user, target) * (spell.damageShare || 1)));
+  }
+
+  // Where Intercept's charge ends: a free tile right next to the target that
+  // the user can run to within the skill's range (or where it already stands).
+  // Returns { col, row, path } or null.
+  chargeTile(user, target, spell) {
+    const blocked = (c, r) => this.isBlocked(c, r);
+    const options = [{ col: user.col, row: user.row }, ...getReachableTiles(user.col, user.row, spell.range, blocked)];
+    let best = null;
+    for (const t of options) {
+      if (distance(t, target) !== 1) continue;
+      const path = t.col === user.col && t.row === user.row ? [] : getPath(user.col, user.row, t.col, t.row, spell.range, blocked);
+      if (!best || path.length < best.path.length) best = { col: t.col, row: t.row, path };
+    }
+    return best;
+  }
+
+  // Shield Toss: the shield spins across and slams the target, which is
+  // stunned for a turn if it is hit.
+  castShieldToss(thrower, target, spell, onDone) {
+    const hit = Math.random() * 100 < getHitChance(thrower, target);
+    let damage = 0;
+    let note = null;
+    if (hit) {
+      const landed = this.landHit(target, this.skillHit(thrower, target, spell));
+      damage = landed.damage;
+      note = landed.note;
+      target.hp = Math.max(0, target.hp - damage);
+      if (target.hp === 0) this.defeat(target);
+      else applyStun(target);
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    const dx = target.view.x - thrower.view.x;
+    this.faceToward(thrower, dx, target.view.y - thrower.view.y);
+    this.showPose(thrower, 'windup', dx);
+    this.time.delayedCall(260, () => {
+      this.showPose(thrower, 'attack', dx);
+      play('whoosh');
+      const a = this.centerOf(thrower);
+      const b = this.centerOf(target);
+      const shield = this.add.graphics().setDepth(79).setPosition(a.x, a.y);
+      shield.fillStyle(0x8a6a3c, 1).fillCircle(0, 0, 13);
+      shield.lineStyle(3, 0xd9b77a, 1).strokeCircle(0, 0, 13);
+      shield.fillStyle(0xd9b77a, 1).fillCircle(0, 0, 4);
+      this.tweens.add({ targets: shield, angle: 720, duration: 560 });
+      this.tweens.add({
+        targets: shield,
+        x: b.x,
+        y: b.y,
+        duration: 280,
+        ease: 'Quad.easeIn',
+        onComplete: () => {
+          this.showImpact(thrower, target, { hit, damage, note }, dx, target.hp === 0);
+          if (hit && target.alive) {
+            this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
+            this.refreshStatusTags();
+          }
+          this.tweens.add({ targets: shield, x: a.x, y: a.y, duration: 280, ease: 'Quad.easeOut', onComplete: () => shield.destroy() });
+        },
+      });
+    });
+    this.time.delayedCall(1000, () => thrower.alive && this.showStanding(thrower));
+    this.time.delayedCall(1500, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // Intercept: a charge across the field, shield first. The slam always lands:
+  // half damage, and the target is stunned for a turn, or knocked back if it
+  // was Off-Balance. The charge uses up the rest of the unit's steps.
+  castIntercept(charger, target, spell, onDone) {
+    const spot = this.chargeTile(charger, target, spell);
+    if (!spot) {
+      onDone();
+      return;
+    }
+    const knock = isOffBalance(target);
+    charger.col = spot.col;
+    charger.row = spot.row;
+    charger.hasMoved = true;
+    charger.stepsUsed = Infinity;
+    const landed = this.landHit(target, this.skillHit(charger, target, spell));
+    target.hp = Math.max(0, target.hp - landed.damage);
+    let pushed = null;
+    if (target.hp === 0) this.defeat(target);
+    else if (knock) {
+      pushed = this.pushLoser(target, charger, spell.push);
+      if (target.engagedWith && distance(target, target.engagedWith) > 1) {
+        endDuel(target);
+        this.refreshEngagementMarks();
+      }
+    } else applyStun(target);
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+
+    // the charge: fast steps with after-images, shield up
+    play('whoosh');
+    const steps = spot.path.map((tile) => {
+      const p = tileToScreen(tile.col, tile.row);
+      return {
+        x: p.x,
+        y: p.y,
+        duration: 85,
+        onStart: () => {
+          charger.view.setDepth(depthFor(tile.col, tile.row) + 1);
+          this.afterimage(charger);
+          this.faceToward(charger, target.view.x - p.x, target.view.y - p.y);
+          this.showPose(charger, 'guard', target.view.x - p.x);
+        },
+      };
+    });
+    const slam = () => {
+      const dx = target.view.x - charger.view.x;
+      this.faceToward(charger, dx, target.view.y - charger.view.y);
+      this.showPose(charger, 'attack', dx);
+      screenShake(this, 0.006, 160);
+      this.showImpact(charger, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
+      if (target.alive && !knock) {
+        this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
+        this.refreshStatusTags();
+      }
+      if (pushed && pushed.path.length) {
+        this.time.delayedCall(140, () => {
+          this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
+          this.slideAlong(target, pushed.path);
+          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
+        });
+      }
+      this.time.delayedCall(600, () => {
+        charger.view.setDepth(depthFor(charger.col, charger.row) + 1);
+        if (charger.alive) this.showStanding(charger);
+      });
+      this.time.delayedCall(1300, () => {
+        if (outcome) {
+          this.busy = false;
+          this.showResult(outcome);
+        } else onDone();
+      });
+    };
+    if (steps.length === 0) slam();
+    else this.tweens.chain({ targets: charger.view, tweens: steps, onComplete: slam });
   }
 
   // How much a Poison Arrow hurts on landing: a share of a bow shot (never the dagger).

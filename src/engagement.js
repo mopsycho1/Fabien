@@ -325,9 +325,12 @@ export function poiseOf(unit) {
   return unit.poise;
 }
 
-// Called at the start of the unit's own turn.
+// Called at the start of the unit's own turn. Poise only comes back while the
+// unit is OUT of a clash (catching its breath), so every Empower in a clash
+// really costs: a long clash drains it. (A Warden's standoff also gives some back.)
 export function refillPoise(unit) {
-  unit.poise = Math.min(rules.poise.max, poiseOf(unit) + rules.poise.refill);
+  const amount = unit.engagedWith ? rules.poise.refillInClash || 0 : rules.poise.refill;
+  unit.poise = Math.min(rules.poise.max, poiseOf(unit) + amount);
 }
 
 // ---------- Stances ----------
