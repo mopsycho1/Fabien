@@ -93,7 +93,8 @@
     "text": "Its next turn comes later, and it is slower for 2 turns.",
     "mp": 4,
     "use": "battlefield",
-    "group": "Escape"
+    "group": "Escape",
+    "icon": "slow"
   },
   "husk": {
     "name": "Husk",
@@ -190,5 +191,19 @@
     "mp": 0,
     "use": "enemy",
     "text": "Hurl the shield at an enemy up to 3 tiles away: half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
+  },
+  "doubleHit": {
+    "name": "Double Hit",
+    "button": "Double Hit",
+    "short": "DOUBLE",
+    "kind": "double",
+    "color": "#9fc4e8",
+    "range": 1,
+    "hits": 2,
+    "damageShare": 0.6,
+    "cooldown": 2,
+    "mp": 0,
+    "use": "enemy",
+    "text": "Strike with both heads of the spear: two quick hits on an enemy next to you, each 60% of a normal hit, each rolled on its own. Ready again after 2 turns."
   }
 }

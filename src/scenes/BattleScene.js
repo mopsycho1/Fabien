@@ -18,11 +18,11 @@ import { startNextTurn, previewTurns } from '../turnOrder.js';
 import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -81,7 +81,11 @@ const UNIT_RADIUS = 22;  // size of a unit's circle
 const UNIT_LIFT = 26;    // how far above its tile the circle floats, so it looks like it stands on it
 const HIT_RADIUS = 26;   // how close a tap must be to a unit's circle to count as tapping that unit (a little bigger than the circle)
 const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
-const HIDDEN_ALPHA = 0.35; // a caster hidden by Husk is drawn this faint (1 = solid)
+// A caster hidden by Husk is drawn as light (see hiddenLook): this strong
+// (1 = full) and this warm gold. Light adds to what is behind her, so the
+// floor always shows through.
+const HIDDEN_ALPHA = 0.6;
+const HIDDEN_GLOW = 0xffc46a;
 const STYLE_NAMES = { overpower: 'Overpower', defence: 'Defence', evasion: 'Evasion' };
 
 // The helpers the engagement rules use: real dice, and the real tile heights
@@ -167,7 +171,8 @@ export default class BattleScene extends Phaser.Scene {
 
     // Build every unit from the list in src/data/units.json.
     // buildUnit fills in each unit's numbers from its job (see jobs.js).
-    this.units = unitData.map((entry) => this.createUnit(buildUnit(entry, jobs)));
+    // (a unit with "bench": true in units.json sits this battle out)
+    this.units = unitData.filter((entry) => !entry.bench).map((entry) => this.createUnit(buildUnit(entry, jobs)));
 
     createHudTextures(this);
     this.buildHud();
@@ -954,6 +959,10 @@ export default class BattleScene extends Phaser.Scene {
       const sp = spells[this.selectedSpell];
       const what = isOffBalance(t) ? 'knocked back ' + sp.push + ' (Off-Balance)' : 'stunned 1 turn';
       text = 'Charge ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.\nTap again to charge.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'double') {
+      const t = this.pendingTarget;
+      const sp = spells[this.selectedSpell];
+      text = 'Double Hit on ' + t.name + ': ' + sp.hits + ' strikes, ' + getHitChance(unit, t) + '% each, ' + this.skillHit(unit, t, sp) + ' damage each.\nTap again to strike.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'toss') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
@@ -973,9 +982,12 @@ export default class BattleScene extends Phaser.Scene {
       text =
         spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' +
         (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
+    } else if (this.mode === 'spellTarget' && spells[this.selectedSpell].kind === 'heal') {
+      const self = this.targetsInRange.includes(unit);
+      text = (self ? 'Tap Herbs again to use them on yourself,\nor tap a green tile to heal an ally.' : 'Tap a green tile to heal an ally.');
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
-      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', double: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -1256,6 +1268,16 @@ export default class BattleScene extends Phaser.Scene {
       this.showMessage(cooldownOf(unit, id) ? spell.button + ' is ready again in ' + cooldownOf(unit, id) + ' turns' : 'Not enough MP');
       return;
     }
+    // Herbs tapped a second time: use it on yourself (tap an ally's tile to heal them instead)
+    if (spell.kind === 'heal' && this.selectedSpell === id && this.mode === 'spellTarget') {
+      if (unit.hp < unit.maxHp || isPoisoned(unit)) {
+        this.pendingTarget = unit;
+        this.confirmSpell();
+      } else {
+        this.showMessage(unit.name + ' is unhurt. Tap an ally to heal them.');
+      }
+      return;
+    }
     play('select');
     this.clearHighlights();
     this.pendingTarget = null;
@@ -1291,7 +1313,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge'].includes(spell.kind);
+    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
@@ -1299,13 +1321,19 @@ export default class BattleScene extends Phaser.Scene {
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u))
     );
-    if (this.targetsInRange.length === 0) {
-      this.showMessage(spell.kind === 'heal' ? 'Nobody next to you needs healing' : 'No enemy in reach');
+    if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
+      this.showMessage('Nobody next to you needs healing');
       this.selectedSpell = null;
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
+    if (this.targetsInRange.length === 0) {
+      this.showMessage('No enemy in reach');
+      this.selectedSpell = null;
+      this.mode = 'spell';
+      return;
+    }
+    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'double'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
@@ -2320,6 +2348,7 @@ export default class BattleScene extends Phaser.Scene {
       unit.sprite.setTintFill(0xffffff);
       this.time.delayedCall(90, () => {
         if (unit.sprite && unit.sprite.active) unit.sprite.clearTint();
+        if (unit.hidden) this.hiddenLook(unit, true); // still hidden: keep her gold
       });
     } else {
       unit.body.setFillStyle(0xffffff);
@@ -2610,7 +2639,12 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(300, () => this.endTurn());
     };
     if (targets[0].isDecoy) this.strikeDecoy(unit, targets[0].decoy, done); // fooled by Husk
-    else this.performAttack(unit, targets[0], done);
+    else if (unit.spells.includes('doubleHit') && canAfford(unit, 'doubleHit') && distance(unit, targets[0]) <= spells.doubleHit.range) {
+      spendMp(unit, 'doubleHit');
+      startCooldown(unit, 'doubleHit');
+      unit.hasActed = true;
+      this.castDoubleHit(unit, targets[0], spells.doubleHit, done);
+    } else this.performAttack(unit, targets[0], done);
   }
 
   // An enemy's turn while locked: Press, unless it is hurt and the odds are against it.
@@ -2804,6 +2838,7 @@ export default class BattleScene extends Phaser.Scene {
     this.faceToward(b, -dx, -dy);
     this.showPose(a, stancePose[beat.actorStance], dx);
     this.showPose(b, stancePose[beat.holderStance], -dx);
+    this.showDuelFaces(beat); // both faces at the screen edges
 
     const steps = [];
     const at = (ms, fn) => steps.push([ms, fn]);
@@ -2821,9 +2856,11 @@ export default class BattleScene extends Phaser.Scene {
         this.showPose(b, 'attack', -dx);
         if (beat.success) {
           this.banner(mid.x, headY - 70, 'Broke free!', '#9fd4ff', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          this.duelFacesMood({ winner: a });
           if (escape) this.slideAlong(a, [escape]);
         } else {
           this.banner(mid.x, headY - 70, 'Held fast!', '#ff6b5a', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          this.duelFacesMood({ winner: b });
           this.recoil(a, -dx);
         }
         this.refreshEngagementMarks();
@@ -2857,6 +2894,7 @@ export default class BattleScene extends Phaser.Scene {
           color = '#ffe08a';
         }
         this.banner(mid.x, headY - 70, title, color, a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+        this.duelFacesMood(beat);
         if (!beat.winner) {
           this.showPose(a, 'ready', dx);
           this.showPose(b, 'ready', -dx);
@@ -2902,7 +2940,10 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     const last = beat.decisive ? 2300 : beat.kind === 'break' ? 1100 : 1300;
-    at(last - 380, () => this.resetCamera(300));
+    at(last - 380, () => {
+      this.resetCamera(300);
+      this.hideDuelFaces();
+    });
     at(last, () => {
       for (const u of [a, b]) if (u.alive) this.faceNearestOpponent(u);
       this.refreshEngagementMarks();
@@ -3161,6 +3202,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
+    if (spell.kind === 'double') return this.castDoubleHit(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
@@ -3186,7 +3228,9 @@ export default class BattleScene extends Phaser.Scene {
     this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', target.view.x - caster.view.x);
     this.time.delayedCall(250, () => {
       play('spell');
-      if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
+      if (spell.kind === 'hex' && slowCast(this, target.view.x, target.view.y)) {
+        // the gravity effect from the Slow sheet
+      } else if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
       const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
       this.floatText(target, spell.button + (times > 1 ? ' x' + times : ''), spell.color, times > 1 ? { pop: true } : {});
       this.refreshStatusTags();
@@ -3399,6 +3443,52 @@ export default class BattleScene extends Phaser.Scene {
     else this.tweens.chain({ targets: charger.view, tweens: steps, onComplete: slam });
   }
 
+  // Double Hit: both heads of the spear, one after the other. Each strike
+  // rolls to hit on its own and does a share of a normal hit.
+  castDoubleHit(user, target, spell, onDone) {
+    const strikes = [];
+    for (let i = 0; i < (spell.hits || 2) && target.alive; i++) {
+      const hit = Math.random() * 100 < getHitChance(user, target);
+      let damage = 0;
+      let note = null;
+      if (hit) {
+        const landed = this.landHit(target, this.skillHit(user, target, spell));
+        damage = landed.damage;
+        note = landed.note;
+        target.hp = Math.max(0, target.hp - damage);
+        if (target.hp === 0) this.defeat(target);
+      }
+      strikes.push({ hit, damage, note, lethal: hit && target.hp === 0 });
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    const dx = target.view.x - user.view.x;
+    const dy = target.view.y - user.view.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    this.faceToward(user, dx, dy);
+    this.floatText(user, spell.name, spell.color);
+    strikes.forEach((strike, i) => {
+      this.time.delayedCall(i * 420, () => {
+        if (!user.view || !user.view.active) return;
+        play('whoosh');
+        this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
+        this.afterimage(user);
+        const home = { x: user.view.x, y: user.view.y };
+        this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });
+        this.time.delayedCall(100, () => this.showImpact(user, target, strike, dx, strike.lethal));
+      });
+    });
+    const end = strikes.length * 420 + 650;
+    this.time.delayedCall(end - 250, () => user.alive && this.showStanding(user));
+    this.time.delayedCall(end, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
   // How much a Poison Arrow hurts on landing: a share of a bow shot (never the dagger).
   poisonHit(shooter, target, spell) {
     return Math.max(1, Math.round(getDamage({ ...shooter, closeWeapon: null }, target) * spell.damageShare));
@@ -3542,6 +3632,7 @@ export default class BattleScene extends Phaser.Scene {
         caster.view.setPosition(p.x, p.y).setDepth(depthFor(tile.col, tile.row) + 1);
         this.huskSwarm(p.x, p.y - caster.centerY, 10);
         this.tweens.add({ targets: caster.view, alpha: HIDDEN_ALPHA, duration: 220 });
+        this.hiddenLook(caster, true);
         this.faceNearestOpponent(caster);
         this.floatText(caster, 'Hidden', spells.husk.color);
         this.refreshStatusTags();
@@ -3592,6 +3683,20 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // The decoy is struck: it bursts into the swarm, and the caster shows herself.
+  // How a caster looks while Husk hides her: see-through and lit gold, as if
+  // she were made of light (the look Suleiman spotted when she stood hidden in
+  // the cave's beam of daylight). The light is added on top of what is behind
+  // her, so she glows on any tile, not only in the beam.
+  hiddenLook(unit, on) {
+    const sprite = unit.sprite;
+    if (!sprite || !sprite.active) return;
+    if (on) {
+      sprite.setBlendMode(Phaser.BlendModes.ADD).setTint(HIDDEN_GLOW);
+    } else {
+      sprite.setBlendMode(Phaser.BlendModes.NORMAL).clearTint();
+    }
+  }
+
   popDecoy(decoy) {
     if (!this.decoys.includes(decoy)) return;
     play('spell');
@@ -3607,6 +3712,7 @@ export default class BattleScene extends Phaser.Scene {
     const decoy = this.decoys.find((d) => d.owner === owner);
     if (!decoy) return;
     owner.hidden = false;
+    this.hiddenLook(owner, false);
     owner.echoReady = true;
     decoy.woken = true;
     if (owner.view && owner.view.active) this.tweens.add({ targets: owner.view, alpha: 1, duration: 300 });
@@ -3632,6 +3738,7 @@ export default class BattleScene extends Phaser.Scene {
     owner.echoReady = false;
     if (owner.hidden) {
       owner.hidden = false;
+      this.hiddenLook(owner, false);
       if (owner.view && owner.view.active && owner.alive) this.tweens.add({ targets: owner.view, alpha: 1, duration: 300 });
     }
     this.refreshStatusTags();
@@ -3746,18 +3853,29 @@ export default class BattleScene extends Phaser.Scene {
     for (const unit of this.units) {
       if (!unit.tagRow || !unit.tagRow.active) continue;
       unit.tagRow.removeAll(true);
-      const tags = unit.alive ? statusTags(unit) : [];
-      const texts = tags.map((t) =>
-        this.add.text(0, 0, t.text, { fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'bold', color: t.color }).setOrigin(0.5)
-      );
-      const widths = texts.map((t) => t.width + 10);
-      let x = -widths.reduce((s, w) => s + w + 4, -4) / 2;
-      texts.forEach((t, i) => {
-        const bg = this.add.rectangle(x + widths[i] / 2, 0, widths[i], 18, 0x1a1410, 0.85);
-        t.setPosition(x + widths[i] / 2, 0);
-        unit.tagRow.add([bg, t]);
-        x += widths[i] + 4;
+      // Over the unit: ENGAGED is left out (the crossed blades already show it).
+      // A status with a picture (like Slow) shows its icon instead of the word.
+      const tags = unit.alive ? statusTags(unit).filter((t) => t.text !== 'ENGAGED') : [];
+      const items = tags.map((t) => {
+        if (t.icon && this.textures.exists('icon:' + t.icon)) {
+          return { w: 26, make: (cx) => [this.add.image(cx, 0, 'icon:' + t.icon).setDisplaySize(26, 26)] };
+        }
+        const text = this.add.text(0, 0, t.text, { fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'bold', color: t.color }).setOrigin(0.5);
+        const w = text.width + 10;
+        return { w, make: (cx) => [this.add.rectangle(cx, 0, w, 18, 0x1a1410, 0.85), text.setPosition(cx, 0)] };
       });
+      let x = -items.reduce((sum, it) => sum + it.w + 4, -4) / 2;
+      for (const it of items) {
+        unit.tagRow.add(it.make(x + it.w / 2));
+        x += it.w + 4;
+      }
+      // a slowed unit carries the Slow aura until the hex wears off
+      const slowed = unit.alive && unit.status && unit.status.hex && unit.status.hex.id === 'slow';
+      if (slowed && !unit.slowAura) unit.slowAura = slowAura(this, unit) || [];
+      if (!slowed && unit.slowAura) {
+        for (const o of unit.slowAura) o.destroy();
+        unit.slowAura = null;
+      }
     }
   }
 
@@ -3896,7 +4014,103 @@ export default class BattleScene extends Phaser.Scene {
 
   // Every so often a unit that is waiting glances at its foes: a short
   // fighting stance, then back to standing. It keeps the board feeling alive.
+  // Locked fighters never stand still: between turns they trade slow blows,
+  // blocks and dodges, as if time had slowed around the clash. Purely for show:
+  // nothing here changes the fight. A pair rests while one of them is taking
+  // its turn, or while anything else is playing.
+  startClashLife() {
+    this.clashLifeOn = this.clashLifeOn !== false;
+    this.time.addEvent({
+      delay: 450,
+      loop: true,
+      callback: () => {
+        if (!this.clashLifeOn || this.busy || this.inCinematic || this.battleOver || this.rotating) return;
+        const now = this.time.now;
+        const done = new Set();
+        for (const a of this.units) {
+          const b = a.engagedWith;
+          if (!b || !a.alive || !b.alive || done.has(a.engagement) || !a.sprite || !b.sprite) continue;
+          done.add(a.engagement);
+          const pair = a.engagement || {};
+          if (a === this.activeUnit || b === this.activeUnit) continue; // their turn: they wait for your choice
+          if ((pair.nextExchange || 0) > now) continue;
+          pair.nextExchange = now + 1500 + Math.random() * 1300;
+          if (pair.nextExchange - now < 1500) continue;
+          this.clashExchange(Math.random() < 0.5 ? a : b);
+        }
+      },
+    });
+  }
+
+  // One exchange: the striker lunges, the other blocks (sparks) or dodges.
+  clashExchange(striker) {
+    const foe = striker.engagedWith;
+    if (!foe) return;
+    const dx = foe.view.x - striker.view.x;
+    const dir = dx >= 0 ? 1 : -1;
+    const block = Math.random() < 0.6;
+    this.showPose(striker, 'attack', dx);
+    this.showPose(foe, block ? 'guard' : 'dodge', -dx);
+    this.tweens.add({ targets: striker.sprite, x: dir * 12, duration: 260, yoyo: true, ease: 'Sine.easeInOut' });
+    if (block) {
+      this.time.delayedCall(240, () => {
+        if (!foe.view.active) return;
+        const mid = { x: (striker.view.x + foe.view.x) / 2, y: (striker.view.y + foe.view.y) / 2 - (striker.centerY + foe.centerY) / 2 };
+        hitSpark(this, mid.x, mid.y, 0xffe08a, 6);
+      });
+      this.tweens.add({ targets: foe.sprite, x: dir * 4, delay: 230, duration: 120, yoyo: true });
+    } else {
+      this.tweens.add({ targets: foe.sprite, x: dir * 10, y: foe.sprite.y - 3, duration: 240, yoyo: true, ease: 'Sine.easeInOut' });
+    }
+    this.time.delayedCall(700, () => {
+      for (const u of [striker, foe]) {
+        if (u.alive && u.sprite && u.sprite.active) {
+          u.sprite.x = 0;
+          if (!this.busy && !this.inCinematic) this.showStanding(u);
+        }
+      }
+    });
+  }
+
+  // During a clash beat, both fighters' faces slide in at the edges of the
+  // screen, hero on the left and enemy on the right, and change with the
+  // result: a battle cry for the winner, a pained face for the loser.
+  showDuelFaces(beat) {
+    this.hideDuelFaces();
+    const hero = beat.actor.side === 'hero' ? beat.actor : beat.holder;
+    const enemy = hero === beat.actor ? beat.holder : beat.actor;
+    const make = (unit, x, from) => {
+      const face = portraitMedallion(this, 0, 0, 50, unit, moodFaceKey(unit.id, 'calm', unit));
+      const name = this.add.text(0, 66, unit.name, textStyle(18, '#f1e6c8', { align: 'center' })).setOrigin(0.5, 0).setStroke('#1a1410', 5);
+      const box = this.ui(this.add.container(from, 640, [face, name]).setDepth(230));
+      this.tweens.add({ targets: box, x, duration: 220, ease: 'Back.easeOut' });
+      return { unit, box, img: face.list[1] };
+    };
+    this.duelFaces = [make(hero, 72, -90), make(enemy, GAME_WIDTH - 72, GAME_WIDTH + 90)];
+  }
+
+  // The result is in: each face shows how it went for that side.
+  duelFacesMood(beat) {
+    for (const f of this.duelFaces || []) {
+      let mood = 'calm';
+      if (beat.winner) mood = beat.winner === f.unit ? 'win' : 'lose';
+      const key = moodFaceKey(f.unit.id, mood, f.unit);
+      if (f.img && f.img.active) f.img.setTexture(roundPortrait(this, f.unit, key, 128)).setDisplaySize(100, 100);
+      if (mood !== 'calm') this.tweens.add({ targets: f.box, scale: 1.12, duration: 110, yoyo: true });
+    }
+  }
+
+  hideDuelFaces() {
+    for (const f of this.duelFaces || []) {
+      const box = f.box;
+      const out = box.x < GAME_WIDTH / 2 ? -90 : GAME_WIDTH + 90;
+      this.tweens.add({ targets: box, x: out, duration: 200, ease: 'Quad.easeIn', onComplete: () => box.destroy() });
+    }
+    this.duelFaces = [];
+  }
+
   startIdleLife() {
+    this.startClashLife();
     this.time.addEvent({
       delay: 1300,
       loop: true,
@@ -3911,7 +4125,8 @@ export default class BattleScene extends Phaser.Scene {
         let near = foes[0];
         for (const f of foes) if (distance(u, f) < distance(u, near)) near = f;
         const dx = near.view.x - u.view.x;
-        if (this.showFrame(u, poseFrame(u.id, 'ready', dx >= 0 ? 'right' : 'left'))) {
+        const look = (u.facing && u.facing.startsWith('up') ? 'up' : 'down') + (dx >= 0 ? 'Right' : 'Left');
+        if (this.showFrame(u, poseFrame(u.id, 'ready', dx >= 0 ? 'right' : 'left', look))) {
           this.time.delayedCall(800, () => {
             if (u.alive && !u.engagedWith && !this.busy && !this.inCinematic && u !== this.activeUnit) this.showStanding(u);
           });

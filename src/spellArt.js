@@ -11,10 +11,45 @@ const FILES = [
   'fury_column', 'fury_ribbons', 'fury_ring', 'fury_sparks',
   'swift_ribbons', 'swift_ring', 'swift_streaks',
   'stone_burst_0', 'stone_burst_1', 'stone_burst_2',
+  'slow_ring', 'slow_pull', 'slow_spiral', 'slow_waves', 'slow_motes',
 ];
+
+// Status icons (public/art/icons), shown over a unit instead of a word.
+// A status with an "icon" in spells.json uses the picture of that name.
+const ICONS = ['slow'];
 
 export function preloadSpellArt(scene) {
   for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
+  for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
+}
+
+// Slow lands: a gravity ring drops onto the target, light pulls down on it,
+// and pressure waves spread at its feet (from the Slow effect sheet).
+export function slowCast(scene, x, y) {
+  if (!has(scene, ['slow_ring', 'slow_pull', 'slow_waves'])) return false;
+  const add = (key, ox, oy, scale) => scene.add.image(x + ox, y + oy, 'fx:' + key).setScale(scale).setDepth(79).setBlendMode(Phaser.BlendModes.ADD);
+  const ring = add('slow_ring', 0, -150, 0.55);
+  scene.tweens.add({ targets: ring, y: y - 70, duration: 520, ease: 'Quad.easeIn' });
+  scene.tweens.add({ targets: ring, alpha: 0, delay: 700, duration: 300, onComplete: () => ring.destroy() });
+  const pull = add('slow_pull', 0, -50, 0.7).setAlpha(0);
+  scene.tweens.add({ targets: pull, alpha: 1, duration: 260, yoyo: true, hold: 420, onComplete: () => pull.destroy() });
+  const waves = add('slow_waves', 0, -8, 0.4).setScale(0.3, 0.2);
+  scene.tweens.add({ targets: waves, scaleX: 0.75, scaleY: 0.45, alpha: 0, delay: 420, duration: 700, onComplete: () => waves.destroy() });
+  return true;
+}
+
+// While a unit is slowed: a faint ring hovers over it and motes sink around it.
+// Returns the objects (added to the unit's own container, so they move with
+// it), or null if the pictures are missing.
+export function slowAura(scene, unit) {
+  if (!has(scene, ['slow_ring', 'slow_motes'])) return null;
+  const top = -unit.topY + 4;
+  const ring = scene.add.image(0, top, 'fx:slow_ring').setScale(0.32, 0.26).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.75);
+  const motes = scene.add.image(0, -unit.centerY, 'fx:slow_motes').setScale(0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5);
+  scene.tweens.add({ targets: ring, y: top + 8, alpha: 0.45, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  scene.tweens.add({ targets: motes, y: -unit.centerY + 10, alpha: 0.25, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  unit.view.add([ring, motes]);
+  return [ring, motes];
 }
 
 const has = (scene, keys) => keys.every((k) => scene.textures.exists('fx:' + k));

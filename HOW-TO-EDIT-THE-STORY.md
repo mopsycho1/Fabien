@@ -289,4 +289,30 @@ If nobody strikes the Husk decoy before the caster's next turn, she shows hersel
 
 ## Balance (Oct 27)
 
-The enemies have about 20% more health than their jobs give them, set in `units.json` (`"hp"` on Tayo 53, the bull 48, the archer 29). With that, the automated test player wins about 4 battles in 10; a person plays better than it. To make battles easier or harder, change those three numbers.
+The enemies have about 20% more health than their jobs give them, set in `units.json` (`"hp"` on Tayo 53, the bull 48, the archer 29). With that, the automated test player wins about 4 battles in 10; a person plays better than it. To make battles easier or harder, change those numbers.
+
+Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha (speed 9, 3 steps, in `jobs.json` under `twinSpear`). At Gaha's speed he reached Layra in a turn or two and the test player won 0 battles in 8; slowed down, it won 4 in 8.
+
+## Rabdul, Double Hit and the bench (Oct 27, evening)
+
+- **Rabdul** (`e4` in `units.json`) uses the `twinSpear` job in `jobs.json`. It is called "Spearman", like Gaha's job, but it is a different kit: a two-headed spear fought up close (`range` 1, no Spear Throw) with **Double Hit** instead.
+- **Double Hit** (`doubleHit` in `spells.json`): two quick strikes on an enemy next to him (`hits` 2), each for `damageShare` of a normal hit (0.6), then a wait of `cooldown` turns (2). The enemy Rabdul uses it whenever it is ready.
+- **The bench**: `"bench": true` on a unit in `units.json` keeps it out of the battle without deleting it. Tayo is benched so Rabdul can take his place. To bring Tayo back, remove that line from Tayo and add it to someone else (or to nobody, for a 4 against 3).
+
+## Herbs on yourself (Oct 27, evening)
+
+- Tap Herbs, then tap Herbs again to use them on Sudeen himself. Tapping a green tile still heals an ally.
+
+## Status icons and the Slow look (Oct 27, evening)
+
+- A spell with `"icon"` in `spells.json` shows a small picture over the unit instead of a word. The pictures live in `public/art/icons/` (for example `slow.png` for `"icon": "slow"`). Slow is the first; any status can get one the same way.
+- Casting Slow plays the gravity effect from the effect sheet, and a faint ring stays on the slowed unit until Slow wears off.
+
+## Living clashes and faces (Oct 27, evening)
+
+- While two fighters are locked in a clash and it is somebody else's turn, they keep trading blows every couple of seconds: one strikes, the other blocks or dodges. Nothing changes in the numbers; it is only for the look.
+- During a clash beat, each fighter's face slides in at the side of the screen (hero on the left, enemy on the right). The winner of the beat shouts, the loser winces, and the faces go when the beat ends.
+
+## Layra (Oct 27, evening)
+
+- Her front facings now use her level-gaze battle pose, and Meditate shows her kneeling. Her back view still looks a little upward; it needs a new turnaround picture.

@@ -228,10 +228,11 @@ export function statusTags(unit) {
   const tags = [];
   if (unit.engagedWith) tags.push({ text: 'ENGAGED', color: '#ffb35c' });
   if (isOffBalance(unit)) tags.push({ text: 'OFF-BAL', color: '#ff6b5a' });
+  // (a spell with an "icon" in spells.json shows its picture over the unit instead of the word)
   const buff = buffOf(unit);
-  if (buff) tags.push({ text: buff.short, color: buff.color });
+  if (buff) tags.push({ text: buff.short, color: buff.color, icon: buff.icon });
   const hex = hexOf(unit);
-  if (hex) tags.push({ text: hex.short, color: hex.color });
+  if (hex) tags.push({ text: hex.short, color: hex.color, icon: hex.icon });
   if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a' });
   // signature stances (see signature.js)
   if (unit.fury) tags.push({ text: 'BLOODIED ' + unit.fury, color: '#ff6b5a' });

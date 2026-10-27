@@ -46,6 +46,17 @@
     "stances": { "press": "average", "guard": "average", "slip": "strong", "break": "average" },
     "spells": ["spearThrow"]
   },
+  "twinSpear": {
+    "name": "Spearman",
+    "badge": "P",
+    "attackEffect": "slash",
+    "attackName": "Strike",
+    "note": "Rabdul's style: a two-headed spear, fought up close. Same class as Gaha, a different kit. The heavier spear makes him slower than Gaha (speed 9, 3 steps): at Gaha's speed he reached the Sage too fast and the heroes almost never won.",
+    "stats": { "hp": 34, "attack": 7, "defense": 3, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 14, "speed": 9, "move": 3, "range": 1 },
+    "contest": { "style": "overpower", "power": 6, "guard": 5, "agility": 5 },
+    "stances": { "press": "strong", "guard": "average", "slip": "average", "break": "average" },
+    "spells": ["doubleHit"]
+  },
   "bruiser": {
     "name": "Bruiser",
     "badge": "B",

@@ -267,16 +267,17 @@
     }
   },
   "h3": {
-    "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets: standing, casting, meditating, hurt, defeated. (The old sage's golden shield pose is gone.)",
+    "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
     "height": 100,
     "standing": {
-      "downLeft": {
-        "file": "layra_stand_downLeft.png",
-        "originX": 0.434
-      },
       "downRight": {
-        "file": "layra_stand_downRight.png",
-        "originX": 0.516
+        "file": "layra_battle_downRight.png",
+        "originX": 0.532
+      },
+      "downLeft": {
+        "file": "layra_battle_downRight.png",
+        "originX": 0.532,
+        "flip": true
       },
       "upLeft": {
         "file": "layra_stand_upLeft.png",
@@ -298,7 +299,7 @@
       },
       "meditate": {
         "file": "layra_meditate.png",
-        "originX": 0.443
+        "originX": 0.478
       },
       "hurt": {
         "file": "layra_hurt.png",
@@ -586,5 +587,103 @@
     },
     "portrait": "tayo_face.png",
     "shout": "tayo_face_angry.png"
+  },
+  "e4": {
+    "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance.",
+    "height": 100,
+    "standing": {
+      "downLeft": {
+        "file": "rabdul_stand_downLeft.png",
+        "originX": 0.5
+      },
+      "downRight": {
+        "file": "rabdul_stand_downRight.png",
+        "originX": 0.495
+      },
+      "upLeft": {
+        "file": "rabdul_stand_upLeft.png",
+        "originX": 0.517
+      },
+      "upRight": {
+        "file": "rabdul_stand_upRight.png",
+        "originX": 0.452
+      }
+    },
+    "battle": {
+      "downLeft": {
+        "file": "rabdul_battle_downLeft.png",
+        "originX": 0.571
+      },
+      "downRight": {
+        "file": "rabdul_battle_downRight.png",
+        "originX": 0.49
+      },
+      "upLeft": {
+        "file": "rabdul_battle_upLeft.png",
+        "originX": 0.636
+      },
+      "upRight": {
+        "file": "rabdul_battle_upRight.png",
+        "originX": 0.503
+      }
+    },
+    "poses": {
+      "ready": {
+        "downLeft": {
+          "file": "rabdul_battle_downLeft.png",
+          "originX": 0.571
+        },
+        "downRight": {
+          "file": "rabdul_battle_downRight.png",
+          "originX": 0.49
+        },
+        "upLeft": {
+          "file": "rabdul_battle_upLeft.png",
+          "originX": 0.636
+        },
+        "upRight": {
+          "file": "rabdul_battle_upRight.png",
+          "originX": 0.503
+        }
+      },
+      "windup": {
+        "downLeft": {
+          "file": "rabdul_battle_downLeft.png",
+          "originX": 0.571
+        },
+        "downRight": {
+          "file": "rabdul_battle_downRight.png",
+          "originX": 0.49
+        },
+        "upLeft": {
+          "file": "rabdul_battle_upLeft.png",
+          "originX": 0.636
+        },
+        "upRight": {
+          "file": "rabdul_battle_upRight.png",
+          "originX": 0.503
+        }
+      },
+      "attack": {
+        "downLeft": {
+          "file": "rabdul_battle_downLeft.png",
+          "originX": 0.571
+        },
+        "downRight": {
+          "file": "rabdul_battle_downRight.png",
+          "originX": 0.49
+        },
+        "upLeft": {
+          "file": "rabdul_battle_upLeft.png",
+          "originX": 0.636
+        },
+        "upRight": {
+          "file": "rabdul_battle_upRight.png",
+          "originX": 0.503
+        }
+      }
+    },
+    "portrait": "rabdul_face.png",
+    "shout": "rabdul_face.png"
   }
 }

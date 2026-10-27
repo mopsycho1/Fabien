@@ -76,6 +76,16 @@ export function portraitKey(id, unit = null) {
   return entry.portrait ? textureKey(id, entry.portrait) : null;
 }
 
+// A face for how a fight is going: 'win' is the battle cry, 'lose' the hurt
+// face (if it has one), anything else the calm face (or hurt face when low).
+export function moodFaceKey(id, mood, unit = null) {
+  const entry = art[id];
+  if (!entry) return null;
+  if (mood === 'win') return shoutKey(id);
+  if (mood === 'lose' && entry.portraitHurt) return textureKey(id, entry.portraitHurt);
+  return portraitKey(id, unit);
+}
+
 // The battle-cry face picture for cut-ins (falls back to the calm one), or null.
 export function shoutKey(id) {
   if (art[id] && art[id].shout) return textureKey(id, art[id].shout);
