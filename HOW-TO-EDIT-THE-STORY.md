@@ -262,3 +262,16 @@ If nobody strikes the Husk decoy before the caster's next turn, she shows hersel
 - `closeWeapon` in `jobs.json` (on the Ranger): right next to a foe she fights with her dagger instead of the bow. `attack` is how much weaker it is (-2), and `pose` is the picture she strikes with.
 - `poisonArrow` in `spells.json`: `damageShare` of a bow shot lands now, then `poison` damage at the start of each of the target's next `turns` turns. Poison never takes the last point of health, and Herbs cures it. `cooldown` is the wait between arrows.
 - The enemy archer uses Poison Arrow on the healthiest foe in reach that is not poisoned yet, and steps away from fighters before she shoots.
+
+## Facings, weakened looks and size (Oct 27)
+
+- A pose in `art.json` can be one picture (drawn facing right, mirrored for left) or four facings like `standing`. Gaha's and the bull's `ready` (their clash stance) and the archer's `attack` and `ready` have four, so they face their foe in any direction.
+- `weak` is how a unit stands at 35% health or less: four facings (Gaha's bloodied sheet) or one picture (Layra, the bull, the archer).
+- A unit's size is set from its tallest standing picture, so it no longer changes with the way it happens to face first.
+- In a turnaround sheet the figures go: front, front-right, right, back turned right, back, back turned left, left, front-left. The game's four facings are the 2nd (downRight), 4th (upRight), 6th (upLeft) and 8th (downLeft).
+
+## Spear reach, Meditate and the aimed Poison Arrow (Oct 27)
+
+- Spearman: `"range": 2` with `"melee": true` (still a close fighter who can Engage and clash) and `"lineReach": true` (past the next tile, only in a straight line).
+- Meditate: she sinks into a trance. Her next turn is spent in it too (she can't act), then 6 MP come back. She is Exposed the whole time.
+- Poison Arrow: she takes aim this turn (AIMING over her, MARKED over the target) and the arrow flies at the start of her next turn, if the target is still within reach and she isn't caught in a clash. Poison is 3 a turn again.

@@ -107,11 +107,11 @@
       },
       "upLeft": {
         "file": "gaha_stand_upLeft.png",
-        "originX": 0.544
+        "originX": 0.452
       },
       "upRight": {
         "file": "gaha_stand_upRight.png",
-        "originX": 0.452
+        "originX": 0.544
       }
     },
     "battle": {
@@ -125,7 +125,11 @@
       },
       "upLeft": {
         "file": "gaha_battle_upLeft.png",
-        "originX": 0.543
+        "originX": 0.564
+      },
+      "upRight": {
+        "file": "gaha_battle_upRight.png",
+        "originX": 0.43
       }
     },
     "buffed": {
@@ -140,11 +144,11 @@
         },
         "upLeft": {
           "file": "gaha_stone_upLeft.png",
-          "originX": 0.482
+          "originX": 0.465
         },
         "upRight": {
           "file": "gaha_stone_upRight.png",
-          "originX": 0.465
+          "originX": 0.482
         }
       },
       "fury": {
@@ -158,11 +162,11 @@
         },
         "upLeft": {
           "file": "gaha_stone_upLeft.png",
-          "originX": 0.482
+          "originX": 0.465
         },
         "upRight": {
           "file": "gaha_stone_upRight.png",
-          "originX": 0.465
+          "originX": 0.482
         }
       },
       "swiftness": {
@@ -176,34 +180,52 @@
         },
         "upLeft": {
           "file": "gaha_swift_upLeft.png",
-          "originX": 0.485
+          "originX": 0.495
         },
         "upRight": {
           "file": "gaha_swift_upRight.png",
-          "originX": 0.495
+          "originX": 0.485
         }
       }
     },
     "poses": {
       "windup": {
         "file": "gaha_windup.png",
-        "originX": 0.368
+        "originX": 0.458
       },
       "attack": {
         "file": "gaha_attack.png",
-        "originX": 0.499
+        "originX": 0.279
       },
       "ready": {
-        "file": "gaha_ready.png",
-        "originX": 0.458
+        "downLeft": {
+          "file": "gaha_battle_downLeft.png",
+          "originX": 0.447
+        },
+        "downRight": {
+          "file": "gaha_battle_downRight.png",
+          "originX": 0.547
+        },
+        "upLeft": {
+          "file": "gaha_battle_upLeft.png",
+          "originX": 0.564
+        },
+        "upRight": {
+          "file": "gaha_battle_upRight.png",
+          "originX": 0.43
+        }
       },
       "guard": {
         "file": "gaha_guard.png",
-        "originX": 0.566
+        "originX": 0.378
       },
       "dodge": {
         "file": "gaha_dodge.png",
         "originX": 0.562
+      },
+      "throw": {
+        "file": "gaha_throw.png",
+        "originX": 0.368
       },
       "hurt": {
         "file": "gaha_hurt.png",
@@ -224,10 +246,28 @@
     },
     "portrait": "gaha_face.png",
     "portraitHurt": "gaha_face_hurt.png",
-    "shout": "gaha_shout.png"
+    "shout": "gaha_shout.png",
+    "weak": {
+      "downLeft": {
+        "file": "gaha_weak_downLeft.png",
+        "originX": 0.499
+      },
+      "downRight": {
+        "file": "gaha_weak_downRight.png",
+        "originX": 0.469
+      },
+      "upLeft": {
+        "file": "gaha_weak_upLeft.png",
+        "originX": 0.456
+      },
+      "upRight": {
+        "file": "gaha_weak_upRight.png",
+        "originX": 0.56
+      }
+    }
   },
   "h3": {
-    "note": "Layra, the staff-bearer (enchantress). Cut from Suleiman's Layra sheets (Oct 26): standing, casting, hurt and defeated.",
+    "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets: standing, casting, meditating, hurt, defeated. (The old sage's golden shield pose is gone.)",
     "height": 100,
     "standing": {
       "downLeft": {
@@ -240,11 +280,11 @@
       },
       "upLeft": {
         "file": "layra_stand_upLeft.png",
-        "originX": 0.53
+        "originX": 0.493
       },
       "upRight": {
         "file": "layra_stand_upRight.png",
-        "originX": 0.493
+        "originX": 0.53
       }
     },
     "poses": {
@@ -264,10 +304,6 @@
         "file": "layra_meditate.png",
         "originX": 0.443
       },
-      "guard": {
-        "file": "sage_guard.png",
-        "originX": 0.444
-      },
       "hurt": {
         "file": "layra_hurt.png",
         "originX": 0.605
@@ -283,7 +319,11 @@
     },
     "portrait": "layra_face.png",
     "portraitHurt": "layra_face_hurt.png",
-    "shout": "layra_face.png"
+    "shout": "layra_face.png",
+    "weak": {
+      "file": "layra_weak.png",
+      "originX": 0.532
+    }
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -322,8 +362,18 @@
     },
     "poses": {
       "ready": {
-        "file": "bull_ready.png",
-        "originX": 0.542
+        "downLeft": {
+          "file": "bull_battle_downLeft.png",
+          "originX": 0.428
+        },
+        "downRight": {
+          "file": "bull_battle_downRight.png",
+          "originX": 0.561
+        },
+        "upLeft": {
+          "file": "bull_battle_upLeft.png",
+          "originX": 0.394
+        }
       },
       "windup": {
         "file": "bull_windup.png",
@@ -360,7 +410,11 @@
     },
     "portrait": "bull_face.png",
     "portraitHurt": "bull_face_hurt.png",
-    "shout": "bull_face.png"
+    "shout": "bull_face.png",
+    "weak": {
+      "file": "bull_weak.png",
+      "originX": 0.534
+    }
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side.",
@@ -385,16 +439,44 @@
     },
     "poses": {
       "attack": {
-        "file": "archer_attack.png",
-        "originX": 0.431
+        "downRight": {
+          "file": "archer_attack.png",
+          "originX": 0.431
+        },
+        "downLeft": {
+          "file": "archer_aim_downLeft.png",
+          "originX": 0.565
+        },
+        "upLeft": {
+          "file": "archer_aim_upLeft.png",
+          "originX": 0.554
+        },
+        "upRight": {
+          "file": "archer_aim_upRight.png",
+          "originX": 0.389
+        }
       },
       "windup": {
         "file": "archer_windup.png",
         "originX": 0.397
       },
       "ready": {
-        "file": "archer_ready.png",
-        "originX": 0.557
+        "downRight": {
+          "file": "archer_ready.png",
+          "originX": 0.557
+        },
+        "downLeft": {
+          "file": "archer_stance_downLeft.png",
+          "originX": 0.448
+        },
+        "upLeft": {
+          "file": "archer_stance_upLeft.png",
+          "originX": 0.553
+        },
+        "upRight": {
+          "file": "archer_stance_upRight.png",
+          "originX": 0.432
+        }
       },
       "guard": {
         "file": "archer_guard.png",
@@ -431,7 +513,11 @@
     },
     "portrait": "archer_face.png",
     "portraitHurt": "archer_face_hurt.png",
-    "shout": "archer_face.png"
+    "shout": "archer_face.png",
+    "weak": {
+      "file": "archer_weak.png",
+      "originX": 0.449
+    }
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",

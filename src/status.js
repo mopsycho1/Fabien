@@ -222,6 +222,9 @@ export function statusTags(unit) {
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a' });
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a' });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
+  if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4' }); // her next turn is spent in the trance
+  if (unit.aiming) tags.push({ text: 'AIMING', color: '#9fdc6a' }); // a Poison Arrow, released next turn
+  if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a' }); // an archer's Poison Arrow is aimed at it
   if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a' });
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)

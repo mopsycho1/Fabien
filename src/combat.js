@@ -16,7 +16,7 @@ export function heightEdge(attacker, defender) {
 
 // Ranged attacks (archers, the Sage) aim better from above and worse uphill.
 export function heightAccuracy(attacker, defender) {
-  if (attacker.range <= 1) return 0;
+  if (attacker.range <= 1 || attacker.melee) return 0; // shooting only, not a spear's reach
   return heightEdge(attacker, defender) * terrain.rangedAccuracyPerLevel;
 }
 
@@ -90,12 +90,17 @@ export function chainDamage(attacker, defender) {
 // Every living unit on the other side that this attacker can reach right now.
 // "range" is how many tiles away it can hit. Range 1 means next to it.
 export function getTargetsInRange(attacker, units) {
-  return units.filter(
-    (other) =>
-      other.alive &&
-      other.side !== attacker.side &&
-      distance(attacker, other) <= attacker.range
-  );
+  return units.filter((other) => other.alive && other.side !== attacker.side && inReach(attacker, other));
+}
+
+// True if the attacker can hit this spot from where it stands: within its
+// range, and for a spear ("lineReach" in jobs.json) only in a straight line
+// once it is past the tile next to it.
+export function inReach(attacker, spot) {
+  const d = distance(attacker, spot);
+  if (d < 1 || d > attacker.range) return false;
+  if (attacker.lineReach && d > 1) return attacker.col === spot.col || attacker.row === spot.row;
+  return true;
 }
 
 // Rolls the dice for one attack.

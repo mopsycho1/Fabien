@@ -15,14 +15,14 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { lightningStrike, verseAura, speedStreak } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, poseFrame, portraitKey, shoutKey, ALERT_RANGE } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -630,7 +630,11 @@ export default class BattleScene extends Phaser.Scene {
 
       // The picture stands on the tile: its feet are at the tile's middle
       sprite = this.add.image(0, 6, frame.key).setOrigin(frame.originX, 1);
-      artScale = height / sprite.height; // every picture of this unit is drawn at this size
+      // Every picture of this unit is drawn at one size, set so its TALLEST
+      // standing picture is "height" pixels (so it never depends on which way
+      // it happens to face first: a side view without the staff overhead is shorter)
+      const tallest = Math.max(...standingKeys(data.id).filter((k) => this.textures.exists(k)).map((k) => this.textures.get(k).getSourceImage().height));
+      artScale = height / (Number.isFinite(tallest) && tallest > 0 ? tallest : sprite.height);
       sprite.setScale(artScale).setFlipX(frame.flip);
 
       topY = height + 12;
@@ -745,6 +749,43 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode(); // clears any leftover choice and refreshes the screen
     this.refreshTurnStrip();
     this.markActive();
+
+    // An archer who took aim last turn lets the Poison Arrow fly first
+    const archer = this.activeUnit;
+    if (archer.aiming) {
+      this.busy = true;
+      this.releaseAim(archer, () => {
+        this.busy = false;
+        if (this.battleOver) return;
+        this.refreshButtons();
+        this.refreshStatus();
+        if (archer.side === 'enemy') this.time.delayedCall(400, () => this.activeUnit === archer && this.endTurn());
+      });
+      return;
+    }
+
+    // A Sage in meditation spends this whole turn in it, then wakes with her MP back
+    const sage = this.activeUnit;
+    if (sage.meditating) {
+      const restore = sage.meditating.restore;
+      sage.meditating = null;
+      restoreMp(sage, restore);
+      sage.hasActed = true;
+      sage.hasMoved = true;
+      sage.stepsUsed = Infinity;
+      this.busy = true;
+      this.refreshButtons();
+      this.refreshStatusTags();
+      this.statusText.setText(sage.name + ' finishes meditating.');
+      buffAura(this, sage.view.x, sage.view.y, 0x7fd6c4);
+      this.floatText(sage, '+' + restore + ' MP', '#7fd6c4', { pop: true });
+      this.time.delayedCall(1100, () => {
+        this.busy = false;
+        this.showStanding(sage);
+        if (!this.battleOver && this.activeUnit === sage) this.endTurn();
+      });
+      return;
+    }
 
     // Enemies play by themselves, after a short pause so you can follow it.
     if (this.activeUnit.side === 'enemy') {
@@ -893,8 +934,8 @@ export default class BattleScene extends Phaser.Scene {
       const t = this.pendingTarget;
       const p = spells.poisonArrow;
       text =
-        'Poison Arrow at ' + t.name + ': ' + getHitChance({ ...unit, closeWeapon: null }, t) + '% to hit, ' + this.poisonHit(unit, t, p) +
-        ' damage now, then ' + p.poison + ' a turn for ' + p.turns + ' turns.\nTap again to shoot.';
+        'Aim at ' + t.name + ': flies next turn if still in reach. ' + getHitChance({ ...unit, closeWeapon: null }, t) + '% to hit, ' +
+        this.poisonHit(unit, t, p) + ' now, then ' + p.poison + ' a turn for ' + p.turns + ' turns.\nTap again to take aim.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'heal') {
       const t = this.pendingTarget;
       text = 'Herbs on ' + t.name + ': +' + Math.min(spells.herbs.heal, t.maxHp - t.hp) + ' health. Tap again.';
@@ -1581,8 +1622,7 @@ export default class BattleScene extends Phaser.Scene {
     const here = { col: unit.col, row: unit.row };
     const spots = [here, ...getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r))];
     return spots.filter((t) => {
-      const d = distance(t, target);
-      return d >= 1 && d <= unit.range;
+      return inReach({ ...unit, col: t.col, row: t.row }, target);
     });
   }
 
@@ -1595,7 +1635,8 @@ export default class BattleScene extends Phaser.Scene {
       const steps = distance(unit, t);
       const nextToFoes = foes.filter((f) => distance(t, f) === 1).length;
       let s = getHeight(t.col, t.row) * 2 - steps;
-      if (unit.range > 1) s += distance(t, target) * 3 - nextToFoes * 6;
+      if (unit.range > 1 && !unit.melee) s += distance(t, target) * 3 - nextToFoes * 6;
+      else if (unit.range > 1) s += distance(t, target) - 1 - Math.max(0, nextToFoes - 1) * 2; // a spear likes to strike from its full reach
       else s -= Math.max(0, nextToFoes - 1) * 2;
       return s;
     };
@@ -1753,7 +1794,7 @@ export default class BattleScene extends Phaser.Scene {
       for (let col = 0; col < GRID_SIZE; col++) {
         for (let row = 0; row < GRID_SIZE; row++) {
           const d = distance(unit, { col, row });
-          if (d > 0 && d <= unit.range) area.push({ col, row });
+          if (d > 0 && inReach(unit, { col, row })) area.push({ col, row });
         }
       }
       this.showHighlights(area, 0xe05a47, { alpha: 0.16 });
@@ -1911,6 +1952,11 @@ export default class BattleScene extends Phaser.Scene {
   // A badly hurt unit gets a slow red glow at its feet.
   updateHpBar(unit) {
     const fraction = unit.hp / unit.maxHp;
+    const weakNow = fraction > 0 && fraction <= HURT_FACE_AT;
+    if (weakNow !== !!unit.wasWeak) {
+      unit.wasWeak = weakNow;
+      this.time.delayedCall(450, () => unit.alive && !this.inCinematic && this.showStanding(unit)); // after the flinch: weakened, or upright again after healing
+    }
     unit.hpFill.setScale(fraction, 1);
     unit.hpFill.setFillStyle(fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f); // red when low
     if (fraction > 0 && fraction <= 0.3 && !unit.lowGlow && unit.view.active) {
@@ -1924,6 +1970,9 @@ export default class BattleScene extends Phaser.Scene {
   // numbers. The fall is drawn by playDefeat, when the blow lands.)
   defeat(unit) {
     unit.alive = false;
+    if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
+    unit.aiming = null;
+    unit.meditating = null;
     if (unit.engagedWith) {
       endDuel(unit); // a fallen unit cannot stay locked in a fight
       this.refreshEngagementMarks();
@@ -1984,13 +2033,21 @@ export default class BattleScene extends Phaser.Scene {
 
   // At rest. A unit locked in an engagement stays in its fighting stance.
   // Otherwise it stands relaxed, or in its battle stance when an enemy is near.
+  // Badly hurt units stand weakened (if they have the pictures); a Sage in
+  // meditation stays kneeling in it.
   showStanding(unit) {
+    if (unit.meditating && this.showFrame(unit, poseFrame(unit.id, 'meditate', 'right', unit.facing))) return;
+    if (unit.aiming && this.showFrame(unit, poseFrame(unit.id, 'poison', unit.aiming.target.view.x >= unit.view.x ? 'right' : 'left'))) return;
     if (unit.engagedWith && unit.engagedWith.view) {
-      const side = unit.engagedWith.view.x >= unit.view.x ? 'right' : 'left';
-      if (this.showFrame(unit, poseFrame(unit.id, 'ready', side))) return;
+      const foe = unit.engagedWith.view;
+      const dy = foe.y - unit.view.y;
+      const up = Math.abs(dy) < 2 ? unit.facing.startsWith('up') : dy < 0;
+      const facing = (up ? 'up' : 'down') + (foe.x >= unit.view.x ? 'Right' : 'Left');
+      if (this.showFrame(unit, poseFrame(unit.id, 'ready', facing.endsWith('Right') ? 'right' : 'left', facing))) return;
     }
     const buff = buffOf(unit);
-    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null));
+    const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null, weak));
   }
 
   // True when an enemy (as this unit sees it) is within ALERT_RANGE tiles.
@@ -2001,8 +2058,12 @@ export default class BattleScene extends Phaser.Scene {
 
   // An action picture (attack, windup, ready, guard, dodge, cast) facing a direction.
   // dx > 0 means toward the right of the screen. Falls back to standing if missing.
+  // A pose drawn in four facings uses the unit's up or down (set by faceToward)
+  // with dx's left or right, so it looks at its target.
   showPose(unit, pose, dx) {
-    if (!this.showFrame(unit, poseFrame(unit.id, pose, dx >= 0 ? 'right' : 'left'))) this.showStanding(unit);
+    const right = dx >= 0;
+    const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
+    if (!this.showFrame(unit, poseFrame(unit.id, pose, right ? 'right' : 'left', facing))) this.showStanding(unit);
   }
 
   // The attack picture, if the unit has one. dx says which way it is swinging.
@@ -3067,7 +3128,7 @@ export default class BattleScene extends Phaser.Scene {
     const result = rollAttack({ ...thrower, range: spell.range }, target);
     const dx = target.view.x - thrower.view.x;
     this.faceToward(thrower, dx, target.view.y - thrower.view.y);
-    this.showPose(thrower, 'windup', dx);
+    this.showPose(thrower, poseFrame(thrower.id, 'throw', 'right') ? 'throw' : 'windup', dx); // the spear raised to throw
     let pushed = null;
     if (result.hit) {
       const landed = this.landHit(target, result.damage);
@@ -3115,9 +3176,50 @@ export default class BattleScene extends Phaser.Scene {
     return Math.max(1, Math.round(getDamage({ ...shooter, closeWeapon: null }, target) * spell.damageShare));
   }
 
-  // Poison Arrow: she crouches, dips an arrow, and shoots. A hit does a little
-  // damage now and poisons the target for a few turns (see tickPoison).
+  // Poison Arrow, part 1: she crouches, dips an arrow and takes aim at the
+  // target (AIMING over her, MARKED over it). That is her whole turn. The
+  // arrow flies at the start of her next turn (see releaseAim), if the target
+  // is still within reach and she is not caught in a clash.
   castPoisonArrow(shooter, target, spell, onDone) {
+    shooter.aiming = { target, spellId: 'poisonArrow' };
+    target.markedBy = shooter;
+    shooter.hasMoved = true;
+    shooter.stepsUsed = Infinity;
+    this.faceToward(shooter, target.view.x - shooter.view.x, target.view.y - shooter.view.y);
+    this.showStanding(shooter); // crouched, dipping the arrow
+    play('select');
+    this.floatText(shooter, 'Aiming', spell.color);
+    this.floatText(target, 'Marked', spell.color, { rise: 30 });
+    this.refreshStatusTags();
+    this.refreshButtons();
+    this.time.delayedCall(900, () => {
+      onDone();
+      if (shooter.side === 'hero' && this.activeUnit === shooter && !this.battleOver) this.endTurn();
+    });
+  }
+
+  // Poison Arrow, part 2, at the start of the archer's next turn: the arrow
+  // flies if it still can. Calls onDone once it has played out.
+  releaseAim(shooter, onDone) {
+    const { target, spellId } = shooter.aiming;
+    const spell = spells[spellId];
+    shooter.aiming = null;
+    if (target.markedBy === shooter) target.markedBy = null;
+    shooter.hasActed = true; // the shot is this turn's action (she may still move)
+    this.refreshStatusTags();
+    const why = !target.alive ? null : shooter.engagedWith ? 'Aim broken' : distance(shooter, target) > this.spellReach(shooter, target, spell) ? 'Out of reach' : null;
+    if (!target.alive || why) {
+      if (why) this.floatText(shooter, why, '#e8d5a8');
+      this.showStanding(shooter);
+      this.time.delayedCall(800, onDone);
+      return;
+    }
+    this.shootPoisonArrow(shooter, target, spell, onDone);
+  }
+
+  // The arrow itself. A hit does a little damage now and poisons the target
+  // for a few turns (see tickPoison).
+  shootPoisonArrow(shooter, target, spell, onDone) {
     const bow = { ...shooter, closeWeapon: null };
     const hit = Math.random() * 100 < getHitChance(bow, target);
     let damage = 0;
@@ -3334,15 +3436,18 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Meditate: get MP back, but stand Exposed until the next turn. Ends the turn.
+  // Meditate: she sinks into a trance. Her NEXT turn is spent meditating too
+  // (she cannot act), and only then does her MP come back. She is Exposed the
+  // whole time, so allies may need to guard her. (See startTurn.)
   castMeditate(caster, spell, onDone) {
-    restoreMp(caster, spell.restore);
     applyExposed(caster, spell.exposed);
-    this.showPose(caster, 'meditate', 1); // kneeling still, if the unit has the picture
+    caster.meditating = { restore: spell.restore };
     caster.hasMoved = true;
+    this.showStanding(caster); // the meditation picture, held until she wakes
     this.refreshButtons();
     play('spell');
     buffAura(this, caster.view.x, caster.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
-    this.floatText(caster, '+' + spell.restore + ' MP', spell.color);
+    this.floatText(caster, 'Meditating', spell.color);
     this.refreshStatusTags();
     this.time.delayedCall(900, () => {
       onDone();

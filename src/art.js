@@ -20,6 +20,13 @@ import art from './data/art.json';
 // "portraitHurt" (optional) is a face for when the unit is badly hurt (35%
 // health or less). It replaces the calm face on the card and the turn bar.
 //
+// "weak" (optional) is how the unit stands when it is badly hurt (35% health
+// or less): four facings like "standing", or just one picture.
+//
+// A pose can be one picture (drawn facing right, mirrored for left), or four
+// facings like "standing" ({ "downRight": ..., "upRight": ..., ... }) so the
+// unit can face its target in any of the four directions.
+//
 // "poses" are action pictures, all drawn facing RIGHT on the screen:
 //   attack, windup, ready (engaged stance), guard, dodge, cast
 // Facing left uses the mirror image.
@@ -44,8 +51,14 @@ export function preloadArt(scene) {
 function allFiles(entry) {
   const files = new Set();
   const buffed = Object.values(entry.buffed || {});
-  for (const group of [entry.standing, entry.battle, ...buffed, entry.poses, entry.attack]) {
-    for (const value of Object.values(group || {})) files.add(fileOf(value));
+  const directional = Object.values(entry.poses || {}).filter(isFacingSet);
+  for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
+    if (!group) continue;
+    if (typeof group === 'string' || group.file) {
+      files.add(fileOf(group)); // a group that is just one picture (like "weak")
+      continue;
+    }
+    for (const value of Object.values(group)) if (!isFacingSet(value)) files.add(fileOf(value));
   }
   if (entry.portrait) files.add(entry.portrait);
   if (entry.shout) files.add(entry.shout);
@@ -67,6 +80,11 @@ export function portraitKey(id, unit = null) {
 export function shoutKey(id) {
   if (art[id] && art[id].shout) return textureKey(id, art[id].shout);
   return portraitKey(id);
+}
+
+// True for a set of facings ({ downRight: ..., upLeft: ... }) rather than one picture.
+function isFacingSet(value) {
+  return !!value && typeof value === 'object' && !value.file;
 }
 
 function fileOf(value) {
@@ -117,25 +135,43 @@ export const ALERT_RANGE = 3;
 // The standing picture for a facing, or null if there is none.
 // alert = true asks for the battle stance, if the unit has one.
 // buff is the id of a Verse on the unit (like "stone"): its pictures win.
-export function standingFrame(id, facing, alert = false, buff = null) {
+// weak = true when the unit is badly hurt: its "weak" pictures, if it has them.
+// Which set wins: a Verse look, then the weakened look, then the battle stance.
+export function standingFrame(id, facing, alert = false, buff = null, weak = false) {
   const entry = art[id];
   if (!entry || !entry.standing) return null;
   let standing = alert && entry.battle ? entry.battle : entry.standing;
+  if (weak && entry.weak) standing = isFacingSet(entry.weak) ? entry.weak : { downRight: entry.weak };
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
-  if (standing[facing]) return makeFrame(id, standing[facing], false);
-  const opposite = standing[OPPOSITE_SIDE[facing]];
+  return pickFacing(id, standing, facing);
+}
+
+// The picture for a facing from a set of facings: the facing itself, or the
+// mirror image of the opposite side, or any picture in the set.
+function pickFacing(id, set, facing) {
+  if (set[facing]) return makeFrame(id, set[facing], false);
+  const opposite = set[OPPOSITE_SIDE[facing]];
   if (opposite) return makeFrame(id, opposite, true);
-  const any = Object.values(standing)[0];
-  return any ? makeFrame(id, any, false) : null;
+  const any = Object.values(set)[0];
+  return any ? makeFrame(id, any, facing.endsWith('Left')) : null;
+}
+
+// The texture names of every standing picture, to measure the unit's size by.
+export function standingKeys(id) {
+  const entry = art[id];
+  return entry && entry.standing ? Object.values(entry.standing).map((v) => textureKey(id, fileOf(v))) : [];
 }
 
 // An action picture ("attack", "ready", ...) facing "left" or "right" on the
 // screen, or null if the unit does not have that pose.
-export function poseFrame(id, pose, side) {
+// facing (optional) is a full facing like "upRight": a pose drawn in four
+// facings uses it; a one-picture pose only cares about left or right.
+export function poseFrame(id, pose, side, facing = null) {
   const entry = art[id];
   if (!entry) return null;
   const value = (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
   if (!value) return null;
+  if (isFacingSet(value)) return pickFacing(id, value, facing || (side === 'left' ? 'downLeft' : 'downRight'));
   return makeFrame(id, value, side === 'left');
 }
 

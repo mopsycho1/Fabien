@@ -38,7 +38,9 @@
     "badge": "P",
     "attackEffect": "slash",
     "attackName": "Thrust",
-    "stats": { "hp": 34, "attack": 8, "defense": 2, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 16, "speed": 11, "move": 4, "range": 1 },
+    "melee": true,
+    "lineReach": true,
+    "stats": { "hp": 34, "attack": 8, "defense": 2, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 16, "speed": 11, "move": 4, "range": 2 },
     "contest": { "style": "evasion", "power": 6, "guard": 4, "agility": 6 },
     "stances": { "press": "average", "guard": "average", "slip": "strong", "break": "average" },
     "spells": ["spearThrow"]

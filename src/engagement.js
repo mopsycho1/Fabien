@@ -37,8 +37,9 @@ const DEFAULT_CTX = { random: Math.random, heightOf: () => 0 };
 // ---------- Who can engage ----------
 
 // A melee unit: it fights next to its foe and has a fighting style.
+// (A spearman reaches 2 tiles but is still a close fighter: "melee" in jobs.json.)
 export function isMelee(unit) {
-  return !!unit.contest && unit.range === 1;
+  return !!unit.contest && (unit.range === 1 || !!unit.melee);
 }
 
 // A unit that can be caught in a clash: any unit with clash numbers. That is

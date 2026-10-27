@@ -59,6 +59,8 @@ export function buildUnit(entry, jobs) {
     stance: null, // the stance it last fought with in a clash
     spells: job && job.spells ? [...job.spells] : [], // spells and skills this job can use
     signature: job && job.signature ? { ...job.signature } : null, // its signature stance in a clash, if any
+    melee: !!(job && job.melee), // a close fighter even with a range above 1 (a spear's reach)
+    lineReach: !!(job && job.lineReach), // past 1 tile it only reaches in a straight line
     closeWeapon: job && job.closeWeapon ? { ...job.closeWeapon } : null, // what an archer fights with right next to a foe (a dagger)
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy
