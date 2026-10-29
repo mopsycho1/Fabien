@@ -24,7 +24,7 @@ import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature }
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
-import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
+import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting } from '../boardArt.js';
@@ -227,17 +227,28 @@ export default class BattleScene extends Phaser.Scene {
   // the bottom a hint line, the card of the unit in focus, and the commands.
   buildHud() {
     const W = GAME_WIDTH;
+    // Suleiman's UI art (his draped frames, button bars and icons) when it's
+    // loaded; otherwise the older look drawn in code.
+    const art = hasUiArt(this);
+    this.stripY = art ? 102 : 108; // the turn order's height on screen
 
     // Top: title and turn order
-    this.ui(bronzePanel(this, 10, 8, W - 20, 150));
-    this.ui(this.add.text(W / 2, 46, 'FABIEN  ·  OF GODS & MEN', textStyle(20, '#e4c27c')).setOrigin(0.5).setLetterSpacing(3));
+    if (art) this.ui(this.add.image(0, 4, 'ui:top').setOrigin(0, 0));
+    else this.ui(bronzePanel(this, 10, 8, W - 20, 150));
+    this.ui(this.add.text(W / 2, art ? 52 : 46, 'FABIEN  ·  OF GODS & MEN', textStyle(20, '#e4c27c')).setOrigin(0.5).setLetterSpacing(3));
     this.turnStripLayer = this.ui(this.add.container(0, 0));
 
     // Sound on and off
-    const mx = W - 54;
-    const my = 108;
+    const mx = W - 56;
+    const my = this.stripY;
     const muteIcon = this.add.graphics();
+    const soundArt = art ? [iconImage(this, mx, my, 'sound', 50), iconImage(this, mx, my, 'mute', 50)] : null;
     const drawMute = () => {
+      if (soundArt && soundArt[0]) {
+        soundArt[0].setVisible(!isMuted());
+        soundArt[1].setVisible(isMuted());
+        return;
+      }
       muteIcon.clear();
       muteIcon.fillStyle(UI.ink, 1);
       muteIcon.fillCircle(mx, my, 24);
@@ -253,28 +264,33 @@ export default class BattleScene extends Phaser.Scene {
       play('click');
     });
     this.ui(muteIcon);
+    if (soundArt && soundArt[0]) soundArt.forEach((i) => this.ui(i));
     this.ui(muteHit);
 
     // Turn the camera: two round buttons at the bottom corners of the board
-    // (or Q and E on a keyboard)
+    // (his curved-arrow icons), or Q and E on a keyboard
     const turnButton = (x, dir) => {
-      const g = this.add.graphics();
-      g.fillStyle(UI.ink, 0.92);
-      g.fillCircle(x, 818, 30);
-      g.lineStyle(2, UI.bronze, 1);
-      g.strokeCircle(x, 818, 30);
-      // a curved arrow going round
-      g.lineStyle(4, UI.bronzeLight, 1);
-      g.beginPath();
-      g.arc(x, 818, 15, dir > 0 ? Math.PI * 1.1 : Math.PI * 1.9, dir > 0 ? Math.PI * 0.35 : Math.PI * 0.65, dir < 0);
-      g.strokePath();
-      const ax = x + (dir > 0 ? 15 * Math.cos(Math.PI * 0.35) : 15 * Math.cos(Math.PI * 0.65));
-      const ay = 818 + 15 * Math.sin(Math.PI * 0.35);
-      g.fillStyle(UI.bronzeLight, 1);
-      g.fillTriangle(ax - 7, ay - 3, ax + 7, ay - 3, ax + (dir > 0 ? -2 : 2), ay + 8);
+      const pic = art ? iconImage(this, x, 818, dir > 0 ? 'redo' : 'undo', 62) : null;
+      if (pic) this.ui(pic);
+      else {
+        const g = this.add.graphics();
+        g.fillStyle(UI.ink, 0.92);
+        g.fillCircle(x, 818, 30);
+        g.lineStyle(2, UI.bronze, 1);
+        g.strokeCircle(x, 818, 30);
+        // a curved arrow going round
+        g.lineStyle(4, UI.bronzeLight, 1);
+        g.beginPath();
+        g.arc(x, 818, 15, dir > 0 ? Math.PI * 1.1 : Math.PI * 1.9, dir > 0 ? Math.PI * 0.35 : Math.PI * 0.65, dir < 0);
+        g.strokePath();
+        const ax = x + (dir > 0 ? 15 * Math.cos(Math.PI * 0.35) : 15 * Math.cos(Math.PI * 0.65));
+        const ay = 818 + 15 * Math.sin(Math.PI * 0.35);
+        g.fillStyle(UI.bronzeLight, 1);
+        g.fillTriangle(ax - 7, ay - 3, ax + 7, ay - 3, ax + (dir > 0 ? -2 : 2), ay + 8);
+        this.ui(g);
+      }
       const hit = this.add.circle(x, 818, 34, 0x000000, 0.001).setInteractive({ useHandCursor: true });
       hit.on('pointerdown', () => this.rotateCamera(dir));
-      this.ui(g);
       this.ui(hit);
     };
     turnButton(50, -1);
@@ -287,38 +303,51 @@ export default class BattleScene extends Phaser.Scene {
     this.compass = this.ui(this.add.graphics());
     this.refreshCompass();
 
-    // Bottom panel
-    this.ui(bronzePanel(this, 10, 948, W - 20, 324));
+    // Bottom panel (his frame has the line between the card and the buttons built in)
+    if (art) this.ui(this.add.image(5, 944, 'ui:bottom').setOrigin(0, 0));
+    else this.ui(bronzePanel(this, 10, 948, W - 20, 324));
 
     // The hint line just above it
-    const ribbon = this.add.graphics();
-    ribbon.fillStyle(UI.ink, 0.8);
-    ribbon.fillRoundedRect(36, 866, W - 72, 70, 12);
-    ribbon.lineStyle(2, UI.bronze, 0.9);
-    ribbon.strokeRoundedRect(36, 866, W - 72, 70, 12);
-    this.ui(ribbon);
+    if (art) this.ui(this.add.image(36, 866, 'ui:hint').setOrigin(0, 0));
+    else {
+      const ribbon = this.add.graphics();
+      ribbon.fillStyle(UI.ink, 0.8);
+      ribbon.fillRoundedRect(36, 866, W - 72, 70, 12);
+      ribbon.lineStyle(2, UI.bronze, 0.9);
+      ribbon.strokeRoundedRect(36, 866, W - 72, 70, 12);
+      this.ui(ribbon);
+    }
     this.statusText = this.ui(
-      this.add.text(W / 2, 901, '', textStyle(23, '#f1e6c8', { align: 'center', wordWrap: { width: W - 100 } })).setOrigin(0.5)
+      this.add.text(W / 2, 901, '', textStyle(art ? 22 : 23, '#f1e6c8', { align: 'center', wordWrap: { width: W - 120 } })).setOrigin(0.5)
     );
 
     // The card of the unit in focus (left) and the commands (right)
     this.cardLayer = this.ui(this.add.container(0, 0));
-    const divider = this.add.graphics();
-    divider.lineStyle(2, UI.bronzeDark, 1);
-    divider.lineBetween(368, 978, 368, 1250);
-    this.ui(divider);
-    this.slots = [1004, 1080, 1156, 1232].map((y) => {
-      const button = new CommandButton(this, 540, y, 320, 64);
+    if (!art) {
+      const divider = this.add.graphics();
+      divider.lineStyle(2, UI.bronzeDark, 1);
+      divider.lineBetween(380, 978, 380, 1250);
+      this.ui(divider);
+    }
+    // Four rows of commands, 56 high, inside the panel's frame
+    const ROWS = [1020, 1082, 1144, 1206];
+    const BX = 541;
+    this.slots = ROWS.map((y) => {
+      const button = new CommandButton(this, BX, y, 300, 56);
       this.ui(button.view);
       return button;
     });
-    // Two half buttons that share the third row, for fighters with skills: Engage | Skills
-    this.halves = [540 - 81, 540 + 81].map((x) => {
-      const button = new CommandButton(this, x, 1156, 156, 64, { compact: true });
-      this.ui(button.view);
-      button.set(null);
-      return button;
-    });
+    // Half buttons that share a row: Engage | Skills (row 3, fighters with
+    // skills) and Items | End turn (row 4, a normal turn)
+    const half = (y) =>
+      [BX - 76.5, BX + 76.5].map((x) => {
+        const button = new CommandButton(this, x, y, 147, 56, { compact: true });
+        this.ui(button.view);
+        button.set(null);
+        return button;
+      });
+    this.halves = half(ROWS[2]);
+    this.lowHalves = half(ROWS[3]);
     this.moveButton = this.slots[0];
     this.attackButton = this.slots[1];
     this.endButton = this.slots[3];
@@ -330,50 +359,51 @@ export default class BattleScene extends Phaser.Scene {
     L.removeAll(true);
     if (!unit) return;
 
-    L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
-    L.add(this.add.text(160, 990, unit.name, textStyle(27, '#ffe08a')));
+    // the face in Suleiman's ring with tassels (or the drawn medallion without his art)
+    L.add(ringPortrait(this, 92, 1050, 44, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
+    L.add(this.add.text(172, 994, unit.name, textStyle(26, '#ffe08a')));
     const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
-    L.add(this.add.text(160, 1026, unit.jobName + '  ·  ' + role, textStyle(18, '#e4c27c')));
+    L.add(this.add.text(172, 1028, unit.jobName + '  ·  ' + role, textStyle(17, '#e4c27c')));
 
     const frac = Math.max(0, unit.hp / unit.maxHp);
     const bar = this.add.graphics();
     bar.fillStyle(UI.ink, 1);
-    bar.fillRoundedRect(160, 1058, 190, 18, 6);
+    bar.fillRoundedRect(172, 1058, 184, 18, 6);
     bar.fillStyle(frac <= 0.35 ? 0xe05a47 : 0x6fcf7f, 1);
-    if (frac > 0) bar.fillRoundedRect(162, 1060, 186 * frac, 14, 5);
+    if (frac > 0) bar.fillRoundedRect(174, 1060, 180 * frac, 14, 5);
     bar.lineStyle(2, UI.bronze, 1);
-    bar.strokeRoundedRect(160, 1058, 190, 18, 6);
+    bar.strokeRoundedRect(172, 1058, 184, 18, 6);
     L.add(bar);
-    L.add(this.add.text(160, 1082, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
+    L.add(this.add.text(172, 1080, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
     L.add(
       this.add
-        .text(350, 1082, unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(15, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a'))
+        .text(356, 1080, unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(15, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a'))
         .setOrigin(1, 0)
     );
 
     // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
     const now = (stat) => unit[stat] + statMod(unit, stat);
-    L.add(this.add.text(30, 1122, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
+    L.add(this.add.text(40, 1120, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
     const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
-    L.add(this.add.text(30, 1148, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
+    L.add(this.add.text(40, 1144, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
     // conditions as small chips
-    let x = 30;
+    let x = 40;
     for (const tag of statusTags(unit)) {
       const t = this.add.text(0, 0, tag.text, textStyle(15, tag.color, { fontStyle: 'bold' }));
       const w = t.width + 14;
       const chip = this.add.graphics();
       chip.fillStyle(UI.ink, 1);
-      chip.fillRoundedRect(x, 1182, w, 26, 6);
+      chip.fillRoundedRect(x, 1172, w, 26, 6);
       chip.lineStyle(1, UI.bronze, 1);
-      chip.strokeRoundedRect(x, 1182, w, 26, 6);
-      t.setPosition(x + 7, 1185);
+      chip.strokeRoundedRect(x, 1172, w, 26, 6);
+      t.setPosition(x + 7, 1175);
       L.add([chip, t]);
       x += w + 6;
     }
     const buff = buffOf(unit);
-    if (buff) L.add(this.add.text(30, 1216, buff.name + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', textStyle(15, buff.color)));
-    if (viewing) L.add(this.add.text(350, 1238, 'viewing', textStyle(14, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0));
+    if (buff) L.add(this.add.text(40, 1204, buff.name + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', textStyle(15, buff.color)));
+    if (viewing) L.add(this.add.text(356, 1222, 'viewing', textStyle(14, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0));
     this.ui(L);
   }
 
@@ -852,15 +882,19 @@ export default class BattleScene extends Phaser.Scene {
     this.turnStripLayer.removeAll(true);
     const lineup = [this.activeUnit, ...previewTurns(this.units, 6)];
 
+    const y = this.stripY;
     lineup.forEach((unit, i) => {
       const now = i === 0;
-      const x = now ? 72 : 158 + (i - 1) * 74;
-      const medal = portraitMedallion(this, x, 108, now ? 34 : 24, unit, portraitKey(unit.id, unit), { active: now });
+      const x = now ? 74 : 156 + (i - 1) * 72;
+      // the unit acting now sits in Suleiman's glowing medal (the drawn medallion without his art)
+      const medal = now
+        ? medalPortrait(this, x, y, 30, unit, portraitKey(unit.id, unit), { active: true })
+        : portraitMedallion(this, x, y, 22, unit, portraitKey(unit.id, unit), { active: false });
       this.turnStripLayer.add(medal);
       if (now) {
         const arrow = this.add.graphics();
         arrow.fillStyle(UI.gold, 1);
-        arrow.fillTriangle(x + 44, 108, x + 54, 100, x + 54, 116);
+        arrow.fillTriangle(x + 50, y, x + 59, y - 8, x + 59, y + 8);
         this.turnStripLayer.add(arrow);
       }
     });
@@ -1027,7 +1061,7 @@ export default class BattleScene extends Phaser.Scene {
     const isHero = unit.side === 'hero';
     const free = isHero && !unit.hasActed;
     const [a, b, c, d] = this.slots;
-    for (const half of this.halves) half.set(null); // only used by fighters with skills (below)
+    for (const half of [...this.halves, ...this.lowHalves]) half.set(null); // half buttons: only in some situations (below)
 
     if (this.battleOver) {
       for (const slot of this.slots) slot.set(null);
@@ -1093,9 +1127,10 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       const left = this.stepsLeft(unit);
       const label = unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
-      a.set(label, 'run', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
+      a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
     }
-    b.set(unit.attackName, unit.attackType === 'magic' ? 'star' : 'sword', free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
+    const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
+    b.set(unit.attackName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
       // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
       c.set(null);
@@ -1114,7 +1149,11 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       c.set(null);
     }
-    d.set('End turn', 'hourglass', isHero, () => this.onEndButton());
+    // Row 4: Items | End turn. Items stay greyed until Phase 5 of the roadmap
+    // (digging through the map's props).
+    d.set(null);
+    this.lowHalves[0].set('Items', 'bag', false, null);
+    this.lowHalves[1].set('End turn', 'hourglass', isHero, () => this.onEndButton());
   }
 
   // Shows a unit's card for a few seconds, when the player taps it.

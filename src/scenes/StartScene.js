@@ -4,7 +4,7 @@ import { startStep } from '../story.js';
 import { preloadArt } from '../art.js';
 import { preloadBoardArt } from '../boardArt.js';
 import { preloadSpellArt } from '../spellArt.js';
-import { createHudTextures } from '../hud.js';
+import { createHudTextures, preloadUiArt } from '../hud.js';
 import { startAudio, play } from '../audio.js';
 
 // The title screen. The game opens here on a dark screen: the title fades in,
@@ -20,6 +20,7 @@ export default class StartScene extends Phaser.Scene {
     preloadArt(this);
     preloadBoardArt(this);
     preloadSpellArt(this); // lightning and Verse effects from the effect sheets
+    preloadUiArt(this); // Suleiman's battle-screen frames, buttons and icons
   }
 
   create() {

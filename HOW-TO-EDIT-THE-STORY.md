@@ -325,3 +325,11 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Sudeen's battle stance** (`art.json`, `h1`, `battle`): from his "battle ready" sheet, shown when a foe is within 3 tiles and in clashes. Down-left is the down-right picture mirrored.
 - **Gaha's facing**: his standing, weak and Stone pictures had up-right and up-left swapped (his face pointed the wrong way). Rule for new pictures: in an up view, his face should point the way he's facing.
 - **Rabdul's size**: `height` 112, like the bull, and his battle-stance pictures cut 20% bigger, because the crouch is drawn so low.
+
+## Phase 2: the battle screen (29 Oct)
+
+- The battle screen uses Suleiman's UI art, cut from his UI COMPONENTS sheets into `public/art/ui`: the draped top bar (`top.png`), the bottom panel (`bottom.png`), the hint bar (`hint.png`), the ring around the card portrait (`ring.png`), the glowing medal for the unit whose turn it is (`medal_glow.png`), the button bars (`bar_*.png` wide, `barS_*.png` half width, each in `normal`, `glow` and `grey`), and his 14 icons (`icon_*.png` round, `glyph_*.png` just the symbol for a button).
+- To change a piece, replace its PNG with one of the same size. The buttons are cut from the bars to whatever size they need, so a new bar can be any size, but the round socket should stay on the left and the woven end on the right.
+- A button glows while its action is in use (for example Move while you pick a tile) and turns grey when it can't be used. Long words shrink to fit before the woven end.
+- Row 4 of a normal turn is now **Items | End turn**. Items stays grey until items arrive (roadmap Phase 5: digging through the map's props).
+- If the UI pictures are missing, the game falls back to the older look drawn in code, so it never breaks.

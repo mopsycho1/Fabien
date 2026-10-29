@@ -1,8 +1,72 @@
 import Phaser from 'phaser';
 import { play } from './audio.js';
 
-// The look of the battle interface: bronze frames, woven cloth bands, icons,
-// round portraits and command buttons. Everything is drawn in code.
+// The look of the battle interface. Since 29 Oct it uses Suleiman's UI art
+// (public/art/ui, cut from his UI COMPONENTS sheets): the textile-draped
+// frames, the button bars in three states, the ring around the portrait and
+// his round icons. If those pictures are missing, the older look drawn in
+// code (bronze frames, woven bands) is used instead.
+
+// ---------- Suleiman's UI art ----------
+
+const UI_FILES = ['top', 'bottom', 'hint', 'ring', 'medal_normal', 'medal_glow', 'medal_grey',
+  'bar_normal', 'bar_glow', 'bar_grey', 'barS_normal', 'barS_glow', 'barS_grey'];
+// his 14 icons: a round medal (for round buttons) and just the symbol (for a button's socket)
+export const UI_ICONS = ['walk', 'sword', 'spear', 'lightning', 'crossed', 'star', 'hourglass',
+  'shield', 'run', 'gem', 'undo', 'redo', 'sound', 'mute'];
+
+export function preloadUiArt(scene) {
+  for (const f of UI_FILES) scene.load.image('ui:' + f, './art/ui/' + f + '.png');
+  for (const f of UI_ICONS) {
+    scene.load.image('ui:icon_' + f, './art/ui/icon_' + f + '.png');
+    scene.load.image('ui:glyph_' + f, './art/ui/glyph_' + f + '.png');
+  }
+}
+
+// True once his frames are loaded (so the battle screen can use them).
+export function hasUiArt(scene) {
+  return scene.textures.exists('ui:top') && scene.textures.exists('ui:bar_normal');
+}
+
+// Our icon names that have one of his pictures (the rest are drawn in code).
+const GLYPH_FOR = { back: 'undo' };
+function glyphKey(scene, name) {
+  const key = 'ui:glyph_' + (GLYPH_FOR[name] || name);
+  return scene.textures.exists(key) ? key : null;
+}
+
+// The button bars: the wide bar for full buttons and the short one for half
+// buttons, cut to the size asked for. The ends keep their shape (the socket
+// for the icon on the left, the woven end on the right) and the leather in
+// the middle stretches. Made once per size and state.
+const BARS = {
+  wide: { left: 160, right: 96, socketX: 85, socketR: 50 },
+  short: { left: 135, right: 52, socketX: 77, socketR: 50 }, // half buttons keep only a sliver of the woven end, so the word fits
+};
+export function barPlate(scene, w, h, state, short) {
+  const kind = short ? 'short' : 'wide';
+  const key = 'ui:plate:' + kind + ':' + state + ':' + w + 'x' + h;
+  if (scene.textures.exists(key)) return key;
+  const src = scene.textures.get('ui:' + (short ? 'barS_' : 'bar_') + state).getSourceImage();
+  const b = BARS[kind];
+  const s = h / src.height;
+  const lw = Math.round(b.left * s);
+  const rw = Math.round(b.right * s);
+  const tex = scene.textures.createCanvas(key, w, h);
+  const c = tex.getContext();
+  c.drawImage(src, 0, 0, b.left, src.height, 0, 0, lw, h);
+  c.drawImage(src, b.left, 0, src.width - b.left - b.right, src.height, lw, 0, w - lw - rw, h);
+  c.drawImage(src, src.width - b.right, 0, b.right, src.height, w - rw, 0, rw, h);
+  tex.refresh();
+  return key;
+}
+
+// Where the icon socket sits on a bar of this height (from its left edge).
+function socketOf(h, short) {
+  const b = BARS[short ? 'short' : 'wide'];
+  const s = h / 145;
+  return { x: b.socketX * s, r: b.socketR * s };
+}
 
 export const UI = {
   leather: 0x1c130c,
@@ -176,6 +240,14 @@ export function drawIcon(g, name, x, y, size, color = UI.bronzeLight) {
       g.fillTriangle(x - 13 * s, y - 4 * s, x - 6 * s, y - 13 * s, x + 6 * s, y - 13 * s);
       g.fillTriangle(x - 13 * s, y - 4 * s, x + 6 * s, y - 13 * s, x + 13 * s, y - 4 * s);
       break;
+    case 'bag':
+      // a pouch tied at the neck (Items)
+      g.fillCircle(x, y + 5 * s, 13 * s);
+      g.fillTriangle(x - 7 * s, y - 6 * s, x + 7 * s, y - 6 * s, x, y + 2 * s);
+      L(-8, -11, 8, -11, 3);
+      g.fillTriangle(x - 9 * s, y - 15 * s, x - 3 * s, y - 11 * s, x - 9 * s, y - 9 * s);
+      g.fillTriangle(x + 9 * s, y - 15 * s, x + 3 * s, y - 11 * s, x + 9 * s, y - 9 * s);
+      break;
     case 'sound':
     case 'mute':
       g.fillRect(x - 14 * s, y - 6 * s, 8 * s, 12 * s);
@@ -254,6 +326,37 @@ export function portraitMedallion(scene, x, y, radius, unit, portraitKey, { acti
   return scene.add.container(0, 0, [ring, img]);
 }
 
+// A round portrait inside Suleiman's ring with tassels (the unit card).
+// Falls back to the drawn medallion without his art.
+export function ringPortrait(scene, x, y, radius, unit, portraitKey, { active = false } = {}) {
+  if (!scene.textures.exists('ui:ring')) return portraitMedallion(scene, x, y, radius, unit, portraitKey, { active });
+  const back = scene.add.graphics();
+  back.fillStyle(unit.side === 'hero' ? UI.hero : UI.enemy, 1);
+  back.fillCircle(x, y, radius + 3);
+  const img = scene.add.image(x, y, roundPortrait(scene, unit, portraitKey, 128)).setDisplaySize(radius * 2, radius * 2);
+  // the ring picture is 169 wide; its hole is about 117 across, centred at (84, 83)
+  const ringScale = (radius * 2 + 8) / 117;
+  const ring = scene.add.image(x, y, 'ui:ring').setOrigin(84 / 169, 83 / 163).setScale(ringScale);
+  return scene.add.container(0, 0, [back, img, ring]);
+}
+
+// A round portrait in his medal frame: glowing for the unit whose turn it is.
+export function medalPortrait(scene, x, y, radius, unit, portraitKey, { active = false } = {}) {
+  const key = active ? 'ui:medal_glow' : 'ui:medal_normal';
+  if (!scene.textures.exists(key)) return portraitMedallion(scene, x, y, radius, unit, portraitKey, { active });
+  const frame = scene.add.image(x, y, key);
+  // the medal's inside is about 0.72 of its width across; the face sits in it
+  frame.setScale((radius * 2) / (frame.width * 0.72));
+  const img = scene.add.image(x, y - radius * 0.04, roundPortrait(scene, unit, portraitKey, 128)).setDisplaySize(radius * 2, radius * 2);
+  return scene.add.container(0, 0, [frame, img]);
+}
+
+// One of his round icons as a picture, or null if it isn't loaded.
+export function iconImage(scene, x, y, name, size) {
+  const key = 'ui:icon_' + name;
+  return scene.textures.exists(key) ? scene.add.image(x, y, key).setDisplaySize(size, size) : null;
+}
+
 // ---------- Command buttons ----------
 
 // A command button: a leather bar with a bronze edge, an icon and a word.
@@ -272,11 +375,24 @@ export class CommandButton {
     this.onTap = null;
     this.accent = UI.bronzeLight;
 
+    // With Suleiman's art: his bar picture (normal, glowing when in use, grey
+    // when it can't be used) and his icon in the socket on the left.
+    this.art = hasUiArt(scene);
     this.bg = scene.add.graphics();
+    this.plate = scene.add.image(x, y, '__DEFAULT').setVisible(false);
     this.icon = scene.add.graphics();
-    this.label = scene.add.text(x - w / 2 + (compact ? 50 : 70), y, '', textStyle(compact ? 23 : 28, '#f1e6c8')).setOrigin(0, 0.5);
+    this.glyph = scene.add.image(x, y, '__DEFAULT').setVisible(false);
+    const sock = socketOf(h, compact);
+    this.socket = sock;
+    const labelX = this.art ? x - w / 2 + sock.x + sock.r + (compact ? 6 : 10) : x - w / 2 + (compact ? 50 : 70);
+    const size = this.art ? Math.round(h * (compact ? 0.38 : 0.44)) : compact ? 23 : 28;
+    this.label = scene.add.text(labelX, y, '', textStyle(size, '#f1e6c8')).setOrigin(0, 0.5);
+    this.labelSize = size;
+    // room for the word: from its start to the woven end of the bar
+    const rightEnd = Math.round(BARS[compact ? 'short' : 'wide'].right * (h / 145));
+    this.labelRoom = x + w / 2 - rightEnd - 6 - labelX;
     this.hit = scene.add.rectangle(x, y, w, h, 0x000000, 0.001).setInteractive({ useHandCursor: true });
-    this.view = scene.add.container(0, 0, [this.bg, this.icon, this.label, this.hit]);
+    this.view = scene.add.container(0, 0, [this.bg, this.plate, this.icon, this.glyph, this.label, this.hit]);
 
     this.hit.on('pointerdown', () => {
       if (!this.enabled || !this.onTap) return;
@@ -303,6 +419,10 @@ export class CommandButton {
   }
 
   draw(hover) {
+    if (this.art) {
+      this.drawArt(hover);
+      return;
+    }
     const { x, y, w, h } = this;
     const g = this.bg;
     g.clear();
@@ -327,6 +447,36 @@ export class CommandButton {
     if (this.iconName) drawIcon(this.icon, this.iconName, ix, y, this.compact ? 23 : 30, on ? this.accent : 0x6a5434);
     this.label.setColor(on ? '#f1e6c8' : '#7a6a52');
     this.view.setAlpha(on ? 1 : 0.7);
+  }
+
+  // The button in Suleiman's style: his bar in the right state, his icon (or
+  // a drawn one where he has none yet), and the word.
+  drawArt(hover) {
+    const { x, y, w, h } = this;
+    const on = this.enabled;
+    const state = this.selected ? 'glow' : on ? 'normal' : 'grey';
+    this.bg.clear();
+    this.plate.setTexture(barPlate(this.scene, w, h, state, this.compact)).setVisible(true);
+    this.plate.setTint(hover && on ? 0xfff0d8 : 0xffffff);
+    const sx = x - w / 2 + this.socket.x;
+    const key = this.iconName && glyphKey(this.scene, this.iconName);
+    this.icon.clear();
+    if (key) {
+      const d = this.socket.r * 1.62;
+      this.glyph.setTexture(key).setPosition(sx, y).setDisplaySize(d, d).setVisible(true).setAlpha(on ? 1 : 0.45);
+    } else {
+      this.glyph.setVisible(false);
+      if (this.iconName) drawIcon(this.icon, this.iconName, sx, y, this.socket.r * 1.3, on ? UI.bronzeLight : 0x6a5434);
+    }
+    this.label.setColor(on ? '#f1e6c8' : '#8a7a62');
+    // a long word gets smaller so it never runs into the woven end
+    let size = this.labelSize;
+    this.label.setFontSize(size);
+    while (this.label.width > this.labelRoom && size > 13) {
+      size -= 1;
+      this.label.setFontSize(size);
+    }
+    this.view.setAlpha(1);
   }
 
   flash() {
