@@ -4,5 +4,13 @@
     "note": "Stunned (Shield Toss, Intercept): the unit loses its next turn. While stunned it cannot dodge, and every hit on it lands as a flank hit for flankDamage extra damage.",
     "flankDamage": 3,
     "canDodge": false
+  },
+  "disoriented": {
+    "note": "Disoriented (Suleiman, 29 Oct): a unit pushed into a wall, higher ground or another unit slams into it. It takes impactDamage, and until the end of its next turn it fights worse (attack, defense and evade lowered by these amounts) and every kind of magic hits it for magicDamage extra.",
+    "impactDamage": 2,
+    "attack": 2,
+    "defense": 2,
+    "evade": 10,
+    "magicDamage": 3
   }
 }

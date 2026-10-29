@@ -15,8 +15,9 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy } from '../combat.js';
-import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes
+import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot } from '../combat.js';
+import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
+import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { lightningStrike, verseAura, speedStreak, slowCast, slowAura } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
@@ -59,7 +60,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -1318,6 +1319,7 @@ export default class BattleScene extends Phaser.Scene {
     this.targetsInRange = this.units.filter(
       (u) =>
         u.alive && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
+        this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u))
     );
@@ -1337,6 +1339,14 @@ export default class BattleScene extends Phaser.Scene {
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
+  }
+
+  // Thrown and shot skills (Spear Throw, Shield Toss, Poison Arrow) need a
+  // clear line to the target: a higher block in the way stops them, unless the
+  // skill pierces ("pierce": true in spells.json). Magic is never stopped.
+  clearShot(user, target, spell) {
+    const missile = ['throw', 'toss', 'poison'].includes(spell.kind) && !spell.pierce;
+    return !missile || hasClearShot(user, target);
   }
 
   // How far a spell or skill reaches from the caster to this target. A Spear
@@ -2591,7 +2601,7 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.spells.includes('shieldToss') && canAfford(unit, 'shieldToss') && getTargetsInRange(unit, seen).length === 0) {
       const reach = spells.shieldToss.range;
       const marks = seen
-        .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && !isStunned(t) && distance(unit, t) >= 2 && distance(unit, t) <= reach)
+        .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && !isStunned(t) && distance(unit, t) >= 2 && distance(unit, t) <= reach && hasClearShot(unit, t))
         .sort((a, b) => isCaster(b) - isCaster(a) || b.attack - a.attack);
       if (marks.length > 0) {
         this.busy = true;
@@ -2709,24 +2719,55 @@ export default class BattleScene extends Phaser.Scene {
       loser.col = path[path.length - 1].col;
       loser.row = path[path.length - 1].row;
     }
-    const fall = levels > 0 ? { levels, damage: levels * terrain.fallDamagePerLevel } : null;
+    let fall = levels > 0 ? { levels, damage: levels * terrain.fallDamagePerLevel } : null;
+    // Pushed into a wall, higher ground or another unit before the push was
+    // used up: it slams into it, takes impact damage and is Disoriented
+    // (Suleiman, 29 Oct; conditions.json). "fall" carries it, so every place
+    // that shows a fall shows the slam too.
+    if (path.length < steps) {
+      const toward = tileToScreen(loser.col + Math.sign(loser.col - winner.col), loser.row + Math.sign(loser.row - winner.row));
+      const here = tileToScreen(loser.col, loser.row);
+      fall = { ...(fall || { levels: 0, damage: 0 }), slam: conditions.disoriented.impactDamage, toward: { x: toward.x - here.x, y: toward.y - here.y } };
+      applyDisoriented(loser, this.activeUnit === loser);
+    }
     if (fall) {
-      loser.hp = Math.max(0, loser.hp - fall.damage);
+      loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
-      else this.interrupt(loser); // a fall breaks a trance or an aim too
+      else this.interrupt(loser); // a fall or a slam breaks a trance or an aim too
     }
     return { path, fall };
   }
 
-  // Shows a fall at the end of a push: a thud, dust, and the damage.
+  // Shows the end of a push: a fall (a thud, dust, and the damage) and/or a
+  // slam into a wall (a jolt toward it and back, Disoriented).
   showFall(unit, fall, awayX) {
     if (!fall || !unit.view || !unit.view.active) return;
-    play('crash');
-    dustPuff(this, unit.view.x, unit.view.y);
-    groundRing(this, unit.view.x, unit.view.y, 0xe8c08a, 1);
-    screenShake(this, 0.006, 160);
-    this.updateHpBar(unit);
-    this.floatText(unit, 'Fall -' + fall.damage, '#ff9a5a', { pop: true, big: fall.damage >= 8 });
+    if (fall.levels > 0) {
+      play('crash');
+      dustPuff(this, unit.view.x, unit.view.y);
+      groundRing(this, unit.view.x, unit.view.y, 0xe8c08a, 1);
+      screenShake(this, 0.006, 160);
+      this.updateHpBar(unit);
+      this.floatText(unit, 'Fall -' + fall.damage, '#ff9a5a', { pop: true, big: fall.damage >= 8 });
+    }
+    if (fall.slam) {
+      const len = Math.hypot(fall.toward.x, fall.toward.y) || 1;
+      const jx = (fall.toward.x / len) * 14;
+      const jy = (fall.toward.y / len) * 14;
+      const delay = fall.levels > 0 ? 380 : 0;
+      this.time.delayedCall(delay, () => {
+        if (!unit.view || !unit.view.active) return;
+        play('bash');
+        this.tweens.add({ targets: unit.sprite, x: jx, y: jy, duration: 70, yoyo: true, ease: 'Quad.easeOut', onComplete: () => unit.sprite && (unit.sprite.y = 0) });
+        dustPuff(this, unit.view.x + jx * 1.6, unit.view.y + jy * 1.6);
+        screenShake(this, 0.005, 140);
+        this.updateHpBar(unit);
+        this.flashUnit(unit);
+        this.floatText(unit, 'Slammed! -' + fall.slam, '#ff9a5a', { pop: true });
+        this.time.delayedCall(420, () => unit.alive && this.floatText(unit, 'Disoriented', '#e3a8ff'));
+        this.refreshStatusTags();
+      });
+    }
     if (unit.hp === 0) this.playDefeat(unit, awayX);
   }
 
@@ -3274,9 +3315,9 @@ export default class BattleScene extends Phaser.Scene {
       const b = this.centerOf(target);
       arrowShot(this, a.x, a.y, b.x, b.y, () => {
         this.showImpact(thrower, target, result, dx, target.hp === 0);
-        if (pushed && pushed.path.length) {
+        if (pushed && (pushed.path.length || pushed.fall)) {
           this.time.delayedCall(120, () => {
-            this.slideAlong(target, pushed.path);
+            if (pushed.path.length) this.slideAlong(target, pushed.path); // (an empty path: it slammed into a wall where it stood)
             this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
           });
         }
@@ -3421,10 +3462,12 @@ export default class BattleScene extends Phaser.Scene {
         this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
         this.refreshStatusTags();
       }
-      if (pushed && pushed.path.length) {
+      if (pushed && (pushed.path.length || pushed.fall)) {
         this.time.delayedCall(140, () => {
-          this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
-          this.slideAlong(target, pushed.path);
+          if (pushed.path.length) {
+            this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
+            this.slideAlong(target, pushed.path);
+          }
           this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
         });
       }
@@ -3525,9 +3568,11 @@ export default class BattleScene extends Phaser.Scene {
     if (target.markedBy === shooter) target.markedBy = null;
     shooter.hasActed = true; // the shot is this turn's action (she may still move)
     this.refreshStatusTags();
-    const why = !target.alive ? null : shooter.engagedWith ? 'Aim broken' : distance(shooter, target) > this.spellReach(shooter, target, spell) ? 'Out of reach' : null;
+    // A marked target that ducked behind a higher block can't be hit (Suleiman, 29 Oct)
+    const why = !target.alive ? null : shooter.engagedWith ? 'Aim broken' : distance(shooter, target) > this.spellReach(shooter, target, spell) ? 'Out of reach' : !this.clearShot(shooter, target, spell) ? 'Blocked' : null;
     if (!target.alive || why) {
       if (why) this.floatText(shooter, why, '#e8d5a8');
+      if (why === 'Blocked') this.floatText(target, 'Behind cover', '#9fd4ff', { rise: 46 });
       this.showStanding(shooter);
       this.time.delayedCall(800, onDone);
       return;

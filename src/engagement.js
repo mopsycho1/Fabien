@@ -179,9 +179,9 @@ export function pushDistance(result) {
   return rules.decisivePush[styleOf(result.winner)] || 1;
 }
 
-// The tiles the loser is pushed through, in order. Straight away from the
-// winner first. If that tile is taken, a tile to either side. It never goes
-// off the board or into a tile someone is standing on (isFree says which are free).
+// The tiles the loser is pushed through, in order, straight away from the
+// winner. It never goes off the board or into a tile someone is standing on
+// (isFree says which are free); it stops at the first tile that isn't free.
 // An empty list means there is nowhere to go, so the loser stays put.
 export function displacementPath(loser, winner, steps, isFree) {
   const dc = Math.sign(loser.col - winner.col);
@@ -196,13 +196,11 @@ export function displacementPath(loser, winner, steps, isFree) {
     row += dr;
     path.push({ col, row });
   }
-  if (path.length > 0) return path;
-
-  // Straight back is blocked: try stepping to the side (at a right angle)
-  for (const [sc, sr] of [[dr, dc], [-dr, -dc]]) {
-    if (isFree(loser.col + sc, loser.row + sr, loser.col, loser.row)) return [{ col: loser.col + sc, row: loser.row + sr }];
-  }
-  return [];
+  // A path shorter than the push means something was in the way: the unit
+  // slams into it (the battle scene makes it Disoriented). There used to be a
+  // sidestep here, but for a diagonal push it stepped straight back toward the
+  // attacker, so enemies looked knocked forward (Suleiman, 29 Oct).
+  return path;
 }
 
 // ---------- Breaking away ----------

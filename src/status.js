@@ -1,5 +1,6 @@
 import spells from './data/spells.json';
 import rules from './data/engagement.json';
+import conditions from './data/conditions.json';
 
 // Short-lived conditions on a unit: being Off-Balance, a helpful spell (a
 // buff, like a Verse), a harmful one (a hex, like Slow), and spells waiting to
@@ -49,6 +50,8 @@ export function statMod(unit, stat) {
   if (buff && buff.boosts && buff.boosts[stat]) mod += buff.boosts[stat];
   const exposed = statusOf(unit).exposed;
   if (exposed && exposed[stat]) mod -= exposed[stat];
+  // slammed into a wall: it fights worse for a moment (conditions.json)
+  if (isDisoriented(unit) && ['attack', 'defense', 'evade'].includes(stat)) mod -= conditions.disoriented[stat];
   return mod;
 }
 
@@ -159,6 +162,21 @@ export function clearStun(unit) {
   statusOf(unit).stunned = false;
 }
 
+// ---------- Disoriented ----------
+
+// Disoriented (Suleiman, 29 Oct): a unit pushed into a wall, higher ground or
+// another unit slams into it. Until the end of its next turn it fights worse
+// (see statMod) and magic hurts it more (combat.js). The numbers are in
+// conditions.json. ownTurn: it happened during the unit's own turn, so the
+// "next turn" is the one after this.
+export function applyDisoriented(unit, ownTurn = false) {
+  statusOf(unit).disoriented = { turnsLeft: ownTurn ? 2 : 1 };
+}
+
+export function isDisoriented(unit) {
+  return !!(unit && unit.status && unit.status.disoriented);
+}
+
 // ---------- Poison ----------
 
 // Poison: a few points of health lost at the start of each of the unit's
@@ -217,6 +235,10 @@ export function tickBuff(unit) {
       status.hex = null;
     }
   }
+  if (status.disoriented) {
+    status.disoriented.turnsLeft -= 1;
+    if (status.disoriented.turnsLeft <= 0) status.disoriented = null;
+  }
   for (const id of Object.keys(status.cooldowns)) {
     status.cooldowns[id] -= 1;
     if (status.cooldowns[id] <= 0) delete status.cooldowns[id];
@@ -244,6 +266,7 @@ export function statusTags(unit) {
   if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a' }); // an archer's Poison Arrow is aimed at it
   if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a' });
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a' });
+  if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff' }); // slammed into a wall
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

@@ -1,4 +1,4 @@
-import { statMod, isStunned } from './status.js';
+import { statMod, isStunned, isDisoriented } from './status.js';
 import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
@@ -27,6 +27,37 @@ export function heightAccuracy(attacker, defender) {
 // How many tiles apart two units are, counting steps up, down, left and right.
 export function distance(a, b) {
   return Math.abs(a.col - b.col) + Math.abs(a.row - b.row);
+}
+
+// ---------- Line of sight (Suleiman, 29 Oct) ----------
+// "Higher blocks should stop all arrows unless the technique has piercing potential."
+// An arrow or a thrown weapon flies in a straight line from chest height to
+// chest height (terrain.json "sightHeight", in levels above each unit's tile).
+// We walk along that line in small steps; if a tile in between has its top at
+// or above the line where the line crosses it, the shot is blocked.
+// Only the ground blocks shots, not other units. Magic is never blocked.
+export function hasClearShot(from, to) {
+  const d = distance(from, to);
+  if (d <= 1) return true; // right next to it: nothing in between
+  const h0 = heightOf(from.col, from.row) + terrain.sightHeight;
+  const h1 = heightOf(to.col, to.row) + terrain.sightHeight;
+  const steps = d * 8;
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    // the point on the line, measured from the middle of the shooter's tile
+    const col = Math.floor(from.col + 0.5 + (to.col - from.col) * t);
+    const row = Math.floor(from.row + 0.5 + (to.row - from.row) * t);
+    if ((col === from.col && row === from.row) || (col === to.col && row === to.row)) continue;
+    if (heightOf(col, row) >= h0 + (h1 - h0) * t) return false;
+  }
+  return true;
+}
+
+// True for units whose normal attack is an arrow (or another missile): they
+// need a clear line to the target once it is not right next to them.
+// Spears (melee) and magic do not.
+export function shootsProjectiles(unit) {
+  return unit.range > 1 && !unit.melee && unit.attackType !== 'magic';
 }
 
 // Chance (in percent) that the attack lands.
@@ -62,7 +93,9 @@ export function getDamage(attacker, defender) {
   const flank = isStunned(defender) ? conditions.stun.flankDamage : 0;
   if (attacker.attackType === 'magic') {
     const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
-    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank;
+    // a Disoriented unit takes extra damage from every kind of magic (conditions.json)
+    const dazed = isDisoriented(defender) ? conditions.disoriented.magicDamage : 0;
+    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank + dazed;
   }
   const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
   return Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank;
@@ -99,12 +132,14 @@ export function getTargetsInRange(attacker, units) {
 }
 
 // True if the attacker can hit this spot from where it stands: within its
-// range, and for a spear ("lineReach" in jobs.json) only in a straight line
-// once it is past the tile next to it.
+// range, for a spear ("lineReach" in jobs.json) only in a straight line once
+// it is past the tile next to it, and for an archer only with a clear shot
+// (no higher block in the way, see hasClearShot).
 export function inReach(attacker, spot) {
   const d = distance(attacker, spot);
   if (d < 1 || d > attacker.range) return false;
   if (attacker.lineReach && d > 1) return attacker.col === spot.col || attacker.row === spot.row;
+  if (shootsProjectiles(attacker) && !hasClearShot(attacker, spot)) return false;
   return true;
 }
 

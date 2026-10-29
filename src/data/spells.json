@@ -132,7 +132,7 @@
     "range": 3,
     "push": 1,
     "cooldown": 3,
-    "text": "Hurl the spear at an enemy up to 3 tiles away, 1 tile further for each level you stand above it. A hit knocks it back a tile (off a ledge, it falls). Ready again after 3 turns.",
+    "text": "Hurl the spear at an enemy up to 3 tiles away, 1 tile further for each level you stand above it. A hit knocks it back a tile (off a ledge, it falls; into a wall, it slams and is Disoriented). A higher block in the way stops the throw. Ready again after 3 turns.",
     "mp": 0,
     "use": "enemy",
     "rangePerLevel": 1
@@ -156,14 +156,14 @@
     "short": "POISON",
     "kind": "poison",
     "color": "#9fdc6a",
-    "range": 2,
+    "range": 5,
     "damageShare": 0.5,
     "poison": 3,
     "turns": 3,
     "cooldown": 3,
     "mp": 0,
     "use": "enemy",
-    "text": "Take aim this turn; the arrow flies at the start of your next turn if the target is still within reach. Half damage, then 3 damage at the start of each of its next 3 turns. Poison never takes the last point of health, and Herbs cures it. Ready again after 3 turns."
+    "text": "Take aim this turn; the arrow flies at the start of your next turn if the target is still within reach and in clear sight (a higher block in the way stops it). Half damage, then 3 damage at the start of each of its next 3 turns. Poison never takes the last point of health, and Herbs cures it. Ready again after 3 turns."
   },
   "intercept": {
     "name": "Intercept",
@@ -190,7 +190,7 @@
     "cooldown": 3,
     "mp": 0,
     "use": "enemy",
-    "text": "Hurl the shield at an enemy up to 3 tiles away: half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
+    "text": "Hurl the shield at an enemy up to 3 tiles away (a higher block in the way stops it): half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
   },
   "doubleHit": {
     "name": "Double Hit",

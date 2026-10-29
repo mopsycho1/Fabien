@@ -316,3 +316,12 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 ## Layra (Oct 27, evening)
 
 - Her front facings now use her level-gaze battle pose, and Meditate shows her kneeling. Her back view still looks a little upward; it needs a new turnaround picture.
+
+## Phase 1 of the roadmap (29 Oct)
+
+- **Line of sight** (`terrain.json`, `sightHeight`): arrows and thrown weapons (bow shots, Poison Arrow, Spear Throw, Shield Toss) fly from chest height to chest height, `sightHeight` levels above each unit's tile. A tile in between whose top reaches that line stops the shot. With 1.5, a block 2 levels higher than both units hides the target; 1 level does not. Magic is never stopped, and a skill with `"pierce": true` in `spells.json` isn't either. A unit marked by a Poison Arrow can duck behind cover: the arrow shows "Blocked".
+- **Wall slam and Disoriented** (`conditions.json`, `disoriented`): a push that runs into a wall, higher ground, the edge of the board or another unit stops there. The unit slams into it, takes `impactDamage` and is Disoriented until the end of its next turn: `attack`, `defense` and `evade` go down by those amounts, and every kind of magic hits it for `magicDamage` extra. This applies to every push (Spear Throw, clashes, Intercept's knockback).
+- **The archer** (`jobs.json`, `ranger`): her bow reaches 5 tiles (`range`), and so does Poison Arrow (`spells.json`). Her AI looks for a tile she can shoot from that is as far as possible from every foe (up to 4 tiles, `KEEP_AWAY` in `enemyAi.js`), so you have to chase her; once someone reaches her and locks her in a clash, she fights with the dagger.
+- **Sudeen's battle stance** (`art.json`, `h1`, `battle`): from his "battle ready" sheet, shown when a foe is within 3 tiles and in clashes. Down-left is the down-right picture mirrored.
+- **Gaha's facing**: his standing, weak and Stone pictures had up-right and up-left swapped (his face pointed the wrong way). Rule for new pictures: in an up view, his face should point the way he's facing.
+- **Rabdul's size**: `height` 112, like the bull, and his battle-stance pictures cut 20% bigger, because the crouch is drawn so low.

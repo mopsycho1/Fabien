@@ -1,6 +1,6 @@
 {
   "h1": {
-    "note": "Sudeen, 7. Placed in the hero Guardian slot (he carries a shield) until the cave fight's cast is set.",
+    "note": "Sudeen, 7. Placed in the hero Guardian slot (he carries a shield) until the cave fight's cast is set. Battle stance (shield up, blade low) from his 29 Oct \"battle ready\" sheet, shown when a foe is within 3 tiles; down-left is the down-right picture mirrored.",
     "height": 88,
     "standing": {
       "downRight": {
@@ -16,14 +16,38 @@
         "originX": 0.493
       }
     },
+    "battle": {
+      "downRight": {
+        "file": "sudeen_battle_downRight.png",
+        "originX": 0.578
+      },
+      "upRight": {
+        "file": "sudeen_battle_upRight.png",
+        "originX": 0.419
+      },
+      "upLeft": {
+        "file": "sudeen_battle_upLeft.png",
+        "originX": 0.476
+      }
+    },
     "poses": {
       "windup": {
         "file": "sudeen_windup.png",
         "originX": 0.604
       },
       "ready": {
-        "file": "sudeen_ready.png",
-        "originX": 0.519
+        "downRight": {
+          "file": "sudeen_battle_downRight.png",
+          "originX": 0.578
+        },
+        "upRight": {
+          "file": "sudeen_battle_upRight.png",
+          "originX": 0.419
+        },
+        "upLeft": {
+          "file": "sudeen_battle_upLeft.png",
+          "originX": 0.476
+        }
       },
       "attack": {
         "file": "sudeen_attack.png",
@@ -107,11 +131,11 @@
       },
       "upLeft": {
         "file": "gaha_stand_upLeft.png",
-        "originX": 0.452
+        "originX": 0.544
       },
       "upRight": {
         "file": "gaha_stand_upRight.png",
-        "originX": 0.544
+        "originX": 0.452
       }
     },
     "battle": {
@@ -144,11 +168,11 @@
         },
         "upLeft": {
           "file": "gaha_stone_upLeft.png",
-          "originX": 0.465
+          "originX": 0.482
         },
         "upRight": {
           "file": "gaha_stone_upRight.png",
-          "originX": 0.482
+          "originX": 0.465
         }
       },
       "fury": {
@@ -162,11 +186,11 @@
         },
         "upLeft": {
           "file": "gaha_stone_upLeft.png",
-          "originX": 0.465
+          "originX": 0.482
         },
         "upRight": {
           "file": "gaha_stone_upRight.png",
-          "originX": 0.482
+          "originX": 0.465
         }
       },
       "swiftness": {
@@ -258,13 +282,14 @@
       },
       "upLeft": {
         "file": "gaha_weak_upLeft.png",
-        "originX": 0.456
+        "originX": 0.56
       },
       "upRight": {
         "file": "gaha_weak_upRight.png",
-        "originX": 0.56
+        "originX": 0.456
       }
-    }
+    },
+    "note_facing": "Up-right and up-left were swapped in the standing, weak and stone pictures (his face pointed the wrong way, so he looked away from the enemy at the start of a battle). Fixed 29 Oct: in each up view his face should point the way he faces."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -589,8 +614,8 @@
     "shout": "tayo_face_angry.png"
   },
   "e4": {
-    "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance.",
-    "height": 100,
+    "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
+    "height": 112,
     "standing": {
       "downLeft": {
         "file": "rabdul_stand_downLeft.png",
@@ -612,74 +637,74 @@
     "battle": {
       "downLeft": {
         "file": "rabdul_battle_downLeft.png",
-        "originX": 0.571
+        "originX": 0.577
       },
       "downRight": {
         "file": "rabdul_battle_downRight.png",
-        "originX": 0.49
+        "originX": 0.492
       },
       "upLeft": {
         "file": "rabdul_battle_upLeft.png",
-        "originX": 0.636
+        "originX": 0.633
       },
       "upRight": {
         "file": "rabdul_battle_upRight.png",
-        "originX": 0.503
+        "originX": 0.5
       }
     },
     "poses": {
       "ready": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.571
+          "originX": 0.577
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.49
+          "originX": 0.492
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
-          "originX": 0.636
+          "originX": 0.633
         },
         "upRight": {
           "file": "rabdul_battle_upRight.png",
-          "originX": 0.503
+          "originX": 0.5
         }
       },
       "windup": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.571
+          "originX": 0.577
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.49
+          "originX": 0.492
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
-          "originX": 0.636
+          "originX": 0.633
         },
         "upRight": {
           "file": "rabdul_battle_upRight.png",
-          "originX": 0.503
+          "originX": 0.5
         }
       },
       "attack": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.571
+          "originX": 0.577
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.49
+          "originX": 0.492
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
-          "originX": 0.636
+          "originX": 0.633
         },
         "upRight": {
           "file": "rabdul_battle_upRight.png",
-          "originX": 0.503
+          "originX": 0.5
         }
       }
     },
