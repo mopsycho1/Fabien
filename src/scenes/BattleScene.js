@@ -19,11 +19,11 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -31,6 +31,7 @@ import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawSc
 import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
 import {
   isMelee,
+  canBeCaught,
   styleOf,
   engageTargets,
   startEngagement,
@@ -60,7 +61,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import mapData from '../data/map.json';     // the height of every tile
@@ -374,17 +375,30 @@ export default class BattleScene extends Phaser.Scene {
     bar.lineStyle(2, UI.bronze, 1);
     bar.strokeRoundedRect(172, 1058, 184, 18, 6);
     L.add(bar);
-    L.add(this.add.text(172, 1080, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
+    // The MP bar (roadmap 3.13): always for units that use magic; for the
+    // others only while a Verse lends them MP, in the Verse's colour.
+    const mpNow = mpShown(unit);
+    if (mpNow) {
+      const mpBar = this.add.graphics();
+      const mpColor = mpNow.lent ? Phaser.Display.Color.HexStringToColor(buffOf(unit).color).color : 0x5aa8ff;
+      mpBar.fillStyle(UI.ink, 1);
+      mpBar.fillRoundedRect(172, 1080, 184, 10, 4);
+      if (mpNow.mp > 0) mpBar.fillStyle(mpColor, 1).fillRoundedRect(173, 1081, 182 * (mpNow.mp / mpNow.max), 8, 3);
+      mpBar.lineStyle(1, UI.bronze, 1).strokeRoundedRect(172, 1080, 184, 10, 4);
+      L.add(mpBar);
+    }
+    const lineY = mpNow ? 1093 : 1080;
+    L.add(this.add.text(172, lineY, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
     L.add(
       this.add
-        .text(356, 1080, unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(15, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a'))
+        .text(356, lineY, unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(15, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a'))
         .setOrigin(1, 0)
     );
 
     // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
     const now = (stat) => unit[stat] + statMod(unit, stat);
     L.add(this.add.text(40, 1120, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
-    const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
+    const mp = mpNow ? '  MP ' + mpNow.mp + '/' + mpNow.max : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
     L.add(this.add.text(40, 1144, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
     // conditions as small chips
@@ -769,6 +783,13 @@ export default class BattleScene extends Phaser.Scene {
       this.updateHpBar(this.activeUnit);
       this.floatText(this.activeUnit, 'Poison -' + poisoned, '#9fdc6a', { pop: true });
     }
+    const burned = tickBurn(this.activeUnit); // so does a burn (Layra's Wildfire)
+    if (burned > 0) {
+      this.updateHpBar(this.activeUnit);
+      const burnt = this.activeUnit;
+      this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
+    }
+    clearRooted(this.activeUnit); // Gaha's planted feet: until his next turn
     if (this.activeUnit.contest) refillPoise(this.activeUnit); // and so does Poise, for fighters
     this.stanceMenu = 'main';
     this.empower = false;
@@ -869,6 +890,8 @@ export default class BattleScene extends Phaser.Scene {
   // Finishes the current turn and starts the next one.
   endTurn() {
     if (this.battleOver) return;
+    // Gaha under a Verse of Stone who didn't move this turn stands his ground
+    if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
@@ -934,11 +957,14 @@ export default class BattleScene extends Phaser.Scene {
       if (usesCloseWeapon(unit, target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
       const hAcc = heightAccuracy(unit, target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
-      const next = chainTarget(unit, target, this.units);
+      const atk = activeMove(unit, 'attack');
+      const fire = atk !== 'attack' && spells[atk].element === 'fire';
+      const next = fire ? null : chainTarget(unit, target, this.units); // fire doesn't jump
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
+      const verse = atk === 'attack' ? '' : spells[atk].push ? ' Knocked back a tile.' : fire ? ' Sets it alight: ' + spells[atk].burn + ' a turn for ' + spells[atk].turns + ' turns.' : '';
       text =
-        target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
-        getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
+        (atk !== 'attack' ? spells[atk].button + ' at ' : '') + target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
+        getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump + verse +
         '\nTap again to attack.';
     } else if (this.mode === 'approach') {
       // The odds from the tile the unit will stand on
@@ -980,7 +1006,8 @@ export default class BattleScene extends Phaser.Scene {
       const spell = spells[this.selectedSpell];
       text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
     } else if (this.mode === 'spell' && (isMelee(unit) || !unit.maxMp)) {
-      text = 'Choose a skill';
+      const lent = mpShown(unit);
+      text = 'Choose a skill' + (lent ? '  (' + lent.mp + ' MP from the ' + buffOf(unit).name + ')' : '');
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose a ' + this.spellGroup : 'Choose a spell') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'throw') {
@@ -992,8 +1019,30 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'charge') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
-      const what = isOffBalance(t) ? 'knocked back ' + sp.push + ' (Off-Balance)' : 'stunned 1 turn';
-      text = 'Charge ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.\nTap again to charge.';
+      const effect = sp.effect || 'lock';
+      const ally = t.engagedWith && t.engagedWith.side === unit.side ? t.engagedWith : null;
+      const what =
+        effect === 'knockback' ? 'knocked back ' + sp.push + ' tiles'
+        : effect === 'stun' ? 'stunned 1 turn'
+        : effect === 'strike' ? 'full force, no clash'
+        : canBeCaught(t) ? 'locked in a clash with you' + (ally ? ', and ' + ally.name + ' is free' : '')
+        : 'too slippery to lock in a clash';
+      text = sp.button + ' at ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.' + (sp.verse ? ' Uses ' + sp.mp + ' MP.' : '') + '\nTap again to charge.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'javelin') {
+      const t = this.pendingTarget;
+      const sp = spells[this.selectedSpell];
+      const plan = this.javelinForm(unit, t, sp);
+      if (plan.form === 'sweep') {
+        text = 'Sonic Javelin: zip to ' + t.name + ' (reeling) and sweep low: ' + Math.round(getDamage(unit, t) * sp.sweepShare) + ' damage.';
+      } else if (plan.form === 'whirl') {
+        text = 'Sonic Javelin: dash in and whirl down on ' + t.name + ': ' + getDamage(unit, t) + ' damage, knocked back a tile.';
+      } else {
+        const hits = this.javelinLine(unit, t, sp).hits;
+        text = hits.length > 1
+          ? 'Sonic Javelin through ' + hits.map((u) => u.name).join(' and ') + ': ' + hits.map((u) => getDamage(unit, u)).join(' and ') + ' damage, each knocked back a tile.'
+          : 'Sonic Javelin at ' + t.name + ': ' + getDamage(unit, t) + ' damage, knocked back a tile.';
+      }
+      text += ' Never misses, ' + sp.mp + ' MP. Tap again.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'double') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
@@ -1014,15 +1063,28 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spellTarget' && this.pendingTarget) {
       const spell = spells[this.selectedSpell];
       const double = affinityTimes(this.pendingTarget, this.selectedSpell) > 1;
+      // what this Verse would change for that unit (roadmap 3.2): a move, or a way of fighting
+      const t = this.pendingTarget;
+      const extras = [];
+      if (spell.kind === 'buff') {
+        for (const m of verseMovesOf(t, this.selectedSpell)) {
+          const base = spells[m].verse.of === 'attack' ? t.attackName : spells[spells[m].verse.of].button;
+          extras.push(base + ' becomes ' + spells[m].button + '.');
+        }
+        for (const key of ['stillGuard', 'freeClimb']) {
+          const e = spell[key];
+          if (e && (!e.jobs || e.jobs.includes(t.job))) extras.push(e.text);
+        }
+      }
       text =
-        spell.name + ' on ' + this.pendingTarget.name + ' (' + useText(spell) + '). Tap again.\n' +
-        (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text;
+        spell.name + ' on ' + t.name + ' (' + useText(spell) + '). Tap again.\n' +
+        (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text + (extras.length ? ' ' + extras.join(' ') : '');
     } else if (this.mode === 'spellTarget' && spells[this.selectedSpell].kind === 'heal') {
       const self = this.targetsInRange.includes(unit);
       text = (self ? 'Tap Herbs again to use them on yourself,\nor tap a green tile to heal an ally.' : 'Tap a green tile to heal an ally.');
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
-      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', double: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', double: 'red', javelin: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -1047,6 +1109,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.statusText.setText(text);
+    this.fitStatus();
     this.refreshButtons();
 
     // The card shows the target being chosen, a unit being looked at, or whoever is acting
@@ -1130,7 +1193,11 @@ export default class BattleScene extends Phaser.Scene {
       a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
     }
     const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
-    b.set(unit.attackName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a });
+    // a Verse can change the attack itself (Layra: Thunderclap under Stone, Wildfire under Fury)
+    const atk = activeMove(unit, 'attack');
+    const atkName = atk !== 'attack' ? spells[atk].button : unit.attackName;
+    const atkAccent = atk !== 'attack' ? Phaser.Display.Color.HexStringToColor(spells[atk].color).color : unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a;
+    b.set(atkName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: atkAccent });
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
       // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
       c.set(null);
@@ -1169,9 +1236,18 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
+  // Long hints (a skill's full description) shrink to stay inside the hint bar.
+  fitStatus() {
+    const t = this.statusText;
+    let size = 22;
+    t.setFontSize(size);
+    while (t.height > 58 && size > 15) t.setFontSize(--size);
+  }
+
   // Shows a short message in the status line, then goes back to normal.
   showMessage(text) {
     this.statusText.setText(text);
+    this.fitStatus();
     this.time.delayedCall(1200, () => this.refreshStatus());
   }
 
@@ -1232,9 +1308,12 @@ export default class BattleScene extends Phaser.Scene {
   // The buttons in the spell menu. Spells that share a "group" in spells.json
   // (like the three Verses) sit behind one button that opens them.
   spellMenu(unit) {
-    const entry = (id) => {
+    // While a Verse is on the unit, a move it changes shows as the changed move
+    // (Intercept as Shield Ram, Spear Throw as Sonic Javelin): roadmap 3.2
+    const entry = (baseId) => {
+      const id = activeMove(unit, baseId);
       const spell = spells[id];
-      const wait = cooldownOf(unit, id);
+      const wait = spell.verse ? 0 : cooldownOf(unit, id);
       return {
         label: spell.button + (wait ? '  (' + wait + ')' : spell.mp ? '  ' + spell.mp + ' MP' : ''),
         enabled: canAfford(unit, id) && !this.busy,
@@ -1243,7 +1322,7 @@ export default class BattleScene extends Phaser.Scene {
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
       };
     };
-    if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map(entry);
+    if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map((id) => entry(id));
 
     const list = [];
     const seen = new Set();
@@ -1310,7 +1389,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     // Herbs tapped a second time: use it on yourself (tap an ally's tile to heal them instead)
     if (spell.kind === 'heal' && this.selectedSpell === id && this.mode === 'spellTarget') {
-      if (unit.hp < unit.maxHp || isPoisoned(unit)) {
+      if (unit.hp < unit.maxHp || isPoisoned(unit) || isBurning(unit)) {
         this.pendingTarget = unit;
         this.confirmSpell();
       } else {
@@ -1353,14 +1432,14 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double'].includes(spell.kind);
+    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
         u.alive && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
-        (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u))
+        (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u))
     );
     if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
       this.showMessage('Nobody next to you needs healing');
@@ -1374,7 +1453,7 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'double'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
+    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'double', 'javelin'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.refreshOutlines();
     this.refreshStatus();
@@ -1647,7 +1726,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'move';
-    const tiles = getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
+    const tiles = getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
     this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
     this.showHighlights(tiles, 0x4aa3ff);
     play('select');
@@ -1662,7 +1741,7 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.busy = true;
 
-    let path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
+    let path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
     if (path.length === 0) path = [{ col, row }];
 
     // Undo move goes back to where it stood at the start of the turn
@@ -1689,9 +1768,13 @@ export default class BattleScene extends Phaser.Scene {
           this.faceToward(unit, p.x - fromPoint.x, p.y - fromPoint.y);
           const fromDepth = fromTile ? depthFor(fromTile.col, fromTile.row) : unit.view.depth - 1;
           unit.view.setDepth(Math.max(fromDepth, depthFor(tile.col, tile.row)) + 1);
-          this.tweens.add({ targets: unit.idleTargets, y: '-=9', duration: 75, yoyo: true, ease: 'Sine.easeOut' });
+          // a little hop each step; a big leap when Layra hops up to a high spot under Swiftness
+          const climb = fromTile ? getHeight(tile.col, tile.row) - getHeight(fromTile.col, fromTile.row) : 0;
+          const leap = climb > terrain.climbLimit;
+          this.tweens.add({ targets: unit.idleTargets, y: leap ? '-=38' : '-=9', duration: leap ? 120 : 75, yoyo: true, ease: 'Sine.easeOut' });
           const buff = buffOf(unit);
-          if (buff && buff.id === 'swiftness') speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x); // wind trails under Swiftness
+          // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
+          if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
           play('step');
         },
       };
@@ -1725,7 +1808,7 @@ export default class BattleScene extends Phaser.Scene {
   // stands now, or anywhere it can still walk to, within its attack range.
   approachTiles(unit, target) {
     const here = { col: unit.col, row: unit.row };
-    const spots = [here, ...getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r))];
+    const spots = [here, ...getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit))];
     return spots.filter((t) => {
       return inReach({ ...unit, col: t.col, row: t.row }, target);
     });
@@ -1786,7 +1869,7 @@ export default class BattleScene extends Phaser.Scene {
     this.showHighlights(a.options, 0x4aa3ff, { alpha: 0.38 });
     this.showHighlights([a.tile], 0xffd27a, { keep: true, alpha: 0.7 });
     this.showHighlights([{ col: a.target.col, row: a.target.row }], 0xe05a47, { keep: true, alpha: 0.5 });
-    const path = getPath(unit.col, unit.row, a.tile.col, a.tile.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r));
+    const path = getPath(unit.col, unit.row, a.tile.col, a.tile.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
     for (const step of path.slice(0, -1)) {
       const p = tileToScreen(step.col, step.row);
       const dot = this.add.circle(p.x, p.y, 6, 0xffd27a, 0.9).setDepth(depthFor(step.col, step.row) + 0.6);
@@ -1936,6 +2019,10 @@ export default class BattleScene extends Phaser.Scene {
   performAttack(attacker, target, onDone) {
     attacker.hasActed = true;
     const result = rollAttack(attacker, target);
+    // a Verse may have changed the attack (Layra: Thunderclap, Wildfire; roadmap 3.7 and 3.9)
+    const moveId = activeMove(attacker, 'attack');
+    const variant = moveId !== 'attack' && !target.isDecoy ? spells[moveId] : null;
+    const fire = !!variant && variant.element === 'fire';
 
     // The numbers change right away. The pictures and effects catch up a
     // moment later, when the blow lands (see playAttack and showImpact).
@@ -1950,10 +2037,33 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
     const lethal = result.hit && target.hp === 0;
+    let pushed = null;
+    if (variant && result.hit && target.alive) {
+      if (fire) applyBurn(target, moveId); // Wildfire: it burns for a few turns
+      if (variant.push) {
+        pushed = this.pushLoser(target, attacker, variant.push); // Thunderclap: knocked a tile back
+        if (target.engagedWith && distance(target, target.engagedWith) > 1) {
+          endDuel(target);
+          this.refreshEngagementMarks();
+        }
+      }
+    }
+    const playPush = () => {
+      if (pushed && (pushed.path.length || pushed.fall)) {
+        this.time.delayedCall(420, () => {
+          if (pushed.path.length) {
+            this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
+            this.slideAlong(target, pushed.path);
+          }
+          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, target.view.x - attacker.view.x));
+        });
+      }
+      if (fire && result.hit && target.alive) this.time.delayedCall(520, () => { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
+    };
 
     // Lightning jumps to a second enemy near the first, if the first bolt hit
     let jump = null;
-    if (result.hit && attacker.chain) {
+    if (result.hit && attacker.chain && !fire) { // fire doesn't jump
       const next = chainTarget(attacker, target, this.units);
       if (next) {
         const hit = Math.random() * 100 < getHitChance(attacker, next);
@@ -2031,17 +2141,18 @@ export default class BattleScene extends Phaser.Scene {
     if (lethal) {
       this.beginCinematic();
       this.cutIn(attacker, 'FINISHING BLOW', () => {
-        this.playAttack(attacker, target, result, true);
+        this.playAttack(attacker, target, result, true, variant);
         playJump();
         playEcho();
         if (echo) this.time.delayedCall(500, finish);
         else finish();
       });
     } else {
-      this.playAttack(attacker, target, result, false);
+      this.playAttack(attacker, target, result, false, variant);
       playJump();
       playEcho();
-      const extra = (jump ? 450 : 0) + (echo ? 600 : 0);
+      playPush();
+      const extra = (jump ? 450 : 0) + (echo ? 600 : 0) + (pushed && pushed.path.length ? 500 : 0);
       if (extra) this.time.delayedCall(extra, finish);
       else finish();
     }
@@ -2051,6 +2162,7 @@ export default class BattleScene extends Phaser.Scene {
   // it (and builds up its stacks). Returns { damage, note }.
   // A hit that does damage also breaks a Sage's meditation and an archer's aim.
   landHit(target, damage) {
+    if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
     if (landed.damage > 0) this.interrupt(target);
     return landed;
@@ -2206,7 +2318,8 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Plays an attack. Close fighters lunge into the target. Archers loose an arrow.
-  playAttack(attacker, target, result, lethal = false) {
+  // variant: a Verse-changed attack from spells.json (Wildfire throws fire).
+  playAttack(attacker, target, result, lethal = false, variant = null) {
     const from = { x: attacker.view.x, y: attacker.view.y };
     const dx = target.view.x - from.x;
     const dy = target.view.y - from.y;
@@ -2223,6 +2336,22 @@ export default class BattleScene extends Phaser.Scene {
     // striking a Husk decoy bursts it instead of hurting anyone
     const impact = target.isDecoy ? () => this.popDecoy(target.decoy) : () => this.showImpact(attacker, target, result, dx, lethal);
     if (lethal) this.focusCamera((attacker.view.x + target.view.x) / 2, (attacker.view.y + target.view.y) / 2 - 50, 1.35, 220);
+
+    if (style === 'spark' && variant && variant.element === 'fire') {
+      // Wildfire: a ball of fire, and flames burst up where it lands
+      const start = this.centerOf(attacker);
+      const end = this.centerOf(target);
+      this.time.delayedCall(120, () => {
+        play('whoosh');
+        fireball(this, start.x, start.y - 20, end.x, end.y, () => {
+          if (!target.isDecoy) flameBurst(this, target.view.x, target.view.y);
+          play('crash');
+          impact();
+        });
+      });
+      this.time.delayedCall(560, () => this.showStanding(attacker));
+      return;
+    }
 
     if (style === 'spark') {
       const start = this.centerOf(attacker);
@@ -2743,6 +2872,11 @@ export default class BattleScene extends Phaser.Scene {
   //   - every level it drops on the way costs fallDamagePerLevel health
   // Changes the loser's tile and health straight away; returns what happened.
   pushLoser(loser, winner, steps) {
+    if (isRooted(loser) && steps > 0) {
+      // Gaha standing his ground under Stone: nothing moves him
+      this.time.delayedCall(420, () => loser.alive && this.floatText(loser, 'Rooted!', '#d9b77a', { rise: 46 }));
+      return { path: [], fall: null, held: true };
+    }
     steps = Math.max(0, steps - pushResist(loser)); // Bulwark: a warden in Guard is hard to move
     if (steps === 0) return { path: [], fall: null, held: true };
     const isFree = (c, r, fc, fr) =>
@@ -3271,6 +3405,12 @@ export default class BattleScene extends Phaser.Scene {
     this.castSpell(caster, target, id, () => {
       this.busy = false;
       this.refreshStatus();
+      // Intercept locked it in a clash: in the stance duel its turn is over
+      if (caster.engagedWith && isStanceDuel() && caster.alive) {
+        this.time.delayedCall(250, () => {
+          if (!this.battleOver && this.activeUnit === caster) this.endTurn();
+        });
+      }
     });
   }
 
@@ -3285,6 +3425,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
+    if (spell.kind === 'javelin') return this.castSonicJavelin(caster, target, spell, onDone);
     if (spell.kind === 'double') return this.castDoubleHit(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
@@ -3296,6 +3437,8 @@ export default class BattleScene extends Phaser.Scene {
     if (echoed) caster.echoReady = false;
     if (spell.kind === 'hex') applySlow(target, id, power);
     else applyBuff(target, id, power);
+    // the moves this Verse changes, to announce them (Sonic Javelin, Shield Ram, ...)
+    const changed = spell.kind === 'buff' ? [...(target.spells || []), 'attack'].map((m) => activeMove(target, m)).filter((m) => spells[m] && spells[m].verse) : [];
     this.refreshButtons();
     if (echoed) {
       const decoy = this.decoys.find((d) => d.owner === caster);
@@ -3320,6 +3463,7 @@ export default class BattleScene extends Phaser.Scene {
       if (spell.kind === 'buff' && !target.engagedWith) this.showStanding(target); // some units look different under a Verse
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });
+    changed.forEach((m, i) => this.time.delayedCall(700 + i * 380, () => target.alive && this.floatText(target, spells[m].button + '!', spells[m].color, { pop: true })));
     this.time.delayedCall(800, () => this.showStanding(caster));
     this.time.delayedCall(950, onDone);
   }
@@ -3382,13 +3526,14 @@ export default class BattleScene extends Phaser.Scene {
   // Where Intercept's charge ends: a free tile right next to the target that
   // the user can run to within the skill's range (or where it already stands).
   // Returns { col, row, path } or null.
-  chargeTile(user, target, spell) {
+  chargeTile(user, target, spell, range = spell.range) {
     const blocked = (c, r) => this.isBlocked(c, r);
-    const options = [{ col: user.col, row: user.row }, ...getReachableTiles(user.col, user.row, spell.range, blocked)];
+    const rules = { climb: moveRules(user).climb }; // a charge climbs like a walk (no flying)
+    const options = [{ col: user.col, row: user.row }, ...getReachableTiles(user.col, user.row, range, blocked, rules)];
     let best = null;
     for (const t of options) {
       if (distance(t, target) !== 1) continue;
-      const path = t.col === user.col && t.row === user.row ? [] : getPath(user.col, user.row, t.col, t.row, spell.range, blocked);
+      const path = t.col === user.col && t.row === user.row ? [] : getPath(user.col, user.row, t.col, t.row, range, blocked, rules);
       if (!best || path.length < best.path.length) best = { col: t.col, row: t.row, path };
     }
     return best;
@@ -3449,16 +3594,23 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  // Intercept: a charge across the field, shield first. The slam always lands:
-  // half damage, and the target is stunned for a turn, or knocked back if it
-  // was Off-Balance. The charge uses up the rest of the unit's steps.
+  // Intercept and the moves a Verse turns it into (roadmap 3.1 to 3.5): a
+  // charge across the field, shield first. The slam always lands, for a share
+  // of a normal blow, and then what happens depends on "effect" in spells.json:
+  //   lock      : Intercept. The target is locked in a clash with the charger.
+  //               If it was clashing with an ally, the charger takes over and
+  //               the ally is free.
+  //   knockback : Shield Ram (Stone). Shoved "push" tiles back (wall slam rule).
+  //   strike    : Fury Charge (Fury). Just the hit, at full strength.
+  //   stun      : Blitz (Swiftness). Stunned for a turn.
+  // The charge uses up the rest of the unit's steps.
   castIntercept(charger, target, spell, onDone) {
     const spot = this.chargeTile(charger, target, spell);
     if (!spot) {
       onDone();
       return;
     }
-    const knock = isOffBalance(target);
+    const effect = spell.effect || 'lock';
     charger.col = spot.col;
     charger.row = spot.row;
     charger.hasMoved = true;
@@ -3466,14 +3618,23 @@ export default class BattleScene extends Phaser.Scene {
     const landed = this.landHit(target, this.skillHit(charger, target, spell));
     target.hp = Math.max(0, target.hp - landed.damage);
     let pushed = null;
+    let locked = false;
+    let freed = null;
     if (target.hp === 0) this.defeat(target);
-    else if (knock) {
-      pushed = this.pushLoser(target, charger, spell.push);
-      if (target.engagedWith && distance(target, target.engagedWith) > 1) {
+    else if (effect === 'knockback') {
+      pushed = this.pushLoser(target, charger, spell.push || 2);
+      if (target.engagedWith && distance(target, target.engagedWith) > 1) endDuel(target);
+    } else if (effect === 'stun') {
+      applyStun(target);
+    } else if (effect === 'lock' && canBeCaught(target) && !charger.engagedWith) {
+      if (target.engagedWith) {
+        freed = target.engagedWith; // an ally was clashing with it: Sudeen takes over
         endDuel(target);
-        this.refreshEngagementMarks();
       }
-    } else applyStun(target);
+      if (isStanceDuel()) startDuel(charger, target);
+      else startEngagement(charger, target);
+      locked = true;
+    }
     const outcome = this.checkBattleEnd();
     if (outcome) this.battleOver = true;
     this.refreshButtons();
@@ -3498,10 +3659,23 @@ export default class BattleScene extends Phaser.Scene {
       const dx = target.view.x - charger.view.x;
       this.faceToward(charger, dx, target.view.y - charger.view.y);
       this.showPose(charger, 'attack', dx);
-      screenShake(this, 0.006, 160);
+      screenShake(this, effect === 'strike' ? 0.009 : 0.006, 160);
+      if (effect === 'strike') this.cameraPunch(2);
       this.showImpact(charger, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
-      if (target.alive && !knock) {
+      if (target.alive && effect === 'stun') {
         this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
+        this.refreshStatusTags();
+      }
+      if (target.alive && locked) {
+        clashFlash(this, (charger.view.x + target.view.x) / 2, (charger.view.y + target.view.y) / 2 - target.centerY);
+        play('clash');
+        this.floatText(target, 'Locked in!', '#ffb35c', { rise: 46 });
+        if (freed && freed.alive) {
+          this.time.delayedCall(300, () => this.floatText(freed, 'Free!', '#9fd4ff', { pop: true }));
+          this.faceNearestOpponent(freed);
+          this.showStanding(freed);
+        }
+        this.refreshEngagementMarks();
         this.refreshStatusTags();
       }
       if (pushed && (pushed.path.length || pushed.fall)) {
@@ -3515,7 +3689,14 @@ export default class BattleScene extends Phaser.Scene {
       }
       this.time.delayedCall(600, () => {
         charger.view.setDepth(depthFor(charger.col, charger.row) + 1);
-        if (charger.alive) this.showStanding(charger);
+        if (charger.alive) {
+          this.faceNearestOpponent(charger);
+          this.showStanding(charger);
+        }
+        if (target.alive && locked) {
+          this.faceNearestOpponent(target);
+          this.showStanding(target);
+        }
       });
       this.time.delayedCall(1300, () => {
         if (outcome) {
@@ -3526,6 +3707,256 @@ export default class BattleScene extends Phaser.Scene {
     };
     if (steps.length === 0) slam();
     else this.tweens.chain({ targets: charger.view, tweens: steps, onComplete: slam });
+  }
+
+  // ---------- Sonic Javelin (Gaha under a Verse of Swiftness, roadmap 3.6 and 3.11) ----------
+  // Three forms, one per row of Suleiman's sheet, picked by where the foe is:
+  //   sweep : a foe that is Off-Balance or Disoriented (it was just knocked
+  //           about): he zips next to it and sweeps low with a burst of earth,
+  //           "sweepShare" times a normal blow
+  //   whirl : "closeRange" tiles or closer: he dashes in and brings the spear
+  //           down in a whirl; it is knocked back a tile
+  //   throw : further: the javelin breaks the sound barrier and hits every
+  //           enemy in its line (up to its reach), each knocked back a tile
+  // It never misses, and higher blocks don't stop it (it pierces).
+
+  // Which form it takes against this target: { form, spot } (spot = where he ends up).
+  javelinForm(user, target, spell) {
+    if (isOffBalance(target) || isDisoriented(target)) {
+      const spot = this.sweepSpot(user, target);
+      if (spot) return { form: 'sweep', spot };
+    }
+    if (distance(user, target) <= spell.closeRange) {
+      const spot = this.chargeTile(user, target, spell, spell.closeRange);
+      if (spot) return { form: 'whirl', spot };
+    }
+    return { form: 'throw' };
+  }
+
+  // A free tile next to the target to zip to (the one nearest him), or null.
+  sweepSpot(user, target) {
+    if (distance(user, target) === 1) return { col: user.col, row: user.row, path: [] };
+    let best = null;
+    for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const t = { col: target.col + dc, row: target.row + dr };
+      if (!isInsideGrid(t.col, t.row) || this.isBlocked(t.col, t.row)) continue;
+      if (!best || distance(user, t) < distance(user, best)) best = t;
+    }
+    return best ? { ...best, path: [] } : null;
+  }
+
+  // The tiles the thrown javelin flies over, from the thrower through the
+  // target to the end of its reach, and the enemies on them (nearest first).
+  javelinLine(user, target, spell) {
+    const reach = this.spellReach(user, target, spell);
+    const dc = target.col - user.col;
+    const dr = target.row - user.row;
+    const len = Math.hypot(dc, dr) || 1;
+    const tiles = [];
+    const seen = new Set([user.col + ',' + user.row]);
+    for (let t = 0.05; t < reach + 1; t += 0.05) {
+      const col = Math.round(user.col + (dc / len) * t);
+      const row = Math.round(user.row + (dr / len) * t);
+      if (!isInsideGrid(col, row) || distance(user, { col, row }) > reach) break;
+      const key = col + ',' + row;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      tiles.push({ col, row });
+    }
+    const hits = [];
+    for (const tile of tiles) {
+      const u = this.getUnitAt(tile.col, tile.row);
+      if (u && u.side !== user.side) hits.push(u);
+    }
+    return { tiles, hits };
+  }
+
+  // Plays a move from art.json "moves" picture by picture, facing dx. "at"
+  // runs things on given pictures ({ 3: fn }). Returns how long it takes in ms
+  // (0 if the unit has no such move, and nothing happens).
+  playMove(unit, move, dx, { from = 0, to, at = {} } = {}) {
+    const m = moveFrames(unit.id, move, dx >= 0 ? 'right' : 'left');
+    if (!m) return 0;
+    const frames = m.frames.slice(from, to);
+    frames.forEach((f, i) =>
+      this.time.delayedCall(i * m.frameMs, () => {
+        if (unit.alive) this.showFrame(unit, f);
+        if (at[i]) at[i]();
+      })
+    );
+    return frames.length * m.frameMs;
+  }
+
+  castSonicJavelin(user, target, spell, onDone) {
+    const plan = this.javelinForm(user, target, spell);
+    const results = []; // { unit, damage, note, pushed }
+    const strike = (u, damage, push) => {
+      const landed = this.landHit(u, damage);
+      u.hp = Math.max(0, u.hp - landed.damage);
+      let pushed = null;
+      if (u.hp === 0) this.defeat(u);
+      else if (push) {
+        pushed = this.pushLoser(u, user, push);
+        if (u.engagedWith && distance(u, u.engagedWith) > 1) endDuel(u);
+      }
+      results.push({ unit: u, damage: landed.damage, note: landed.note, pushed });
+    };
+
+    let line = null;
+    if (plan.form === 'throw') {
+      line = this.javelinLine(user, target, spell);
+      // push the far ones first, so the near ones have room to be shoved back
+      const order = [...line.hits].reverse();
+      for (const u of order) strike(u, getDamage(user, u), spell.push || 1);
+      results.reverse(); // back to nearest first, for the animation
+    } else {
+      user.col = plan.spot.col;
+      user.row = plan.spot.row;
+      user.hasMoved = true;
+      user.stepsUsed = Infinity;
+      if (plan.form === 'whirl') strike(target, getDamage(user, target), spell.push || 1);
+      else strike(target, Math.max(1, Math.round(getDamage(user, target) * spell.sweepShare)), 0);
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+
+    const art = hasSonicArt(this);
+    const scale = user.artScale || 0.5;
+    const showHit = (r, dx) => {
+      this.showImpact(user, r.unit, { hit: true, damage: r.damage, note: r.note }, dx, r.unit.hp === 0);
+      const pushed = r.pushed;
+      if (pushed && (pushed.path.length || pushed.fall)) {
+        this.time.delayedCall(160, () => {
+          if (pushed.path.length) this.slideAlong(r.unit, pushed.path);
+          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(r.unit, pushed.fall, dx));
+        });
+      }
+    };
+    const finish = (ms) => {
+      this.time.delayedCall(ms, () => {
+        if (user.alive) {
+          user.view.setDepth(depthFor(user.col, user.row) + 1);
+          this.faceNearestOpponent(user);
+          this.showStanding(user);
+        }
+      });
+      this.time.delayedCall(ms + 700, () => {
+        if (outcome) {
+          this.busy = false;
+          this.showResult(outcome);
+        } else onDone();
+      });
+    };
+
+    if (plan.form === 'throw') {
+      const dx = target.view.x - user.view.x;
+      this.faceToward(user, dx, target.view.y - user.view.y);
+      const a = this.centerOf(user);
+      const endTile = line.tiles[line.tiles.length - 1];
+      const endP = tileToScreen(endTile.col, endTile.row);
+      const end = { x: endP.x, y: endP.y - user.centerY };
+      const flight = 70 * line.tiles.length;
+      const release = () => {
+        play('whoosh');
+        screenShake(this, 0.004, 120);
+        const angle = Math.atan2(end.y - a.y, end.x - a.x);
+        if (art) sonicSpear(this, a.x, a.y, end.x, end.y, scale, flight, () => sonicImpact(this, endP.x, endP.y, scale, end.x < a.x));
+        else arrowShot(this, a.x, a.y, end.x, end.y, () => {});
+        // each enemy in the line is hit as the javelin passes it
+        const total = Math.hypot(end.x - a.x, end.y - a.y) || 1;
+        for (const r of results) {
+          const b = this.centerOf(r.unit);
+          const when = (flight * Math.hypot(b.x - a.x, b.y - a.y)) / total;
+          this.time.delayedCall(when, () => {
+            if (art) sonicRing(this, b.x, b.y, angle, scale);
+            showHit(r, dx);
+          });
+        }
+      };
+      const ms = this.playMove(user, 'sonicThrow', dx, { at: { 3: release } });
+      if (!ms) {
+        this.showPose(user, 'throw', dx);
+        this.time.delayedCall(220, () => {
+          this.showPose(user, 'attack', dx);
+          release();
+        });
+      }
+      finish(Math.max(ms, 300) + flight + 200);
+      return;
+    }
+
+    const dx0 = target.view.x - user.view.x;
+    if (plan.form === 'whirl') {
+      // dash in (the running pictures), then raise the spear and whirl it down
+      const path = plan.spot.path;
+      play('whoosh');
+      const dashFrames = moveFrames(user.id, 'sonicWhirl', dx0 >= 0 ? 'right' : 'left');
+      const tweens = path.map((tile, i) => {
+        const p = tileToScreen(tile.col, tile.row);
+        return {
+          x: p.x,
+          y: p.y,
+          duration: 85,
+          onStart: () => {
+            user.view.setDepth(depthFor(tile.col, tile.row) + 1);
+            this.afterimage(user);
+            if (dashFrames) this.showFrame(user, dashFrames.frames[i % 3]);
+            else this.showPose(user, 'dodge', target.view.x - p.x);
+          },
+        };
+      });
+      const whirl = () => {
+        const dx = target.view.x - user.view.x;
+        this.faceToward(user, dx, target.view.y - user.view.y);
+        const r = results[0];
+        const ms = this.playMove(user, 'sonicWhirl', dx, {
+          from: 3,
+          at: { 2: () => { play('hit'); screenShake(this, 0.007, 160); showHit(r, dx); } },
+        });
+        if (!ms) {
+          this.showPose(user, 'attack', dx);
+          showHit(r, dx);
+        }
+        finish(Math.max(ms, 300) + 350);
+      };
+      if (tweens.length) this.tweens.chain({ targets: user.view, tweens, onComplete: whirl });
+      else whirl();
+      return;
+    }
+
+    // sweep: vanish, appear next to the reeling foe, sweep low, earth bursts up
+    const from = { x: user.view.x, y: user.view.y };
+    this.afterimage(user);
+    swiftTrail(this, from.x, from.y, dx0);
+    play('whoosh');
+    this.tweens.add({
+      targets: user.view,
+      alpha: 0,
+      duration: 90,
+      onComplete: () => {
+        const p = tileToScreen(user.col, user.row);
+        user.view.setPosition(p.x, p.y);
+        user.view.setDepth(depthFor(user.col, user.row) + 1);
+        const dx = target.view.x - p.x || dx0;
+        this.faceToward(user, dx, target.view.y - p.y);
+        this.tweens.add({ targets: user.view, alpha: 1, duration: 80 });
+        const r = results[0];
+        const burst = () => {
+          play('crash');
+          screenShake(this, 0.008, 180);
+          if (art) earthBurst(this, target.view.x, target.view.y, scale, dx < 0);
+          else dustPuff(this, target.view.x, target.view.y);
+          showHit(r, dx);
+        };
+        const ms = this.playMove(user, 'sonicSweep', dx, { at: { 1: burst } });
+        if (!ms) {
+          this.showPose(user, 'attack', dx);
+          burst();
+        }
+        finish(Math.max(ms, 300) + 300);
+      },
+    });
   }
 
   // Double Hit: both heads of the spear, one after the other. Each strike
@@ -3671,8 +4102,9 @@ export default class BattleScene extends Phaser.Scene {
   castHeal(healer, target, spell, onDone) {
     const amount = Math.min(spell.heal, target.maxHp - target.hp);
     target.hp += amount;
-    const cured = isPoisoned(target);
+    const cured = isPoisoned(target) || isBurning(target);
     curePoison(target); // the herbs draw out poison too
+    cureBurn(target);   // and put out a burn
     if (cured) this.time.delayedCall(350, () => this.floatText(target, 'Cured', '#9fdc6a', { rise: 46 }));
     this.refreshStatusTags();
     this.updateHpBar(target);
@@ -3962,6 +4394,20 @@ export default class BattleScene extends Phaser.Scene {
       if (!slowed && unit.slowAura) {
         for (const o of unit.slowAura) o.destroy();
         unit.slowAura = null;
+      }
+      // under Swiftness, wind and feathers swirl at its feet (roadmap 3.10)
+      const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness';
+      if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
+      if (!swift && unit.swiftAura) {
+        for (const o of unit.swiftAura) o.destroy();
+        unit.swiftAura = null;
+      }
+      // a burning unit gives off embers
+      const burning = unit.alive && isBurning(unit);
+      if (burning && !unit.burnAura) unit.burnAura = burnAura(this, unit);
+      if (!burning && unit.burnAura) {
+        for (const o of unit.burnAura) o.destroy();
+        unit.burnAura = null;
       }
     }
   }

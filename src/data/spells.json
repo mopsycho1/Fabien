@@ -25,6 +25,12 @@
       ],
       "times": 2,
       "who": "a scout or spearman"
+    },
+    "freeClimb": {
+      "jobs": [
+        "sage"
+      ],
+      "text": "A Sage (Layra) hops from one high spot to another: her moves ignore height, and she flies over anyone in her way."
     }
   },
   "stone": {
@@ -52,6 +58,14 @@
       ],
       "times": 2,
       "who": "a shield-bearer"
+    },
+    "stillGuard": {
+      "jobs": [
+        "spearman"
+      ],
+      "damageTaken": 0.5,
+      "unpushable": true,
+      "text": "A spearman (Gaha) who doesn't move on his turn plants his feet: half damage, and nothing can push him, until his next turn."
     }
   },
   "fury": {
@@ -146,7 +160,7 @@
     "range": 1,
     "heal": 10,
     "cooldown": 3,
-    "text": "Press healing herbs on yourself or an ally next to you: +10 health, and it cures poison. Ready again after 3 turns.",
+    "text": "Press healing herbs on yourself or an ally next to you: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns.",
     "mp": 0,
     "use": "ally"
   },
@@ -173,11 +187,11 @@
     "color": "#ffd27a",
     "range": 4,
     "damageShare": 0.5,
-    "push": 2,
     "cooldown": 3,
     "mp": 0,
     "use": "enemy",
-    "text": "Charge up to 4 tiles to an enemy and slam it with the shield: half damage, and it is stunned for a turn. If it is Off-Balance it is knocked back 2 tiles instead. Ready again after 3 turns."
+    "text": "Charge up to 4 tiles at an enemy and slam it with the shield: half damage, and it's locked in a clash with you. If it was clashing with an ally, you take over and the ally is free. Ready again after 3 turns.",
+    "effect": "lock"
   },
   "shieldToss": {
     "name": "Shield Toss",
@@ -205,5 +219,115 @@
     "mp": 0,
     "use": "enemy",
     "text": "Strike with both heads of the spear: two quick hits on an enemy next to you, each 60% of a normal hit, each rolled on its own. Ready again after 2 turns."
+  },
+  "shieldRam": {
+    "name": "Shield Ram",
+    "button": "Shield Ram",
+    "short": "RAM",
+    "kind": "charge",
+    "effect": "knockback",
+    "verse": {
+      "of": "intercept",
+      "with": "stone"
+    },
+    "color": "#d9b77a",
+    "range": 4,
+    "damageShare": 0.5,
+    "push": 2,
+    "mp": 3,
+    "use": "enemy",
+    "text": "Stone turns Intercept into this: charge up to 4 tiles and ram the enemy 2 tiles back, no clash. Into a wall, it slams and is Disoriented. 3 Verse MP."
+  },
+  "furyCharge": {
+    "name": "Fury Charge",
+    "button": "Fury Charge",
+    "short": "FURY",
+    "kind": "charge",
+    "effect": "strike",
+    "verse": {
+      "of": "intercept",
+      "with": "fury"
+    },
+    "color": "#ff8a5c",
+    "range": 4,
+    "damageShare": 1,
+    "mp": 3,
+    "use": "enemy",
+    "text": "Fury turns Intercept into this: charge up to 4 tiles and hit with your full strength, no clash. 3 Verse MP."
+  },
+  "blitz": {
+    "name": "Blitz",
+    "button": "Blitz",
+    "short": "BLITZ",
+    "kind": "charge",
+    "effect": "stun",
+    "verse": {
+      "of": "intercept",
+      "with": "swiftness"
+    },
+    "color": "#9fd4ff",
+    "range": 4,
+    "damageShare": 0.5,
+    "mp": 3,
+    "use": "enemy",
+    "text": "Swiftness turns Intercept into this: a charge too fast to answer. Half damage, and it is stunned for a turn, no clash. 3 Verse MP."
+  },
+  "sonicJavelin": {
+    "name": "Sonic Javelin",
+    "button": "Sonic Javelin",
+    "short": "SONIC",
+    "kind": "javelin",
+    "verse": {
+      "of": "spearThrow",
+      "with": "swiftness"
+    },
+    "color": "#f2d3a0",
+    "range": 5,
+    "rangePerLevel": 1,
+    "pierce": true,
+    "push": 1,
+    "closeRange": 2,
+    "sweepShare": 1.5,
+    "mp": 3,
+    "use": "enemy",
+    "text": "Swiftness turns Spear Throw into this. Up close: dash in and whirl the spear down. Further (5 tiles): a throw that hits every enemy in its line, through high blocks. At a reeling foe: zip to it and sweep low (1.5x damage). Never misses. 3 Verse MP."
+  },
+  "thunderclap": {
+    "name": "Thunderclap",
+    "button": "Thunderclap",
+    "short": "CLAP",
+    "kind": "bolt",
+    "verse": {
+      "of": "attack",
+      "with": "stone",
+      "jobs": [
+        "sage"
+      ]
+    },
+    "color": "#d9b77a",
+    "push": 1,
+    "mp": 0,
+    "use": "enemy",
+    "text": "Stone turns her Lightning into this: the bolt knocks the target a tile back (into a wall, it slams). It still jumps to a second enemy."
+  },
+  "wildfire": {
+    "name": "Wildfire",
+    "button": "Wildfire",
+    "short": "FIRE",
+    "kind": "bolt",
+    "element": "fire",
+    "verse": {
+      "of": "attack",
+      "with": "fury",
+      "jobs": [
+        "sage"
+      ]
+    },
+    "color": "#ff8a3c",
+    "burn": 2,
+    "turns": 3,
+    "mp": 0,
+    "use": "enemy",
+    "text": "Fury turns her Lightning to fire: it sets the target alight, 2 damage a turn for 3 turns (never the last point; Herbs put it out). Fire doesn't jump."
   }
 }

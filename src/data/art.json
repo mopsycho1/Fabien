@@ -289,7 +289,85 @@
         "originX": 0.456
       }
     },
-    "note_facing": "Up-right and up-left were swapped in the standing, weak and stone pictures (his face pointed the wrong way, so he looked away from the enemy at the start of a battle). Fixed 29 Oct: in each up view his face should point the way he faces."
+    "note_facing": "Up-right and up-left were swapped in the standing, weak and stone pictures (his face pointed the wrong way, so he looked away from the enemy at the start of a battle). Fixed 29 Oct: in each up view his face should point the way he faces.",
+    "moves": {
+      "note": "Sonic Javelin (roadmap 3.11), from his \"Sonic Javelin being depicted\" and \"MORE SONIC JAVELIN\" sheets. All facing right; left is the mirror image.",
+      "sonicWhirl": {
+        "frameMs": 75,
+        "frames": [
+          {
+            "file": "gaha_sj_whirl_0.png",
+            "originX": 0.45
+          },
+          {
+            "file": "gaha_sj_whirl_1.png",
+            "originX": 0.45
+          },
+          {
+            "file": "gaha_sj_whirl_2.png",
+            "originX": 0.45
+          },
+          {
+            "file": "gaha_sj_whirl_3.png",
+            "originX": 0.453
+          },
+          {
+            "file": "gaha_sj_whirl_4.png",
+            "originX": 0.412
+          },
+          {
+            "file": "gaha_sj_whirl_5.png",
+            "originX": 0.469
+          }
+        ]
+      },
+      "sonicThrow": {
+        "frameMs": 65,
+        "frames": [
+          {
+            "file": "gaha_sj_throw_0.png",
+            "originX": 0.503
+          },
+          {
+            "file": "gaha_sj_throw_1.png",
+            "originX": 0.596
+          },
+          {
+            "file": "gaha_sj_throw_2.png",
+            "originX": 0.496
+          },
+          {
+            "file": "gaha_sj_throw_3.png",
+            "originX": 0.369
+          },
+          {
+            "file": "gaha_sj_throw_4.png",
+            "originX": 0.505
+          },
+          {
+            "file": "gaha_sj_throw_5.png",
+            "originX": 0.472
+          }
+        ]
+      },
+      "sonicSweep": {
+        "frameMs": 110,
+        "frames": [
+          {
+            "file": "gaha_sj_sweep_0.png",
+            "originX": 0.534
+          },
+          {
+            "file": "gaha_sj_sweep_1.png",
+            "originX": 0.499
+          },
+          {
+            "file": "gaha_sj_sweep_2.png",
+            "originX": 0.392
+          }
+        ]
+      }
+    }
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",

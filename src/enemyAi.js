@@ -1,6 +1,6 @@
 import { getReachableTiles } from './movement.js';
 import { distance, hasClearShot, shootsProjectiles } from './combat.js';
-import { moveOf } from './status.js';
+import { moveOf, moveRules } from './status.js';
 import { getHeight } from './grid.js';
 
 // Decides where an enemy should walk this turn.
@@ -38,7 +38,7 @@ export function chooseMoveTile(unit, units, extraBlocked = () => false) {
   const isBlocked = (col, row) =>
     extraBlocked(col, row) || units.some((other) => other.alive && other.col === col && other.row === row);
 
-  const tiles = getReachableTiles(unit.col, unit.row, moveOf(unit), isBlocked);
+  const tiles = getReachableTiles(unit.col, unit.row, moveOf(unit), isBlocked, moveRules(unit));
 
   // How many tiles short of attacking we would be if we stood on this tile.
   // 0 means we could attack someone from here; a caster counts as nearer.

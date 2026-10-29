@@ -36,6 +36,10 @@ import art from './data/art.json';
 // originX says where the body is across the picture (0 = left, 1 = right), so
 // a lunge with a long sword still stands on the middle of its tile.
 //
+// "moves" (optional) are action pictures played one after another, all drawn
+// facing RIGHT (mirrored for left), like
+//   "moves": { "sonicThrow": { "frameMs": 60, "frames": [ "a.png", { "file": "b.png", "originX": 0.4 } ] } }
+//
 // "portrait" and "shout" are face pictures: a calm one for the menus and a
 // battle cry for the big moments.
 
@@ -52,6 +56,7 @@ function allFiles(entry) {
   const files = new Set();
   const buffed = Object.values(entry.buffed || {});
   const directional = Object.values(entry.poses || {}).filter(isFacingSet);
+  for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
     if (!group) continue;
     if (typeof group === 'string' || group.file) {
@@ -188,4 +193,13 @@ export function poseFrame(id, pose, side, facing = null) {
 // Kept for older code: the attack pose.
 export function attackFrame(id, side) {
   return poseFrame(id, 'attack', side);
+}
+
+// A move played picture by picture ("moves" in art.json), facing "left" or
+// "right": { frames: [frame, ...], frameMs }, or null if the unit doesn't have it.
+export function moveFrames(id, move, side) {
+  const entry = art[id];
+  const m = entry && entry.moves && entry.moves[move];
+  if (!m) return null;
+  return { frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60 };
 }
