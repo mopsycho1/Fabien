@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gaha skeleton test</title>
+<style>
+  :root { --bg: #24180f; --panel: #3a2a1e; --ink: #f4e8d6; --muted: #cdb69a; --gold: #e2b25c; --line: #6e5238; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 22px; margin: 4px 0 4px; }
+  .sub { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 0 0 14px; }
+  /* side by side even on a phone, so both play at once (about the size units are in battle) */
+  .stage { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px; }
+  canvas { width: 100%; height: auto; display: block; border-radius: 8px; }
+  figcaption { font-size: 12px; color: var(--muted); text-align: center; margin-top: 6px; line-height: 1.35; }
+  figcaption b { color: var(--ink); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+  button { font: inherit; font-size: 15px; padding: 10px 16px; min-height: 44px; border-radius: 10px;
+           border: 1px solid #8a6a46; background: #4b3423; color: var(--ink); cursor: pointer; }
+  button.on { background: var(--gold); color: #24180f; border-color: var(--gold); }
+  .notes { font-size: 15px; line-height: 1.55; }
+  .notes h2 { font-size: 17px; margin: 18px 0 6px; color: var(--gold); }
+  .notes ul { padding-left: 20px; margin: 4px 0; }
+  .notes li { margin: 4px 0; }
+  a { color: var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Gaha skeleton test</h1>
+  <p class="sub">Left: Gaha put together in code from Suleiman's parts sheet and moved by a skeleton.
+    Right: the same thrust drawn frame by frame (row 1 of "Test for Gaha's sprite with skeleton").</p>
+
+  <div class="controls">
+    <button id="idle" class="on">Idle</button>
+    <button id="thrust">Thrust</button>
+    <button id="slow">Slow motion</button>
+    <button id="bones">Show bones</button>
+  </div>
+
+  <div class="stage">
+    <figure>
+      <canvas id="rig" width="600" height="560"></canvas>
+      <figcaption><b>Skeleton</b><br>16 parts joined at the pegs, moved by code</figcaption>
+    </figure>
+    <figure>
+      <canvas id="frames" width="600" height="560"></canvas>
+      <figcaption><b>Frame by frame</b><br>6 drawn pictures, one direction (no idle frames on the sheet)</figcaption>
+    </figure>
+  </div>
+
+  <div class="notes" id="notes"></div>
+</main>
+
+<script>
+// ---------------------------------------------------------------------------
+// The skeleton test. Plain canvas, no game engine, so it is easy to read.
+//
+// rig.json lists the bones. Each bone has:
+//   part   the picture it shows (parts/<part>.png)
+//   parent the bone it hangs from (null for the hips, the root)
+//   pivot  the joint inside its own picture (where it turns)
+//   tip    the far joint; the picture is turned so pivot -> tip points straight down
+//   at     where its pivot sits inside the PARENT's picture
+//   angle  its resting turn in degrees (clockwise), flip, scale, z (drawing order)
+// A pose adds to that: { boneName: { angle, move: [x, y], sy } }.
+// ---------------------------------------------------------------------------
+
+// 2D matrices as [a, b, c, d, e, f] meaning x' = a*x + b*y + c, y' = d*x + e*y + f
+const mul = (m, n) => [
+  m[0] * n[0] + m[1] * n[3], m[0] * n[1] + m[1] * n[4], m[0] * n[2] + m[1] * n[5] + m[2],
+  m[3] * n[0] + m[4] * n[3], m[3] * n[1] + m[4] * n[4], m[3] * n[2] + m[4] * n[5] + m[5]];
+const T = (x, y) => [1, 0, x, 0, 1, y];
+const R = (deg) => { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [c, -s, 0, s, c, 0]; };
+const S = (sx, sy) => [sx, 0, 0, 0, sy, 0];
+const apply = (m, p) => [m[0] * p[0] + m[1] * p[1] + m[2], m[3] * p[0] + m[4] * p[1] + m[5]];
+const DEG = 180 / Math.PI;
+
+let rig, bones, parts = {}, frames, frameImgs;
+
+function loadImage(src) {
+  return new Promise((ok, fail) => { const im = new Image(); im.onload = () => ok(im); im.onerror = fail; im.src = src; });
+}
+
+// How a bone's picture sits in the bone's own frame (pivot at 0,0, bone pointing down)
+function partMatrix(b, sx = 1, sy = 1) {
+  const fx = b.flip ? -1 : 1;
+  let c = 0;
+  if (b.tip) c = Math.atan2((b.tip[0] - b.pivot[0]) * fx, b.tip[1] - b.pivot[1]) * DEG;
+  const sc = b.scale || 1;
+  return mul(S(sc * sx, sc * sy), mul(R(c), mul(S(fx, 1), T(-b.pivot[0], -b.pivot[1]))));
+}
+// How long a bone is (pivot to tip), after its scale
+const boneLength = (b) => Math.hypot(b.tip[0] - b.pivot[0], b.tip[1] - b.pivot[1]) * (b.scale || 1);
+
+// Two-bone reach for the legs, so the feet stay planted while the hips move.
+// Angles are "straight down turned clockwise by this much", in radians.
+function solveLeg(H, F, L1, L2, bend) {
+  const dx = F[0] - H[0], dy = F[1] - H[1];
+  const d = Math.min(Math.max(Math.hypot(dx, dy), Math.abs(L1 - L2) + 1), L1 + L2 - 0.5);
+  const base = Math.atan2(-dx, dy);
+  const a = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d))));
+  const thigh = base + bend * a;
+  const K = [H[0] - Math.sin(thigh) * L1, H[1] + Math.cos(thigh) * L1]; // the knee
+  return [thigh, Math.atan2(-(F[0] - K[0]), F[1] - K[1])];
+}
+// Where the front hand holds the shaft (in the spear picture), and wrist-to-palm distance
+const FRONT_GRIP = [360, 45], HAND_REACH = 34;
+const LEGS = [ { thigh: 'l_thigh', shin: 'l_shin', foot: 'l_foot' }, { thigh: 'r_thigh', shin: 'r_shin', foot: 'r_foot' } ];
+
+// Works out where every bone is. Returns { draw: picture matrices, frame: bone frames }.
+function solve(pose, useIk = true) {
+  const W = {}, A = {}, P = {};
+  for (const b of rig.bones) { const p = pose[b.name] || {}; P[b.name] = partMatrix(b, p.sx || 1, p.sy || 1); }
+  const local = {};                       // angles the legs get from the reach solver
+  const get = (n) => {
+    if (W[n]) return W[n];
+    const b = bones[n], p = pose[n] || {};
+    const ang = n in local ? local[n] : (b.angle || 0) + (p.angle || 0);
+    const mv = p.move || [0, 0];
+    let m;
+    if (b.parent) {
+      const at = apply(P[b.parent], b.at);
+      m = mul(get(b.parent), T(at[0] + mv[0], at[1] + mv[1]));
+      A[n] = A[b.parent] + ang;
+    } else {
+      m = T(rig.origin[0] + mv[0], rig.origin[1] + mv[1]);
+      A[n] = ang;
+    }
+    W[n] = mul(m, R(ang));
+    return W[n];
+  };
+  if (useIk && restFeet) {
+    get('hips');
+    for (const leg of LEGS) {
+      const tb = bones[leg.thigh], sb = bones[leg.shin];
+      const H = apply(mul(W.hips, T(...apply(P.hips, tb.at))), [0, 0]);
+      const off = (pose[leg.foot] && pose[leg.foot].move) || [0, 0];
+      const F = [restFeet[leg.foot][0] + off[0], restFeet[leg.foot][1] + off[1]];
+      const [th, sh] = solveLeg(H, F, boneLength(tb), boneLength(sb), bend[leg.foot]);
+      local[leg.thigh] = th * DEG - A.hips;
+      local[leg.shin] = (sh - th) * DEG;
+    }
+  }
+  // Two hands on the spear: the front (right) hand reaches for a point on the shaft.
+  // pose.grip.w says how much (0 = arm hangs as posed, 1 = hand on the shaft).
+  const w = (pose.grip && pose.grip.w) || 0;
+  if (w > 0) {
+    get('spear'); get('torso');
+    const sp = bones.spear, up = bones.r_upper, fo = bones.r_fore;
+    const shaft = apply(mul(W.spear, P.spear), FRONT_GRIP);
+    const handAngle = A.spear - 180;                 // the hand lies along the shaft, toward the point
+    const hr = handAngle / DEG;
+    const wrist = [shaft[0] + Math.sin(hr) * HAND_REACH, shaft[1] - Math.cos(hr) * HAND_REACH];
+    const S0 = apply(mul(W.torso, T(...apply(P.torso, up.at))), [0, 0]);
+    const [ua, fa] = solveLeg(S0, wrist, boneLength(up), boneLength(fo), 1);
+    const fkU = (up.angle || 0) + ((pose.r_upper || {}).angle || 0);
+    const fkF = (fo.angle || 0) + ((pose.r_fore || {}).angle || 0);
+    const fkH = (bones.r_hand.angle || 0) + ((pose.r_hand || {}).angle || 0);
+    const ikU = ua * DEG - A.torso, ikF = (fa - ua) * DEG, ikH = handAngle - fa * DEG;
+    local.r_upper = fkU + (ikU - fkU) * w;
+    local.r_fore = fkF + (ikF - fkF) * w;
+    local.r_hand = fkH + (ikH - fkH) * w;
+  }
+  for (const b of rig.bones) get(b.name);
+  const draw = {};
+  for (const b of rig.bones) draw[b.name] = mul(W[b.name], P[b.name]);
+  return { draw, frame: W, angle: A };
+}
+
+// Where the feet are in the resting pose, and which way each knee bends
+let restFeet = null; const bend = {};
+function measureRest() {
+  const r = solve({}, false);
+  restFeet = {};
+  for (const leg of LEGS) {
+    const sb = bones[leg.shin], tb = bones[leg.thigh];
+    restFeet[leg.foot] = apply(r.frame[leg.shin], [0, boneLength(sb)]);
+    const H = apply(r.frame[leg.thigh], [0, 0]), F = restFeet[leg.foot];
+    const line = Math.atan2(-(F[0] - H[0]), F[1] - H[1]) * DEG;
+    bend[leg.foot] = (r.angle[leg.thigh] - line) >= 0 ? 1 : -1;
+  }
+}
+
+// ---- The moves --------------------------------------------------------------
+// Idle: slow breathing. The chest swells, the head and arms follow a beat later.
+const IDLE_PERIOD = 2.8;
+function idlePose(t) {
+  const s = Math.sin(t / IDLE_PERIOD * Math.PI * 2);
+  const s2 = Math.sin((t / IDLE_PERIOD - 0.15) * Math.PI * 2);
+  return {
+    hips: { move: [0, 2 * s] },
+    torso: { sy: 1 + 0.012 * s, angle: 0.6 * s2 },
+    head: { angle: -0.8 * s2, move: [0, -1 * s] },
+    mantle: { move: [0, -1.5 * s] },
+    cape: { angle: 1.2 * s2 },
+    l_upper: { angle: -1.2 * s2 }, r_upper: { angle: 1.2 * s2 },
+    l_fore: { angle: 1 * s2 }, r_fore: { angle: -1.5 * s2 },
+    spear: { angle: 0.8 * s2 },
+  };
+}
+
+// Thrust: both hands on the spear. Crouch and draw it back, lunge and stab to the
+// right, hold, recover. Each key is a pose at a time (seconds); in between, the
+// pose blends smoothly. Angles are changes from the resting pose, in degrees.
+const WINDUP = {
+  hips: { move: [-18, 12] }, torso: { angle: -8 }, head: { angle: 8 },
+  l_upper: { angle: 10 }, l_fore: { angle: -65 }, spear: { angle: 193 },
+  grip: { w: 1 }, cape: { angle: -5 }, mantle: { angle: -2 },
+};
+const STRIKE = {
+  hips: { move: [30, 26] }, torso: { angle: 12 }, head: { angle: -10 },
+  l_upper: { angle: -40 }, l_fore: { angle: -55 }, spear: { angle: 203 },
+  grip: { w: 1 }, cape: { angle: 9 }, mantle: { angle: 3 },
+  r_foot: { move: [46, 0] },
+};
+const THRUST = [
+  { t: 0.00, pose: {} },
+  { t: 0.32, ease: 'out', pose: WINDUP },
+  { t: 0.44, ease: 'in', pose: STRIKE },
+  { t: 0.62, pose: STRIKE },
+  { t: 1.05, ease: 'inout', pose: {} },
+];
+const THRUST_LENGTH = 1.05;
+// When the frame-by-frame thrust shows each of its six pictures, to match
+const FRAME_TIMES = [0, 0.16, 0.32, 0.44, 0.62, 0.84];
+
+const EASE = {
+  in: (u) => u * u, out: (u) => 1 - (1 - u) * (1 - u),
+  inout: (u) => (u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u)), linear: (u) => u,
+};
+function blend(a, b, u) {
+  const out = {};
+  for (const n of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const pa = a[n] || {}, pb = b[n] || {};
+    const ma = pa.move || [0, 0], mb = pb.move || [0, 0];
+    out[n] = {
+      angle: (pa.angle || 0) + ((pb.angle || 0) - (pa.angle || 0)) * u,
+      move: [ma[0] + (mb[0] - ma[0]) * u, ma[1] + (mb[1] - ma[1]) * u],
+      sy: (pa.sy || 1) + ((pb.sy || 1) - (pa.sy || 1)) * u,
+      w: (pa.w || 0) + ((pb.w || 0) - (pa.w || 0)) * u,
+    };
+  }
+  return out;
+}
+function keyedPose(keys, t) {
+  if (t <= keys[0].t) return keys[0].pose;
+  for (let i = 1; i < keys.length; i++) {
+    if (t <= keys[i].t) {
+      const k0 = keys[i - 1], k1 = keys[i];
+      const u = (t - k0.t) / (k1.t - k0.t);
+      return blend(k0.pose, k1.pose, EASE[k1.ease || 'inout'](u));
+    }
+  }
+  return keys[keys.length - 1].pose;
+}
+// Adds two poses together (the idle keeps breathing under the thrust)
+function addPose(a, b) {
+  const out = {};
+  for (const n of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const pa = a[n] || {}, pb = b[n] || {};
+    const ma = pa.move || [0, 0], mb = pb.move || [0, 0];
+    out[n] = { angle: (pa.angle || 0) + (pb.angle || 0), move: [ma[0] + mb[0], ma[1] + mb[1]], sy: (pa.sy || 1) * (pb.sy || 1), w: (pa.w || 0) + (pb.w || 0) };
+  }
+  return out;
+}
+
+// ---- Drawing ----------------------------------------------------------------
+const rigCanvas = document.getElementById('rig');
+const frameCanvas = document.getElementById('frames');
+// The part of each world shown in its panel: [left, top, width, height]
+const RIG_VIEW = [175, 95, 870, 813];
+const FRAME_VIEW = [-34, 0, 260, 243];
+const BG = '#4a3526';
+
+function fit(canvas, view) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = Math.round(canvas.clientWidth * dpr);
+  const h = Math.round(w * view[3] / view[2]);
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  return w / view[2];
+}
+function ground(ctx, k, view, y, x0, x1) {
+  ctx.setTransform(k, 0, 0, k, -view[0] * k, -view[1] * k);
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse((x0 + x1) / 2, y, (x1 - x0) / 2, 14, 0, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawRig(pose) {
+  const ctx = rigCanvas.getContext('2d');
+  const k = fit(rigCanvas, RIG_VIEW);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, rigCanvas.width, rigCanvas.height);
+  const r = solve(pose);
+  ground(ctx, k, RIG_VIEW, restFeet.l_foot[1] + 4, restFeet.l_foot[0] - 70, restFeet.r_foot[0] + 70);
+  const base = [k, 0, -RIG_VIEW[0] * k, 0, k, -RIG_VIEW[1] * k];
+  for (const b of drawOrder) {
+    const m = mul(base, r.draw[b.name]);
+    ctx.setTransform(m[0], m[3], m[1], m[4], m[2], m[5]);
+    ctx.drawImage(parts[b.part], 0, 0);
+  }
+  if (showBones) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.lineWidth = 2 * k * 2.2; ctx.strokeStyle = '#57e3ff'; ctx.fillStyle = '#57e3ff';
+    const pt = (n, p = [0, 0]) => apply(base, apply(r.frame[n], p));
+    for (const b of rig.bones) {
+      const a = pt(b.name);
+      const end = b.tip ? pt(b.name, [0, boneLength(b)]) : null;
+      if (b.parent) { const p0 = pt(b.parent); ctx.globalAlpha = 0.45; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(a[0], a[1]); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      if (end) { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(end[0], end[1]); ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(a[0], a[1], 5 * k * 2.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+
+function drawFrame(index) {
+  const ctx = frameCanvas.getContext('2d');
+  const k = fit(frameCanvas, FRAME_VIEW);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, frameCanvas.width, frameCanvas.height);
+  const f = frames[index];
+  ctx.setTransform(k, 0, 0, k, -FRAME_VIEW[0] * k, -FRAME_VIEW[1] * k);
+  ctx.drawImage(frameImgs[index], f.x, f.y);
+}
+
+// ---- Controls and the clock -----------------------------------------------------
+let showBones = false, slow = false, thrustStart = null, clock = 0, last = null, drawOrder;
+const buttons = { idle: document.getElementById('idle'), thrust: document.getElementById('thrust'),
+  slow: document.getElementById('slow'), bones: document.getElementById('bones') };
+buttons.idle.onclick = () => { thrustStart = null; };
+buttons.thrust.onclick = () => { thrustStart = clock; };
+buttons.slow.onclick = () => { slow = !slow; };
+buttons.bones.onclick = () => { showBones = !showBones; };
+
+function tick(now) {
+  const dt = last == null ? 0 : Math.min(0.05, (now - last) / 1000);
+  last = now;
+  clock += dt * (slow ? 0.25 : 1);
+  render(clock);
+  requestAnimationFrame(tick);
+}
+function render(t) {
+  let pose = idlePose(t), frame = 0;
+  if (thrustStart != null) {
+    const u = t - thrustStart;
+    if (u >= THRUST_LENGTH) thrustStart = null;
+    else {
+      pose = addPose(pose, keyedPose(THRUST, u));
+      for (let i = 0; i < FRAME_TIMES.length; i++) if (u >= FRAME_TIMES[i]) frame = i;
+    }
+  }
+  drawRig(pose);
+  drawFrame(frame);
+  buttons.idle.classList.toggle('on', thrustStart == null);
+  buttons.thrust.classList.toggle('on', thrustStart != null);
+  buttons.slow.classList.toggle('on', slow);
+  buttons.bones.classList.toggle('on', showBones);
+}
+
+async function start() {
+  rig = await (await fetch('rig.json')).json();
+  bones = Object.fromEntries(rig.bones.map((b) => [b.name, b]));
+  drawOrder = [...rig.bones].sort((a, b) => (a.z || 0) - (b.z || 0));
+  await Promise.all(rig.bones.map((b) => loadImage('parts/' + b.part + '.png').then((im) => { parts[b.part] = im; })));
+  frames = await (await fetch('frames/thrust.json')).json();
+  frameImgs = await Promise.all(frames.map((f, i) => loadImage('frames/thrust_' + i + '.png')));
+  document.getElementById('notes').innerHTML = await (await fetch('notes.html')).text();
+  measureRest();
+  // ?t=0.44&thrust=1 freezes a moment (for checking a pose); otherwise it plays
+  const q = new URLSearchParams(location.search);
+  if (q.has('bones')) showBones = true;
+  if (q.has('t')) {
+    const t = parseFloat(q.get('t'));
+    if (q.has('thrust')) thrustStart = -t;
+    render(0);
+    document.body.dataset.ready = '1';
+    return;
+  }
+  document.body.dataset.ready = '1';
+  requestAnimationFrame(tick);
+}
+start();
+</script>
+</body>
+</html>

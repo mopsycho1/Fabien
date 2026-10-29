@@ -363,11 +363,11 @@
     "standing": {
       "downLeft": {
         "file": "bull_stand_downLeft.png",
-        "originX": 0.47
+        "originX": 0.473
       },
       "downRight": {
         "file": "bull_stand_downRight.png",
-        "originX": 0.473
+        "originX": 0.47
       },
       "upLeft": {
         "file": "bull_stand_upLeft.png",
@@ -381,11 +381,11 @@
     "battle": {
       "downLeft": {
         "file": "bull_battle_downLeft.png",
-        "originX": 0.428
+        "originX": 0.561
       },
       "downRight": {
         "file": "bull_battle_downRight.png",
-        "originX": 0.561
+        "originX": 0.428
       },
       "upLeft": {
         "file": "bull_battle_upLeft.png",
@@ -396,11 +396,11 @@
       "ready": {
         "downLeft": {
           "file": "bull_battle_downLeft.png",
-          "originX": 0.428
+          "originX": 0.561
         },
         "downRight": {
           "file": "bull_battle_downRight.png",
-          "originX": 0.561
+          "originX": 0.428
         },
         "upLeft": {
           "file": "bull_battle_upLeft.png",
@@ -446,10 +446,11 @@
     "weak": {
       "file": "bull_weak.png",
       "originX": 0.534
-    }
+    },
+    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures (he looked right, away from the heroes, at the start of a battle). Fixed 29 Oct: in a down view his face should point the way he faces."
   },
   "e3": {
-    "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side.",
+    "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",
     "height": 100,
     "standing": {
       "downLeft": {
@@ -467,6 +468,24 @@
       "upRight": {
         "file": "archer_stand_upRight.png",
         "originX": 0.514
+      }
+    },
+    "battle": {
+      "downRight": {
+        "file": "archer_ready.png",
+        "originX": 0.557
+      },
+      "downLeft": {
+        "file": "archer_stance_downLeft.png",
+        "originX": 0.448
+      },
+      "upLeft": {
+        "file": "archer_stance_upLeft.png",
+        "originX": 0.553
+      },
+      "upRight": {
+        "file": "archer_stance_upRight.png",
+        "originX": 0.432
       }
     },
     "poses": {
@@ -619,11 +638,11 @@
     "standing": {
       "downLeft": {
         "file": "rabdul_stand_downLeft.png",
-        "originX": 0.5
+        "originX": 0.495
       },
       "downRight": {
         "file": "rabdul_stand_downRight.png",
-        "originX": 0.495
+        "originX": 0.5
       },
       "upLeft": {
         "file": "rabdul_stand_upLeft.png",
@@ -637,11 +656,11 @@
     "battle": {
       "downLeft": {
         "file": "rabdul_battle_downLeft.png",
-        "originX": 0.577
+        "originX": 0.492
       },
       "downRight": {
         "file": "rabdul_battle_downRight.png",
-        "originX": 0.492
+        "originX": 0.577
       },
       "upLeft": {
         "file": "rabdul_battle_upLeft.png",
@@ -656,11 +675,11 @@
       "ready": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.577
+          "originX": 0.492
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.492
+          "originX": 0.577
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
@@ -674,11 +693,11 @@
       "windup": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.577
+          "originX": 0.492
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.492
+          "originX": 0.577
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
@@ -692,11 +711,11 @@
       "attack": {
         "downLeft": {
           "file": "rabdul_battle_downLeft.png",
-          "originX": 0.577
+          "originX": 0.492
         },
         "downRight": {
           "file": "rabdul_battle_downRight.png",
-          "originX": 0.492
+          "originX": 0.577
         },
         "upLeft": {
           "file": "rabdul_battle_upLeft.png",
@@ -709,6 +728,7 @@
       }
     },
     "portrait": "rabdul_face.png",
-    "shout": "rabdul_face.png"
+    "shout": "rabdul_face.png",
+    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures: on his sheet the figure labeled SOUTH-WEST is drawn turned to the right. Fixed 29 Oct."
   }
 }

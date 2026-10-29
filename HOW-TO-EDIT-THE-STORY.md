@@ -333,3 +333,9 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - A button glows while its action is in use (for example Move while you pick a tile) and turns grey when it can't be used. Long words shrink to fit before the woven end.
 - Row 4 of a normal turn is now **Items | End turn**. Items stays grey until items arrive (roadmap Phase 5: digging through the map's props).
 - If the UI pictures are missing, the game falls back to the older look drawn in code, so it never breaks.
+
+## Fixes 1.7 and 1.8, and the skeleton test (29 Oct)
+
+- **The archer's stance**: her battle-ready pictures were never listed as her `battle` set in `art.json` (`e3`), so she always stood relaxed. They are now, and like everyone she takes the stance when a foe is close. Because she fights from far away, "close" for her is her bow's reach (5 tiles), not 3.
+- **The bull and Rabdul facing right at the start**: their down-left and down-right pictures were swapped (the turnaround sheets were labelled the other way round), the same mix-up Gaha's up views had. The pictures are renamed and the `originX` values swapped with them. Rule for new pictures: in a down view, the face should point the way the unit is facing.
+- **Skeleton test**: a separate page at `/skeleton-test/` (not part of the game). Gaha is built from Suleiman's parts sheet and moved by code, next to the frame-by-frame thrust. `public/skeleton-test/rig.json` says where each part's joints are and how the parts hang together; the moves are at the bottom of `index.html`; the findings are in `notes.html`.

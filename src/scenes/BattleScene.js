@@ -2181,10 +2181,13 @@ export default class BattleScene extends Phaser.Scene {
     this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null, weak));
   }
 
-  // True when an enemy (as this unit sees it) is within ALERT_RANGE tiles.
+  // True when an enemy (as this unit sees it) is close enough to fight:
+  // within ALERT_RANGE tiles, or within the unit's own reach if that is
+  // longer (an archer with a 5-tile bow is in the fight from 5 tiles away).
   isAlert(unit) {
     if (!this.units) return false;
-    return this.units.some((o) => o.alive && o.side !== unit.side && !o.hidden && distance(o, unit) <= ALERT_RANGE);
+    const reach = Math.max(ALERT_RANGE, unit.range || 0);
+    return this.units.some((o) => o.alive && o.side !== unit.side && !o.hidden && distance(o, unit) <= reach);
   }
 
   // An action picture (attack, windup, ready, guard, dodge, cast) facing a direction.
