@@ -1,0 +1,6 @@
+{
+  "_note": "Items enemies drop when they fall (each enemy's \"drop\" in units.json says which). A hero who ends a walk on that tile picks it up into the party's bag. Using one takes the hero's action, on itself or on an ally up to \"range\" tiles away. heal = health back, mp = magic back (only units with MP), cure = \"poison\" cures poison. Up to 4 different items fit in the menu.",
+  "potion": { "name": "Potion", "heal": 15, "range": 1, "color": "#7fdc8a", "text": "Heals 15 health." },
+  "ether": { "name": "Ether", "mp": 6, "range": 1, "color": "#7fb6ff", "text": "Gives back 6 MP (only casters have MP)." },
+  "antidote": { "name": "Antidote", "cure": "poison", "range": 1, "color": "#c9e86a", "text": "Cures poison." }
+}

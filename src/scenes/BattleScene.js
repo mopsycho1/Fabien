@@ -23,7 +23,7 @@ import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature }
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
-import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
+import { createHudTextures, bronzePanel, framePanel, diamondPortrait, framedPortrait, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting } from '../boardArt.js';
@@ -77,6 +77,11 @@ function useText(spell) {
 const SIDE_COLORS = { hero: 0x3fa7a0, enemy: 0xb5523b };
 const GOLD = 0xffe08a;
 const BAR_WIDTH = 48;    // width of a unit's health bar, in pixels
+const HERO_BAR = 0x6fcf7f;  // heroes' health bars are green
+const ENEMY_BAR = 0xd9483b; // enemies' are red (as in Suleiman's mock)
+const LOW_BAR = 0xe8823a;   // a hero's bar turns orange when low
+// The rows of the command list, top to bottom (see layoutCommands)
+const ROWS = [989, 1050, 1111, 1172, 1233];
 const UNIT_RADIUS = 22;  // size of a unit's circle
 const UNIT_LIFT = 26;    // how far above its tile the circle floats, so it looks like it stands on it
 const HIT_RADIUS = 26;   // how close a tap must be to a unit's circle to count as tapping that unit (a little bigger than the circle)
@@ -222,30 +227,47 @@ export default class BattleScene extends Phaser.Scene {
 
   // ---------- The interface ----------
 
-  // Builds the frame around the battle: the turn order across the top, and at
-  // the bottom a hint line, the card of the unit in focus, and the commands.
+  // Builds the frame around the battle, in the slim style of Suleiman's mock:
+  // the title and turn counter across the top, the turn order as diamond
+  // portraits, and at the bottom a hint line, the card of the unit in focus,
+  // and the list of commands.
   buildHud() {
     const W = GAME_WIDTH;
 
-    // Top: title and turn order
-    this.ui(bronzePanel(this, 10, 8, W - 20, 150));
-    this.ui(this.add.text(W / 2, 46, 'FABIEN  ·  OF GODS & MEN', textStyle(20, '#e4c27c')).setOrigin(0.5).setLetterSpacing(3));
-    this.turnStripLayer = this.ui(this.add.container(0, 0));
+    // Top: a dark fade, so the title and the faces read over the cave
+    const fade = this.add.graphics();
+    for (let i = 0; i < 18; i++) {
+      fade.fillStyle(0x0b0806, 0.94 * (1 - i / 18));
+      fade.fillRect(0, i * 10, W, 10);
+    }
+    this.ui(fade);
 
-    // Sound on and off
-    const mx = W - 54;
-    const my = 108;
+    // Title on the left: FABIEN  ◆  OF GODS & MEN
+    const title = this.ui(this.add.text(26, 32, 'FABIEN', textStyle(25, '#e8cf9a', { strokeThickness: 0 })).setOrigin(0, 0.5).setLetterSpacing(7));
+    const gem = this.add.graphics();
+    const gx = 26 + title.width + 16;
+    gem.lineStyle(1.5, UI.bronzeLight, 1);
+    gem.strokePoints([{ x: gx, y: 26 }, { x: gx + 6, y: 32 }, { x: gx, y: 38 }, { x: gx - 6, y: 32 }], true);
+    gem.fillStyle(UI.bronzeLight, 1);
+    gem.fillCircle(gx, 32, 1.5);
+    this.ui(gem);
+    this.ui(this.add.text(gx + 18, 33, 'OF GODS & MEN', textStyle(15, '#cdb27a', { strokeThickness: 0 })).setOrigin(0, 0.5).setLetterSpacing(4));
+
+    // Right: the turn counter, then sound on and off
+    this.turnCounter = this.ui(this.add.text(W - 78, 32, 'Turn 1', textStyle(17, '#d8c8a4', { strokeThickness: 0 })).setOrigin(1, 0.5));
+    const sep = this.add.graphics();
+    sep.lineStyle(1, UI.bronze, 0.7);
+    sep.lineBetween(W - 64, 20, W - 64, 44);
+    this.ui(sep);
+    const mx = W - 38;
+    const my = 32;
     const muteIcon = this.add.graphics();
     const drawMute = () => {
       muteIcon.clear();
-      muteIcon.fillStyle(UI.ink, 1);
-      muteIcon.fillCircle(mx, my, 24);
-      muteIcon.lineStyle(2, UI.bronze, 1);
-      muteIcon.strokeCircle(mx, my, 24);
       drawIcon(muteIcon, isMuted() ? 'mute' : 'sound', mx, my, 26, UI.bronzeLight);
     };
     drawMute();
-    const muteHit = this.add.circle(mx, my, 28, 0x000000, 0.001).setInteractive({ useHandCursor: true });
+    const muteHit = this.add.circle(mx, my, 26, 0x000000, 0.001).setInteractive({ useHandCursor: true });
     muteHit.on('pointerdown', () => {
       setMuted(!isMuted());
       drawMute();
@@ -254,23 +276,32 @@ export default class BattleScene extends Phaser.Scene {
     this.ui(muteIcon);
     this.ui(muteHit);
 
+    // thin gold lines under the title and under the turn order
+    const lines = this.add.graphics();
+    lines.lineStyle(1, UI.bronze, 0.6);
+    lines.lineBetween(20, 58, W - 20, 58);
+    lines.lineStyle(1, UI.bronze, 0.3);
+    lines.lineBetween(20, 164, W - 20, 164);
+    this.ui(lines);
+    this.turnStripLayer = this.ui(this.add.container(0, 0));
+
     // Turn the camera: two round buttons at the bottom corners of the board
     // (or Q and E on a keyboard)
     const turnButton = (x, dir) => {
       const g = this.add.graphics();
-      g.fillStyle(UI.ink, 0.92);
+      g.fillStyle(0x0d0906, 0.85);
       g.fillCircle(x, 818, 30);
-      g.lineStyle(2, UI.bronze, 1);
+      g.lineStyle(1.5, UI.bronzeLight, 0.85);
       g.strokeCircle(x, 818, 30);
       // a curved arrow going round
-      g.lineStyle(4, UI.bronzeLight, 1);
+      g.lineStyle(3, UI.bronzeLight, 1);
       g.beginPath();
-      g.arc(x, 818, 15, dir > 0 ? Math.PI * 1.1 : Math.PI * 1.9, dir > 0 ? Math.PI * 0.35 : Math.PI * 0.65, dir < 0);
+      g.arc(x, 818, 14, dir > 0 ? Math.PI * 1.1 : Math.PI * 1.9, dir > 0 ? Math.PI * 0.35 : Math.PI * 0.65, dir < 0);
       g.strokePath();
-      const ax = x + (dir > 0 ? 15 * Math.cos(Math.PI * 0.35) : 15 * Math.cos(Math.PI * 0.65));
-      const ay = 818 + 15 * Math.sin(Math.PI * 0.35);
+      const ax = x + (dir > 0 ? 14 * Math.cos(Math.PI * 0.35) : 14 * Math.cos(Math.PI * 0.65));
+      const ay = 818 + 14 * Math.sin(Math.PI * 0.35);
       g.fillStyle(UI.bronzeLight, 1);
-      g.fillTriangle(ax - 7, ay - 3, ax + 7, ay - 3, ax + (dir > 0 ? -2 : 2), ay + 8);
+      g.fillTriangle(ax - 6, ay - 3, ax + 6, ay - 3, ax + (dir > 0 ? -2 : 2), ay + 7);
       const hit = this.add.circle(x, 818, 34, 0x000000, 0.001).setInteractive({ useHandCursor: true });
       hit.on('pointerdown', () => this.rotateCamera(dir));
       this.ui(g);
@@ -286,34 +317,54 @@ export default class BattleScene extends Phaser.Scene {
     this.compass = this.ui(this.add.graphics());
     this.refreshCompass();
 
-    // Bottom panel
-    this.ui(bronzePanel(this, 10, 948, W - 20, 324));
-
-    // The hint line just above it
+    // The hint line above the bottom panel, with an "i" in front of the words
     const ribbon = this.add.graphics();
-    ribbon.fillStyle(UI.ink, 0.8);
-    ribbon.fillRoundedRect(36, 866, W - 72, 70, 12);
-    ribbon.lineStyle(2, UI.bronze, 0.9);
-    ribbon.strokeRoundedRect(36, 866, W - 72, 70, 12);
+    ribbon.fillStyle(0x0d0906, 0.88);
+    ribbon.fillRoundedRect(36, 866, W - 72, 66, 10);
+    ribbon.lineStyle(1.5, UI.bronze, 0.9);
+    ribbon.strokeRoundedRect(36, 866, W - 72, 66, 10);
+    ribbon.lineStyle(1, UI.bronzeDark, 0.9);
+    ribbon.strokeRoundedRect(40, 870, W - 80, 58, 8);
     this.ui(ribbon);
+    this.infoIcon = this.ui(this.add.graphics());
     this.statusText = this.ui(
-      this.add.text(W / 2, 901, '', textStyle(23, '#f1e6c8', { align: 'center', wordWrap: { width: W - 100 } })).setOrigin(0.5)
+      this.add.text(W / 2 + 14, 899, '', textStyle(22, '#f1e6c8', { align: 'center', wordWrap: { width: W - 150 } })).setOrigin(0.5)
     );
+    // whenever the words change, the "i" moves to sit just in front of them
+    const setWords = this.statusText.setText.bind(this.statusText);
+    this.statusText.setText = (words) => {
+      setWords(words);
+      const ix = Math.max(64, this.statusText.x - this.statusText.width / 2 - 24);
+      this.infoIcon.clear();
+      drawIcon(this.infoIcon, 'info', ix, 899, 26, UI.bronzeLight);
+      return this.statusText;
+    };
 
-    // The card of the unit in focus (left) and the commands (right)
+    // Bottom: a dark base, the unit card (left) and the commands (right)
+    const base = this.add.graphics();
+    base.fillStyle(0x0b0806, 0.97);
+    base.fillRect(0, 944, W, GAME_HEIGHT - 944);
+    base.lineStyle(1, UI.bronze, 0.5);
+    base.lineBetween(0, 944, W, 944);
+    this.ui(base);
+    this.ui(framePanel(this, 12, 952, 390, 318, { ornament: true }));
+    this.ui(framePanel(this, 410, 952, 298, 318));
+
+    // The card of the unit in focus is drawn by refreshCard
     this.cardLayer = this.ui(this.add.container(0, 0));
-    const divider = this.add.graphics();
-    divider.lineStyle(2, UI.bronzeDark, 1);
-    divider.lineBetween(368, 978, 368, 1250);
-    this.ui(divider);
-    this.slots = [1004, 1080, 1156, 1232].map((y) => {
-      const button = new CommandButton(this, 540, y, 320, 64);
+
+    // The commands: four rows the game fills as the situation changes (the
+    // last is End turn or Back), plus Items just above it
+    this.slots = [0, 1, 2, 4].map((row) => {
+      const button = new CommandButton(this, 559, ROWS[row], 278, 54);
       this.ui(button.view);
       return button;
     });
+    this.itemsButton = new CommandButton(this, 559, ROWS[3], 278, 54);
+    this.ui(this.itemsButton.view);
     // Two half buttons that share the third row, for fighters with skills: Engage | Skills
-    this.halves = [540 - 81, 540 + 81].map((x) => {
-      const button = new CommandButton(this, x, 1156, 156, 64, { compact: true });
+    this.halves = [559 - 72, 559 + 72].map((x) => {
+      const button = new CommandButton(this, x, ROWS[2], 134, 54, { compact: true });
       this.ui(button.view);
       button.set(null);
       return button;
@@ -323,56 +374,87 @@ export default class BattleScene extends Phaser.Scene {
     this.endButton = this.slots[3];
   }
 
-  // The card for one unit: face, name, job and style, health, numbers and conditions.
+  // The commands that are showing stack from the top, so a menu with fewer
+  // choices (a clash, a list of spells) has no gaps.
+  layoutCommands() {
+    const [a, b, c, d] = this.slots;
+    const third = this.halves[0].view.visible || this.halves[1].view.visible ? this.halves : [c];
+    const rows = [[a], [b], third, [this.itemsButton], [d]].filter((row) => row.some((button) => button.view.visible));
+    rows.forEach((row, i) => row.forEach((button) => button.setY(ROWS[i])));
+  }
+
+  // The card for one unit, as in the mock: a framed portrait, name, job and
+  // style, health (and magic for casters), numbers in two rows, and conditions.
   refreshCard(unit, viewing = false) {
     const L = this.cardLayer;
     L.removeAll(true);
     if (!unit) return;
 
-    L.add(portraitMedallion(this, 92, 1040, 52, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
-    L.add(this.add.text(160, 990, unit.name, textStyle(27, '#ffe08a')));
+    L.add(framedPortrait(this, 38, 968, 112, 164, unit, portraitKey(unit.id, unit)));
+    const x = 168;
+    L.add(this.add.text(x, 964, unit.name, textStyle(29, '#f1e6c8', { strokeThickness: 0 })));
     const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
-    L.add(this.add.text(160, 1026, unit.jobName + '  ·  ' + role, textStyle(18, '#e4c27c')));
-
-    const frac = Math.max(0, unit.hp / unit.maxHp);
-    const bar = this.add.graphics();
-    bar.fillStyle(UI.ink, 1);
-    bar.fillRoundedRect(160, 1058, 190, 18, 6);
-    bar.fillStyle(frac <= 0.35 ? 0xe05a47 : 0x6fcf7f, 1);
-    if (frac > 0) bar.fillRoundedRect(162, 1060, 186 * frac, 14, 5);
-    bar.lineStyle(2, UI.bronze, 1);
-    bar.strokeRoundedRect(160, 1058, 190, 18, 6);
-    L.add(bar);
-    L.add(this.add.text(160, 1082, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
+    L.add(this.add.text(x, 1004, unit.jobName + '  ·  ' + role, textStyle(17, '#a89a78', { strokeThickness: 0 })));
     L.add(
       this.add
-        .text(350, 1082, unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(15, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a'))
+        .text(390, 968, (viewing ? 'viewing · ' : '') + (unit.side === 'hero' ? 'ALLY' : 'FOE'), textStyle(13, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a', { strokeThickness: 0 }))
         .setOrigin(1, 0)
     );
 
-    // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
-    const now = (stat) => unit[stat] + statMod(unit, stat);
-    L.add(this.add.text(30, 1122, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
-    const mp = unit.maxMp > 0 ? '  MP ' + unit.mp + '/' + unit.maxMp : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
-    L.add(this.add.text(30, 1148, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
+    // a long rounded bar, green for health (orange when low, red for an enemy)
+    const bar = (y, frac, color) => {
+      const g = this.add.graphics();
+      g.fillStyle(UI.ink, 1);
+      g.fillRoundedRect(x, y, 216, 14, 7);
+      g.fillStyle(color, 1);
+      if (frac > 0) g.fillRoundedRect(x + 2, y + 2, Math.max(10, 212 * frac), 10, 5);
+      g.lineStyle(1.5, UI.bronze, 1);
+      g.strokeRoundedRect(x, y, 216, 14, 7);
+      return g;
+    };
+    const frac = Math.max(0, unit.hp / unit.maxHp);
+    L.add(bar(1038, frac, unit.side === 'enemy' ? ENEMY_BAR : frac <= 0.35 ? LOW_BAR : HERO_BAR));
+    L.add(this.add.text(x, 1060, 'HP   ' + unit.hp + ' / ' + unit.maxHp, textStyle(18, '#f1e6c8', { strokeThickness: 0 })));
+    // magic only for units that have it (the mock's MP bar on Gaha was left out: he has none)
+    if (unit.maxMp > 0) {
+      L.add(bar(1094, unit.mp / unit.maxMp, 0x4f8fe0));
+      L.add(this.add.text(x, 1116, 'MP   ' + unit.mp + ' / ' + unit.maxMp, textStyle(18, '#8fbfff', { strokeThickness: 0 })));
+    }
 
-    // conditions as small chips
-    let x = 30;
+    // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
+    const div = this.add.graphics();
+    div.lineStyle(1, UI.bronzeDark, 1);
+    div.lineBetween(28, 1148, 388, 1148);
+    L.add(div);
+    const now = (stat) => unit[stat] + statMod(unit, stat);
+    const last = unit.contest && isStanceDuel() ? 'POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : unit.maxMp > 0 ? 'MP ' + unit.mp + '/' + unit.maxMp : '';
+    const grid = [
+      ['ATK ' + now('attack'), 'DEF ' + now('defense'), 'MAG ' + now('magicAttack'), 'MDF ' + now('magicDefense')],
+      ['SPD ' + unit.speed, 'MOV ' + moveOf(unit), 'RNG ' + unit.range, last],
+    ];
+    grid.forEach((row, r) =>
+      row.forEach((words, c) => {
+        if (words) L.add(this.add.text(32 + c * 92, 1160 + r * 30, words, textStyle(16, '#cdbb94', { strokeThickness: 0 })).setLetterSpacing(1));
+      })
+    );
+
+    // conditions as small chips (a spell on the unit shows its turns left)
+    let cx = 30;
+    const buff = buffOf(unit);
     for (const tag of statusTags(unit)) {
-      const t = this.add.text(0, 0, tag.text, textStyle(15, tag.color, { fontStyle: 'bold' }));
-      const w = t.width + 14;
+      const words = buff && tag.text === buff.short ? tag.text + ' ' + buff.turnsLeft : tag.text;
+      const t = this.add.text(0, 0, words, textStyle(13, tag.color, { fontStyle: 'bold', strokeThickness: 0 }));
+      const w = t.width + 12;
+      if (cx + w > 392) break; // no room for more
       const chip = this.add.graphics();
       chip.fillStyle(UI.ink, 1);
-      chip.fillRoundedRect(x, 1182, w, 26, 6);
+      chip.fillRoundedRect(cx, 1226, w, 24, 5);
       chip.lineStyle(1, UI.bronze, 1);
-      chip.strokeRoundedRect(x, 1182, w, 26, 6);
-      t.setPosition(x + 7, 1185);
+      chip.strokeRoundedRect(cx, 1226, w, 24, 5);
+      t.setPosition(cx + 6, 1230);
       L.add([chip, t]);
-      x += w + 6;
+      cx += w + 5;
     }
-    const buff = buffOf(unit);
-    if (buff) L.add(this.add.text(30, 1216, buff.name + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', textStyle(15, buff.color)));
-    if (viewing) L.add(this.add.text(350, 1238, 'viewing', textStyle(14, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0));
     this.ui(L);
   }
 
@@ -846,23 +928,38 @@ export default class BattleScene extends Phaser.Scene {
     this.startTurn();
   }
 
-  // Redraws the turn order across the top: the unit acting now (large), then the next 6.
+  // Redraws the turn order across the top as diamond portraits: the unit
+  // acting now (large, with a gold line under it), then the next 6.
   refreshTurnStrip() {
     this.turnStripLayer.removeAll(true);
     const lineup = [this.activeUnit, ...previewTurns(this.units, 6)];
-
+    const y = 108;
     lineup.forEach((unit, i) => {
       const now = i === 0;
-      const x = now ? 72 : 158 + (i - 1) * 74;
-      const medal = portraitMedallion(this, x, 108, now ? 34 : 24, unit, portraitKey(unit.id, unit), { active: now });
-      this.turnStripLayer.add(medal);
+      const x = now ? 70 : 170 + (i - 1) * 76;
+      this.turnStripLayer.add(diamondPortrait(this, x, y, now ? 42 : 31, unit, portraitKey(unit.id, unit), { active: now }));
       if (now) {
-        const arrow = this.add.graphics();
-        arrow.fillStyle(UI.gold, 1);
-        arrow.fillTriangle(x + 44, 108, x + 54, 100, x + 54, 116);
-        this.turnStripLayer.add(arrow);
+        const g = this.add.graphics();
+        g.fillStyle(UI.gold, 1);
+        g.fillTriangle(x + 52, y - 7, x + 61, y, x + 52, y + 7); // ▸ who is next
+        g.lineStyle(5, UI.gold, 0.18);
+        g.lineBetween(x - 36, 159, x + 36, 159);
+        g.lineStyle(1.5, UI.gold, 0.9);
+        g.lineBetween(x - 36, 159, x + 36, 159);
+        g.fillStyle(UI.gold, 1);
+        g.fillPoints([{ x, y: 155 }, { x: x + 4, y: 159 }, { x, y: 163 }, { x: x - 4, y: 159 }], true);
+        this.turnStripLayer.add(g);
       }
     });
+    // a thin line trailing off after the last face
+    const tail = this.add.graphics();
+    const from = 170 + (lineup.length - 2) * 76 + 46;
+    for (let i = 0; i < 10; i++) {
+      tail.lineStyle(1, UI.bronze, 0.6 * (1 - i / 10));
+      tail.lineBetween(from + i * 10, y, from + i * 10 + 10, y);
+    }
+    this.turnStripLayer.add(tail);
+    this.turnCounter.setText('Turn ' + this.round);
     this.ui(this.turnStripLayer);
   }
 

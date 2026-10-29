@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { play } from './audio.js';
 
-// The look of the battle interface: bronze frames, woven cloth bands, icons,
-// round portraits and command buttons. Everything is drawn in code.
+// The look of the battle interface: thin gold frames (from Suleiman's mock),
+// diamond and framed portraits, icons and command buttons. Everything is drawn in code.
+// (bronzePanel, the older heavy frame with studs and a woven band, is still
+// used by the result screen.)
 
 export const UI = {
   leather: 0x1c130c,
@@ -176,6 +178,26 @@ export function drawIcon(g, name, x, y, size, color = UI.bronzeLight) {
       g.fillTriangle(x - 13 * s, y - 4 * s, x - 6 * s, y - 13 * s, x + 6 * s, y - 13 * s);
       g.fillTriangle(x - 13 * s, y - 4 * s, x + 6 * s, y - 13 * s, x + 13 * s, y - 4 * s);
       break;
+    case 'move':
+      // an arrow with a dashed tail: walk somewhere
+      L(-1, 0, 14, 0, 4);
+      L(6, -8, 14, 0, 4);
+      L(6, 8, 14, 0, 4);
+      L(-17, 0, -13, 0, 3);
+      L(-10, 0, -5, 0, 3);
+      break;
+    case 'flask':
+      // a round potion flask with a narrow neck
+      g.fillCircle(x, y + 5 * s, 11 * s);
+      g.fillRect(x - 4 * s, y - 13 * s, 8 * s, 10 * s);
+      L(-7, -14, 7, -14, 3);
+      break;
+    case 'info':
+      g.lineStyle(2.5 * s, color, 1);
+      g.strokeCircle(x, y, 16 * s);
+      g.fillCircle(x, y - 7 * s, 2.5 * s);
+      L(0, -2, 0, 9, 3.5);
+      break;
     case 'sound':
     case 'mute':
       g.fillRect(x - 14 * s, y - 6 * s, 8 * s, 12 * s);
@@ -254,9 +276,140 @@ export function portraitMedallion(scene, x, y, radius, unit, portraitKey, { acti
   return scene.add.container(0, 0, [ring, img]);
 }
 
+// ---------- The slim look (from Suleiman's mock) ----------
+
+// A dark panel with a thin gold line, as in the mock: no studs, no woven band.
+// ornament: a strip of small diamonds down the left edge (the unit card).
+export function framePanel(scene, x, y, w, h, { ornament = false, alpha = 0.94 } = {}) {
+  const g = scene.add.graphics();
+  g.fillStyle(0x000000, 0.4);
+  g.fillRoundedRect(x + 3, y + 4, w, h, 8);
+  g.fillStyle(0x110c08, alpha);
+  g.fillRoundedRect(x, y, w, h, 8);
+  g.lineStyle(1.5, UI.bronze, 0.9);
+  g.strokeRoundedRect(x, y, w, h, 8);
+  g.lineStyle(1, UI.bronzeDark, 0.9);
+  g.strokeRoundedRect(x + 4, y + 4, w - 8, h - 8, 6);
+  if (ornament) {
+    // two thin rails with a chain of diamonds near the top
+    const ox = x + 13;
+    g.lineStyle(1, UI.bronze, 0.7);
+    g.lineBetween(ox - 4, y + 14, ox - 4, y + h * 0.55);
+    g.lineBetween(ox + 4, y + 14, ox + 4, y + h * 0.55);
+    for (let i = 0; i < 4; i++) {
+      const cy = y + 26 + i * 15;
+      g.fillStyle(UI.ink, 1);
+      g.fillTriangle(ox, cy - 7, ox + 6, cy, ox - 6, cy);
+      g.fillTriangle(ox, cy + 7, ox + 6, cy, ox - 6, cy);
+      g.lineStyle(1.5, i === 0 ? UI.bronzeLight : UI.bronze, 1);
+      g.strokePoints([{ x: ox, y: cy - 7 }, { x: ox + 6, y: cy }, { x: ox, y: cy + 7 }, { x: ox - 6, y: cy }], true);
+    }
+  }
+  return g;
+}
+
+// The side's colors behind a face: blue for heroes, red for enemies (as in the mock)
+const SIDE_BACK = { hero: ['#3f7f9e', '#142f3d'], enemy: ['#a5392c', '#3a120d'] };
+
+// Draws a face (or a token with the job letter) filling a w x h canvas area.
+// alignY: where the face sits when the picture is taller than the area (0 top, 0.5 middle).
+function paintFace(scene, c, unit, portraitKey, w, h, alignY) {
+  const [light, dark] = SIDE_BACK[unit.side] || SIDE_BACK.hero;
+  const grad = c.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, light);
+  grad.addColorStop(1, dark);
+  c.fillStyle = grad;
+  c.fillRect(0, 0, w, h);
+  if (portraitKey && scene.textures.exists(portraitKey)) {
+    const img = scene.textures.get(portraitKey).getSourceImage();
+    const scale = Math.max(w / img.width, h / img.height);
+    const dw = img.width * scale;
+    const dh = img.height * scale;
+    c.drawImage(img, (w - dw) / 2, (h - dh) * alignY, dw, dh);
+  } else {
+    c.fillStyle = '#f1e6c8';
+    c.font = 'bold ' + Math.round(Math.min(w, h) * 0.42) + 'px Georgia, serif';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText(unit.badge || '?', w / 2, h / 2);
+  }
+}
+
+// Makes (once) a diamond-shaped picture of a unit's face and returns its name.
+export function diamondTexture(scene, unit, portraitKey) {
+  const key = 'diamond:' + unit.id + ':' + (portraitKey || 'token');
+  if (scene.textures.exists(key)) return key;
+  const size = 128;
+  const tex = scene.textures.createCanvas(key, size, size);
+  const c = tex.getContext();
+  c.save();
+  c.beginPath();
+  c.moveTo(size / 2, 0);
+  c.lineTo(size, size / 2);
+  c.lineTo(size / 2, size);
+  c.lineTo(0, size / 2);
+  c.closePath();
+  c.clip();
+  // the face is zoomed in a little, so the diamond shows the face rather than the shoulders
+  c.translate(-size * 0.12, -size * 0.06);
+  paintFace(scene, c, unit, portraitKey, size * 1.24, size * 1.24, 0.25);
+  c.restore();
+  tex.refresh();
+  return key;
+}
+
+// A face in a diamond with a thin gold frame, for the turn order.
+// half: half the diamond's width. active: the unit whose turn it is (brighter frame).
+export function diamondPortrait(scene, x, y, half, unit, portraitKey, { active = false } = {}) {
+  const pts = (r, dx = 0, dy = 0) => [
+    { x: x + dx, y: y - r + dy },
+    { x: x + r + dx, y: y + dy },
+    { x: x + dx, y: y + r + dy },
+    { x: x - r + dx, y: y + dy },
+  ];
+  const back = scene.add.graphics();
+  back.fillStyle(0x000000, 0.55);
+  back.fillPoints(pts(half + 5, 2, 3), true);
+  back.fillStyle(active ? 0x6b4a1c : 0x2a1d12, 1);
+  back.fillPoints(pts(half + 4), true);
+  const img = scene.add.image(x, y, diamondTexture(scene, unit, portraitKey)).setDisplaySize(half * 2, half * 2);
+  const frame = scene.add.graphics();
+  frame.lineStyle(active ? 2.5 : 1.5, active ? UI.gold : UI.bronze, 1);
+  frame.strokePoints(pts(half + 3), true);
+  frame.lineStyle(1, active ? UI.bronzeLight : UI.bronzeDark, 0.9);
+  frame.strokePoints(pts(half), true);
+  return scene.add.container(0, 0, [back, img, frame]);
+}
+
+// A tall portrait in a gold frame, for the unit card.
+export function framedPortrait(scene, x, y, w, h, unit, portraitKey) {
+  const key = 'rect:' + unit.id + ':' + w + 'x' + h + ':' + (portraitKey || 'token');
+  if (!scene.textures.exists(key)) {
+    const tex = scene.textures.createCanvas(key, w * 2, h * 2); // twice the size, so it stays sharp
+    paintFace(scene, tex.getContext(), unit, portraitKey, w * 2, h * 2, 0.15);
+    tex.refresh();
+  }
+  const g = scene.add.graphics();
+  g.fillStyle(0x000000, 0.5);
+  g.fillRect(x - 1, y + 2, w + 8, h + 8);
+  g.fillStyle(UI.bronzeDark, 1);
+  g.fillRect(x - 4, y - 4, w + 8, h + 8);
+  const img = scene.add.image(x, y, key).setOrigin(0, 0).setDisplaySize(w, h);
+  const frame = scene.add.graphics();
+  frame.lineStyle(2, UI.bronzeLight, 1);
+  frame.strokeRect(x - 3, y - 3, w + 6, h + 6);
+  frame.lineStyle(1, UI.bronze, 0.9);
+  frame.strokeRect(x, y, w, h);
+  // small corner cuts, like a fitted frame
+  frame.fillStyle(UI.bronzeLight, 1);
+  for (const [cx, cy] of [[x - 3, y - 3], [x + w + 3, y - 3], [x - 3, y + h + 3], [x + w + 3, y + h + 3]]) frame.fillRect(cx - 2, cy - 2, 4, 4);
+  return scene.add.container(0, 0, [g, img, frame]);
+}
+
 // ---------- Command buttons ----------
 
-// A command button: a leather bar with a bronze edge, an icon and a word.
+// A command button in the slim style of the mock: a dark bar with a thin
+// bronze edge, a round icon, a word, and a ">" when it opens a list.
 // It reacts to presses and can be dimmed or highlighted.
 export class CommandButton {
   // compact: a half-width button (smaller icon and words), two side by side in one row
@@ -271,10 +424,12 @@ export class CommandButton {
     this.selected = false;
     this.onTap = null;
     this.accent = UI.bronzeLight;
+    this.chevron = false;
+    this.decor = null;
 
     this.bg = scene.add.graphics();
     this.icon = scene.add.graphics();
-    this.label = scene.add.text(x - w / 2 + (compact ? 50 : 70), y, '', textStyle(compact ? 23 : 28, '#f1e6c8')).setOrigin(0, 0.5);
+    this.label = scene.add.text(x - w / 2 + (compact ? 44 : 62), y, '', textStyle(compact ? 21 : 25, '#f1e6c8')).setOrigin(0, 0.5);
     this.hit = scene.add.rectangle(x, y, w, h, 0x000000, 0.001).setInteractive({ useHandCursor: true });
     this.view = scene.add.container(0, 0, [this.bg, this.icon, this.label, this.hit]);
 
@@ -289,7 +444,8 @@ export class CommandButton {
   }
 
   // label: the word on the button, or null to hide it.
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight } = {}) {
+  // chevron: draw a ">" (it opens a list). decor: 'tiles' draws small blue tiles (Move).
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, chevron = false, decor = null } = {}) {
     const visible = label !== null;
     this.view.setVisible(visible);
     this.hit.setVisible(visible);
@@ -298,7 +454,18 @@ export class CommandButton {
     this.onTap = onTap;
     this.accent = accent;
     this.iconName = iconName;
+    this.chevron = chevron;
+    this.decor = decor;
     this.label.setText(label || '');
+    this.draw(false);
+  }
+
+  // Moves the button to another row (the list closes up when a row is not needed).
+  setY(y) {
+    if (y === this.y) return;
+    this.y = y;
+    this.label.setY(y);
+    this.hit.setY(y);
     this.draw(false);
   }
 
@@ -307,33 +474,53 @@ export class CommandButton {
     const g = this.bg;
     g.clear();
     const on = this.enabled;
-    g.fillStyle(0x000000, 0.5);
-    g.fillRoundedRect(x - w / 2 + 2, y - h / 2 + 4, w, h, 10);
-    g.fillStyle(this.selected ? 0x4a3218 : hover && on ? 0x3a2716 : UI.leatherLight, 1);
-    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 10);
-    g.lineStyle(3, this.selected ? UI.gold : on ? UI.bronze : UI.bronzeDark, 1);
-    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 10);
-    g.lineStyle(1, UI.bronzeLight, on ? 0.5 : 0.15);
-    g.strokeRoundedRect(x - w / 2 + 4, y - h / 2 + 4, w - 8, h - 8, 7);
-    // icon socket
-    const ix = x - w / 2 + (this.compact ? 26 : 36);
-    const r = this.compact ? 17 : 22;
+    const left = x - w / 2;
+    const top = y - h / 2;
+    if (this.selected) {
+      // a soft gold glow around the chosen command
+      g.lineStyle(6, UI.gold, 0.16);
+      g.strokeRoundedRect(left - 2, top - 2, w + 4, h + 4, 9);
+    }
+    g.fillStyle(this.selected ? 0x2c200f : hover && on ? 0x221810 : 0x16100b, 0.96);
+    g.fillRoundedRect(left, top, w, h, 7);
+    g.fillStyle(0xffffff, 0.03); // a faint sheen on the upper half
+    g.fillRoundedRect(left + 2, top + 2, w - 4, h / 2 - 2, 6);
+    g.lineStyle(this.selected ? 2.5 : 1.5, this.selected ? UI.gold : on ? UI.bronze : UI.bronzeDark, 1);
+    g.strokeRoundedRect(left, top, w, h, 7);
+    // round icon socket
+    const ix = left + (this.compact ? 23 : 31);
+    const r = this.compact ? 15 : 19;
     g.fillStyle(UI.ink, 1);
     g.fillCircle(ix, y, r);
-    g.lineStyle(2, on ? this.accent : UI.bronzeDark, 1);
+    g.lineStyle(1.5, on ? this.accent : UI.bronzeDark, 1);
     g.strokeCircle(ix, y, r);
+    // ">" for a command that opens a list
+    if (this.chevron) {
+      const cx = left + w - (this.compact ? 16 : 24);
+      g.lineStyle(2.5, on ? UI.bronzeLight : UI.bronzeDark, 1);
+      g.lineBetween(cx - 5, y - 8, cx + 2, y);
+      g.lineBetween(cx + 2, y, cx - 5, y + 8);
+    }
+    // small blue tiles on the Move command, as in the mock
+    if (this.decor === 'tiles' && !this.chevron) {
+      const tx = left + w - 52;
+      for (const [dx, dy] of [[0, 0], [14, -7], [14, 7], [28, 0]]) {
+        g.fillStyle(0x7fc4ff, on ? 0.55 : 0.2);
+        g.fillPoints([{ x: tx + dx, y: y + dy - 6 }, { x: tx + dx + 12, y: y + dy }, { x: tx + dx, y: y + dy + 6 }, { x: tx + dx - 12, y: y + dy }], true);
+      }
+    }
 
     this.icon.clear();
-    if (this.iconName) drawIcon(this.icon, this.iconName, ix, y, this.compact ? 23 : 30, on ? this.accent : 0x6a5434);
+    if (this.iconName) drawIcon(this.icon, this.iconName, ix, y, this.compact ? 20 : 26, on ? this.accent : 0x6a5434);
     this.label.setColor(on ? '#f1e6c8' : '#7a6a52');
-    this.view.setAlpha(on ? 1 : 0.7);
+    this.view.setAlpha(on ? 1 : 0.75);
   }
 
   flash() {
     this.scene.tweens.add({ targets: this.view, scaleX: 0.98, scaleY: 0.98, duration: 60, yoyo: true });
     const glow = this.scene.add.graphics();
     glow.fillStyle(UI.gold, 0.25);
-    glow.fillRoundedRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h, 10);
+    glow.fillRoundedRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h, 7);
     glow.cameraFilter = this.view.cameraFilter; // seen by the same camera as the button
     this.view.add(glow);
     this.scene.tweens.add({ targets: glow, alpha: 0, duration: 260, onComplete: () => glow.destroy() });

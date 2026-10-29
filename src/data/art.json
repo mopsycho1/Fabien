@@ -589,8 +589,8 @@
     "shout": "tayo_face_angry.png"
   },
   "e4": {
-    "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance.",
-    "height": 100,
+    "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others.",
+    "height": 112,
     "standing": {
       "downLeft": {
         "file": "rabdul_stand_downLeft.png",
@@ -612,19 +612,19 @@
     "battle": {
       "downLeft": {
         "file": "rabdul_battle_downLeft.png",
-        "originX": 0.571
+        "originX": 0.577
       },
       "downRight": {
         "file": "rabdul_battle_downRight.png",
-        "originX": 0.49
+        "originX": 0.492
       },
       "upLeft": {
         "file": "rabdul_battle_upLeft.png",
-        "originX": 0.636
+        "originX": 0.633
       },
       "upRight": {
         "file": "rabdul_battle_upRight.png",
-        "originX": 0.503
+        "originX": 0.5
       }
     },
     "poses": {
