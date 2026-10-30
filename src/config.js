@@ -1,8 +1,9 @@
 // Settings that many files need. Change them here, not in five places.
 
-// The game screen is phone shaped (portrait). Phaser scales it to fit any screen.
-// We use a big internal size (720 by 1280) so everything stays sharp on
-// large monitors and on high resolution phone screens.
+// The battlefield is drawn in a world 720 wide and 1280 tall (the board sits
+// in the middle of it). The screen itself takes the shape of the window since
+// 30 Oct (see layout.js): scenes use this.scale.width and this.scale.height
+// for the screen, and these two numbers only for the world.
 export const GAME_WIDTH = 720;
 export const GAME_HEIGHT = 1280;
 

@@ -10,7 +10,8 @@ import { play } from './audio.js';
 // ---------- Suleiman's UI art ----------
 
 const UI_FILES = ['top', 'bottom', 'hint', 'ring', 'medal_normal', 'medal_glow', 'medal_grey',
-  'bar_normal', 'bar_glow', 'bar_grey', 'barS_normal', 'barS_glow', 'barS_grey'];
+  'bar_normal', 'bar_glow', 'bar_grey', 'barS_normal', 'barS_glow', 'barS_grey',
+  'clash_frame']; // his clash banner (30 Oct, roadmap 8.6)
 // his 14 icons: a round medal (for round buttons) and just the symbol (for a button's socket)
 export const UI_ICONS = ['walk', 'sword', 'spear', 'lightning', 'crossed', 'star', 'hourglass',
   'shield', 'run', 'gem', 'undo', 'redo', 'sound', 'mute'];
@@ -499,4 +500,122 @@ export class CommandButton {
 // Turns a CSS color like '#ff8a5c' into a number Phaser drawing understands.
 export function hexToNumber(hex) {
   return Phaser.Display.Color.HexStringToColor(hex).color;
+}
+
+// ---------- The new battle screen (roadmap Phase 8, his 30 Oct mockups) ----------
+
+// A dark see-through panel with a thin bronze edge, like the cards in his
+// mockups. Drawn into the graphics object g.
+export function darkPanel(g, x, y, w, h, s = 1) {
+  const r = Math.round(8 * s);
+  g.fillStyle(0x0e0906, 0.86);
+  g.fillRoundedRect(x, y, w, h, r);
+  g.lineStyle(1.5, UI.bronze, 0.95);
+  g.strokeRoundedRect(x, y, w, h, r);
+  g.lineStyle(1, UI.bronzeLight, 0.18);
+  g.strokeRoundedRect(x + 3, y + 3, w - 6, h - 6, Math.max(2, r - 3));
+}
+
+// One row of the small command menu beside the unit whose turn it is
+// (roadmap 8.3): his icon, the word, and on the right a cost (the part of the
+// label after two spaces, like "Furious Charge  3 MP"). It works like a
+// CommandButton (set, enabled, label, glyph), so the turn logic that fills
+// the buttons stays the same; BattleScene.layoutMenu decides where rows go.
+export class MenuRow {
+  constructor(scene) {
+    this.scene = scene;
+    this.enabled = false;
+    this.selected = false;
+    this.onTap = null;
+    this.iconName = null;
+    this.accent = UI.bronzeLight;
+    this.x = 0;
+    this.y = 0;
+    this.w = 236;
+    this.h = 42;
+    this.s = 1;
+    this.bg = scene.add.graphics();
+    this.icon = scene.add.graphics();
+    this.glyph = scene.add.image(0, 0, '__DEFAULT').setVisible(false);
+    // the whole label (what the rest of the game reads); the row shows it as a word and a cost
+    this.label = scene.add.text(0, 0, '').setVisible(false);
+    this.word = scene.add.text(0, 0, '', textStyle(19, '#f1e6c8')).setOrigin(0, 0.5);
+    this.cost = scene.add.text(0, 0, '', textStyle(15, '#bcd8ff')).setOrigin(1, 0.5);
+    this.hit = scene.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    this.view = scene.add.container(0, 0, [this.bg, this.icon, this.glyph, this.label, this.word, this.cost, this.hit]);
+    this.hit.on('pointerdown', () => {
+      if (!this.enabled || !this.onTap) return;
+      play('click');
+      this.flash();
+      this.onTap();
+    });
+    this.hit.on('pointerover', () => this.draw(true));
+    this.hit.on('pointerout', () => this.draw(false));
+  }
+
+  // label: the words on the row, or null to hide it.
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight } = {}) {
+    const visible = label !== null;
+    this.view.setVisible(visible);
+    this.hit.setVisible(visible);
+    this.enabled = visible && enabled;
+    this.selected = selected;
+    this.onTap = onTap;
+    this.accent = accent;
+    this.iconName = iconName;
+    this.label.setText(label || '');
+    const [word, ...rest] = (label || '').split('  ');
+    this.word.setText(word);
+    this.cost.setText(rest.join(' ').trim());
+    this.draw(false);
+  }
+
+  // Where the row sits inside the menu, and how big it is drawn.
+  place(x, y, w, h, s) {
+    Object.assign(this, { x, y, w, h, s });
+    this.hit.setPosition(x, y).setSize(w, h);
+    if (this.hit.input) this.hit.input.hitArea.setTo(0, 0, w, h);
+    this.draw(false);
+  }
+
+  draw(hover) {
+    const { x, y, w, h, s } = this;
+    const on = this.enabled;
+    const cy = y + h / 2;
+    const g = this.bg;
+    g.clear();
+    if (this.selected || (hover && on)) {
+      g.fillStyle(this.selected ? 0x5a3d1c : 0x3a2716, this.selected ? 0.95 : 0.8);
+      g.fillRoundedRect(x + 2, y + 2, w - 4, h - 4, 6 * s);
+      // his gold cursor on the left, as in the mockups
+      g.fillStyle(UI.gold, 1);
+      g.fillTriangle(x - 3 * s, cy - 7 * s, x + 7 * s, cy, x - 3 * s, cy + 7 * s);
+    }
+    const ix = x + 26 * s;
+    const d = 28 * s;
+    const key = this.iconName && glyphKey(this.scene, this.iconName);
+    this.icon.clear();
+    if (key) {
+      this.glyph.setTexture(key).setPosition(ix, cy).setDisplaySize(d, d).setVisible(true).setAlpha(on ? 1 : 0.4);
+    } else {
+      this.glyph.setVisible(false);
+      if (this.iconName) drawIcon(this.icon, this.iconName, ix, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434);
+    }
+    this.cost.setFontSize(Math.round(15 * s)).setPosition(x + w - 10 * s, cy).setAlpha(on ? 1 : 0.5);
+    this.word.setPosition(x + 48 * s, cy).setColor(on ? '#f1e6c8' : '#7d6e58');
+    // a long word shrinks so it never runs into the cost
+    let size = Math.round(19 * s);
+    this.word.setFontSize(size);
+    const room = w - 58 * s - (this.cost.text ? this.cost.width + 8 * s : 0);
+    while (this.word.width > room && size > 11) this.word.setFontSize(--size);
+  }
+
+  flash() {
+    const glow = this.scene.add.graphics();
+    glow.fillStyle(UI.gold, 0.3);
+    glow.fillRoundedRect(this.x, this.y, this.w, this.h, 6 * this.s);
+    glow.cameraFilter = this.view.cameraFilter; // seen by the same camera as the row
+    this.view.add(glow);
+    this.scene.tweens.add({ targets: glow, alpha: 0, duration: 260, onComplete: () => glow.destroy() });
+  }
 }

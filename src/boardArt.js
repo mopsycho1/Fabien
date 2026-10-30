@@ -669,22 +669,24 @@ export function drawUnderside(scene) {
 }
 
 // The sky behind the board: dusk colors, a low sun, and far-off dunes.
-export function drawBackdrop(scene) {
+// x0 and x1 say how far left and right of the world it must reach (a
+// landscape screen sees more of the world's sides; roadmap 8.1).
+export function drawBackdrop(scene, x0 = 0, x1 = GAME_WIDTH) {
   if (setting === 'cave') {
-    drawCaveBackdrop(scene);
+    drawCaveBackdrop(scene, x0, x1);
     return;
   }
   // The painted wasteland, if we have it
   if (scene.textures.exists('terrain:backdrop')) {
-    scene.add.image(0, 0, 'terrain:backdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+    scene.add.image(x0, 0, 'terrain:backdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(x1 - x0, GAME_HEIGHT);
     // the ground fades to dark at the bottom, where the buttons are
     const fade = scene.add.graphics().setDepth(-20);
     for (let i = 0; i < 12; i++) {
       fade.fillStyle(0x140e0b, (i + 1) / 12);
-      fade.fillRect(0, 800 + i * 10, GAME_WIDTH, 11);
+      fade.fillRect(x0, 800 + i * 10, x1 - x0, 11);
     }
     fade.fillStyle(0x140e0b, 1);
-    fade.fillRect(0, 920, GAME_WIDTH, GAME_HEIGHT - 920);
+    fade.fillRect(x0, 920, x1 - x0, GAME_HEIGHT - 920);
     return;
   }
 
@@ -698,7 +700,7 @@ export function drawBackdrop(scene) {
     const t = i / (bands - 1);
     const color = t < 0.6 ? lerpColor(top[0], top[1], t / 0.6) : lerpColor(top[1], top[2], (t - 0.6) / 0.4);
     g.fillStyle(color, 1);
-    g.fillRect(0, (horizon * i) / bands, GAME_WIDTH, horizon / bands + 2);
+    g.fillRect(x0, (horizon * i) / bands, x1 - x0, horizon / bands + 2);
   }
 
   // a low sun with a glow
@@ -714,11 +716,11 @@ export function drawBackdrop(scene) {
     const rand = makeRandom(seed);
     g.fillStyle(color, 1);
     g.beginPath();
-    g.moveTo(0, GAME_HEIGHT);
-    for (let x = 0; x <= GAME_WIDTH + 40; x += 40) {
+    g.moveTo(x0, GAME_HEIGHT);
+    for (let x = x0; x <= x1 + 40; x += 40) {
       g.lineTo(x, baseY + Math.sin(x / 90 + seed) * amp + (rand() - 0.5) * 8);
     }
-    g.lineTo(GAME_WIDTH, GAME_HEIGHT);
+    g.lineTo(x1, GAME_HEIGHT);
     g.closePath();
     g.fillPath();
   };
@@ -728,10 +730,10 @@ export function drawBackdrop(scene) {
 
   // the ground fades to dark at the bottom, where the buttons are
   g.fillStyle(0x140e0b, 1);
-  g.fillRect(0, 900, GAME_WIDTH, GAME_HEIGHT - 900);
+  g.fillRect(x0, 900, x1 - x0, GAME_HEIGHT - 900);
   for (let i = 0; i < 8; i++) {
     g.fillStyle(0x140e0b, i / 8);
-    g.fillRect(0, 820 + i * 10, GAME_WIDTH, 11);
+    g.fillRect(x0, 820 + i * 10, x1 - x0, 11);
   }
 }
 
@@ -823,9 +825,9 @@ function drawSandfall(scene, item, hw, hh) {
 // walls closing in at the sides, and teeth of rock hanging from the ceiling.
 // When we have a painted cave picture, add it to TERRAIN_FILES as
 // caveBackdrop and it is used instead.
-function drawCaveBackdrop(scene) {
+function drawCaveBackdrop(scene, X0 = 0, X1 = GAME_WIDTH) {
   if (scene.textures.exists('terrain:caveBackdrop')) {
-    scene.add.image(0, 0, 'terrain:caveBackdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+    scene.add.image(X0, 0, 'terrain:caveBackdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(X1 - X0, GAME_HEIGHT);
   } else {
     const g = scene.add.graphics().setDepth(-21);
     const bands = 30;
@@ -833,13 +835,13 @@ function drawCaveBackdrop(scene) {
       const t = i / (bands - 1);
       const color = t < 0.5 ? lerpColor(0x050302, 0x1c110b, t / 0.5) : lerpColor(0x1c110b, 0x2a1810, (t - 0.5) / 0.5);
       g.fillStyle(color, 1);
-      g.fillRect(0, (900 * i) / bands, GAME_WIDTH, 900 / bands + 2);
+      g.fillRect(X0, (900 * i) / bands, X1 - X0, 900 / bands + 2);
     }
     const rand = makeRandom(77);
     // rock walls at the sides, in two layers
     const wall = (side, color, reach, seed) => {
       const r = makeRandom(seed);
-      const x0 = side === 'left' ? 0 : GAME_WIDTH;
+      const x0 = side === 'left' ? X0 : X1;
       const dir = side === 'left' ? 1 : -1;
       g.fillStyle(color, 1);
       g.beginPath();
@@ -854,8 +856,8 @@ function drawCaveBackdrop(scene) {
     wall('left', 0x120a06, 80, 9);
     wall('right', 0x120a06, 80, 13);
     // rock teeth hanging from the ceiling
-    for (let i = 0; i < 16; i++) {
-      const x = rand() * GAME_WIDTH;
+    for (let i = 0; i < Math.round((16 * (X1 - X0)) / GAME_WIDTH); i++) {
+      const x = X0 + rand() * (X1 - X0);
       const w = 14 + rand() * 30;
       const h = 40 + rand() * 120;
       g.fillStyle(rand() < 0.5 ? 0x1a0f09 : 0x0e0805, 1);
@@ -871,10 +873,10 @@ function drawCaveBackdrop(scene) {
   const fade = scene.add.graphics().setDepth(-20);
   for (let i = 0; i < 12; i++) {
     fade.fillStyle(0x0a0604, (i + 1) / 12);
-    fade.fillRect(0, 800 + i * 10, GAME_WIDTH, 11);
+    fade.fillRect(X0, 800 + i * 10, X1 - X0, 11);
   }
   fade.fillStyle(0x0a0604, 1);
-  fade.fillRect(0, 920, GAME_WIDTH, GAME_HEIGHT - 920);
+  fade.fillRect(X0, 920, X1 - X0, GAME_HEIGHT - 920);
 }
 
 // The cave floor carries on past the edge of the board, fading into the dark,

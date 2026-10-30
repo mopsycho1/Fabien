@@ -169,7 +169,8 @@ function caveAtmosphere(scene, parts) {
   }
   const beam = scene.add.image(250, 150, 'fx-beam').setOrigin(0.5, 0).setDepth(70).setBlendMode(Phaser.BlendModes.ADD).setAngle(-11).setAlpha(0.9);
   scene.tweens.add({ targets: beam, alpha: 0.65, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  scene.add.image(0, 0, 'fx-vignette').setOrigin(0, 0).setDisplaySize(GAME_WIDTH, 1280).setDepth(72);
+  // the dark edges stay fixed to the screen, whatever its shape (BattleScene sizes it)
+  scene.vignette = scene.add.image(0, 0, 'fx-vignette').setOrigin(0, 0).setScrollFactor(0).setDisplaySize(GAME_WIDTH, 1280).setDepth(72);
 
   // dust floating slowly in the light
   const dust = scene.add.particles(0, 0, 'fx-dot', {

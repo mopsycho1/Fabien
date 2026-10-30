@@ -1,16 +1,19 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from './config.js';
 import StartScene from './scenes/StartScene.js';
 import DialogueScene from './scenes/DialogueScene.js';
 import BattleScene from './scenes/BattleScene.js';
 import EndScene from './scenes/EndScene.js';
 import EffectsLab from './scenes/EffectsLab.js';
+import { pickSize, followWindow } from './layout.js';
 
-new Phaser.Game({
+// The game takes the shape of the window: landscape or portrait (see layout.js).
+const size = pickSize(window.innerWidth, window.innerHeight);
+
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',            // the <div id="game"> in index.html
-  width: GAME_WIDTH,
-  height: GAME_HEIGHT,
+  width: size.width,
+  height: size.height,
   backgroundColor: '#1a1410',
   scale: {
     mode: Phaser.Scale.FIT,  // shrink or grow to fit any screen, keeping the shape
@@ -24,3 +27,5 @@ new Phaser.Game({
     : [StartScene, DialogueScene, BattleScene, EndScene, EffectsLab],
   loader: { imageLoadType: 'HTMLImageElement' }, // load pictures straight from their files
 });
+followWindow(game);
+window.__game = game; // lets the test scripts look inside the running game

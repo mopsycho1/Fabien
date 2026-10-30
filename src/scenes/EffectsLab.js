@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
+import { fitDesign } from '../layout.js';
 import {
   slashArc,
   hitSpark,
@@ -22,6 +23,7 @@ export default class EffectsLab extends Phaser.Scene {
   }
 
   create() {
+    fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
     this.cameras.main.setBackgroundColor('#2a1f16');
 
     this.add

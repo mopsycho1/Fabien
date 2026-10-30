@@ -5,7 +5,9 @@ import { preloadArt } from '../art.js';
 import { preloadBoardArt } from '../boardArt.js';
 import { preloadSpellArt } from '../spellArt.js';
 import { createHudTextures, preloadUiArt } from '../hud.js';
+import { fitDesign } from '../layout.js';
 import { startAudio, play } from '../audio.js';
+import { tryFullscreen } from '../layout.js';
 
 // The title screen. The game opens here on a dark screen: the title fades in,
 // and nothing else happens until the player taps.
@@ -24,6 +26,7 @@ export default class StartScene extends Phaser.Scene {
   }
 
   create() {
+    fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
     this.cameras.main.setBackgroundColor('#0d0907');
     this.cameras.main.fadeIn(900, 0, 0, 0); // fade up from black
     this.starting = false;
@@ -67,6 +70,7 @@ export default class StartScene extends Phaser.Scene {
     if (this.starting) return;
     this.starting = true;
     startAudio(); // browsers only allow sound after a tap
+    tryFullscreen(this); // Android: full screen, so the browser's bars don't take room
     play('drum');
     this.cameras.main.fadeOut(600, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => startStep(this, 0));

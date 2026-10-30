@@ -4,6 +4,7 @@ import { startStep } from '../story.js';
 import dialogue from '../data/dialogue.json';     // every line of story text
 import characters from '../data/characters.json'; // names and colors of the speakers
 import { createHudTextures, bronzePanel } from '../hud.js';
+import { fitDesign } from '../layout.js';
 import { play } from '../audio.js';
 
 // Layout of the text box, in pixels
@@ -29,6 +30,7 @@ export default class DialogueScene extends Phaser.Scene {
   }
 
   create() {
+    fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
     const sceneData = dialogue[this.sceneId];
 
     // If the scene is missing or empty, say so and move on instead of freezing
