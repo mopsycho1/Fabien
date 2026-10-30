@@ -1,0 +1,632 @@
+{
+ "name": "Round two: facing up-right",
+ "parts": "parts34/back/",
+ "canvas": [
+  760,
+  980
+ ],
+ "origin": [
+  380,
+  450
+ ],
+ "view": [
+  20,
+  30,
+  940,
+  880
+ ],
+ "frames": "thrust_ur",
+ "shadowY": 880,
+ "bones": [
+  {
+   "name": "hips",
+   "part": "hips",
+   "parent": null,
+   "pivot": [
+    88,
+    18
+   ],
+   "z": 20
+  },
+  {
+   "name": "belly",
+   "part": "belly",
+   "parent": "hips",
+   "pivot": [
+    88,
+    140
+   ],
+   "at": [
+    88,
+    32
+   ],
+   "z": 25
+  },
+  {
+   "name": "chest",
+   "part": "chest",
+   "parent": "belly",
+   "pivot": [
+    105,
+    208
+   ],
+   "at": [
+    88,
+    34
+   ],
+   "z": 35
+  },
+  {
+   "name": "head",
+   "part": "head",
+   "parent": "chest",
+   "pivot": [
+    70,
+    150
+   ],
+   "at": [
+    108,
+    120
+   ],
+   "z": 58
+  },
+  {
+   "name": "far_upper",
+   "part": "far_upper",
+   "parent": "chest",
+   "pivot": [
+    21,
+    14
+   ],
+   "tip": [
+    69,
+    122
+   ],
+   "at": [
+    42,
+    105
+   ],
+   "angle": 10,
+   "z": 5
+  },
+  {
+   "name": "far_fore",
+   "part": "far_fore",
+   "parent": "far_upper",
+   "pivot": [
+    15,
+    15
+   ],
+   "tip": [
+    99,
+    104
+   ],
+   "at": [
+    69,
+    122
+   ],
+   "angle": -10,
+   "z": 4
+  },
+  {
+   "name": "far_hand",
+   "part": "far_hand_grip",
+   "parent": "far_fore",
+   "pivot": [
+    17,
+    9
+   ],
+   "tip": [
+    45,
+    69
+   ],
+   "at": [
+    99,
+    104
+   ],
+   "z": 3
+  },
+  {
+   "name": "near_upper",
+   "part": "near_upper",
+   "parent": "chest",
+   "pivot": [
+    33,
+    13
+   ],
+   "tip": [
+    72,
+    123
+   ],
+   "at": [
+    168,
+    100
+   ],
+   "angle": -5,
+   "z": 52
+  },
+  {
+   "name": "near_fore",
+   "part": "near_fore",
+   "parent": "near_upper",
+   "pivot": [
+    13,
+    12
+   ],
+   "tip": [
+    74,
+    89
+   ],
+   "at": [
+    72,
+    123
+   ],
+   "angle": -25,
+   "z": 51
+  },
+  {
+   "name": "near_hand",
+   "part": "near_hand_grip",
+   "parent": "near_fore",
+   "pivot": [
+    14,
+    11
+   ],
+   "tip": [
+    54,
+    64
+   ],
+   "at": [
+    74,
+    89
+   ],
+   "z": 50
+  },
+  {
+   "name": "spear",
+   "part": "spear",
+   "parent": "near_hand",
+   "pivot": [
+    330,
+    45
+   ],
+   "tip": [
+    10,
+    75
+   ],
+   "at": [
+    36,
+    40
+   ],
+   "angle": 65,
+   "scale": 1.15,
+   "z": 49
+  },
+  {
+   "name": "near_thigh",
+   "part": "near_thigh_c",
+   "parent": "hips",
+   "pivot": [
+    45,
+    16
+   ],
+   "tip": [
+    40,
+    110
+   ],
+   "at": [
+    125,
+    92
+   ],
+   "angle": -28,
+   "z": 18,
+   "scale": 1.15
+  },
+  {
+   "name": "near_shin",
+   "part": "near_shin",
+   "parent": "near_thigh",
+   "pivot": [
+    26,
+    14
+   ],
+   "tip": [
+    40,
+    150
+   ],
+   "at": [
+    40,
+    110
+   ],
+   "angle": 20,
+   "z": 16,
+   "scale": 1.15
+  },
+  {
+   "name": "far_thigh",
+   "part": "far_thigh_c",
+   "parent": "hips",
+   "pivot": [
+    45,
+    16
+   ],
+   "tip": [
+    40,
+    105
+   ],
+   "at": [
+    55,
+    92
+   ],
+   "angle": 26,
+   "z": 14,
+   "scale": 1.15
+  },
+  {
+   "name": "far_shin",
+   "part": "far_shin",
+   "parent": "far_thigh",
+   "pivot": [
+    27,
+    14
+   ],
+   "tip": [
+    40,
+    150
+   ],
+   "at": [
+    40,
+    105
+   ],
+   "angle": -18,
+   "z": 12,
+   "scale": 1.15
+  },
+  {
+   "name": "skirt_front_l",
+   "part": "skirt_front_l",
+   "parent": "hips",
+   "pivot": [
+    66,
+    12
+   ],
+   "at": [
+    45,
+    28
+   ],
+   "z": 8
+  },
+  {
+   "name": "skirt_front_c",
+   "part": "skirt_front_c",
+   "parent": "hips",
+   "pivot": [
+    71,
+    12
+   ],
+   "at": [
+    88,
+    28
+   ],
+   "z": 9
+  },
+  {
+   "name": "skirt_front_r",
+   "part": "skirt_front_r",
+   "parent": "hips",
+   "pivot": [
+    68,
+    12
+   ],
+   "at": [
+    130,
+    28
+   ],
+   "z": 10
+  },
+  {
+   "name": "skirt_back_l",
+   "part": "skirt_back_l",
+   "parent": "hips",
+   "pivot": [
+    90,
+    12
+   ],
+   "at": [
+    48,
+    40
+   ],
+   "z": 28
+  },
+  {
+   "name": "skirt_back_r",
+   "part": "skirt_back_r",
+   "parent": "hips",
+   "pivot": [
+    55,
+    12
+   ],
+   "at": [
+    128,
+    40
+   ],
+   "z": 29
+  },
+  {
+   "name": "skirt_back_c",
+   "part": "skirt_back_c",
+   "parent": "hips",
+   "pivot": [
+    65,
+    12
+   ],
+   "at": [
+    88,
+    42
+   ],
+   "z": 30
+  },
+  {
+   "name": "cape_lo",
+   "part": "cape_lo",
+   "parent": "chest",
+   "pivot": [
+    90,
+    15
+   ],
+   "at": [
+    45,
+    95
+   ],
+   "angle": 6,
+   "z": 45,
+   "scale": 0.88
+  },
+  {
+   "name": "cape_ro",
+   "part": "cape_ro",
+   "parent": "chest",
+   "pivot": [
+    90,
+    15
+   ],
+   "at": [
+    165,
+    95
+   ],
+   "angle": -6,
+   "z": 46,
+   "scale": 0.88
+  },
+  {
+   "name": "cape_li",
+   "part": "cape_li",
+   "parent": "chest",
+   "pivot": [
+    78,
+    15
+   ],
+   "at": [
+    85,
+    95
+   ],
+   "angle": 2,
+   "z": 47,
+   "scale": 0.88
+  },
+  {
+   "name": "cape_ri",
+   "part": "cape_ri",
+   "parent": "chest",
+   "pivot": [
+    83,
+    15
+   ],
+   "at": [
+    125,
+    95
+   ],
+   "angle": -2,
+   "z": 48,
+   "scale": 0.88
+  },
+  {
+   "name": "mantle_far",
+   "part": "mantle_far",
+   "parent": "chest",
+   "pivot": [
+    100,
+    30
+   ],
+   "at": [
+    55,
+    95
+   ],
+   "z": 54
+  },
+  {
+   "name": "mantle_near",
+   "part": "mantle_near",
+   "parent": "chest",
+   "pivot": [
+    100,
+    30
+   ],
+   "at": [
+    150,
+    95
+   ],
+   "z": 55
+  }
+ ],
+ "alts": {
+  "chest": {
+   "part": "chest_turn",
+   "pivot": [
+    87,
+    200
+   ]
+  },
+  "head": {
+   "part": "head_turn",
+   "pivot": [
+    70,
+    153
+   ]
+  }
+ },
+ "ik": {
+  "legs": [
+   {
+    "thigh": "near_thigh",
+    "shin": "near_shin",
+    "foot": "near_foot"
+   },
+   {
+    "thigh": "far_thigh",
+    "shin": "far_shin",
+    "foot": "far_foot"
+   }
+  ],
+  "grip": {
+   "upper": "far_upper",
+   "fore": "far_fore",
+   "hand": "far_hand",
+   "spear": "spear",
+   "point": [
+    480,
+    30
+   ],
+   "reach": 28,
+   "bend": -1
+  }
+ },
+ "sway": {
+  "cape_lo": 0.6,
+  "cape_ro": 0.6,
+  "cape_li": 0.5,
+  "cape_ri": 0.5,
+  "skirt_back_l": 0.4,
+  "skirt_back_r": 0.4,
+  "skirt_front_l": 0.4,
+  "skirt_front_r": 0.4,
+  "skirt_back_c": 0.3,
+  "skirt_front_c": 0.3,
+  "mantle_near": 0.2,
+  "mantle_far": 0.2
+ },
+ "idle": {
+  "root": "hips",
+  "chest": "chest",
+  "head": "head",
+  "arms": [
+   "near_upper",
+   "far_upper"
+  ],
+  "fores": [
+   "near_fore",
+   "far_fore"
+  ],
+  "spear": "spear"
+ },
+ "thrust": {
+  "length": 1.05,
+  "frameTimes": [
+   0,
+   0.16,
+   0.3,
+   0.42,
+   0.62,
+   0.84
+  ],
+  "keys": [
+   {
+    "t": 0,
+    "pose": {}
+   },
+   {
+    "t": 0.3,
+    "ease": "out",
+    "pose": {
+     "hips": {
+      "move": [
+       -16,
+       8
+      ]
+     },
+     "belly": {
+      "angle": -3
+     },
+     "chest": {
+      "angle": -6
+     },
+     "head": {
+      "angle": 6
+     },
+     "near_upper": {
+      "world": 25
+     },
+     "near_fore": {
+      "world": -70
+     },
+     "spear": {
+      "world": 80
+     },
+     "grip": {
+      "w": 1
+     }
+    }
+   },
+   {
+    "t": 0.42,
+    "ease": "in",
+    "pose": {
+     "hips": {
+      "move": [
+       40,
+       24
+      ]
+     },
+     "belly": {
+      "angle": 6
+     },
+     "chest": {
+      "angle": 14,
+      "alt": 1
+     },
+     "head": {
+      "angle": -12,
+      "alt": 1
+     },
+     "near_upper": {
+      "world": -82
+     },
+     "near_fore": {
+      "world": -96
+     },
+     "spear": {
+      "world": 78
+     },
+     "grip": {
+      "w": 1
+     },
+     "near_foot": {
+      "move": [
+       40,
+       -6
+      ]
+     }
+    }
+   },
+   {
+    "t": 0.62,
+    "pose": "same"
+   },
+   {
+    "t": 1.05,
+    "ease": "inout",
+    "pose": {}
+   }
+  ]
+ }
+}

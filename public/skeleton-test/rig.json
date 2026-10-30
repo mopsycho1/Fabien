@@ -288,5 +288,162 @@
    "z": 8,
    "scale": 1.08
   }
- ]
+ ],
+ "name": "Round one: front view",
+ "parts": "parts/",
+ "view": [
+  175,
+  95,
+  870,
+  813
+ ],
+ "frames": "thrust",
+ "ik": {
+  "legs": [
+   {
+    "thigh": "l_thigh",
+    "shin": "l_shin",
+    "foot": "l_foot"
+   },
+   {
+    "thigh": "r_thigh",
+    "shin": "r_shin",
+    "foot": "r_foot"
+   }
+  ],
+  "grip": {
+   "upper": "r_upper",
+   "fore": "r_fore",
+   "hand": "r_hand",
+   "spear": "spear",
+   "point": [
+    360,
+    45
+   ],
+   "reach": 34,
+   "bend": 1
+  }
+ },
+ "idle": {
+  "root": "hips",
+  "chest": "torso",
+  "head": "head",
+  "arms": [
+   "l_upper",
+   "r_upper"
+  ],
+  "fores": [
+   "l_fore",
+   "r_fore"
+  ],
+  "spear": "spear",
+  "mantle": "mantle",
+  "cape": "cape"
+ },
+ "thrust": {
+  "length": 1.05,
+  "frameTimes": [
+   0,
+   0.16,
+   0.32,
+   0.44,
+   0.62,
+   0.84
+  ],
+  "keys": [
+   {
+    "t": 0,
+    "pose": {}
+   },
+   {
+    "t": 0.32,
+    "ease": "out",
+    "pose": {
+     "hips": {
+      "move": [
+       -18,
+       12
+      ]
+     },
+     "torso": {
+      "angle": -8
+     },
+     "head": {
+      "angle": 8
+     },
+     "l_upper": {
+      "angle": 10
+     },
+     "l_fore": {
+      "angle": -65
+     },
+     "spear": {
+      "angle": 193,
+      "flip": 1
+     },
+     "grip": {
+      "w": 1
+     },
+     "cape": {
+      "angle": -5
+     },
+     "mantle": {
+      "angle": -2
+     }
+    }
+   },
+   {
+    "t": 0.44,
+    "ease": "in",
+    "pose": {
+     "hips": {
+      "move": [
+       30,
+       26
+      ]
+     },
+     "torso": {
+      "angle": 12
+     },
+     "head": {
+      "angle": -10
+     },
+     "l_upper": {
+      "angle": -40
+     },
+     "l_fore": {
+      "angle": -55
+     },
+     "spear": {
+      "angle": 203,
+      "flip": 1
+     },
+     "grip": {
+      "w": 1
+     },
+     "cape": {
+      "angle": 9
+     },
+     "mantle": {
+      "angle": 3
+     },
+     "r_foot": {
+      "move": [
+       46,
+       0
+      ]
+     }
+    }
+   },
+   {
+    "t": 0.62,
+    "pose": "same"
+   },
+   {
+    "t": 1.05,
+    "ease": "inout",
+    "pose": {}
+   }
+  ]
+ }
 }
