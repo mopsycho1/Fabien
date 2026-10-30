@@ -249,8 +249,8 @@
     "text": "Stone turns Intercept into this: charge up to 4 tiles and ram the enemy 2 tiles back, no clash. Into a wall, it slams and is Disoriented. 3 Verse MP."
   },
   "furyCharge": {
-    "name": "Fury Charge",
-    "button": "Fury Charge",
+    "name": "Furious Charge",
+    "button": "Furious Charge",
     "short": "FURY",
     "kind": "charge",
     "effect": "strike",

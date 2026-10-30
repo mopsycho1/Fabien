@@ -17,6 +17,10 @@ import art from './data/art.json';
 //   "buffed": { "stone": { ...four facings... }, "swiftness": { ... } }
 // While that Verse is on the unit, those pictures replace its standing ones.
 //
+// "rooted" (optional) is four facings for a unit standing its ground under
+// Earth's Bulwark (Gaha's low guard in a dome of crystals, roadmap 6.17).
+// It wins over every other standing set while the unit is ROOTED.
+//
 // "portraitHurt" (optional) is a face for when the unit is badly hurt (35%
 // health or less). It replaces the calm face on the card and the turn bar.
 //
@@ -54,7 +58,7 @@ export function preloadArt(scene) {
 
 function allFiles(entry) {
   const files = new Set();
-  const buffed = Object.values(entry.buffed || {});
+  const buffed = [...Object.values(entry.buffed || {}), ...(entry.rooted ? [entry.rooted] : [])];
   const directional = Object.values(entry.poses || {}).filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
@@ -152,13 +156,23 @@ export const ALERT_RANGE = 3;
 // buff is the id of a Verse on the unit (like "stone"): its pictures win.
 // weak = true when the unit is badly hurt: its "weak" pictures, if it has them.
 // Which set wins: a Verse look, then the weakened look, then the battle stance.
-export function standingFrame(id, facing, alert = false, buff = null, weak = false) {
+// rooted = true while it stands its ground under Earth's Bulwark: its "rooted" pictures.
+export function standingFrame(id, facing, alert = false, buff = null, weak = false, rooted = false) {
   const entry = art[id];
   if (!entry || !entry.standing) return null;
   let standing = alert && entry.battle ? entry.battle : entry.standing;
   if (weak && entry.weak) standing = isFacingSet(entry.weak) ? entry.weak : { downRight: entry.weak };
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
+  if (rooted && entry.rooted) standing = entry.rooted;
   return pickFacing(id, standing, facing);
+}
+
+// True if the unit's own pictures for a Verse already have its effect painted
+// round them ("auraPainted" in art.json; Gaha under Fury has the fire on him),
+// so the Verse look leaves out its own ribbons.
+export function hasPaintedAura(id, buff) {
+  const entry = art[id];
+  return !!(entry && entry.auraPainted && entry.auraPainted.includes(buff));
 }
 
 // The picture for a facing from a set of facings: the facing itself, or the

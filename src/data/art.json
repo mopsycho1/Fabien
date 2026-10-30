@@ -177,20 +177,12 @@
       },
       "fury": {
         "downLeft": {
-          "file": "gaha_stone_downLeft.png",
-          "originX": 0.457
-        },
-        "downRight": {
-          "file": "gaha_stone_downRight.png",
-          "originX": 0.501
-        },
-        "upLeft": {
-          "file": "gaha_stone_upLeft.png",
+          "file": "gaha_fury_downLeft.png",
           "originX": 0.482
         },
         "upRight": {
-          "file": "gaha_stone_upRight.png",
-          "originX": 0.465
+          "file": "gaha_fury_upRight.png",
+          "originX": 0.51
         }
       },
       "swiftness": {
@@ -367,7 +359,22 @@
           }
         ]
       }
-    }
+    },
+    "rooted": {
+      "downRight": {
+        "file": "gaha_rooted_downRight.png",
+        "originX": 0.501
+      },
+      "upRight": {
+        "file": "gaha_rooted_upRight.png",
+        "originX": 0.495
+      }
+    },
+    "note_fury": "Gaha under Fury (roadmap 6.14), from his 30 Oct turnaround: front and back views; down-right and up-left are their mirror images.",
+    "note_rooted": "Gaha standing his ground under Earth's Bulwark (roadmap 6.17), from his 30 Oct sheet: a low guard in a dome of crystals. Both drawn facing right; the left facings are their mirror images.",
+    "auraPainted": [
+      "fury"
+    ]
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",

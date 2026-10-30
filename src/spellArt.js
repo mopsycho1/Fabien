@@ -18,8 +18,14 @@ const FILES = [
   'sj_spear_0', 'sj_spear_1', 'sj_spear_2', 'sj_impact_0', 'sj_impact_1', 'sj_rings', 'sj_burst_0', 'sj_burst_1',
   'swift_swirl_0', 'swift_swirl_1', 'swift_swirl_2', 'swift_swirl_3', 'swift_swirl_4', 'swift_swirl_5',
   'swift_trail_0', 'swift_trail_1', 'swift_trail_2', 'swift_trail_3', 'swift_trail_4', 'swift_trail_5',
+  // his 30 Oct sheets (roadmap 6.11 and 6.18): the Sigil Dissolve, Fury and Earth's Bulwark landing,
+  // the turning Fury ring and the Earth's Bulwark crystals
+  'death_0', 'death_1', 'death_2', 'death_3', 'death_4', 'death_5', 'death_6', 'death_7',
+  'fury_cast_0', 'fury_cast_1', 'fury_cast_2', 'fury_cast_3', 'fury_cast_4', 'fury_cast_5', 'fury_cast_6', 'fury_ground',
+  'earth_cast_0', 'earth_cast_1', 'earth_cast_2', 'earth_cast_3',
+  'earth_crystal_0', 'earth_crystal_1', 'earth_crystal_2', 'earth_crystal_3',
 ];
-const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail)/.test(key);
+const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal)/.test(key);
 
 // Status icons (public/art/icons), shown over a unit instead of a word.
 // A status with an "icon" in spells.json uses the picture of that name.
@@ -72,12 +78,29 @@ export function slowAura(scene, unit) {
 const has = (scene, keys) => keys.every((k) => scene.textures.exists('fx:' + k));
 
 // Plays pictures one after another at (x, y), standing on that point.
-function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, originY = 1, flip = false } = {}) {
+// hold: how long the last picture stays before it fades; fade: how long the fade takes.
+function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, originY = 1, flip = false, hold = 0, fade = 220 } = {}) {
   const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(0.5, originY).setScale(scale).setDepth(depth).setFlipX(flip);
   if (!PAINTED(keys[0])) img.setBlendMode(Phaser.BlendModes.ADD);
   keys.forEach((k, i) => scene.time.delayedCall(i * frameMs, () => img.active && img.setTexture('fx:' + k)));
-  scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * frameMs, duration: 220, onComplete: () => img.destroy() });
+  scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * frameMs + hold, duration: fade, onComplete: () => img.destroy() });
   return img;
+}
+
+const range = (name, n) => Array.from({ length: n }, (_, i) => name + '_' + i);
+const DEATH = range('death', 8);
+const FURY_CAST = range('fury_cast', 7);
+const EARTH_CAST = range('earth_cast', 4);
+const EARTH_CRYSTALS = range('earth_crystal', 4);
+
+// A defeated unit dissolves (roadmap 6.11, his "Sigil Dissolve"): a ring of
+// sigils opens under it, light and sigils rise and scatter, and a faint ring
+// is left that fades. Returns how long it takes (ms), or 0 if the pictures are missing.
+export function sigilDissolve(scene, x, y) {
+  if (!has(scene, DEATH)) return 0;
+  const frameMs = 120;
+  flipbook(scene, DEATH, x, y + 14, { frameMs, scale: 0.62, depth: 79, hold: 260, fade: 500 });
+  return DEATH.length * frameMs;
 }
 
 // A ground picture that grows and fades, lying flat on the tile.
@@ -98,6 +121,16 @@ export function lightningStrike(scene, x, y, { big = false } = {}) {
 
 // The aura of a Verse settling on a unit. kind: 'fury', 'swiftness', 'stone'.
 export function verseAura(scene, x, y, kind) {
+  // his 30 Oct sheets (roadmap 6.18): the ring opens, fire spirals up, bursts and settles
+  if (kind === 'fury' && has(scene, FURY_CAST)) {
+    flipbook(scene, FURY_CAST, x, y + 8, { frameMs: 85, scale: 0.95, depth: 79 });
+    return true;
+  }
+  // crystals rise round the ring and swirl into a guard
+  if (kind === 'stone' && has(scene, EARTH_CAST)) {
+    flipbook(scene, EARTH_CAST, x, y + 10, { frameMs: 130, scale: 0.72, depth: 79, hold: 120 });
+    return true;
+  }
   if (kind === 'fury' && has(scene, ['fury_ring', 'fury_column', 'fury_sparks'])) {
     groundFlash(scene, 'fury_ring', x, y, { scale: 0.62, duration: 800, depth: 79 });
     const col = scene.add.image(x, y + 6, 'fx:fury_column').setOrigin(0.5, 1).setScale(0.6, 0.2).setDepth(79).setBlendMode(Phaser.BlendModes.ADD);
@@ -185,45 +218,76 @@ function spin(scene, img, scale, ms, phase = 0) {
 // While a Verse of Fury is on a unit: a ring of fire beats at its feet like a
 // heart, red ribbons spin around it and sparks rise. Returns the objects (in
 // the unit's container) and the tweens, or null if the pictures are missing.
-export function furyAura(scene, unit) {
+// ribbons = false for a unit whose own Fury pictures already have the fire
+// painted round it (Gaha): then only the ring and the sparks are added.
+export function furyAura(scene, unit, { ribbons = true } = {}) {
   if (!has(scene, ['fury_ring', 'fury_ribbons', 'fury_sparks'])) return null;
   const add = (key, y, alpha) => scene.add.image(0, y, 'fx:' + key).setBlendMode(Phaser.BlendModes.ADD).setAlpha(alpha);
-  const ring = add('fury_ring', 4, 0.55).setScale(0.42, 0.3);
-  behind(unit, ring);
-  const tweens = [scene.tweens.add({ targets: ring, scaleX: 0.48, scaleY: 0.34, alpha: 0.85, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
-  const back = add('fury_ribbons', -unit.centerY * 0.75, 0.5);
-  behind(unit, back);
-  const front = add('fury_ribbons', -unit.centerY * 0.6, 0.55);
-  unit.view.add(front);
-  tweens.push(spin(scene, back, 0.4, 1500), spin(scene, front, 0.36, 1500, Math.PI / 2));
+  const tweens = [];
+  const objects = [];
+  if (has(scene, ['fury_ground'])) {
+    // his ring of fire seen from above, laid flat at the feet and turning
+    const flat = scene.add.container(0, 6).setScale(1, 0.36);
+    const ring = scene.add.image(0, 0, 'fx:fury_ground').setScale(0.95).setAlpha(0.9);
+    flat.add(ring);
+    behind(unit, flat);
+    tweens.push(scene.tweens.add({ targets: ring, angle: 360, duration: 3200, repeat: -1 }));
+    tweens.push(scene.tweens.add({ targets: ring, alpha: 0.6, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
+    objects.push(flat);
+  } else {
+    const ring = add('fury_ring', 4, 0.55).setScale(0.42, 0.3);
+    behind(unit, ring);
+    tweens.push(scene.tweens.add({ targets: ring, scaleX: 0.48, scaleY: 0.34, alpha: 0.85, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
+    objects.push(ring);
+  }
+  if (ribbons) {
+    const back = add('fury_ribbons', -unit.centerY * 0.75, 0.5);
+    behind(unit, back);
+    const front = add('fury_ribbons', -unit.centerY * 0.6, 0.55);
+    unit.view.add(front);
+    tweens.push(spin(scene, back, 0.4, 1500), spin(scene, front, 0.36, 1500, Math.PI / 2));
+    objects.push(back, front);
+  }
   const sparks = [0, 1].map((i) => {
     const s = add('fury_sparks', -unit.centerY, 0).setScale(0.32);
     unit.view.add(s);
     tweens.push(scene.tweens.add({ targets: s, y: -unit.topY - 10, alpha: { from: 0.8, to: 0 }, duration: 1100, delay: i * 550, repeat: -1 }));
     return s;
   });
-  return { objects: [ring, back, front, ...sparks], tweens };
+  return { objects: [...objects, ...sparks], tweens };
 }
 
 // While Earth's Bulwark (the Verse of Stone) is on a unit: three crystals
 // float round it, passing behind and in front, over a faint golden ring.
 export function bulwarkAura(scene, unit) {
-  const keys = ['bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2'];
+  // his 30 Oct crystals if they're there (solid, painted), else the ones cut from his card (light)
+  const his = has(scene, EARTH_CRYSTALS);
+  const keys = his ? EARTH_CRYSTALS : ['bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2'];
   if (!has(scene, keys)) return null;
-  const ring = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
-  ring.lineStyle(3, 0xd9b77a, 0.7);
-  ring.strokeEllipse(0, 4, 74, 26);
-  ring.setAlpha(0.5);
+  let ring;
+  if (has(scene, ['earth_cast_0'])) {
+    // the first stage of his Earth's Bulwark sheet: a ring with small crystals and light
+    ring = scene.add.image(0, 10, 'fx:earth_cast_0').setOrigin(0.5, 1).setScale(0.62).setAlpha(0.55);
+  } else {
+    ring = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+    ring.lineStyle(3, 0xd9b77a, 0.7);
+    ring.strokeEllipse(0, 4, 74, 26);
+    ring.setAlpha(0.5);
+  }
   behind(unit, ring);
   const tweens = [scene.tweens.add({ targets: ring, alpha: 0.9, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
-  const crystals = keys.map((k) => scene.add.image(0, 0, 'fx:' + k).setBlendMode(Phaser.BlendModes.ADD).setScale(0.6));
+  const crystals = keys.map((k) => {
+    const c = scene.add.image(0, 0, 'fx:' + k).setScale(0.6);
+    if (!his) c.setBlendMode(Phaser.BlendModes.ADD);
+    return c;
+  });
   crystals.forEach((c) => unit.view.add(c));
   const R = Math.max(30, (unit.bodyHalfWidth || 24) + 12);
   const clock = { t: 0 };
   const place = () => {
     crystals.forEach((c, i) => {
       if (!c.active) return;
-      const a = clock.t + (i * Math.PI * 2) / 3;
+      const a = clock.t + (i * Math.PI * 2) / crystals.length;
       const front = Math.sin(a) > 0; // the near half of the circle is lower on the screen
       c.setPosition(Math.cos(a) * R, -unit.centerY * 0.55 + Math.sin(a) * R * 0.3 + Math.sin(clock.t * 2 + i) * 4);
       c.setAlpha(front ? 0.95 : 0.55).setScale(front ? 0.62 : 0.5);

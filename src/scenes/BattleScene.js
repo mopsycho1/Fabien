@@ -19,11 +19,11 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -381,11 +381,14 @@ export default class BattleScene extends Phaser.Scene {
     if (mpNow) {
       const mpBar = this.add.graphics();
       const mpColor = mpNow.lent ? Phaser.Display.Color.HexStringToColor(buffOf(unit).color).color : 0x5aa8ff;
+      // the bar stops short so its numbers fit at its end (roadmap 1.9)
       mpBar.fillStyle(UI.ink, 1);
-      mpBar.fillRoundedRect(172, 1080, 184, 10, 4);
-      if (mpNow.mp > 0) mpBar.fillStyle(mpColor, 1).fillRoundedRect(173, 1081, 182 * (mpNow.mp / mpNow.max), 8, 3);
-      mpBar.lineStyle(1, UI.bronze, 1).strokeRoundedRect(172, 1080, 184, 10, 4);
+      mpBar.fillRoundedRect(172, 1080, 120, 10, 4);
+      if (mpNow.mp > 0) mpBar.fillStyle(mpColor, 1).fillRoundedRect(173, 1081, 118 * (mpNow.mp / mpNow.max), 8, 3);
+      mpBar.lineStyle(1, UI.bronze, 1).strokeRoundedRect(172, 1080, 120, 10, 4);
       L.add(mpBar);
+      const mpHex = '#' + mpColor.toString(16).padStart(6, '0');
+      L.add(this.add.text(356, 1085, 'MP ' + mpNow.mp + '/' + mpNow.max, textStyle(14, mpHex, { fontStyle: 'bold' })).setOrigin(1, 0.5));
     }
     const lineY = mpNow ? 1093 : 1080;
     L.add(this.add.text(172, lineY, 'HP ' + unit.hp + ' / ' + unit.maxHp, textStyle(17)));
@@ -398,7 +401,7 @@ export default class BattleScene extends Phaser.Scene {
     // The numbers as they are right now, spells included (a Verse of Stone shows in DEF)
     const now = (stat) => unit[stat] + statMod(unit, stat);
     L.add(this.add.text(40, 1120, 'ATK ' + now('attack') + '  DEF ' + now('defense') + '  MAG ' + now('magicAttack') + '  MDF ' + now('magicDefense'), textStyle(16, '#d8c8a4')));
-    const mp = mpNow ? '  MP ' + mpNow.mp + '/' + mpNow.max : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
+    const mp = unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
     L.add(this.add.text(40, 1144, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
     // conditions as small chips: his icon and the word (roadmap 6.7). If the
@@ -802,7 +805,9 @@ export default class BattleScene extends Phaser.Scene {
       const burnt = this.activeUnit;
       this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
     }
+    const wasRooted = isRooted(this.activeUnit);
     clearRooted(this.activeUnit); // Gaha's planted feet: until his next turn
+    if (wasRooted && !this.activeUnit.engagedWith) this.showStanding(this.activeUnit); // out of his rooted guard
     if (this.activeUnit.contest) refillPoise(this.activeUnit); // and so does Poise, for fighters
     this.stanceMenu = 'main';
     this.empower = false;
@@ -2303,7 +2308,8 @@ export default class BattleScene extends Phaser.Scene {
     }
     const buff = buffOf(unit);
     const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;
-    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null, weak));
+    // Gaha standing his ground under Earth's Bulwark shows his rooted guard (roadmap 6.17)
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null, weak, isRooted(unit)));
   }
 
   // True when an enemy (as this unit sees it) is close enough to fight:
@@ -2609,9 +2615,16 @@ export default class BattleScene extends Phaser.Scene {
         screenShake(this, 0.006, 170);
         this.tweens.add({ targets: view, y: view.y - 6, duration: 80, yoyo: true });
 
-        // a moment later, it burns away
+        // a moment later, it dissolves in his Sigil Dissolve (roadmap 6.11):
+        // the figure fades as the sigils rise round it
         this.time.delayedCall(520, () => {
           if (!view.active) return;
+          const ms = sigilDissolve(this, view.x, view.y);
+          if (ms) {
+            this.tweens.add({ targets: view, alpha: 0.25, duration: 60, yoyo: true, repeat: 1 });
+            this.tweens.add({ targets: view, alpha: 0, delay: 240, duration: ms * 0.5, onComplete: () => view.destroy() });
+            return;
+          }
           const embers = unit.side === 'enemy' ? [0xff7a2e, 0xffb04a, 0xffd27a] : [0x9fd4ff, 0xffffff, 0x7fd6cf];
           emberBurst(this, view.x, view.y, embers, 46, unit.sprite ? 50 : 40);
           lightColumn(this, view.x, view.y, unit.side === 'enemy' ? 0xff9a4a : 0x9fd4ff);
@@ -3625,7 +3638,7 @@ export default class BattleScene extends Phaser.Scene {
   //               If it was clashing with an ally, the charger takes over and
   //               the ally is free.
   //   knockback : Shield Ram (Stone). Shoved "push" tiles back (wall slam rule).
-  //   strike    : Fury Charge (Fury). Just the hit, at full strength.
+  //   strike    : Furious Charge (Fury). Just the hit, at full strength.
   //   stun      : Blitz (Swiftness). Stunned for a turn.
   // The charge uses up the rest of the unit's steps.
   castIntercept(charger, target, spell, onDone) {
@@ -4441,7 +4454,8 @@ export default class BattleScene extends Phaser.Scene {
       }
       // under Fury or Earth's Bulwark, their own looks (roadmap 6.13)
       const verse = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
-      this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit));
+      // (Gaha has the fire painted round him in his own Fury pictures, so no ribbons are added)
+      this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
       this.keepAura(unit, 'bulwarkAura', verse === 'stone', () => bulwarkAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);
