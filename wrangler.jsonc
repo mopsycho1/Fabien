@@ -1,0 +1,11 @@
+// Cloudflare settings for the private copy of the game (roadmap H.1).
+// Cloudflare builds the game with "npm run build" and serves the finished
+// files from the dist folder as a plain website (no server code).
+// The link is locked with Cloudflare Access, so only the emails on its list get in.
+{
+  "name": "fabien",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
