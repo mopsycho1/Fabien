@@ -11,6 +11,7 @@ const FILES = [
   'fury_column', 'fury_ribbons', 'fury_ring', 'fury_sparks',
   'swift_ribbons', 'swift_ring', 'swift_streaks',
   'stone_burst_0', 'stone_burst_1', 'stone_burst_2',
+  'bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2', // crystals from his Earth's Bulwark card
   'slow_ring', 'slow_pull', 'slow_spiral', 'slow_waves', 'slow_motes',
   // Gaha's Sonic Javelin (roadmap 3.11) and the Swift looks (3.10). These are
   // painted on white, not black, so they are drawn normally, not added as light.
@@ -22,11 +23,21 @@ const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail)/.test(key);
 
 // Status icons (public/art/icons), shown over a unit instead of a word.
 // A status with an "icon" in spells.json uses the picture of that name.
-const ICONS = ['slow'];
+// Slow is from his first icon; the rest are from his "status effects" sheet
+// (30 Oct, roadmap 6.7). The Verses use the middle of his Swift, Fury and
+// Earth's Bulwark cards. Enchanted waits for Rabdul's Enchant (roadmap 4.1).
+const ICONS = ['slow', 'poison', 'stunned', 'offbalance', 'exposed', 'hidden', 'echo', 'meditating',
+  'aiming', 'marked', 'burn', 'disoriented', 'enchanted', 'bloodied', 'charge', 'bulwark',
+  'swiftness', 'fury', 'stone'];
+
+// His status cards (public/art/cards, roadmap 6.9): a small one pops up on the
+// character when the status lands, then shrinks into its icon.
+export const CARDS = ['offbalance', 'swiftness', 'fury', 'stone', 'press', 'empower'];
 
 export function preloadSpellArt(scene) {
   for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
   for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
+  for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
 }
 
 // Slow lands: a gravity ring drops onto the target, light pulls down on it,
@@ -141,6 +152,92 @@ export function swiftTrail(scene, x, y, dx) {
   if (!has(scene, TRAIL)) return false;
   flipbook(scene, TRAIL, x, y + 8, { frameMs: 45, scale: 0.62, depth: 78, flip: dx < 0 });
   return true;
+}
+
+// ---------- Fury and Earth's Bulwark while active (roadmap 6.13) ----------
+// Suleiman asked for looks like Swift's swirl. Until he draws them, these are
+// built from his Fury pictures and the crystals of his Earth's Bulwark card.
+
+// Puts a picture behind the unit's figure (so the figure covers it).
+function behind(unit, obj) {
+  const at = unit.sprite ? unit.view.getIndex(unit.sprite) : 1;
+  unit.view.addAt(obj, Math.max(0, at));
+}
+
+// Turns a picture round and round on its upright axis: its width follows a
+// cosine, so a flat ring of light looks like it spins around the unit.
+function spin(scene, img, scale, ms, phase = 0) {
+  const clock = { t: phase };
+  return scene.tweens.add({
+    targets: clock,
+    t: phase + Math.PI * 2,
+    duration: ms,
+    repeat: -1,
+    onUpdate: () => {
+      if (!img.active) return;
+      // never exactly 0 wide: some canvas renderers fail on a flat picture
+      const c = Math.cos(clock.t);
+      img.setScale(scale * (Math.abs(c) < 0.05 ? (c < 0 ? -0.05 : 0.05) : c), scale);
+    },
+  });
+}
+
+// While a Verse of Fury is on a unit: a ring of fire beats at its feet like a
+// heart, red ribbons spin around it and sparks rise. Returns the objects (in
+// the unit's container) and the tweens, or null if the pictures are missing.
+export function furyAura(scene, unit) {
+  if (!has(scene, ['fury_ring', 'fury_ribbons', 'fury_sparks'])) return null;
+  const add = (key, y, alpha) => scene.add.image(0, y, 'fx:' + key).setBlendMode(Phaser.BlendModes.ADD).setAlpha(alpha);
+  const ring = add('fury_ring', 4, 0.55).setScale(0.42, 0.3);
+  behind(unit, ring);
+  const tweens = [scene.tweens.add({ targets: ring, scaleX: 0.48, scaleY: 0.34, alpha: 0.85, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
+  const back = add('fury_ribbons', -unit.centerY * 0.75, 0.5);
+  behind(unit, back);
+  const front = add('fury_ribbons', -unit.centerY * 0.6, 0.55);
+  unit.view.add(front);
+  tweens.push(spin(scene, back, 0.4, 1500), spin(scene, front, 0.36, 1500, Math.PI / 2));
+  const sparks = [0, 1].map((i) => {
+    const s = add('fury_sparks', -unit.centerY, 0).setScale(0.32);
+    unit.view.add(s);
+    tweens.push(scene.tweens.add({ targets: s, y: -unit.topY - 10, alpha: { from: 0.8, to: 0 }, duration: 1100, delay: i * 550, repeat: -1 }));
+    return s;
+  });
+  return { objects: [ring, back, front, ...sparks], tweens };
+}
+
+// While Earth's Bulwark (the Verse of Stone) is on a unit: three crystals
+// float round it, passing behind and in front, over a faint golden ring.
+export function bulwarkAura(scene, unit) {
+  const keys = ['bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2'];
+  if (!has(scene, keys)) return null;
+  const ring = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+  ring.lineStyle(3, 0xd9b77a, 0.7);
+  ring.strokeEllipse(0, 4, 74, 26);
+  ring.setAlpha(0.5);
+  behind(unit, ring);
+  const tweens = [scene.tweens.add({ targets: ring, alpha: 0.9, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
+  const crystals = keys.map((k) => scene.add.image(0, 0, 'fx:' + k).setBlendMode(Phaser.BlendModes.ADD).setScale(0.6));
+  crystals.forEach((c) => unit.view.add(c));
+  const R = Math.max(30, (unit.bodyHalfWidth || 24) + 12);
+  const clock = { t: 0 };
+  const place = () => {
+    crystals.forEach((c, i) => {
+      if (!c.active) return;
+      const a = clock.t + (i * Math.PI * 2) / 3;
+      const front = Math.sin(a) > 0; // the near half of the circle is lower on the screen
+      c.setPosition(Math.cos(a) * R, -unit.centerY * 0.55 + Math.sin(a) * R * 0.3 + Math.sin(clock.t * 2 + i) * 4);
+      c.setAlpha(front ? 0.95 : 0.55).setScale(front ? 0.62 : 0.5);
+      // pass behind the figure on the far half
+      if (unit.sprite && unit.view.exists(c)) {
+        const above = unit.view.getIndex(c) > unit.view.getIndex(unit.sprite);
+        if (front && !above) unit.view.moveAbove(c, unit.sprite);
+        if (!front && above) unit.view.moveBelow(c, unit.sprite);
+      }
+    });
+  };
+  place();
+  tweens.push(scene.tweens.add({ targets: clock, t: Math.PI * 2, duration: 4200, repeat: -1, onUpdate: place }));
+  return { objects: [ring, ...crystals], tweens };
 }
 
 // ---------- Sonic Javelin (roadmap 3.6 and 3.11, his Sonic Javelin sheets) ----------

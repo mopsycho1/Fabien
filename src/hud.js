@@ -15,12 +15,17 @@ const UI_FILES = ['top', 'bottom', 'hint', 'ring', 'medal_normal', 'medal_glow',
 export const UI_ICONS = ['walk', 'sword', 'spear', 'lightning', 'crossed', 'star', 'hourglass',
   'shield', 'run', 'gem', 'undo', 'redo', 'sound', 'mute'];
 
+// glyphs made from his later art (30 Oct): the Charge symbol from his status
+// sheet for Engage (roadmap 6.12) and his bag icon for Items (roadmap 6.10)
+const EXTRA_GLYPHS = ['charge', 'bag'];
+
 export function preloadUiArt(scene) {
   for (const f of UI_FILES) scene.load.image('ui:' + f, './art/ui/' + f + '.png');
   for (const f of UI_ICONS) {
     scene.load.image('ui:icon_' + f, './art/ui/icon_' + f + '.png');
     scene.load.image('ui:glyph_' + f, './art/ui/glyph_' + f + '.png');
   }
+  for (const f of EXTRA_GLYPHS) scene.load.image('ui:glyph_' + f, './art/ui/glyph_' + f + '.png');
 }
 
 // True once his frames are loaded (so the battle screen can use them).
@@ -190,6 +195,7 @@ export function drawIcon(g, name, x, y, size, color = UI.bronzeLight) {
       L(-15, 4, -4, 15, 4);
       L(-17, 17, -12, 12, 5);
       break;
+    case 'charge': // (Engage, if his Charge glyph is missing)
     case 'crossed':
       L(-13, 13, 13, -13, 4);
       L(13, 13, -13, -13, 4);

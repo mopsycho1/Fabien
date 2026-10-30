@@ -3,6 +3,9 @@
     "name": "Verse of Swiftness",
     "button": "Swiftness",
     "short": "SWIFT",
+    "icon": "swiftness",
+    "card": "swiftness",
+    "effect": "Swift",
     "kind": "buff",
     "group": "Verse",
     "color": "#9fd4ff",
@@ -36,7 +39,11 @@
   "stone": {
     "name": "Verse of Stone",
     "button": "Stone",
-    "short": "STONE",
+    "short": "EARTH",
+    "icon": "stone",
+    "card": "stone",
+    "effect": "Earth's Bulwark",
+    "effectNote": "Suleiman 30 Oct: the effect of the Verse of Stone is called Earth's Bulwark. Its short word is EARTH because BULWARK is already the Warden's signature.",
     "kind": "buff",
     "group": "Verse",
     "color": "#d9b77a",
@@ -48,7 +55,7 @@
     "boosts": {
       "defense": 2
     },
-    "text": "+2 defense. In a clash: +3 guard, harder to push.",
+    "text": "Earth's Bulwark, +2 defense. In a clash: +3 guard, harder to push.",
     "mp": 3,
     "use": "both",
     "affinity": {
@@ -72,6 +79,9 @@
     "name": "Verse of Fury",
     "button": "Fury",
     "short": "FURY",
+    "icon": "fury",
+    "card": "fury",
+    "effect": "Fury",
     "kind": "buff",
     "group": "Verse",
     "color": "#ff8a5c",

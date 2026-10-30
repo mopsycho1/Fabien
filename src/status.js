@@ -391,30 +391,34 @@ export function tickBuff(unit) {
 }
 
 // Short words shown above a unit: ENGAGED, OFF-BAL, and its spell.
+// Each tag can name an "icon" (public/art/icons, from Suleiman's status
+// sheet, roadmap 6.7): over the unit the picture shows instead of the word,
+// with "count" as a small number on it (Bloodied 2). The unit's card shows
+// the picture and the word together, so the icons are easy to learn.
 export function statusTags(unit) {
   const tags = [];
   if (unit.engagedWith) tags.push({ text: 'ENGAGED', color: '#ffb35c' });
-  if (isOffBalance(unit)) tags.push({ text: 'OFF-BAL', color: '#ff6b5a' });
+  if (isOffBalance(unit)) tags.push({ text: 'OFF-BAL', color: '#ff6b5a', icon: 'offbalance' });
   // (a spell with an "icon" in spells.json shows its picture over the unit instead of the word)
   const buff = buffOf(unit);
   if (buff) tags.push({ text: buff.short, color: buff.color, icon: buff.icon });
   const hex = hexOf(unit);
   if (hex) tags.push({ text: hex.short, color: hex.color, icon: hex.icon });
-  if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a' });
+  if (statusOf(unit).exposed) tags.push({ text: 'EXPOSED', color: '#ff9a7a', icon: 'exposed' });
   // signature stances (see signature.js)
-  if (unit.fury) tags.push({ text: 'BLOODIED ' + unit.fury, color: '#ff6b5a' });
-  if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a' });
-  if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a' });
-  if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a' }); // Husk: enemies chase the decoy
-  if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4' }); // her next turn is spent in the trance
-  if (unit.aiming) tags.push({ text: 'AIMING', color: '#9fdc6a' }); // a Poison Arrow, released next turn
-  if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a' }); // an archer's Poison Arrow is aimed at it
-  if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a' });
-  if (statusOf(unit).burn) tags.push({ text: 'BURN', color: '#ff8a3c' }); // Layra's Wildfire
-  if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Stone
-  if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a' });
-  if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff' }); // slammed into a wall
-  if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff' }); // Husk: the decoy will copy the next spell
+  if (unit.fury) tags.push({ text: 'BLOODIED ' + unit.fury, color: '#ff6b5a', icon: 'bloodied', count: unit.fury });
+  if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a', icon: 'charge', count: unit.charge });
+  if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a', icon: 'bulwark', count: unit.bulwark });
+  if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a', icon: 'hidden' }); // Husk: enemies chase the decoy
+  if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4', icon: 'meditating' }); // her next turn is spent in the trance
+  if (unit.aiming) tags.push({ text: 'AIMING', color: '#9fdc6a', icon: 'aiming' }); // a Poison Arrow, released next turn
+  if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a', icon: 'marked' }); // an archer's Poison Arrow is aimed at it
+  if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a', icon: 'poison' });
+  if (statusOf(unit).burn) tags.push({ text: 'BURN', color: '#ff8a3c', icon: 'burn' }); // Layra's Wildfire
+  if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)
+  if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
+  if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall
+  if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {
     tags.push({ text: unit.stance.toUpperCase(), color: { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff' }[unit.stance] });

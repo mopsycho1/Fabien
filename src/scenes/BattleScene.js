@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -401,22 +401,35 @@ export default class BattleScene extends Phaser.Scene {
     const mp = mpNow ? '  MP ' + mpNow.mp + '/' + mpNow.max : unit.contest && isStanceDuel() ? '  POISE ' + poiseOf(unit) + '/' + engagementRules.poise.max : '';
     L.add(this.add.text(40, 1144, 'SPD ' + unit.speed + '  MOV ' + moveOf(unit) + '  RNG ' + unit.range + mp, textStyle(16, '#d8c8a4')));
 
-    // conditions as small chips
+    // conditions as small chips: his icon and the word (roadmap 6.7). If the
+    // row gets too long for the card, the chips with an icon drop the word.
+    const chips = statusTags(unit).map((tag) => ({ tag, icon: tag.icon && this.textures.exists('icon:' + tag.icon) }));
+    const wordW = (tag) => this.add.text(0, 0, tag.text, textStyle(15, tag.color, { fontStyle: 'bold' }));
+    // icon and word: 26 + word + 7; icon alone: 26; word alone: word + 14
+    const widthOf = (c, withWord) => (c.icon ? (withWord ? c.text.width + 33 : 26) : c.text.width + 14);
+    chips.forEach((c) => (c.text = wordW(c.tag)));
+    const roomy = chips.reduce((sum, c) => sum + widthOf(c, true) + 6, 0) <= 324;
     let x = 40;
-    for (const tag of statusTags(unit)) {
-      const t = this.add.text(0, 0, tag.text, textStyle(15, tag.color, { fontStyle: 'bold' }));
-      const w = t.width + 14;
+    for (const c of chips) {
+      const showWord = roomy || !c.icon;
+      const w = widthOf(c, showWord);
+      if (x + w > 366) {
+        c.text.destroy();
+        continue;
+      }
       const chip = this.add.graphics();
       chip.fillStyle(UI.ink, 1);
       chip.fillRoundedRect(x, 1172, w, 26, 6);
       chip.lineStyle(1, UI.bronze, 1);
       chip.strokeRoundedRect(x, 1172, w, 26, 6);
-      t.setPosition(x + 7, 1175);
-      L.add([chip, t]);
+      L.add(chip);
+      if (c.icon) L.add(this.add.image(x + 13, 1185, 'icon:' + c.tag.icon).setDisplaySize(20, 20));
+      if (showWord) L.add(c.text.setPosition(x + (c.icon ? 26 : 7), 1175));
+      else c.text.destroy();
       x += w + 6;
     }
     const buff = buffOf(unit);
-    if (buff) L.add(this.add.text(40, 1204, buff.name + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', textStyle(15, buff.color)));
+    if (buff) L.add(this.add.text(40, 1204, (buff.effect || buff.name) + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', textStyle(15, buff.color)));
     if (viewing) L.add(this.add.text(356, 1222, 'viewing', textStyle(14, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0));
     this.ui(L);
   }
@@ -1201,13 +1214,13 @@ export default class BattleScene extends Phaser.Scene {
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
       // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
       c.set(null);
-      this.halves[0].set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
+      this.halves[0].set('Engage', 'charge', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
         accent: ENGAGE_COLOR,
       });
       this.halves[1].set('Skills', 'star', free, () => this.onSpellButton(), { accent: GOLD });
     } else if (isMelee(unit)) {
-      c.set('Engage', 'crossed', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
+      c.set('Engage', 'charge', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
         accent: ENGAGE_COLOR,
       });
@@ -3062,9 +3075,13 @@ export default class BattleScene extends Phaser.Scene {
     const stanceColor = { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff', break: '#cfe8ff' };
 
     // both stances appear above the fighters
+    // (side: which way is away from the foe, for the small cards beside a fighter)
+    const away = (u) => (u === a ? (dx > 0 ? -1 : 1) : dx > 0 ? 1 : -1);
     at(80, () => {
       this.floatText(a, stanceName(beat.actorStance).toUpperCase() + (beat.empowered ? '+' : ''), stanceColor[beat.actorStance]);
       this.floatText(b, stanceName(beat.holderStance).toUpperCase(), stanceColor[beat.holderStance]);
+      // spending Poise to Empower shows his Empower card beside the fighter
+      if (beat.empowered) this.statusCard(a, 'empower', { label: 'Empower', color: '#ffd27a', side: away(a) });
     });
 
     if (beat.kind === 'break') {
@@ -3105,6 +3122,8 @@ export default class BattleScene extends Phaser.Scene {
           const beaten = engagementRules.beats[winStance] === loseStance;
           title = beaten ? stanceName(winStance) + ' beats ' + stanceName(loseStance) + '!' : beat.winner.name + ' wins the beat';
           color = beat.winner.side === 'hero' ? '#9fe0c8' : '#ff8a6a';
+          // a Press that wins the beat shows his Press card beside the winner
+          if (winStance === 'press') this.statusCard(beat.winner, 'press', { label: 'Press', color: '#ff9a6a', side: away(beat.winner) });
         }
         if (beat.decisive) {
           title = 'DECISIVE!';
@@ -3148,7 +3167,7 @@ export default class BattleScene extends Phaser.Scene {
           const above = { rise: 46 }; // above the damage number from the strike
           if (response.held) this.floatText(loser, 'Held ground!', '#d9b77a', above);
           else if (response.slipped) this.floatText(loser, 'Slipped!', '#9fd4ff', above);
-          else this.floatText(loser, 'Off-balance!', '#ff6b5a', above);
+          else if (!this.statusCard(loser, 'offbalance', { label: 'Off-balance!', color: '#ff6b5a', side: away(loser) })) this.floatText(loser, 'Off-balance!', '#ff6b5a', above);
           if (path.length > 0) this.slideAlong(loser, path);
         }
         if (outcome.fall) this.time.delayedCall(170 * Math.max(1, path.length) + 40, () => this.showFall(loser, outcome.fall, awayX));
@@ -3320,7 +3339,7 @@ export default class BattleScene extends Phaser.Scene {
           this.floatText(loser, 'Slipped!', '#9fd4ff');
         } else {
           this.flashUnit(loser);
-          this.floatText(loser, 'Off-balance!', '#ff6b5a');
+          if (!this.statusCard(loser, 'offbalance', { label: 'Off-balance!', color: '#ff6b5a', side: awayX >= 0 ? 1 : -1 })) this.floatText(loser, 'Off-balance!', '#ff6b5a');
         }
         if (path.length > 0) this.slideAlong(loser, path);
         else if (!response.held) this.recoil(loser, awayX);
@@ -3458,12 +3477,17 @@ export default class BattleScene extends Phaser.Scene {
         // the gravity effect from the Slow sheet
       } else if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
       const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
-      this.floatText(target, spell.button + (times > 1 ? ' x' + times : ''), spell.color, times > 1 ? { pop: true } : {});
+      // a Verse shows his card for it on the ally (Swift, Fury, Earth's Bulwark); other spells float their name
+      const named = (spell.effect || spell.button) + (times > 1 ? ' x' + times : '');
+      if (!(spell.card && this.statusCard(target, spell.card, { label: named, color: spell.color }))) {
+        this.floatText(target, spell.button + (times > 1 ? ' x' + times : ''), spell.color, times > 1 ? { pop: true } : {});
+      }
       this.refreshStatusTags();
       if (spell.kind === 'buff' && !target.engagedWith) this.showStanding(target); // some units look different under a Verse
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });
-    changed.forEach((m, i) => this.time.delayedCall(700 + i * 380, () => target.alive && this.floatText(target, spells[m].button + '!', spells[m].color, { pop: true })));
+    // (after the card has shrunk away)
+    changed.forEach((m, i) => this.time.delayedCall(1150 + i * 380, () => target.alive && this.floatText(target, spells[m].button + '!', spells[m].color, { pop: true })));
     this.time.delayedCall(800, () => this.showStanding(caster));
     this.time.delayedCall(950, onDone);
   }
@@ -4377,7 +4401,20 @@ export default class BattleScene extends Phaser.Scene {
       const tags = unit.alive ? statusTags(unit).filter((t) => t.text !== 'ENGAGED') : [];
       const items = tags.map((t) => {
         if (t.icon && this.textures.exists('icon:' + t.icon)) {
-          return { w: 26, make: (cx) => [this.add.image(cx, 0, 'icon:' + t.icon).setDisplaySize(26, 26)] };
+          // his icon in a thin bronze frame, with a small number for stacks (Bloodied 2)
+          return {
+            w: 28,
+            make: (cx) => {
+              const frame = this.add.rectangle(cx, 0, 28, 28, 0x1a1410, 0.9).setStrokeStyle(1.5, 0xb88a4a, 1);
+              const img = this.add.image(cx, 0, 'icon:' + t.icon).setDisplaySize(26, 26);
+              img.iconKey = t.icon; // so a status card can find the icon it shrinks into
+              const out = [frame, img];
+              if (t.count) {
+                out.push(this.add.text(cx + 10, 8, String(t.count), { fontFamily: 'Georgia, serif', fontSize: '14px', fontStyle: 'bold', color: '#ffe08a', stroke: '#1a1410', strokeThickness: 4 }).setOrigin(0.5));
+              }
+              return out;
+            },
+          };
         }
         const text = this.add.text(0, 0, t.text, { fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'bold', color: t.color }).setOrigin(0.5);
         const w = text.width + 10;
@@ -4402,6 +4439,10 @@ export default class BattleScene extends Phaser.Scene {
         for (const o of unit.swiftAura) o.destroy();
         unit.swiftAura = null;
       }
+      // under Fury or Earth's Bulwark, their own looks (roadmap 6.13)
+      const verse = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
+      this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit));
+      this.keepAura(unit, 'bulwarkAura', verse === 'stone', () => bulwarkAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);
       if (burning && !unit.burnAura) unit.burnAura = burnAura(this, unit);
@@ -4410,6 +4451,93 @@ export default class BattleScene extends Phaser.Scene {
         unit.burnAura = null;
       }
     }
+  }
+
+  // Starts or stops one of the looping looks on a unit (made by make(), which
+  // returns { objects, tweens } or null when its pictures are missing).
+  keepAura(unit, name, on, make) {
+    if (on && !unit[name]) unit[name] = make() || { objects: [], tweens: [] };
+    if (!on && unit[name]) {
+      for (const t of unit[name].tweens) t.remove();
+      for (const o of unit[name].objects) o.destroy();
+      unit[name] = null;
+    }
+  }
+
+  // One of Suleiman's status cards, small, on the character (roadmap 6.9):
+  // it pops up over the unit's head with the status's name under it, holds
+  // for a moment, then shrinks into the unit's row of icons and its icon
+  // gives a little bounce. id: offbalance, swiftness, fury, stone, press,
+  // empower. side: 0 = over the head; -1 or 1 = beside it (used in a clash,
+  // away from the foe, so it doesn't cover the banner between them).
+  // Cards for the same unit wait their turn. Returns false if the picture is missing.
+  statusCard(unit, id, { label = '', color = '#f1e6c8', side = 0, icon = id } = {}) {
+    if (!this.textures.exists('card:' + id) || !unit.alive) return false;
+    const now = this.time.now;
+    const wait = Math.max(0, (unit.cardFreeAt || 0) - now);
+    unit.cardFreeAt = now + wait + 900;
+    this.time.delayedCall(wait, () => {
+      if (!unit.alive || !unit.view.active) return;
+      const H = 80; // the card's height on the board
+      const card = this.add.image(0, 0, 'card:' + id);
+      const full = H / card.height;
+      card.setScale(full * 0.35).setAlpha(0);
+      // a flash of light over the card as it lands
+      const shine = this.add.image(0, 0, 'card:' + id).setBlendMode(Phaser.BlendModes.ADD).setScale(full).setAlpha(0);
+      const name = this.add
+        .text(0, H / 2 + 14, label, { fontFamily: 'Georgia, serif', fontSize: '18px', fontStyle: 'bold', color, stroke: '#1a1410', strokeThickness: 5 })
+        .setOrigin(0.5)
+        .setAlpha(0);
+      const group = this.add.container(0, 0, [card, shine, name]).setDepth(84);
+      // It follows the unit (a pushed unit slides away with its card). p goes
+      // from 0 (beside or over the unit) to 1 (in its row of icons).
+      const move = { p: 0 };
+      const place = () => {
+        if (!unit.view.active) return;
+        // over the head, or beside the body at chest height (in a clash the
+        // banner sits above the fighters' heads, so the cards stay out of its way)
+        const ax = unit.view.x + side * 80;
+        const ay = side ? unit.view.y - unit.centerY - 6 : unit.view.y - unit.topY - 64;
+        const tx = unit.view.x;
+        const ty = unit.view.y - unit.topY - 19;
+        group.setPosition(ax + (tx - ax) * move.p, ay + (ty - ay) * move.p);
+      };
+      place();
+      this.events.on('update', place);
+      this.events.once('shutdown', () => this.events.off('update', place));
+      this.tweens.add({ targets: card, scale: full, alpha: 1, duration: 170, ease: 'Back.easeOut' });
+      this.tweens.add({ targets: shine, alpha: { from: 0.7, to: 0 }, delay: 120, duration: 260 });
+      this.tweens.add({ targets: name, alpha: 1, delay: 90, duration: 140 });
+      this.tweens.add({ targets: name, alpha: 0, delay: 640, duration: 140 });
+      // then it shrinks into the icon row above the health bar
+      this.tweens.add({
+        targets: move,
+        p: 1,
+        delay: 680,
+        duration: 220,
+        ease: 'Quad.easeIn',
+        onUpdate: () => {
+          card.setScale(full * (1 - 0.82 * move.p)).setAlpha(1 - 0.8 * move.p);
+          place();
+        },
+        onComplete: () => {
+          this.events.off('update', place);
+          group.destroy();
+          this.bounceIcon(unit, icon);
+        },
+      });
+    });
+    return true;
+  }
+
+  // The icon a status card just shrank into gives a little bounce.
+  bounceIcon(unit, icon) {
+    if (!unit.tagRow || !unit.tagRow.active) return;
+    const img = unit.tagRow.list.find((o) => o.iconKey === icon);
+    if (!img) return;
+    const sx = img.scaleX;
+    const sy = img.scaleY;
+    this.tweens.add({ targets: img, scaleX: sx * 1.45, scaleY: sy * 1.45, duration: 110, yoyo: true, ease: 'Quad.easeOut' });
   }
 
   // A big word that pops up and fades, with a small line under it.
