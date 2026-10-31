@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { fitDesign } from '../layout.js';
+import { playTrack } from '../audio.js';
 import { GAME_WIDTH } from '../config.js';
 
 // The last screen, shown when the story runs out of steps.
@@ -10,6 +11,7 @@ export default class EndScene extends Phaser.Scene {
 
   create() {
     fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
+    playTrack('theme'); // Suleiman's theme carries on through the story (roadmap A.1)
     this.cameras.main.setBackgroundColor('#1a1410');
     this.cameras.main.fadeIn(600, 0, 0, 0);
 

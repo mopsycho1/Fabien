@@ -7,7 +7,7 @@
     "card": "swiftness",
     "effect": "Swift",
     "kind": "buff",
-    "group": "Verse",
+    "group": "Blessings",
     "color": "#9fd4ff",
     "range": 3,
     "turns": 2,
@@ -45,7 +45,7 @@
     "effect": "Earth's Bulwark",
     "effectNote": "Suleiman 30 Oct: the effect of the Verse of Stone is called Earth's Bulwark. Its short word is EARTH because BULWARK is already the Warden's signature.",
     "kind": "buff",
-    "group": "Verse",
+    "group": "Blessings",
     "color": "#d9b77a",
     "range": 3,
     "turns": 2,
@@ -83,7 +83,7 @@
     "card": "fury",
     "effect": "Fury",
     "kind": "buff",
-    "group": "Verse",
+    "group": "Blessings",
     "color": "#ff8a5c",
     "range": 3,
     "turns": 2,
@@ -117,7 +117,7 @@
     "text": "Its next turn comes later, and it is slower for 2 turns.",
     "mp": 4,
     "use": "battlefield",
-    "group": "Escape",
+    "group": "Hexes",
     "icon": "slow"
   },
   "husk": {
@@ -129,8 +129,7 @@
     "range": 3,
     "text": "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by your next turn, it echoes your next spell: a second bolt of Lightning, or a Verse or Slow twice as strong.",
     "mp": 5,
-    "use": "both",
-    "group": "Escape"
+    "use": "both"
   },
   "meditate": {
     "name": "Meditate",

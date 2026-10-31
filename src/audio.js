@@ -43,6 +43,7 @@ export function startAudio() {
       for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
     }
     if (ctx.state === 'suspended') ctx.resume();
+    unlockTracks();
   } catch (e) {
     ctx = null;
   }
@@ -241,7 +242,9 @@ const TALK = [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0];
 const SHAKE = [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1];
 const SCALE = [220, 247, 277, 330, 370, 440]; // a pentatonic scale on A
 
-export function startBattleMusic() {
+// The battle music made in code (drums, a drone, a few notes): played only
+// if his battle track can't be loaded.
+function startSynthMusic() {
   if (!ready() || music) return;
   let step = 0;
   let nextTime = ctx.currentTime + 0.1;
@@ -283,7 +286,105 @@ export function startBattleMusic() {
   music = { timer, drone, droneGain };
 }
 
+// ---------- Suleiman's music (roadmap A.1, 31 Oct) ----------
+// His tracks in public/music. Each plays from an <audio> element, which
+// starts playing while it is still downloading (a whole track decoded in
+// memory would be far too big for a phone), and loops. The sound goes
+// through the game's music channel, so the mute button works on it.
+// Switching tracks fades one out and the other in.
+const TRACKS = {
+  theme: { file: './music/theme.mp3', volume: 0.5 }, // title and story screens (his 4-minute track)
+  battle: { file: './music/battle.mp3', volume: 0.42 }, // battles, until his battle track arrives (his 3-minute track)
+};
+const players = {}; // name -> { el, gain, failed }
+let current = null; // the name of the track playing now
+
+function player(name) {
+  if (players[name]) return players[name];
+  const el = new Audio(TRACKS[name].file);
+  el.loop = true;
+  el.preload = 'auto';
+  el.crossOrigin = 'anonymous';
+  const p = { el, gain: null, failed: false };
+  el.addEventListener('error', () => {
+    p.failed = true;
+    if (current === name && name === 'battle') startSynthMusic(); // no file: the old drums instead
+  });
+  try {
+    p.gain = ctx.createGain();
+    p.gain.gain.value = 0;
+    ctx.createMediaElementSource(el).connect(p.gain).connect(master); // straight to the master volume (the music channel is tuned for the quieter drums)
+  } catch (e) {
+    p.gain = null; // this browser can't route it: the element plays on its own volume
+    el.volume = 0;
+  }
+  players[name] = p;
+  return p;
+}
+
+// Phones only let a page start sound inside a tap, so on the first tap every
+// track is started and paused at once; after that, the game may play them
+// whenever it likes.
+function unlockTracks() {
+  if (!ready()) return;
+  for (const name of Object.keys(TRACKS)) {
+    const p = player(name);
+    if (p.unlocked) continue;
+    p.unlocked = true;
+    const tryIt = p.el.play();
+    if (tryIt && tryIt.then) tryIt.then(() => current !== name && p.el.pause()).catch(() => {});
+  }
+}
+
+function fadeTo(p, target, seconds) {
+  if (p.gain) {
+    p.gain.gain.cancelScheduledValues(ctx.currentTime);
+    p.gain.gain.setTargetAtTime(target, ctx.currentTime, seconds / 3);
+  } else {
+    p.el.volume = target;
+  }
+}
+
+// Plays one of his tracks ('theme' or 'battle'). If it is already playing,
+// nothing changes, so the music carries on from one story screen to the next.
+export function playTrack(name) {
+  if (!ready() || !TRACKS[name]) return;
+  if (current === name && !players[name].el.paused) return;
+  stopSynthMusic();
+  for (const [other, p] of Object.entries(players)) {
+    if (other === name) continue;
+    fadeTo(p, 0, 0.8);
+    setTimeout(() => current !== other && p.el.pause(), 900);
+  }
+  current = name;
+  const p = player(name);
+  if (p.failed) {
+    if (name === 'battle') startSynthMusic();
+    return;
+  }
+  if (name === 'battle') p.el.currentTime = 0; // every battle starts its music from the top
+  const go = p.el.play();
+  if (go && go.catch) go.catch(() => name === 'battle' && startSynthMusic());
+  fadeTo(p, TRACKS[name].volume, 0.8);
+}
+
+// Battle music: his battle track, or the drums made in code if it can't play.
+export function startBattleMusic() {
+  playTrack('battle');
+}
+
+// Fades out whatever music is playing (his tracks and the old drums).
 export function stopMusic() {
+  stopSynthMusic();
+  if (current && players[current]) {
+    const p = players[current];
+    fadeTo(p, 0, 0.6);
+    setTimeout(() => current === null && p.el.pause(), 700);
+  }
+  current = null;
+}
+
+function stopSynthMusic() {
   if (!music) return;
   clearInterval(music.timer);
   try {
@@ -293,4 +394,11 @@ export function stopMusic() {
     // already stopped
   }
   music = null;
+}
+
+// For the test scripts: which track is playing and how far in it is.
+export function musicState() {
+  const out = { current };
+  for (const [name, p] of Object.entries(players)) out[name] = { time: Math.round(p.el.currentTime * 10) / 10, paused: p.el.paused, failed: p.failed };
+  return out;
 }

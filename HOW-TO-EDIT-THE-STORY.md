@@ -382,3 +382,12 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Double-tap a Verse** to cast it on yourself, like Herbs.
 - **The menu stays out of the way** (8.9): while you choose where to walk it sits where it hides the fewest blue tiles and characters (beside the unit, or in a corner above the cards). Once you pick something that needs a target, it shrinks to a small "✕ Attack" tag above the info card; tap the tag, or empty ground, to go back. The modes that count as picking a target are listed in `TARGET_MODES` at the top of `BattleScene.js`.
 - The title, story and end screens keep their portrait design and are fitted into a landscape screen for now; the story screens get their own look with the painted stills later.
+
+## Music and Suleiman's 31 Oct notes
+
+- **Music** (`public/music`): `theme.mp3` (his 4-minute track) plays on the title, story and end screens; `battle.mp3` (his 3-minute track) plays in battle. To change a track, replace the file with an MP3 of the same name (MP3, 44.1 kHz, stereo, about 112 kbps keeps it light on phones). Volumes are in `TRACKS` at the music section of `src/audio.js`. If a track can't load, the battle falls back to the drums made in code.
+- **Layra's menu**: the Spell button is now **Verses**, grouped by `"group"` in `spells.json`: `Blessings` (Swift, Fury, Earth's Bulwark) and `Hexes` (Slow). A spell with no group (Husk) sits on its own in the list. A spell of kind `rest` (Meditate) gets its own row on the main menu: tap once to read it, again to meditate.
+- **The card's "Next turn" line** replaces the CT bar: CT is the turn meter, so the card says how many turns away the unit's next one is. The unit acting now has none.
+- **Turn order numbers**: each waiting unit shows its place in the turn order over its head, matching the numbers on the turn list. In landscape the turn list runs down the left side, like Final Fantasy Tactics.
+- **Victory**: the winners show their ready pose, then their victory pose, without jumping.
+- **Developer tools** now live in the repo under `dev/` (tests, sheet cutters, browser checks); see `dev/README.md`.

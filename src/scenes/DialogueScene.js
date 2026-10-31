@@ -5,7 +5,7 @@ import dialogue from '../data/dialogue.json';     // every line of story text
 import characters from '../data/characters.json'; // names and colors of the speakers
 import { createHudTextures, bronzePanel } from '../hud.js';
 import { fitDesign } from '../layout.js';
-import { play } from '../audio.js';
+import { play, playTrack } from '../audio.js';
 
 // Layout of the text box, in pixels
 const BOX_TOP = 700;
@@ -31,6 +31,7 @@ export default class DialogueScene extends Phaser.Scene {
 
   create() {
     fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
+    playTrack('theme'); // Suleiman's theme carries on through the story (roadmap A.1)
     const sceneData = dialogue[this.sceneId];
 
     // If the scene is missing or empty, say so and move on instead of freezing

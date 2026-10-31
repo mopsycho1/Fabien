@@ -6,7 +6,7 @@ import { preloadBoardArt } from '../boardArt.js';
 import { preloadSpellArt } from '../spellArt.js';
 import { createHudTextures, preloadUiArt } from '../hud.js';
 import { fitDesign } from '../layout.js';
-import { startAudio, play } from '../audio.js';
+import { startAudio, play, playTrack } from '../audio.js';
 import { tryFullscreen } from '../layout.js';
 
 // The title screen. The game opens here on a dark screen: the title fades in,
@@ -70,6 +70,7 @@ export default class StartScene extends Phaser.Scene {
     if (this.starting) return;
     this.starting = true;
     startAudio(); // browsers only allow sound after a tap
+    playTrack('theme'); // Suleiman's theme (roadmap A.1)
     tryFullscreen(this); // Android: full screen, so the browser's bars don't take room
     play('drum');
     this.cameras.main.fadeOut(600, 0, 0, 0);
