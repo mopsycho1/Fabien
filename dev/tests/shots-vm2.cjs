@@ -1,0 +1,37 @@
+// Pictures of the Verse moves, round two (for checking by eye): node shots-vm2.cjs <out prefix>
+const { start, battle } = require('./boot.cjs');
+const fs = require('fs');
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+(async () => {
+  const { w, game, errors } = await start();
+  const t0 = Date.now(); while (Date.now() - t0 < 8000 && !game.textures.exists('h1:sudeen_ram_5.png')) await sleep(50);
+  const b = await battle(game); const G = w.__grid, S = w.__status, E = w.__engagement;
+  const out = process.argv[2];
+  const save = (n) => fs.writeFileSync(out + n + '.png', Buffer.from(game.canvas.toDataURL('image/png').split(',')[1], 'base64'));
+  const cam = b.cameras.main; let focus = null;
+  b.events.on('prerender', () => { if (!focus) return; cam.setZoom(focus.z); cam.centerOn(focus.x, focus.y); });
+  const shot = async (n, x, y, z = 1.8) => { focus = { x, y, z }; await sleep(30); save(n); };
+  const U = (l) => b.units.find((u) => u.label === l);
+  const sudeen = U('H1'), gaha = U('H2'), layra = U('H3'), rabdul = U('E1'), bull = U('E2'), archer = U('E3');
+  const all = [sudeen, gaha, layra, rabdul, bull, archer];
+  const PARK = [[7, 7], [7, 6], [0, 7], [1, 0], [7, 0], [6, 0]];
+  const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); u.view.setDepth(G.depthFor(c, r) + 1); };
+  const setup = (placed) => { all.forEach((u, i) => { u.status = null; u.hp = u.maxHp = Math.max(u.maxHp, 200); put(u, ...PARK[i]); }); for (const [u, c, r] of placed) put(u, c, r); for (const u of all) { b.faceNearestOpponent(u); b.showStanding(u); } b.busy = false; b.cancelMode(); b.refreshStatusTags(); };
+  b.runEnemyTurn = () => {}; b.endTurn = () => {};
+  await sleep(800);
+  const mid = (a, c) => [(a.view.x + c.view.x) / 2, (a.view.y + c.view.y) / 2 - 60];
+  setup([[gaha, 1, 3], [rabdul, 4, 3], [bull, 3, 4]]); S.applyBuff(gaha, 'fury'); b.refreshStatusTags();
+  b.activeUnit = gaha; b.castSpell(gaha, rabdul, 'furyDive', () => {});
+  const m1 = mid(gaha, rabdul);
+  await sleep(120); await shot('a_windup', ...m1); await sleep(330); await shot('b_air', m1[0], m1[1] - 40); await sleep(260); await shot('c_slam', ...m1); await sleep(700); focus = null;
+  await sleep(900);
+  setup([[sudeen, 1, 7], [archer, 5, 7]]); S.applyBuff(sudeen, 'fury'); b.activeUnit = sudeen;
+  b.castSpell(sudeen, archer, 'furyCharge', () => {});
+  const m2 = [G.tileToScreen(3, 7).x, G.tileToScreen(3, 7).y - 60];
+  await sleep(300); await shot('d_fc_run', ...m2); await sleep(200); await shot('e_fc_hit', ...m2); focus = null; await sleep(1500);
+  setup([[sudeen, 1, 7], [archer, 4, 7]]); S.applyBuff(sudeen, 'stone'); b.activeUnit = sudeen;
+  b.castSpell(sudeen, archer, 'shieldRam', () => {});
+  await sleep(300); await shot('f_ram_run', ...m2); await sleep(170); await shot('g_ram_hit', ...m2); focus = null; await sleep(1500);
+  console.log(errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | ') || 'no errors');
+  w.close(); process.exit(0);
+})();

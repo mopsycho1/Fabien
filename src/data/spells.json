@@ -127,7 +127,7 @@
     "kind": "escape",
     "color": "#8fd18a",
     "range": 3,
-    "text": "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by your next turn, it echoes your next spell: a second bolt of Lightning, or a Verse or Slow twice as strong.",
+    "text": "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by your next turn, it echoes your next spell: a second bolt of Lightning, or a Verse or Slow twice as strong. Cast under Swiftness, a struck decoy bursts in a howling gust: enemies next to it are blown 2 tiles away.",
     "mp": 5,
     "use": "both"
   },
@@ -300,6 +300,22 @@
     "mp": 3,
     "use": "enemy",
     "text": "Swiftness turns Spear Throw into this. Up close: dash in and whirl the spear down. Further (5 tiles): a throw that hits every enemy in its line, through high blocks. At a reeling foe: zip to it and sweep low (1.5x damage). Never misses. 3 Verse MP."
+  },
+  "furyDive": {
+    "name": "Fury Dive",
+    "button": "Fury Dive",
+    "short": "DIVE",
+    "kind": "dive",
+    "verse": {
+      "of": "spearThrow",
+      "with": "fury"
+    },
+    "color": "#ff8a5c",
+    "range": 3,
+    "damageShare": 1.5,
+    "mp": 3,
+    "use": "enemy",
+    "text": "Fury turns Spear Throw into this: leap up to 3 tiles, over heads and walls, and slam down on an enemy for 1.5x a normal blow. Enemies next to where he lands are knocked Off-Balance. Never misses. 3 Verse MP."
   },
   "thunderclap": {
     "name": "Thunderclap",

@@ -70,7 +70,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([[layra, 2, 7], [sudeen, 3, 7]]);
   layra.mp = layra.maxMp;
   const p = cast(layra, sudeen, 'stone');
-  await sleep(380);
+  await sleep(300);
+  { const t = Date.now(); while (Date.now() - t < 1500 && cards().length === 0) await sleep(20); } // (waits for the card, however busy the machine is)
   const c1 = cards();
   check('6.9 a Verse shows his card on the ally', c1.length === 1 && c1[0].key === 'stone', c1.map((c) => c.key).join(','));
   check('6.8 the card is named Earth\'s Bulwark (x2 on a shield-bearer)', c1[0] && c1[0].label === "Earth's Bulwark x2", c1[0] && c1[0].label);

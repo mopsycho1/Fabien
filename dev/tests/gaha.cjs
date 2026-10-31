@@ -13,7 +13,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);
   const keys = game.textures.getTextureKeys().filter((k) => k.startsWith('h2:gaha_'));
-  check('all 51 of his pictures loaded (32, 15 Sonic Javelin frames from roadmap 3.11, 2 under Fury and 2 rooted from 6.14 and 6.17)', keys.length === 51, keys.length);
+  check('all 56 of his pictures loaded (32, 15 Sonic Javelin frames from 3.11, 2 under Fury and 2 rooted from 6.14 and 6.17, 5 Fury Dive frames from 3.14)', keys.length === 56, keys.length);
   for (const u of b.units) put(u, 7, 7);
   put(U('H1'), 0, 7); put(U('H3'), 1, 7); put(U('E1'), 7, 0); put(U('E2'), 6, 0); put(U('E3'), 5, 0); put(gaha, 3, 6);
   b.faceNearestOpponent(gaha);

@@ -115,6 +115,69 @@
           "originX": 0.392
         }
       }
+    },
+    "moves": {
+      "note": "Sudeen's Verse moves, from his 30 Oct sheets. All facing right; left is the mirror image.",
+      "furiousCharge": {
+        "note": "Furious Charge (roadmap 6.15): ready, charge, charge, leaping strike, fire explosion, landing.",
+        "frameMs": 90,
+        "frames": [
+          {
+            "file": "sudeen_fc_0.png",
+            "originX": 0.585
+          },
+          {
+            "file": "sudeen_fc_1.png",
+            "originX": 0.436
+          },
+          {
+            "file": "sudeen_fc_2.png",
+            "originX": 0.443
+          },
+          {
+            "file": "sudeen_fc_3.png",
+            "originX": 0.19
+          },
+          {
+            "file": "sudeen_fc_4.png",
+            "originX": 0.502
+          },
+          {
+            "file": "sudeen_fc_5.png",
+            "originX": 0.528
+          }
+        ]
+      },
+      "shieldRam": {
+        "note": "Shield Ram (roadmap 6.16): brace, charge, charge, impact, push, brace.",
+        "frameMs": 95,
+        "frames": [
+          {
+            "file": "sudeen_ram_0.png",
+            "originX": 0.512
+          },
+          {
+            "file": "sudeen_ram_1.png",
+            "originX": 0.411
+          },
+          {
+            "file": "sudeen_ram_2.png",
+            "originX": 0.309
+          },
+          {
+            "file": "sudeen_ram_3.png",
+            "originX": 0.463
+          },
+          {
+            "file": "sudeen_ram_4.png",
+            "originX": 0.499
+          },
+          {
+            "file": "sudeen_ram_5.png",
+            "originX": 0.521
+          }
+        ]
+      }
     }
   },
   "h2": {
@@ -356,6 +419,32 @@
           {
             "file": "gaha_sj_sweep_2.png",
             "originX": 0.392
+          }
+        ]
+      },
+      "furyDive": {
+        "note": "Fury Dive (roadmap 3.14), from his 30 Oct Gaha-under-Fury sheet: wind-up, leap, dive, slam, landing.",
+        "frameMs": 120,
+        "frames": [
+          {
+            "file": "gaha_dive_0.png",
+            "originX": 0.445
+          },
+          {
+            "file": "gaha_dive_1.png",
+            "originX": 0.563
+          },
+          {
+            "file": "gaha_dive_2.png",
+            "originX": 0.286
+          },
+          {
+            "file": "gaha_dive_3.png",
+            "originX": 0.512
+          },
+          {
+            "file": "gaha_dive_4.png",
+            "originX": 0.537
           }
         ]
       }

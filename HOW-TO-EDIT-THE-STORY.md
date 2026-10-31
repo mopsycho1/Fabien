@@ -391,3 +391,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Turn order numbers**: each waiting unit shows its place in the turn order over its head, matching the numbers on the turn list. In landscape the turn list runs down the left side, like Final Fantasy Tactics.
 - **Victory**: the winners show their ready pose, then their victory pose, without jumping.
 - **Developer tools** now live in the repo under `dev/` (tests, sheet cutters, browser checks); see `dev/README.md`.
+
+## Verse moves, round two (31 Oct)
+
+- **Fury Dive** (`spells.json`, `furyDive`): Fury turns Gaha's Spear Throw into a leap of up to `range` tiles, over heads and walls, that slams down next to the foe for `damageShare` times a normal blow. It never misses, and every enemy next to where he lands is knocked Off-Balance. It costs the Verse's lent MP like Sonic Javelin. His pictures are the `furyDive` move in `art.json` (`h2`): wind-up, leap, dive, slam, landing.
+- **Sudeen's charges, frame by frame** (`art.json`, `h1`, `moves`): `furiousCharge` (ready, two charging frames, the leaping strike, the fire explosion, landing) and `shieldRam` (brace, two charging frames, impact, push, brace). Plain Intercept and Blitz keep his shield-up pose.
+- **The Husk gust**: a Husk cast while Layra is under Swiftness leaves a decoy with wind swirling at its feet. When an enemy strikes it, it bursts in a howling gust and every enemy next to it is blown 2 tiles away (falls and wall slams apply). The wind does no damage, and allies are left alone.
+- The frames were cut with `dev/tools/make_moves31.py`.
