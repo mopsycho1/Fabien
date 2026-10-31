@@ -18,14 +18,14 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // facings
   park(); gaha.facing = 'upRight'; b.showStanding(gaha);
-  check('Gaha facing up-right shows his back turned right', key(gaha) === 'h2:gaha_stand_upRight.png', key(gaha));
+  check('Gaha facing up-right shows his back turned right', key(gaha) === 'h2:gaha_iso_stand_upRight.png', key(gaha));
   put(gaha, 3, 5); put(bull, 3, 4); b.faceNearestOpponent(gaha); // (3,4) is up-right of (3,5)
-  check('an enemy near: his battle stance in the same facing', /gaha_battle_upRight/.test(key(gaha)), key(gaha));
+  check('an enemy near: his battle stance in the same facing', /gaha_iso_battle_upRight/.test(key(gaha)), key(gaha));
   E.startDuel(gaha, bull); b.showStanding(gaha); b.showStanding(bull);
-  check('in a clash he faces his foe (up-right)', /gaha_battle_upRight/.test(key(gaha)), key(gaha) + ' facing ' + gaha.facing);
-  check('and the bull faces him back (down-left)', /bull_battle_downLeft/.test(key(bull)), key(bull));
+  check('in a clash he faces his foe (up-right)', /gaha_iso_battle_upRight/.test(key(gaha)), key(gaha) + ' facing ' + gaha.facing);
+  check('and the bull faces him back (down-left)', /bull_iso_battle_downLeft/.test(key(bull)), key(bull));
   put(bull, 3, 6); b.showStanding(gaha); // (3,6) is down-left of (3,5)
-  check('foe moves to his down-left: he turns to face it', /gaha_battle_downLeft/.test(key(gaha)), key(gaha));
+  check('foe moves to his down-left: he turns to face it', /gaha_iso_battle_downRight/.test(key(gaha)) && gaha.sprite.flipX, key(gaha));
   park();
   // archer aims in four facings
   put(archer, 4, 3); put(gaha, 2, 3); /* two columns back is up-left */ archer.facing = 'downLeft'; b.faceToward(archer, gaha.view.x - archer.view.x, gaha.view.y - archer.view.y); b.showPose(archer, 'attack', gaha.view.x - archer.view.x);
@@ -54,7 +54,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); turnOf(layra); layra.mp = 2;
   b.onSpellButton(); b.chooseSpell('meditate'); b.chooseSpell('meditate'); await sleep(1300); await idle();
   check('Meditate: no MP yet, she is MEDITATING and Exposed', layra.mp === 2 && layra.meditating && St.statusTags(layra).some((t) => t.text === 'MEDITATING') && St.statusTags(layra).some((t) => t.text === 'EXPOSED'), 'mp ' + layra.mp);
-  check('she holds her meditation picture', /layra_meditate/.test(key(layra)), key(layra));
+  check('she holds her meditation picture', /layra_iso_meditate/.test(key(layra)), key(layra));
   for (const u of b.units) u.ct = 0; layra.ct = 500;
   b.startTurn(); await sleep(200);
   check('her next turn is spent in the trance: she cannot act', b.activeUnit === layra && layra.hasActed && b.slots.every((s) => !s.enabled || s.label.text === 'End turn'), b.slots.map((s) => s.label.text + (s.enabled ? '' : '(dim)')).join('|'));

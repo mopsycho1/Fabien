@@ -44,7 +44,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   check('second tap engages: the scout has used its action', h2.hasActed === true && b.inCinematic === true);
   check('the result is decided at once: Warlord off-balance and pushed to (3,2), contact broken', !h2.engagedWith && !e2.engagedWith && e2.col === 3 && e2.row === 2 && w.__status.isOffBalance(e2), e2.col + ',' + e2.row);
   check('his clash banner sweeps across first (8.6; was the "ENGAGE!" cut-in)', await waitFor(() => b.children.list.some((o) => o.type === 'Image' && o.texture && o.texture.key === 'ui:clash_frame'), 1500));
-  check('after the cut-in the scout winds up and the clash plays', await waitFor(() => ['h2:gaha_windup.png', 'h2:gaha_attack.png'].includes(h2.sprite.texture.key), 4000), h2.sprite.texture.key);
+  check('after the cut-in the scout winds up and the clash plays', await waitFor(() => /gaha_(windup|attack|iso_attack_)/.test(h2.sprite.texture.key), 4000), h2.sprite.texture.key);
   check('the battlefield camera zooms in on the clash', await waitFor(() => b.cameras.main.zoom > 1.2, 3000), b.cameras.main.zoom.toFixed(2));
   check('...while the interface camera stays still', b.uiCam.zoom === 1 && b.uiCam.scrollX === 0 && b.uiCam.scrollY === 0);
   await idle();
@@ -60,7 +60,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   check('stalemate: both stay engaged, no one is off-balance or moved', h2.engagedWith === e2 && e2.engagedWith === h2 && !w.__status.isOffBalance(h2) && !w.__status.isOffBalance(e2) && h2.col === 3 && h2.row === 4);
   check('an orange line and a crossed-blades icon are drawn between them', b.engageMarks.length === 2);
   check('both are ENGAGED (on the card; over their heads the crossed blades show it, not the word)', w.__status.statusTags(h2).some((t) => t.text === 'ENGAGED') && w.__status.statusTags(e2).some((t) => t.text === 'ENGAGED') && !/ENGAGED/.test(tags(h2)), tags(h2) + ' / ' + tags(e2));
-  check('engaged units stand in their fighting stance', /gaha_battle_/.test(h2.sprite.texture.key) && /bull_battle_/.test(e2.sprite.texture.key), h2.sprite.texture.key + ' ' + e2.sprite.texture.key);
+  check('engaged units stand in their fighting stance', /gaha_(iso_)?battle_/.test(h2.sprite.texture.key) && /bull_(iso_)?battle_/.test(e2.sprite.texture.key), h2.sprite.texture.key + ' ' + e2.sprite.texture.key);
   check('buttons change to Press | Break away (dim, action used) | - | End turn', labels() === 'Press(dim) | Break away(dim) | - | End turn', labels());
   b.handleTap(3, 4); b.startMove();
   check('an engaged unit cannot walk', b.mode !== 'move' && /Locked with Bull Commander/.test(b.statusText.text), JSON.stringify(b.statusText.text));
@@ -122,7 +122,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   check('first tap explains the spell', /^Verse of Stone on .*Tap again\.\n(Double effect on a shield-bearer! )?Earth's Bulwark, \+2 defense/.test(b.statusText.text), JSON.stringify(b.statusText.text));
   b.handleTap(tgt.col, tgt.row);
   check('second tap casts it: the target has the Verse of Stone and the Sage has acted', w.__status.buffOf(tgt) && w.__status.buffOf(tgt).id === 'stone' && h3.hasActed);
-  check('the Sage shows its casting pose', h3.sprite.texture.key === 'h3:layra_cast.png', h3.sprite.texture.key);
+  check('the Sage shows its casting pose', /layra_iso_(chant|cast)_/.test(h3.sprite.texture.key), h3.sprite.texture.key);
   await idle(); await sleep(300);
   check('the target shows the Earth\'s Bulwark icon', tags(tgt).includes('icon:stone'), tags(tgt));
   b.onSpellButton();

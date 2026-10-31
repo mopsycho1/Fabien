@@ -16,10 +16,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const md5 = (f) => execSync('md5sum ' + A + f).toString().slice(0, 32);
   const was = (f) => execSync('cd /home/claude/fabien && git show a06e253:public/art/' + f + ' | md5sum').toString().slice(0, 32); // before this fix
   // 1.8
-  check('1.8 the bull\'s and Rabdul\'s down-left and down-right pictures were swapped (standing and battle)',
-    ['bull_stand', 'bull_battle', 'rabdul_stand', 'rabdul_battle'].every((s) => md5(s + '_downLeft.png') === was(s + '_downRight.png') && md5(s + '_downRight.png') === was(s + '_downLeft.png')));
+  // (1.8's swapped files were replaced by his 31 Oct isometric pictures, Phase 9; the facing check below still holds)
   check('1.8 at the start both face down-left, toward the heroes, with the down-left picture',
-    bull.facing === 'downLeft' && /bull_stand_downLeft/.test(key(bull)) && !bull.sprite.flipX && rabdul.facing === 'downLeft' && /rabdul_stand_downLeft/.test(key(rabdul)) && !rabdul.sprite.flipX,
+    bull.facing === 'downLeft' && /bull_iso_stand_downLeft/.test(key(bull)) && !bull.sprite.flipX && rabdul.facing === 'downLeft' && /rabdul_iso_stand_downLeft/.test(key(rabdul)) && !rabdul.sprite.flipX,
     key(bull) + ' ' + key(rabdul));
   // 1.7
   b.runEnemyTurn = () => {}; b.endTurn = () => {};
@@ -30,7 +29,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('1.7 a hero 5 tiles away, within her bow\'s reach: her combat-ready stance', /archer_(stance|ready)/.test(key(archer)), key(archer) + ' ' + archer.facing);
   put(archer, 3, 1); b.faceNearestOpponent(archer); // 6 or more away from everyone
   check('1.7 further than her reach: relaxed again', /archer_stand_/.test(key(archer)), key(archer));
-  check('1.7 melee units still switch at 3 tiles, not further', (() => { put(gaha, 3, 4); put(bull, 3, 0); b.faceNearestOpponent(bull); const far = /bull_stand/.test(key(bull)); put(bull, 3, 1); b.faceNearestOpponent(bull); return far && /bull_battle/.test(key(bull)); })(), key(bull));
+  check('1.7 melee units still switch at 3 tiles, not further', (() => { put(gaha, 3, 4); put(bull, 3, 0); b.faceNearestOpponent(bull); const far = /bull_iso_stand/.test(key(bull)); put(bull, 3, 1); b.faceNearestOpponent(bull); return far && /bull_iso_battle/.test(key(bull)); })(), key(bull));
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -32,7 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
       b.pendingTarget = null;
       const t = { x: 360 + (who.col - who.row) * 43, y: 400 + (who.col + who.row) * 27 - H[who.row][who.col] * 22 + 6 };
       tap(t.x, t.y); tries++;
-      if (b.pendingTarget === who) picks++; else misses.push(`tile of ${label} ${who.label}: got ${b.pendingTarget ? b.pendingTarget.label : 'nothing'}`);
+      if (b.pendingTarget === who) picks++; else misses.push(`tile of ${label} ${who.label} at ${who.col},${who.row} (${front} at ${fc},${fr} in front): got ${b.pendingTarget ? b.pendingTarget.label : 'nothing'}`);
     }
     b.cancelMode();
   }

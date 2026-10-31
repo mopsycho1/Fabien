@@ -61,6 +61,7 @@ function allFiles(entry) {
   const buffed = [...Object.values(entry.buffed || {}), ...(entry.rooted ? [entry.rooted] : [])];
   const directional = Object.values(entry.poses || {}).filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
+  for (const list of Object.values(entry.walk || {})) if (Array.isArray(list)) for (const f of list) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
     if (!group) continue;
     if (typeof group === 'string' || group.file) {
@@ -207,6 +208,19 @@ export function poseFrame(id, pose, side, facing = null) {
 // Kept for older code: the attack pose.
 export function attackFrame(id, side) {
   return poseFrame(id, 'attack', side);
+}
+
+// His walking frames for a facing ("walk" in art.json): a list of frames, or
+// null. A walk drawn facing up-left is mirrored for up-right, but never used
+// for walking towards the camera (that needs its own frames).
+export function walkFrames(id, facing) {
+  const entry = art[id];
+  const w = entry && entry.walk;
+  if (!w) return null;
+  const opposite = OPPOSITE_SIDE[facing];
+  const list = w[facing] || w[opposite];
+  if (!list) return null;
+  return { frames: list.map((f) => makeFrame(id, f, !w[facing])), frameMs: w.frameMs || 75 };
 }
 
 // A move played picture by picture ("moves" in art.json), facing "left" or

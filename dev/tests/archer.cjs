@@ -46,9 +46,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('a caught archer never shoots anyone', shots === 0, shots);
   check('it often tries to Break away', (stances.break || 0) >= 3, JSON.stringify(stances));
 
-  // casters still cannot be caught
+  // since Phase 9 (9.5) the Sage can be caught too, but cannot start a clash
   park(); put(sage, 3, 4); put(eg, 3, 3);
-  check('the Sage still cannot be caught', !E.canEngage(eg, sage));
+  check('the Sage can be caught (9.5), but cannot start a clash', E.canEngage(eg, sage) && !E.canEngage(sage, eg));
   // an archer cannot start a clash itself
   park(); put(archer, 3, 3); put(scout, 3, 4); archer.engagedWith = null; scout.engagedWith = null; archer.hasActed = false;
   check('an archer cannot start a clash', !E.canEngage(archer, scout));

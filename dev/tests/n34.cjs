@@ -38,7 +38,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 6.18 the landing effects ----------
   reset([[layra, 2, 6], [gaha, 3, 6]]);
   layra.mp = layra.maxMp;
-  const p1 = cast(layra, gaha, 'fury'); await sleep(450);
+  const p1 = cast(layra, gaha, 'fury'); await sleep(870); // (she concentrates first, 9.2)
   check('6.18 Fury lands with his sequence (fury_cast)', fxShown(/^fx:fury_cast_/));
   await p1; await sleep(300);
   // ---------- 6.14 Gaha under Fury ----------
@@ -54,7 +54,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('6.18 the ring turns', Math.abs(ring.angle - a0) > 5, a0.toFixed(1) + ' -> ' + ring.angle.toFixed(1));
   reset([[layra, 2, 6], [sudeen, 3, 6]]);
   layra.mp = layra.maxMp;
-  const p2 = cast(layra, sudeen, 'stone'); await sleep(450);
+  const p2 = cast(layra, sudeen, 'stone'); await sleep(870);
   check('6.18 Earth\'s Bulwark lands with his sequence (earth_cast)', fxShown(/^fx:earth_cast_/));
   await p2; await sleep(200);
   check('6.18 his crystals float round the unit', sudeen.bulwarkAura && sudeen.bulwarkAura.objects.slice(1).every((o) => /fx:earth_crystal_/.test(o.texture.key)) && sudeen.bulwarkAura.objects.length === 5);

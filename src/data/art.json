@@ -3,67 +3,79 @@
     "note": "Sudeen, 7. Placed in the hero Guardian slot (he carries a shield) until the cave fight's cast is set. Battle stance (shield up, blade low) from his 29 Oct \"battle ready\" sheet, shown when a foe is within 3 tiles; down-left is the down-right picture mirrored.",
     "height": 88,
     "standing": {
-      "downRight": {
-        "file": "sudeen_stand_downRight.png",
-        "originX": 0.528
-      },
-      "upLeft": {
-        "file": "sudeen_stand_upLeft.png",
-        "originX": 0.483
-      },
       "upRight": {
-        "file": "sudeen_stand_upRight.png",
-        "originX": 0.493
+        "file": "sudeen_iso_stand_upRight.png",
+        "originX": 0.491
+      },
+      "downRight": {
+        "file": "sudeen_iso_stand_downRight.png",
+        "originX": 0.534
       }
     },
     "battle": {
-      "downRight": {
-        "file": "sudeen_battle_downRight.png",
-        "originX": 0.578
-      },
       "upRight": {
-        "file": "sudeen_battle_upRight.png",
-        "originX": 0.419
+        "file": "sudeen_iso_battle_upRight.png",
+        "originX": 0.834
       },
-      "upLeft": {
-        "file": "sudeen_battle_upLeft.png",
-        "originX": 0.476
+      "downRight": {
+        "file": "sudeen_iso_battle_downRight.png",
+        "originX": 0.178
       }
     },
     "poses": {
       "windup": {
-        "file": "sudeen_windup.png",
-        "originX": 0.604
+        "upRight": {
+          "file": "sudeen_iso_battle_upRight.png",
+          "originX": 0.834
+        },
+        "downRight": {
+          "file": "sudeen_iso_battle_downRight.png",
+          "originX": 0.178
+        }
       },
       "ready": {
-        "downRight": {
-          "file": "sudeen_battle_downRight.png",
-          "originX": 0.578
-        },
         "upRight": {
-          "file": "sudeen_battle_upRight.png",
-          "originX": 0.419
+          "file": "sudeen_iso_battle_upRight.png",
+          "originX": 0.834
         },
-        "upLeft": {
-          "file": "sudeen_battle_upLeft.png",
-          "originX": 0.476
+        "downRight": {
+          "file": "sudeen_iso_battle_downRight.png",
+          "originX": 0.178
         }
       },
       "attack": {
-        "file": "sudeen_attack.png",
-        "originX": 0.556
+        "upRight": {
+          "file": "sudeen_iso_attack_upRight.png",
+          "originX": 0.639
+        },
+        "downRight": {
+          "file": "sudeen_iso_attack_downRight.png",
+          "originX": 0.084
+        }
       },
       "cast": {
         "file": "sudeen_cast.png",
         "originX": 0.464
       },
       "guard": {
-        "file": "sudeen_guard.png",
-        "originX": 0.493
+        "upRight": {
+          "file": "sudeen_iso_guard_upRight.png",
+          "originX": 0.693
+        },
+        "downRight": {
+          "file": "sudeen_iso_guard_downRight.png",
+          "originX": 0.25
+        }
       },
       "hurt": {
-        "file": "sudeen_hurt.png",
-        "originX": 0.507
+        "upRight": {
+          "file": "sudeen_iso_hurt_upRight.png",
+          "originX": 0.324
+        },
+        "downRight": {
+          "file": "sudeen_iso_hurt_downRight.png",
+          "originX": 0.332
+        }
       },
       "knocked": {
         "file": "sudeen_knocked.png",
@@ -78,8 +90,14 @@
         "originX": 0.475
       },
       "heal": {
-        "file": "sudeen_heal.png",
-        "originX": 0.51
+        "upRight": {
+          "file": "sudeen_iso_heal_upRight.png",
+          "originX": 0.511
+        },
+        "downRight": {
+          "file": "sudeen_iso_heal_downRight.png",
+          "originX": 0.401
+        }
       }
     },
     "portrait": "sudeen_face.png",
@@ -178,64 +196,41 @@
           }
         ]
       }
-    }
+    },
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
     "height": 100,
     "standing": {
-      "downLeft": {
-        "file": "gaha_stand_downLeft.png",
-        "originX": 0.508
+      "upRight": {
+        "file": "gaha_iso_stand_upRight.png",
+        "originX": 0.624
       },
       "downRight": {
-        "file": "gaha_stand_downRight.png",
-        "originX": 0.482
-      },
-      "upLeft": {
-        "file": "gaha_stand_upLeft.png",
-        "originX": 0.544
-      },
-      "upRight": {
-        "file": "gaha_stand_upRight.png",
-        "originX": 0.452
+        "file": "gaha_iso_stand_downRight.png",
+        "originX": 0.413
       }
     },
     "battle": {
-      "downLeft": {
-        "file": "gaha_battle_downLeft.png",
-        "originX": 0.447
+      "upRight": {
+        "file": "gaha_iso_battle_upRight.png",
+        "originX": 0.651
       },
       "downRight": {
-        "file": "gaha_battle_downRight.png",
-        "originX": 0.547
-      },
-      "upLeft": {
-        "file": "gaha_battle_upLeft.png",
-        "originX": 0.564
-      },
-      "upRight": {
-        "file": "gaha_battle_upRight.png",
-        "originX": 0.43
+        "file": "gaha_iso_battle_downRight.png",
+        "originX": 0.157
       }
     },
     "buffed": {
       "stone": {
-        "downLeft": {
-          "file": "gaha_stone_downLeft.png",
-          "originX": 0.457
+        "upLeft": {
+          "file": "gaha_iso_stone_upLeft.png",
+          "originX": 0.605
         },
         "downRight": {
-          "file": "gaha_stone_downRight.png",
-          "originX": 0.501
-        },
-        "upLeft": {
-          "file": "gaha_stone_upLeft.png",
-          "originX": 0.482
-        },
-        "upRight": {
-          "file": "gaha_stone_upRight.png",
-          "originX": 0.465
+          "file": "gaha_iso_stone_downRight.png",
+          "originX": 0.579
         }
       },
       "fury": {
@@ -249,66 +244,74 @@
         }
       },
       "swiftness": {
-        "downLeft": {
-          "file": "gaha_swift_downLeft.png",
-          "originX": 0.523
+        "upRight": {
+          "file": "gaha_iso_swift_upRight.png",
+          "originX": 0.753
         },
         "downRight": {
-          "file": "gaha_swift_downRight.png",
-          "originX": 0.511
-        },
-        "upLeft": {
-          "file": "gaha_swift_upLeft.png",
-          "originX": 0.495
-        },
-        "upRight": {
-          "file": "gaha_swift_upRight.png",
-          "originX": 0.485
+          "file": "gaha_iso_swift_downRight.png",
+          "originX": 0.805
         }
       }
     },
     "poses": {
       "windup": {
-        "file": "gaha_windup.png",
-        "originX": 0.458
-      },
-      "attack": {
-        "file": "gaha_attack.png",
-        "originX": 0.279
-      },
-      "ready": {
-        "downLeft": {
-          "file": "gaha_battle_downLeft.png",
-          "originX": 0.447
+        "upRight": {
+          "file": "gaha_iso_battle_upRight.png",
+          "originX": 0.651
         },
         "downRight": {
-          "file": "gaha_battle_downRight.png",
-          "originX": 0.547
-        },
-        "upLeft": {
-          "file": "gaha_battle_upLeft.png",
-          "originX": 0.564
-        },
+          "file": "gaha_iso_battle_downRight.png",
+          "originX": 0.157
+        }
+      },
+      "attack": {
         "upRight": {
-          "file": "gaha_battle_upRight.png",
-          "originX": 0.43
+          "file": "gaha_iso_attack_upRight.png",
+          "originX": 0.059
+        },
+        "downRight": {
+          "file": "gaha_iso_attack_downRight.png",
+          "originX": 0.733
+        }
+      },
+      "ready": {
+        "upRight": {
+          "file": "gaha_iso_battle_upRight.png",
+          "originX": 0.651
+        },
+        "downRight": {
+          "file": "gaha_iso_battle_downRight.png",
+          "originX": 0.157
         }
       },
       "guard": {
-        "file": "gaha_guard.png",
-        "originX": 0.378
+        "upRight": {
+          "file": "gaha_iso_guard_upRight.png",
+          "originX": 0.654
+        },
+        "downRight": {
+          "file": "gaha_iso_guard_downRight.png",
+          "originX": 0.077
+        }
       },
       "dodge": {
         "file": "gaha_dodge.png",
         "originX": 0.562
       },
       "throw": {
-        "file": "gaha_throw.png",
-        "originX": 0.368
+        "file": "gaha_iso_throw_downRight.png",
+        "originX": 0.366
       },
       "hurt": {
-        "file": "gaha_hurt.png",
-        "originX": 0.49
+        "upLeft": {
+          "file": "gaha_iso_hurt_upLeft.png",
+          "originX": 0.563
+        },
+        "downRight": {
+          "file": "gaha_iso_hurt_downRight.png",
+          "originX": 0.374
+        }
       },
       "knocked": {
         "file": "gaha_knocked.png",
@@ -321,6 +324,10 @@
       "victory": {
         "file": "gaha_victory.png",
         "originX": 0.506
+      },
+      "throwRelease": {
+        "file": "gaha_iso_release_downRight.png",
+        "originX": 0.248
       }
     },
     "portrait": "gaha_face.png",
@@ -463,46 +470,89 @@
     "note_rooted": "Gaha standing his ground under Earth's Bulwark (roadmap 6.17), from his 30 Oct sheet: a low guard in a dome of crystals. Both drawn facing right; the left facings are their mirror images.",
     "auraPainted": [
       "fury"
-    ]
+    ],
+    "walk": {
+      "frameMs": 75,
+      "upLeft": [
+        {
+          "file": "gaha_iso_walk0_upLeft.png",
+          "originX": 0.245
+        },
+        {
+          "file": "gaha_iso_walk1_upLeft.png",
+          "originX": 0.535
+        },
+        {
+          "file": "gaha_iso_walk2_upLeft.png",
+          "originX": 0.307
+        }
+      ]
+    },
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Walk: his 3 frames walking away to the upper left (19:33), played 1, 2, 3, 2; mirrored for the upper right. Spear Throw: his wind-up and release (21:47)."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
     "height": 100,
     "standing": {
+      "upRight": {
+        "file": "layra_iso_stand_upRight.png",
+        "originX": 0.529
+      },
       "downRight": {
-        "file": "layra_battle_downRight.png",
-        "originX": 0.532
-      },
-      "downLeft": {
-        "file": "layra_battle_downRight.png",
-        "originX": 0.532,
-        "flip": true
-      },
-      "upLeft": {
-        "file": "layra_stand_upLeft.png",
-        "originX": 0.53
+        "file": "layra_iso_stand_downRight.png",
+        "originX": 0.476
       }
     },
     "poses": {
       "attack": {
-        "file": "layra_attack.png",
-        "originX": 0.486
+        "upRight": {
+          "file": "layra_iso_guard_upRight.png",
+          "originX": 0.748
+        },
+        "downRight": {
+          "file": "layra_iso_guard_downRight.png",
+          "originX": 0.763
+        }
       },
       "cast": {
-        "file": "layra_cast.png",
-        "originX": 0.561
+        "upRight": {
+          "file": "layra_iso_cast_upRight.png",
+          "originX": 0.444
+        },
+        "downRight": {
+          "file": "layra_iso_cast_downRight.png",
+          "originX": 0.359
+        }
       },
       "chant": {
-        "file": "layra_chant.png",
-        "originX": 0.518
+        "upRight": {
+          "file": "layra_iso_chant_upRight.png",
+          "originX": 0.539
+        },
+        "downRight": {
+          "file": "layra_iso_chant_downRight.png",
+          "originX": 0.453
+        }
       },
       "meditate": {
-        "file": "layra_meditate.png",
-        "originX": 0.478
+        "upRight": {
+          "file": "layra_iso_meditate_upRight.png",
+          "originX": 0.474
+        },
+        "downRight": {
+          "file": "layra_iso_meditate_downRight.png",
+          "originX": 0.523
+        }
       },
       "hurt": {
-        "file": "layra_hurt.png",
-        "originX": 0.605
+        "upRight": {
+          "file": "layra_iso_hurt_upRight.png",
+          "originX": 0.435
+        },
+        "downRight": {
+          "file": "layra_iso_hurt_downRight.png",
+          "originX": 0.382
+        }
       },
       "knocked": {
         "file": "layra_knocked.png",
@@ -511,6 +561,26 @@
       "down": {
         "file": "layra_down.png",
         "originX": 0.491
+      },
+      "ready": {
+        "upRight": {
+          "file": "layra_iso_guard_upRight.png",
+          "originX": 0.748
+        },
+        "downRight": {
+          "file": "layra_iso_guard_downRight.png",
+          "originX": 0.763
+        }
+      },
+      "guard": {
+        "upRight": {
+          "file": "layra_iso_guard_upRight.png",
+          "originX": 0.748
+        },
+        "downRight": {
+          "file": "layra_iso_guard_downRight.png",
+          "originX": 0.763
+        }
       }
     },
     "portrait": "layra_face.png",
@@ -521,85 +591,126 @@
       "originX": 0.599
     },
     "battle": {
-      "downRight": {
-        "file": "layra_battle_downRight.png",
-        "originX": 0.532
+      "upRight": {
+        "file": "layra_iso_guard_upRight.png",
+        "originX": 0.748
       },
-      "upLeft": {
-        "file": "layra_stand_upLeft.png",
-        "originX": 0.53
+      "downRight": {
+        "file": "layra_iso_guard_downRight.png",
+        "originX": 0.763
       }
-    }
+    },
+    "buffed": {
+      "swiftness": {
+        "upRight": {
+          "file": "layra_iso_blessed_upRight.png",
+          "originX": 0.331
+        },
+        "downRight": {
+          "file": "layra_iso_blessed_downRight.png",
+          "originX": 0.376
+        }
+      },
+      "fury": {
+        "upRight": {
+          "file": "layra_iso_blessed_upRight.png",
+          "originX": 0.331
+        },
+        "downRight": {
+          "file": "layra_iso_blessed_downRight.png",
+          "originX": 0.376
+        }
+      },
+      "stone": {
+        "upRight": {
+          "file": "layra_iso_blessed_upRight.png",
+          "originX": 0.331
+        },
+        "downRight": {
+          "file": "layra_iso_blessed_downRight.png",
+          "originX": 0.376
+        }
+      }
+    },
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and staff strike: \"defending herself\" (12:59). Casting is two steps: concentrating (12:36), then casting (12:41). Under any Verse: his blessing stance (12:53)."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
     "height": 112,
     "standing": {
-      "downLeft": {
-        "file": "bull_stand_downLeft.png",
-        "originX": 0.473
-      },
-      "downRight": {
-        "file": "bull_stand_downRight.png",
-        "originX": 0.47
-      },
       "upLeft": {
-        "file": "bull_stand_upLeft.png",
-        "originX": 0.468
+        "file": "bull_iso_stand_upLeft.png",
+        "originX": 0.226
       },
-      "upRight": {
-        "file": "bull_stand_upRight.png",
-        "originX": 0.494
+      "downLeft": {
+        "file": "bull_iso_stand_downLeft.png",
+        "originX": 0.408
       }
     },
     "battle": {
-      "downLeft": {
-        "file": "bull_battle_downLeft.png",
-        "originX": 0.561
-      },
-      "downRight": {
-        "file": "bull_battle_downRight.png",
-        "originX": 0.428
-      },
       "upLeft": {
-        "file": "bull_battle_upLeft.png",
-        "originX": 0.394
+        "file": "bull_iso_battle_upLeft.png",
+        "originX": 0.168
+      },
+      "downLeft": {
+        "file": "bull_iso_battle_downLeft.png",
+        "originX": 0.253
       }
     },
     "poses": {
       "ready": {
-        "downLeft": {
-          "file": "bull_battle_downLeft.png",
-          "originX": 0.561
-        },
-        "downRight": {
-          "file": "bull_battle_downRight.png",
-          "originX": 0.428
-        },
         "upLeft": {
-          "file": "bull_battle_upLeft.png",
-          "originX": 0.394
+          "file": "bull_iso_battle_upLeft.png",
+          "originX": 0.168
+        },
+        "downLeft": {
+          "file": "bull_iso_battle_downLeft.png",
+          "originX": 0.253
         }
       },
       "windup": {
-        "file": "bull_windup.png",
-        "originX": 0.517
+        "upLeft": {
+          "file": "bull_iso_battle_upLeft.png",
+          "originX": 0.168
+        },
+        "downLeft": {
+          "file": "bull_iso_battle_downLeft.png",
+          "originX": 0.253
+        }
       },
       "attack": {
-        "file": "bull_attack.png",
-        "originX": 0.453
+        "upLeft": {
+          "file": "bull_iso_attack_upLeft.png",
+          "originX": 0.203
+        },
+        "downLeft": {
+          "file": "bull_iso_attack_downLeft.png",
+          "originX": 0.226
+        }
       },
       "guard": {
-        "file": "bull_guard.png",
-        "originX": 0.475
+        "upLeft": {
+          "file": "bull_iso_battle_upLeft.png",
+          "originX": 0.168
+        },
+        "downLeft": {
+          "file": "bull_iso_battle_downLeft.png",
+          "originX": 0.253
+        }
       },
       "dodge": {
         "file": "bull_dodge.png",
         "originX": 0.508
       },
       "hurt": {
-        "file": "bull_hurt.png",
-        "originX": 0.493
+        "upLeft": {
+          "file": "bull_iso_hurt_upLeft.png",
+          "originX": 0.309
+        },
+        "downLeft": {
+          "file": "bull_iso_hurt_downLeft.png",
+          "originX": 0.688
+        }
       },
       "knocked": {
         "file": "bull_knocked.png",
@@ -621,7 +732,8 @@
       "file": "bull_weak.png",
       "originX": 0.534
     },
-    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures (he looked right, away from the heroes, at the start of a battle). Fixed 29 Oct: in a down view his face should point the way he faces."
+    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures (he looked right, away from the heroes, at the start of a battle). Fixed 29 Oct: in a down view his face should point the way he faces.",
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and guard: \"guarding\" (11:20)."
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",
@@ -810,99 +922,120 @@
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
     "height": 112,
     "standing": {
-      "downLeft": {
-        "file": "rabdul_stand_downLeft.png",
-        "originX": 0.495
-      },
-      "downRight": {
-        "file": "rabdul_stand_downRight.png",
-        "originX": 0.5
-      },
       "upLeft": {
-        "file": "rabdul_stand_upLeft.png",
-        "originX": 0.517
+        "file": "rabdul_iso_stand_upLeft.png",
+        "originX": 0.54
       },
-      "upRight": {
-        "file": "rabdul_stand_upRight.png",
-        "originX": 0.452
+      "downLeft": {
+        "file": "rabdul_iso_stand_downLeft.png",
+        "originX": 0.597
       }
     },
     "battle": {
-      "downLeft": {
-        "file": "rabdul_battle_downLeft.png",
-        "originX": 0.492
-      },
-      "downRight": {
-        "file": "rabdul_battle_downRight.png",
-        "originX": 0.577
-      },
       "upLeft": {
-        "file": "rabdul_battle_upLeft.png",
-        "originX": 0.633
+        "file": "rabdul_iso_battle_upLeft.png",
+        "originX": 0.32
       },
-      "upRight": {
-        "file": "rabdul_battle_upRight.png",
-        "originX": 0.5
+      "downLeft": {
+        "file": "rabdul_iso_battle_downLeft.png",
+        "originX": 0.632
       }
     },
     "poses": {
       "ready": {
-        "downLeft": {
-          "file": "rabdul_battle_downLeft.png",
-          "originX": 0.492
-        },
-        "downRight": {
-          "file": "rabdul_battle_downRight.png",
-          "originX": 0.577
-        },
         "upLeft": {
-          "file": "rabdul_battle_upLeft.png",
-          "originX": 0.633
+          "file": "rabdul_iso_battle_upLeft.png",
+          "originX": 0.32
         },
-        "upRight": {
-          "file": "rabdul_battle_upRight.png",
-          "originX": 0.5
+        "downLeft": {
+          "file": "rabdul_iso_battle_downLeft.png",
+          "originX": 0.632
         }
       },
       "windup": {
-        "downLeft": {
-          "file": "rabdul_battle_downLeft.png",
-          "originX": 0.492
-        },
-        "downRight": {
-          "file": "rabdul_battle_downRight.png",
-          "originX": 0.577
-        },
         "upLeft": {
-          "file": "rabdul_battle_upLeft.png",
-          "originX": 0.633
+          "file": "rabdul_iso_battle_upLeft.png",
+          "originX": 0.32
         },
-        "upRight": {
-          "file": "rabdul_battle_upRight.png",
-          "originX": 0.5
+        "downLeft": {
+          "file": "rabdul_iso_battle_downLeft.png",
+          "originX": 0.632
+        }
+      },
+      "guard": {
+        "upLeft": {
+          "file": "rabdul_iso_battle_upLeft.png",
+          "originX": 0.32
+        },
+        "downLeft": {
+          "file": "rabdul_iso_battle_downLeft.png",
+          "originX": 0.632
         }
       },
       "attack": {
-        "downLeft": {
-          "file": "rabdul_battle_downLeft.png",
-          "originX": 0.492
-        },
-        "downRight": {
-          "file": "rabdul_battle_downRight.png",
-          "originX": 0.577
-        },
         "upLeft": {
-          "file": "rabdul_battle_upLeft.png",
-          "originX": 0.633
+          "file": "rabdul_iso_attack_upLeft.png",
+          "originX": 0.865
         },
-        "upRight": {
-          "file": "rabdul_battle_upRight.png",
-          "originX": 0.5
+        "downLeft": {
+          "file": "rabdul_iso_attack_downLeft.png",
+          "originX": 0.264
+        }
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "rabdul_iso_dodge_upLeft.png",
+          "originX": 0.557
+        },
+        "downLeft": {
+          "file": "rabdul_iso_dodge_downLeft.png",
+          "originX": 0.569
+        }
+      },
+      "hurt": {
+        "upLeft": {
+          "file": "rabdul_iso_hurt_upLeft.png",
+          "originX": 0.53
+        },
+        "downLeft": {
+          "file": "rabdul_iso_hurt_downLeft.png",
+          "originX": 0.606
+        }
+      },
+      "chant": {
+        "upLeft": {
+          "file": "rabdul_iso_chant_upLeft.png",
+          "originX": 0.505
+        },
+        "downLeft": {
+          "file": "rabdul_iso_chant_downLeft.png",
+          "originX": 0.555
+        }
+      },
+      "cast": {
+        "upLeft": {
+          "file": "rabdul_iso_cast_upLeft.png",
+          "originX": 0.351
+        },
+        "downLeft": {
+          "file": "rabdul_iso_cast_downLeft.png",
+          "originX": 0.441
+        }
+      },
+      "fireAttack": {
+        "upLeft": {
+          "file": "rabdul_iso_fire_upLeft.png",
+          "originX": 0.83
+        },
+        "downLeft": {
+          "file": "rabdul_iso_fire_downLeft.png",
+          "originX": 0.315
         }
       }
     },
     "portrait": "rabdul_face.png",
     "shout": "rabdul_face.png",
-    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures: on his sheet the figure labeled SOUTH-WEST is drawn turned to the right. Fixed 29 Oct."
+    "note_facing": "Down-left and down-right were swapped in his standing and battle pictures: on his sheet the figure labeled SOUTH-WEST is drawn turned to the right. Fixed 29 Oct.",
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. chant, cast and fireAttack (preparing and completing his enchantment, the flaming spear) are for Enchant (roadmap 4.1)."
   }
 }

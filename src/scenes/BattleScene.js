@@ -23,7 +23,7 @@ import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura,
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor } from '../layout.js';
@@ -827,6 +827,13 @@ export default class BattleScene extends Phaser.Scene {
     const active = this.activeUnit;
 
     if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach')) {
+      // The tile of a target behind, covered only by the edge of the figure in
+      // front (a shield, a mace, a spear, not its body): the target on the tile
+      // (the tile it stands on: the diamond round its feet)
+      const onFeet = (u) => Math.abs(x - u.view.x) / (TILE_WIDTH / 2) + Math.abs(y - u.view.y) / (TILE_HEIGHT / 2) <= 1;
+      const behind = seen && !this.torsoContains(seen, x, y) && this.targetsInRange.find((u) => u !== seen && onFeet(u));
+      const tileWins = !!behind;
+      if (tileWins) return at(behind);
       if (seen && this.targetsInRange.includes(seen)) return at(seen);
       // A tap on a choosable figure's body (above its feet) means that figure,
       // even when the top of a raised tile behind it is under the same spot.
@@ -2140,6 +2147,10 @@ export default class BattleScene extends Phaser.Scene {
 
     let prev = { x: unit.view.x, y: unit.view.y };
     let prevTile = null;
+    // Walking frames (Gaha, roadmap S.4): his three pictures played 1, 2, 3, 2
+    // while he is between tiles, two pictures a step; standing again when he stops
+    const WALK_ORDER = [0, 1, 2, 1];
+    let stride = 0;
     const steps = path.map((tile) => {
       const p = tileToScreen(tile.col, tile.row);
       const fromTile = prevTile;
@@ -2158,7 +2169,16 @@ export default class BattleScene extends Phaser.Scene {
           // a little hop each step; a big leap when Layra hops up to a high spot under Swiftness
           const climb = fromTile ? getHeight(tile.col, tile.row) - getHeight(fromTile.col, fromTile.row) : 0;
           const leap = climb > terrain.climbLimit;
-          this.tweens.add({ targets: unit.idleTargets, y: leap ? '-=38' : '-=9', duration: leap ? 120 : 75, yoyo: true, ease: 'Sine.easeOut' });
+          const walk = !leap && !buffOf(unit) && walkFrames(unit.id, unit.facing);
+          if (walk) {
+            // real steps instead of a hop: a small bob as the feet pass
+            for (let k = 0; k < 2; k++) {
+              const frame = walk.frames[WALK_ORDER[(stride + k) % 4]];
+              this.time.delayedCall(k * walk.frameMs, () => unit.alive && this.showFrame(unit, frame));
+            }
+            stride += 2;
+            this.tweens.add({ targets: unit.idleTargets, y: '-=3', duration: 75, yoyo: true, ease: 'Sine.easeOut' });
+          } else this.tweens.add({ targets: unit.idleTargets, y: leap ? '-=38' : '-=9', duration: leap ? 120 : 75, yoyo: true, ease: 'Sine.easeOut' });
           const buff = buffOf(unit);
           // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
           if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
@@ -2698,6 +2718,12 @@ export default class BattleScene extends Phaser.Scene {
     const right = dx >= 0;
     const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
     if (!this.showFrame(unit, poseFrame(unit.id, pose, right ? 'right' : 'left', facing))) this.showStanding(unit);
+  }
+
+  // The picture as a thrown spear leaves the hand: his release picture if the
+  // unit has one, else its attack picture.
+  releasePose(unit) {
+    return poseFrame(unit.id, 'throwRelease', 'right') ? 'throwRelease' : 'attack';
   }
 
   // The attack picture, if the unit has one. dx says which way it is swinging.
@@ -3858,9 +3884,16 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     const color = Phaser.Display.Color.HexStringToColor(spell.color).color;
-    // a Verse reaches out to the ally; Slow is a curse thrown with the staff
-    this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', target.view.x - caster.view.x);
-    this.time.delayedCall(250, () => {
+    // Two steps (roadmap 9.2): a caster with a "chant" picture first gathers the
+    // Verse (hands together, eyes closed), then reaches out with it. Without
+    // one: a Verse reaches out to the ally; Slow is a curse thrown with the staff.
+    const dxT = target.view.x - caster.view.x;
+    const lead = poseFrame(caster.id, 'chant', 'right') ? 420 : 0;
+    if (lead) {
+      this.showPose(caster, 'chant', dxT);
+      this.time.delayedCall(lead, () => caster.alive && this.showPose(caster, 'cast', dxT));
+    } else this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', dxT);
+    this.time.delayedCall(lead + 250, () => {
       play('spell');
       if (spell.kind === 'hex' && slowCast(this, target.view.x, target.view.y)) {
         // the gravity effect from the Slow sheet
@@ -3876,9 +3909,9 @@ export default class BattleScene extends Phaser.Scene {
       if (spell.kind === 'hex') this.refreshTurnStrip(); // its next turn has moved back
     });
     // (after the card has shrunk away)
-    changed.forEach((m, i) => this.time.delayedCall(1150 + i * 380, () => target.alive && this.floatText(target, spells[m].button + '!', spells[m].color, { pop: true })));
-    this.time.delayedCall(800, () => this.showStanding(caster));
-    this.time.delayedCall(950, onDone);
+    changed.forEach((m, i) => this.time.delayedCall(lead + 1150 + i * 380, () => target.alive && this.floatText(target, spells[m].button + '!', spells[m].color, { pop: true })));
+    this.time.delayedCall(lead + 800, () => this.showStanding(caster));
+    this.time.delayedCall(lead + 950, onDone);
   }
 
   // Spear Throw: the spear flies at an enemy. A hit hurts it and knocks it
@@ -3908,7 +3941,7 @@ export default class BattleScene extends Phaser.Scene {
     if (outcome) this.battleOver = true;
     this.refreshButtons();
     this.time.delayedCall(220, () => {
-      this.showPose(thrower, 'attack', dx);
+      this.showPose(thrower, this.releasePose(thrower), dx);
       play('arrow');
       const a = this.centerOf(thrower);
       const b = this.centerOf(target);
@@ -4396,7 +4429,7 @@ export default class BattleScene extends Phaser.Scene {
       if (!ms) {
         this.showPose(user, 'throw', dx);
         this.time.delayedCall(220, () => {
-          this.showPose(user, 'attack', dx);
+          this.showPose(user, this.releasePose(user), dx);
           release();
         });
       }

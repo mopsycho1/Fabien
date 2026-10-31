@@ -4,7 +4,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
   const { w, game, errors } = await start();
-  const t0 = Date.now(); while (Date.now() - t0 < 8000 && !(game.textures.exists('e4:rabdul_battle_upRight.png') && game.textures.exists('icon:slow'))) await sleep(50);
+  const t0 = Date.now(); while (Date.now() - t0 < 8000 && !(game.textures.exists('e4:rabdul_iso_battle_upLeft.png') && game.textures.exists('icon:slow'))) await sleep(50);
   const b = await battle(game);
   const E = w.__engagement, St = w.__status, G = w.__grid;
   const combat = require('./combat-bundle.cjs');
@@ -20,17 +20,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // line-up
   check('Rabdul takes the E1 slot; Tayo sits on the bench', rabdul && rabdul.name === 'Rabdul' && !b.units.some((u) => u.name === 'Tayo'), b.units.map((u) => u.name).join());
-  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 9);
+  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 17);
   park(); rabdul.facing = 'upLeft'; b.showStanding(rabdul);
-  check('Rabdul facing up-left shows his labeled north-west view', /rabdul_stand_upLeft/.test(key(rabdul)), key(rabdul));
+  check('Rabdul facing up-left shows his labeled north-west view', /rabdul_iso_stand_upLeft/.test(key(rabdul)), key(rabdul));
   put(rabdul, 3, 5); put(gaha, 3, 6); rabdul.facing = 'downLeft'; b.faceNearestOpponent(rabdul);
-  check('with Gaha close, Rabdul takes his battle stance facing him', /rabdul_battle_down/.test(key(rabdul)), key(rabdul) + ' ' + rabdul.facing);
+  check('with Gaha close, Rabdul takes his battle stance facing him', /rabdul_iso_battle_down/.test(key(rabdul)), key(rabdul) + ' ' + rabdul.facing);
 
   // Layra
   park(); layra.facing = 'downLeft'; b.showStanding(layra);
-  check('Layra facing down-left: her level-gaze pose, mirrored', /layra_battle_downRight/.test(key(layra)) && layra.sprite.flipX, key(layra));
+  check('Layra facing down-left: her level-gaze pose, mirrored', /layra_iso_stand_downRight/.test(key(layra)) && layra.sprite.flipX, key(layra));
   turnOf(layra); b.onSpellButton(); b.chooseSpell('meditate'); b.chooseSpell('meditate'); await sleep(1200); await idle();
-  check('Meditate shows her kneeling pose', /layra_meditate/.test(key(layra)), key(layra));
+  check('Meditate shows her kneeling pose', /layra_iso_meditate/.test(key(layra)), key(layra));
   layra.meditating = null;
 
   // Husk: hidden, she glows see-through gold (the look from his cave screenshot)
@@ -53,7 +53,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // Slow: effect, aura and icon
   park(); put(layra, 3, 6); put(bull, 3, 3); turnOf(layra); layra.mp = 12;
   b.onSpellButton(); b.openSpellGroup('Hexes'); b.chooseSpell('slow'); b.handleTap(3, 3); b.handleTap(3, 3);
-  await sleep(500);
+  await sleep(920); // (she concentrates first, 9.2)
   const fx = b.children.list.filter((o) => o.texture && /fx:slow_/.test(o.texture.key));
   check('Slow plays the gravity effect from his sheet', fx.length >= 2, fx.map((o) => o.texture.key).join());
   await idle(); await sleep(800);
@@ -83,7 +83,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   while (Date.now() - t1 < 6000) { seen.add(key(gaha).replace(/^h2:gaha_/, '')); seen.add(key(rabdul).replace(/^e4:rabdul_/, '')); await sleep(60); }
   b.clashLifeOn = false; await sleep(800);
   check('between turns the locked pair trades blows (attack, guard or dodge poses appear)', [...seen].some((k) => /attack|guard|dodge/.test(k)), [...seen].join(','));
-  check('and they settle back into their stances', /gaha_battle_/.test(key(gaha)) && gaha.sprite.x === 0, key(gaha) + ' x ' + gaha.sprite.x);
+  check('and they settle back into their stances', /gaha_(iso_)?battle_/.test(key(gaha)) && gaha.sprite.x === 0, key(gaha) + ' x ' + gaha.sprite.x);
   // faces at the screen edges during a beat
   turnOf(gaha); b.setStanceChoice('manual');
   w.Math.random = () => (/rollDice/.test(new Error().stack) ? 0.5 : real());

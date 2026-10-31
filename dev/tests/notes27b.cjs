@@ -4,7 +4,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
   const { w, game, errors } = await start();
-  const t0 = Date.now(); while (Date.now() - t0 < 8000 && !game.textures.exists('h3:layra_battle_downRight.png')) await sleep(50);
+  const t0 = Date.now(); while (Date.now() - t0 < 8000 && !game.textures.exists('h3:layra_iso_stand_upRight.png')) await sleep(50);
   const b = await battle(game);
   const E = w.__engagement, St = w.__status, G = w.__grid;
   const combat = require('./combat-bundle.cjs');
@@ -20,11 +20,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // Layra
   park();
-  for (const f of ['upLeft', 'upRight']) { layra.facing = f; b.showStanding(layra); check('Layra facing ' + f + ' shows her back view (not looking up at the sky)', /layra_stand_upLeft/.test(key(layra)), key(layra)); }
+  for (const f of ['upLeft', 'upRight']) { layra.facing = f; b.showStanding(layra); check('Layra facing ' + f + ' shows her back view (not looking up at the sky)', /layra_iso_stand_upRight/.test(key(layra)), key(layra)); }
   put(bull, 3, 5); layra.facing = 'upRight'; b.showStanding(layra);
-  check('an enemy close: Layra in her battle-ready stance', /layra_battle_downRight|layra_stand_upLeft/.test(key(layra)), key(layra));
+  check('an enemy close: Layra in her battle-ready stance', /layra_iso_guard_/.test(key(layra)), key(layra));
   layra.facing = 'downLeft'; b.showStanding(layra);
-  check('facing down with an enemy close: her battle-ready stance', /layra_battle_downRight/.test(key(layra)), key(layra));
+  check('facing down with an enemy close: her battle-ready stance', /layra_iso_guard_downRight/.test(key(layra)), key(layra));
 
   // Poise
   park(); put(gaha, 3, 5); put(bull, 3, 4); E.startDuel(gaha, bull); gaha.poise = 3;
