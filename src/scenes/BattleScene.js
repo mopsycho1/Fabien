@@ -23,7 +23,7 @@ import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura,
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, artHasLook } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -5619,6 +5619,7 @@ export default class BattleScene extends Phaser.Scene {
       this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
       this.keepAura(unit, 'bulwarkAura', verse === 'stone', () => bulwarkAura(this, unit));
       // Rabdul's Enchant: Shango's symbol glowing at its feet (roadmap 4.1)
+      unit.hasEnchantedArt = artHasLook(unit.id, 'enchanted'); // its own flaming pictures to stand in
       this.keepAura(unit, 'enchantAura', unit.alive && isEnchanted(unit), () => enchantAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);

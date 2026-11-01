@@ -1238,9 +1238,12 @@ function drawSurround(scene, surround) {
 
 // A flickering flame with its glow and sparks (braziers, lamps).
 function flame(scene, x, y, depth, size) {
-  const g = scene.add.graphics().setDepth(depth);
-  g.fillStyle(0xffb347, 0.9).fillEllipse(x, y - 4 * size, 9 * size, 16 * size);
-  g.fillStyle(0xfff1c0, 1).fillEllipse(x, y - 2 * size, 4 * size, 8 * size);
+  // drawn round its own point and placed at (x, y): a Graphics scales from its
+  // own point, and drawn at (x, y) inside it the flame slid up and down the
+  // screen as it flickered (the lights "moving out of place", Baiyee 1 Nov)
+  const g = scene.add.graphics({ x, y }).setDepth(depth);
+  g.fillStyle(0xffb347, 0.9).fillEllipse(0, -4 * size, 9 * size, 16 * size);
+  g.fillStyle(0xfff1c0, 1).fillEllipse(0, -2 * size, 4 * size, 8 * size);
   // (Baiyee 1 Nov: the fast flicker and sparks looked like lights bouncing
   // about, so the flames breathe slowly and only the odd spark drifts up)
   scene.tweens.add({ targets: g, scaleY: 1.04, alpha: 0.9, duration: 420 + Math.random() * 260, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });

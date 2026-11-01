@@ -246,8 +246,7 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
     const ring = scene.add.image(0, 0, 'fx:fury_ground').setScale(0.95).setAlpha(0.9);
     flat.add(ring);
     behind(unit, flat);
-    tweens.push(scene.tweens.add({ targets: ring, angle: 360, duration: 3200, repeat: -1 }));
-    tweens.push(scene.tweens.add({ targets: ring, alpha: 0.6, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
+    tweens.push(scene.tweens.add({ targets: ring, alpha: 0.6, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })); // it glows; it no longer turns
     objects.push(flat);
   } else {
     const ring = add('fury_ring', 4, 0.55).setScale(0.42, 0.3);
@@ -256,12 +255,17 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
     objects.push(ring);
   }
   if (ribbons) {
-    const back = add('fury_ribbons', -unit.centerY * 0.75, 0.5);
-    behind(unit, back);
-    const front = add('fury_ribbons', -unit.centerY * 0.6, 0.55);
-    unit.view.add(front);
-    tweens.push(spin(scene, back, 0.4, 1500), spin(scene, front, 0.36, 1500, Math.PI / 2));
-    objects.push(back, front);
+    // his fire rising round the body (the 18:33 fire rows, as Layra uses
+    // them), its two pictures flickering in turn like Swift's swirl. These
+    // replace the turning ribbon cutouts (Baiyee 1 Nov: "a picture rotating on him").
+    if (has(scene, ['rise_fire_0', 'rise_fire_1'])) {
+      const fire = scene.add.image(0, 6, 'fx:rise_fire_0').setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.7);
+      fire.setScale((unit.topY * 0.85) / fire.height).setAlpha(0.6);
+      unit.view.add(fire);
+      let f = 0;
+      tweens.push(scene.tweens.add({ targets: fire, alpha: 0.85, duration: 140, yoyo: true, repeat: -1, onRepeat: () => fire.active && fire.setTexture('fx:rise_fire_' + (++f % 2)) }));
+      objects.push(fire);
+    }
   }
   const sparks = [0, 1].map((i) => {
     const s = add('fury_sparks', -unit.centerY, 0).setScale(0.32);
@@ -565,6 +569,16 @@ export function enchantAura(scene, unit) {
     tweens.push(scene.tweens.add({ targets: e, y: -unit.topY, alpha: { from: 0.8, to: 0 }, duration: 1400, delay: i * 700, repeat: -1 }));
     return e;
   });
+  // no flaming pictures of its own (art.json "enchanted"): his fire licks up
+  // round its body instead, so it still looks enchanted (Tayo, the heroes)
+  if (!unit.hasEnchantedArt && has(scene, ['rise_fire_0', 'rise_fire_1'])) {
+    const fire = scene.add.image(0, 4, 'fx:rise_fire_1').setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55);
+    fire.setScale((unit.topY * 0.8) / fire.height);
+    unit.view.add(fire);
+    let f = 0;
+    tweens.push(scene.tweens.add({ targets: fire, alpha: 0.75, duration: 150, yoyo: true, repeat: -1, onRepeat: () => fire.active && fire.setTexture('fx:rise_fire_' + (++f % 2)) }));
+    embers.push(fire);
+  }
   return { objects: [flat, ...embers], tweens };
 }
 

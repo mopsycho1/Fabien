@@ -57,6 +57,11 @@ let lookOf = () => null;
 export function setLookLookup(fn) {
   lookOf = fn;
 }
+// True if the unit has its own standing pictures for that look (the bull and
+// the archer have flaming ones; Rabdul only strikes with his flaming spear).
+export function artHasLook(id, look) {
+  return !!(art[id] && art[id][look] && art[id][look].battle);
+}
 function lookEntry(id) {
   const look = lookOf(id);
   return (look && art[id] && art[id][look]) || null;

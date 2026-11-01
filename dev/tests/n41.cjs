@@ -62,6 +62,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.showPose(bull, 'attack', -1);
   check('4.1 and strikes with the flaming mace', /bull_ench_attack_/.test(key(bull)), key(bull));
   check('4.1 Shango\'s symbol glows at his feet', !!bull.enchantAura && bull.enchantAura.objects.length > 0);
+  S.applyEnchant(tayo, 'enchant'); b.refreshStatusTags();
+  check('4.1 Tayo (no flaming pictures yet): fire licks up round him', !!tayo.enchantAura && tayo.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)) && !bull.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)));
+  tayo.status = null; b.refreshStatusTags();
+  S.applyBuff(sudeen, 'fury'); b.refreshStatusTags();
+  check('Fury on Sudeen: his fire rising round him, no turning cutouts', !!sudeen.furyAura && sudeen.furyAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)) && !sudeen.furyAura.objects.some((o) => o.texture && /fury_ribbons/.test(o.texture.key)));
+  sudeen.status = null; b.refreshStatusTags();
   S.applyEnchant(archer, 'enchant'); b.showStanding(archer);
   check('4.1 the archer shows her flaming bow', /archer_ench_/.test(key(archer)), key(archer));
   S.applyEnchant(rabdul, 'enchant'); b.showPose(rabdul, 'attack', -1);
@@ -131,6 +137,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('lights: the lamp glows breathe slowly (no fast flicker)', glow.length > 0 && fast.length === 0, glow.length + ' glows, ' + fast.length + ' fast');
   const dots = b.children.list.filter((o) => o.type === 'ParticleEmitter' && o.texture && o.texture.key === 'fx-dot' && o.depth === 71);
   check('lights: no glowing dust drifting over the sealed cavern', dots.length === 0, dots.length);
+  const flames = b.children.list.filter((o) => o.type === 'Graphics' && b.tweens.getTweensOf(o).length > 0);
+  check('lights: every flickering flame sits on its own spot (it scales in place, it does not slide)', flames.length > 0 && flames.every((o) => o.x !== 0 || o.y !== 0), flames.length);
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

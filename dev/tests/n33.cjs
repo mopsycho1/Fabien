@@ -100,9 +100,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('6.13 the look goes when the Verse goes', !sudeen.bulwarkAura);
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'fury');
-  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, two spinning ribbons and sparks', sudeen.furyAura && sudeen.furyAura.objects.length === 5);
-  const rib = sudeen.furyAura.objects[2]; const sx0 = rib.scaleX; await sleep(300);
-  check('6.13 the ribbons spin (their width changes)', Math.abs(rib.scaleX - sx0) > 0.02, sx0.toFixed(2) + ' -> ' + rib.scaleX.toFixed(2));
+  // (1 Nov, Baiyee: the turning ribbon cutouts became his rising fire, flickering like Swift's swirl)
+  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, his rising fire and sparks', sudeen.furyAura && sudeen.furyAura.objects.length === 4);
+  const rib = sudeen.furyAura.objects[1]; const k0 = rib.texture.key; await sleep(320);
+  check('6.13 the fire flickers between his two pictures', /rise_fire/.test(k0) && rib.texture.key !== k0 || /rise_fire/.test(rib.texture.key), k0 + ' -> ' + rib.texture.key);
   sudeen.status.buff.turnsLeft = 1; S.tickBuff(sudeen); b.refreshStatusTags();
   check('6.13 Fury fades: its look goes and its pictures are destroyed', !sudeen.furyAura && !rib.active);
 
