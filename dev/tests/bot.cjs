@@ -12,6 +12,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const STYLE = process.argv[3] || 'mixed';   // mixed | noengage
   for (let n = 1; n <= N; n++) {
     b.setSpeed('base', 8);
+    if (process.env.NO_ENCHANT) for (const u of b.units) u.spells = u.spells.filter((s) => s !== 'enchant'); // balance runs: Enchant off
     const dmg = {}; const acts = {};
     const origAtk = b.performAttack.bind(b);
     b.performAttack = (a, t, d) => { const before = t.hp; const r = origAtk(a, t, d); dmg[a.label] = (dmg[a.label] || 0) + (before - t.hp); acts[a.label] = (acts[a.label] || 0) + 1; return r; };

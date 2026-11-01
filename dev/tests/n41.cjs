@@ -2,7 +2,8 @@
 // 4.1 Rabdul's Enchant (his MP, the +2, the flaming looks of the bull and the
 // archer, the AI), 4.2 Tayo's Earth Drive (half damage, thrown back, the spike
 // wall: blocks walking and arrows, crumbles after 2 of his turns; no wall when
-// the foe can't be moved), 4.3 Tayo fights too, and the calmer cavern lights.
+// the foe can't be moved), 4.3 Tayo in for the bull, and the calmer cavern lights.
+// Run with FABIEN_MAP=cavern FABIEN_BENCH= (nobody sits out, so the bull can be tested too).
 const { start, battle } = require('./boot.cjs');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
@@ -30,7 +31,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const shown = (u) => seen.get(u) || [];
 
   // ---------- 4.3 ----------
-  check('4.3 four enemies on the cavern: Rabdul, the bull, the archer and Tayo', !!tayo && b.units.filter((u) => u.side === 'enemy').length === 4, b.units.map((u) => u.name).join(','));
+  // (this test runs with FABIEN_BENCH= so all four are on the board; the map's own line-up is checked here)
+  check('4.3 the cavern line-up: Tayo in for the bull (3 against 3)', b.lineUp.alsoFighting.includes('e1') && b.lineUp.sittingOut.includes('e2'), JSON.stringify(b.lineUp));
 
   // ---------- 4.1 the rules ----------
   check('4.1 Rabdul has his own MP (9) and Enchant', rabdul.maxMp === 9 && rabdul.spells.includes('enchant') && S.mpShown(rabdul) && S.mpShown(rabdul).max === 9);

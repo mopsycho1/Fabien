@@ -209,8 +209,15 @@ export default class BattleScene extends Phaser.Scene {
       const at = mapData.starts && mapData.starts[entry.id];
       return at ? { ...entry, col: at[0], row: at[1] } : entry;
     };
-    // (a map can bring benched units in: "alsoFighting" in its file)
-    const fielded = (entry) => !entry.bench || (mapData.alsoFighting || []).includes(entry.id);
+    // (a map can change who fights: "alsoFighting" brings benched units in,
+    // "sittingOut" benches others, for that map only)
+    // (the bot tests can name who sits out instead: window.__bench, a list of ids)
+    const benched = (entry) =>
+      window.__bench
+        ? window.__bench.includes(entry.id)
+        : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id);
+    this.lineUp = { alsoFighting: mapData.alsoFighting || [], sittingOut: mapData.sittingOut || [] };
+    const fielded = (entry) => !benched(entry);
     this.units = unitData.filter(fielded).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
 
     createHudTextures(this);

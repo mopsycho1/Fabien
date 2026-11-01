@@ -1,4 +1,5 @@
 // Phase 11 (1 Nov): the Hidden Cavern. Run with the cavern map:
+// Runs with FABIEN_MAP=cavern FABIEN_BENCH=e1: the line-up it was written for (Rabdul, the bull, the archer), from before Phase 4 put Tayo in for the bull.
 //   FABIEN_MAP=cavern node n39.cjs
 // The map (11.3), his ground, walls, props and painting (11.1, 11.2, 11.6),
 // the water rules (11.4), and the camera that follows (11.5).
