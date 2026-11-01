@@ -356,5 +356,37 @@
     "mp": 0,
     "use": "enemy",
     "text": "Fury turns her Lightning to fire: it sets the target alight, 2 damage a turn for 3 turns (never the last point; Herbs put it out). Fire doesn't jump."
+  },
+  "enchant": {
+    "name": "Enchant",
+    "button": "Enchant",
+    "short": "ENCHANTED",
+    "kind": "enchant",
+    "color": "#ff8a3c",
+    "icon": "enchanted",
+    "range": 3,
+    "mp": 3,
+    "cooldown": 3,
+    "turns": 3,
+    "damage": 2,
+    "use": "ally",
+    "note": "Roadmap 4.1 (Suleiman OK'd): Shango's symbol set on a weapon. Rabdul has 9 MP, so three casts a battle.",
+    "text": "Rabdul calls on Shango and sets his symbol on a weapon: his own, or an ally's up to 3 tiles away. For its next 3 turns that weapon burns: +2 damage on every hit (+1 against a Drenched target, the water dulls the flames). Costs 3 MP. Ready again after 3 turns."
+  },
+  "earthDrive": {
+    "name": "Earth Drive",
+    "button": "Earth Drive",
+    "short": "EARTH DRIVE",
+    "kind": "earthDrive",
+    "color": "#d9a066",
+    "range": 1,
+    "damageShare": 0.5,
+    "push": 1,
+    "turns": 2,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "note": "Roadmap 4.2 (proposal built as proposed): half damage, push 1, the spike lasts 2 of Tayo's turns.",
+    "text": "Tayo drives his fist into the ground and a spike of rock bursts up under the foe in front of him: half damage, and it is thrown back a tile (into a wall or a unit: a slam). The spike stays as a wall for 2 of his turns: nobody walks through it and it stops arrows and thrown weapons. Ready again after 3 turns."
   }
 }

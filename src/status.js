@@ -16,6 +16,7 @@ import terrain from './data/terrain.json';
 //   unit.status.buff.lent  : { mp: 3, max: 3 } MP a Verse lends a unit with none of its own
 //   unit.status.rooted     : true while Gaha stands his ground under Stone (until his next turn)
 //   unit.status.burn       : { damage: 2, turnsLeft: 3 } after Layra's Wildfire
+//   unit.status.enchant    : { damage: 2, turnsLeft: 3 } Rabdul's Enchant on its weapon
 //
 // A unit only ever has one buff. A new one replaces the old one, so spells
 // cannot pile up (the design notes ask us to avoid unlimited stacking).
@@ -348,6 +349,30 @@ export function tickBurn(unit) {
   return lost;
 }
 
+// ---------- Enchanted (Rabdul's Enchant, roadmap 4.1) ----------
+
+// Shango's symbol on a unit's weapon: its hits do more damage for a few of
+// its own turns (spells.json, enchant). Kept apart from the Verses (a unit
+// can carry a Verse and an Enchant at once). ownTurn: cast on itself during
+// its own turn, so the turn it was cast in doesn't count.
+export function applyEnchant(unit, spellId, ownTurn = false) {
+  const spell = spells[spellId];
+  statusOf(unit).enchant = { id: spellId, damage: spell.damage, turnsLeft: spell.turns + (ownTurn ? 1 : 0) };
+}
+
+export function isEnchanted(unit) {
+  return !!(unit && unit.status && unit.status.enchant);
+}
+
+// The extra damage an enchanted weapon does to this target: the full bonus,
+// or less against a Drenched target (the water dulls the flames: terrain.json
+// water.fireTimes, so +2 becomes +1).
+export function enchantBonus(attacker, defender) {
+  const e = attacker && attacker.status && attacker.status.enchant;
+  if (!e) return 0;
+  return isDrenched(defender) ? Math.round(e.damage * terrain.water.fireTimes) : e.damage;
+}
+
 // ---------- Drenched (the Hidden Cavern's water, roadmap 11.4) ----------
 
 // A unit standing in water is Drenched, and stays so for a few of its own
@@ -410,6 +435,10 @@ export function tickBuff(unit) {
       status.hex = null;
     }
   }
+  if (status.enchant) {
+    status.enchant.turnsLeft -= 1;
+    if (status.enchant.turnsLeft <= 0) status.enchant = null;
+  }
   if (status.disoriented) {
     status.disoriented.turnsLeft -= 1;
     if (status.disoriented.turnsLeft <= 0) status.disoriented = null;
@@ -445,6 +474,7 @@ export function statusTags(unit) {
   if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a', icon: 'marked' }); // an archer's Poison Arrow is aimed at it
   if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a', icon: 'poison' });
   if (statusOf(unit).burn) tags.push({ text: 'BURN', color: '#ff8a3c', icon: 'burn' }); // Layra's Wildfire
+  if (statusOf(unit).enchant) tags.push({ text: 'ENCHANTED', color: '#ff8a3c', icon: 'enchanted' }); // Rabdul's Enchant: a burning weapon
   if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
   if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall

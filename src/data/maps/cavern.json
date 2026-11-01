@@ -48,6 +48,8 @@
     "e3": [4, 0],
     "e1": [4, 1]
   },
+  "alsoFighting": ["e1"],
+  "alsoFightingNote": "Units benched in units.json who fight on this map: Tayo joins Rabdul, the bull and the archer (roadmap 4.3, four enemies), so Earth Drive and Enchant on the bull and the archer are all in one battle.",
   "startsNote": "Where each unit starts (column, row), by its id in units.json.",
   "waterfalls": [[3, 5, 3, 6], [5, 5, 5, 6], [5, 5, 6, 5], [5, 3, 6, 3], [3, 3, 3, 2], [5, 3, 5, 2], [3, 3, 2, 3], [3, 5, 2, 5]],
   "waterfallsNote": "Water pouring off the platform: [column, row] of the ledge, then [column, row] of the water below. Only the faces turned towards the camera show.",

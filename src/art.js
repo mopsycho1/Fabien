@@ -48,6 +48,20 @@ import art from './data/art.json';
 // battle cry for the big moments.
 
 // Gives every picture to the loader, so they are ready before the game starts.
+// Which special look a unit is in right now, by its id: 'enchanted' while
+// Rabdul's Enchant is on it (roadmap 4.1), or null. The battle hands in the
+// real lookup (setLookLookup); until then nobody has a special look.
+// A look is an entry in art.json ("enchanted"): its "battle" pictures replace
+// the unit's standing ones and its "poses" replace those poses.
+let lookOf = () => null;
+export function setLookLookup(fn) {
+  lookOf = fn;
+}
+function lookEntry(id) {
+  const look = lookOf(id);
+  return (look && art[id] && art[id][look]) || null;
+}
+
 export function preloadArt(scene) {
   for (const [id, entry] of Object.entries(art)) {
     for (const file of allFiles(entry)) {
@@ -59,7 +73,8 @@ export function preloadArt(scene) {
 function allFiles(entry) {
   const files = new Set();
   const buffed = [...Object.values(entry.buffed || {}), ...(entry.rooted ? [entry.rooted] : [])];
-  const directional = Object.values(entry.poses || {}).filter(isFacingSet);
+  if (entry.enchanted && entry.enchanted.battle) buffed.push(entry.enchanted.battle);
+  const directional = [...Object.values(entry.poses || {}), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const list of Object.values(entry.walk || {})) if (Array.isArray(list)) for (const f of list) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
@@ -164,6 +179,8 @@ export function standingFrame(id, facing, alert = false, buff = null, weak = fal
   let standing = alert && entry.battle ? entry.battle : entry.standing;
   if (weak && entry.weak) standing = isFacingSet(entry.weak) ? entry.weak : { downRight: entry.weak };
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
+  const look = lookEntry(id);
+  if (look && look.battle) standing = look.battle; // enchanted: the flaming weapon
   if (rooted && entry.rooted) standing = entry.rooted;
   return pickFacing(id, standing, facing);
 }
@@ -199,7 +216,8 @@ export function standingKeys(id) {
 export function poseFrame(id, pose, side, facing = null) {
   const entry = art[id];
   if (!entry) return null;
-  const value = (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
+  const look = lookEntry(id);
+  const value = (look && look.poses && look.poses[pose]) || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
   if (!value) return null;
   if (isFacingSet(value)) return pickFacing(id, value, facing || (side === 'left' ? 'downLeft' : 'downRight'));
   return makeFrame(id, value, side === 'left');

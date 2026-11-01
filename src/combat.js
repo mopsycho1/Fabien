@@ -1,4 +1,4 @@
-import { statMod, isStunned, isDisoriented, isDrenched, attackElement } from './status.js';
+import { statMod, isStunned, isDisoriented, isDrenched, attackElement, enchantBonus, isEnchanted } from './status.js';
 import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
@@ -98,7 +98,8 @@ export function getDamage(attacker, defender) {
     return soaked(attacker, defender, Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank + dazed);
   }
   const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
-  return soaked(attacker, defender, Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank);
+  // a weapon under Rabdul's Enchant burns: extra damage on top (less on a Drenched target)
+  return soaked(attacker, defender, Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank) + enchantBonus(attacker, defender);
 }
 
 // A Drenched target (roadmap 11.4) takes more from lightning and less from
@@ -113,6 +114,7 @@ function soaked(attacker, defender, damage) {
 // How a Drenched target changes this attacker's damage: 'more', 'less' or null (previews).
 export function drenchedEffect(attacker, defender) {
   if (!isDrenched(defender)) return null;
+  if (isEnchanted(attacker) && attacker.attackType !== 'magic') return 'less'; // the water dulls an enchanted weapon's flames
   const element = attackElement(attacker);
   return element === 'lightning' ? 'more' : element === 'fire' ? 'less' : null;
 }

@@ -31,8 +31,15 @@ const FILES = [
   'fury_cast_0', 'fury_cast_1', 'fury_cast_2', 'fury_cast_3', 'fury_cast_4', 'fury_cast_5', 'fury_cast_6', 'fury_ground',
   'earth_cast_0', 'earth_cast_1', 'earth_cast_2', 'earth_cast_3',
   'earth_crystal_0', 'earth_crystal_1', 'earth_crystal_2', 'earth_crystal_3',
+  // Phase 4 (1 Nov, dev/tools/make_phase4.py): Rabdul's Enchant from his
+  // ENCHANT RABDUL sheet (the ring of fire, Shango's sigil, the sigil flying)
+  // and the rock spikes of Tayo's Earth Drive
+  'enchant_ring_0', 'enchant_ring_1', 'enchant_ring_2', 'enchant_ring_3',
+  'enchant_sigil_0', 'enchant_sigil_1', 'enchant_sigil_2', 'enchant_sigil_3',
+  'enchant_comet_0', 'enchant_comet_1', 'enchant_comet_2', 'enchant_comet_3',
+  'spike_0', 'spike_1', 'spike_2', 'spike_3', 'spike_4',
 ];
-const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal)/.test(key);
+const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_)/.test(key);
 
 // Status icons (public/art/icons), shown over a unit instead of a word.
 // A status with an "icon" in spells.json uses the picture of that name.
@@ -487,4 +494,105 @@ export function elementRise(scene, unit, spellId, ms) {
     scene.tweens.add({ targets: img, alpha: 0, scale: 0.85, duration: 300, onComplete: () => img.destroy() });
   });
   return true;
+}
+
+// ---------- Phase 4: the enemy skills (1 Nov) ----------
+
+const ENCHANT_RING = range('enchant_ring', 4);
+const ENCHANT_SIGIL = range('enchant_sigil', 4);
+const ENCHANT_COMET = range('enchant_comet', 4);
+
+// Rabdul's Enchant (roadmap 4.1), part one: as he chants, his ring of fire
+// rises round his feet.
+export function enchantChant(scene, x, y, depth) {
+  if (!has(scene, ENCHANT_RING)) return;
+  flipbook(scene, ENCHANT_RING, x, y + 14, { frameMs: 150, scale: 0.75, depth: depth + 0.5, hold: 200, fade: 260 });
+}
+
+// Part two: Shango's symbol forms over his hand, then flies to the weapon it
+// will burn on (to "to"), a comet of fire. onArrive runs when it lands. If
+// the target is Rabdul himself, the symbol just turns and settles on him.
+export function enchantSigil(scene, from, to, onArrive) {
+  if (!has(scene, [...ENCHANT_SIGIL, ...ENCHANT_COMET])) {
+    scene.time.delayedCall(300, onArrive);
+    return;
+  }
+  const sigil = scene.add.image(from.x, from.y, 'fx:' + ENCHANT_SIGIL[0]).setDepth(82).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2).setAlpha(0);
+  ENCHANT_SIGIL.forEach((k, i) => scene.time.delayedCall(i * 90, () => sigil.active && sigil.setTexture('fx:' + k)));
+  scene.tweens.add({ targets: sigil, scale: 0.55, alpha: 1, duration: 300, ease: 'Back.easeOut' });
+  const dist = Math.hypot(to.x - from.x, to.y - from.y);
+  scene.time.delayedCall(380, () => {
+    if (dist < 20) {
+      // on himself: it turns once and sinks onto him
+      scene.tweens.add({ targets: sigil, y: to.y, angle: 360, scale: 0.3, alpha: 0, duration: 380, onComplete: () => { sigil.destroy(); onArrive(); } });
+      return;
+    }
+    sigil.destroy();
+    // the comet: the symbol at its head, the fire trailing behind (drawn flying right)
+    const comet = scene.add.image(from.x, from.y, 'fx:' + ENCHANT_COMET[0]).setDepth(82).setBlendMode(Phaser.BlendModes.ADD).setScale(0.5);
+    comet.setRotation(Math.atan2(to.y - from.y, to.x - from.x));
+    let f = 0;
+    const flicker = scene.time.addEvent({ delay: 70, loop: true, callback: () => comet.active && comet.setTexture('fx:' + ENCHANT_COMET[++f % 4]) });
+    scene.tweens.add({
+      targets: comet, x: to.x, y: to.y, duration: Math.min(520, 160 + dist * 1.1), ease: 'Sine.easeIn',
+      onComplete: () => { flicker.remove(); comet.destroy(); onArrive(); },
+    });
+  });
+}
+
+// Part three: the symbol lands on the weapon: it flares and burns into it.
+export function enchantLand(scene, x, y) {
+  if (!has(scene, ENCHANT_SIGIL)) return;
+  const img = scene.add.image(x, y, 'fx:' + ENCHANT_SIGIL[2]).setDepth(82).setBlendMode(Phaser.BlendModes.ADD).setScale(0.35);
+  scene.tweens.add({ targets: img, scale: 0.75, alpha: 0, duration: 520, ease: 'Quad.easeOut', onComplete: () => img.destroy() });
+}
+
+// While a weapon is enchanted: Shango's symbol glows faintly on the ground at
+// the unit's feet, turning slowly, and a few embers drift up off it.
+export function enchantAura(scene, unit) {
+  if (!has(scene, ['enchant_sigil_1'])) return null;
+  const flat = scene.add.container(0, 4).setScale(1, 0.4);
+  const mark = scene.add.image(0, 0, 'fx:enchant_sigil_1').setBlendMode(Phaser.BlendModes.ADD).setScale(0.42).setAlpha(0.55);
+  flat.add(mark);
+  unit.view.addAt(flat, 0); // under the figure
+  const tweens = [
+    scene.tweens.add({ targets: mark, angle: 360, duration: 9000, repeat: -1 }),
+    scene.tweens.add({ targets: mark, alpha: 0.3, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
+  ];
+  const embers = [0, 1].map((i) => {
+    const e = scene.add.circle((i ? 10 : -12), -unit.centerY + 6, 3, 0xff8a3c, 0.8).setBlendMode(Phaser.BlendModes.ADD);
+    unit.view.add(e);
+    tweens.push(scene.tweens.add({ targets: e, y: -unit.topY, alpha: { from: 0.8, to: 0 }, duration: 1400, delay: i * 700, repeat: -1 }));
+    return e;
+  });
+  return { objects: [flat, ...embers], tweens };
+}
+
+// Tayo's Earth Drive (roadmap 4.2): a spike of rock bursts up out of the
+// ground at (x, y), his rock from the "tayo's attack emerging" sheet. Returns
+// the picture: it stays as a wall until the battle breaks it (crumbleSpike).
+export function raiseSpike(scene, x, y, depth, width) {
+  if (!has(scene, ['spike_2'])) return null;
+  // a shade darker than his drawing, so the rock stands out on the sandstone floor
+  const img = scene.add.image(x, y + 6, 'fx:spike_2').setOrigin(0.5, 0.92).setDepth(depth).setTint(0xb89a80);
+  const s = width / img.width;
+  img.setScale(s, s * 0.08);
+  scene.tweens.add({ targets: img, scaleY: s, duration: 240, ease: 'Back.easeOut' });
+  // shards thrown up as it breaks the ground
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+    const r = scene.add.circle(x, y - 6, 2 + Math.random() * 3, 0x8a5a33, 1).setDepth(depth + 0.1);
+    scene.tweens.add({ targets: r, x: x + Math.cos(a) * (30 + Math.random() * 30), y: y - 6 + Math.sin(a) * (40 + Math.random() * 30), alpha: 0, duration: 420, ease: 'Quad.easeOut', onComplete: () => r.destroy() });
+  }
+  return img;
+}
+
+// The spike breaks apart and sinks back into the ground.
+export function crumbleSpike(scene, img) {
+  if (!img || !img.active) return;
+  for (let i = 0; i < 6; i++) {
+    const r = scene.add.circle(img.x + (Math.random() - 0.5) * 40, img.y - 20 - Math.random() * 40, 2 + Math.random() * 3, 0x8a5a33, 1).setDepth(img.depth + 0.1);
+    scene.tweens.add({ targets: r, y: img.y + 4, alpha: 0, duration: 380 + Math.random() * 200, ease: 'Quad.easeIn', onComplete: () => r.destroy() });
+  }
+  scene.tweens.add({ targets: img, scaleY: 0, alpha: 0.4, duration: 380, ease: 'Quad.easeIn', onComplete: () => img.destroy() });
 }

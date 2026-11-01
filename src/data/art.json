@@ -837,6 +837,57 @@
         "x": 0.5417,
         "y": 0.0267
       }
+    },
+    "enchanted": {
+      "note": "Under Rabdul's Enchant (roadmap 4.1): his 29 Oct sheets 'bull attacking with flame weaponry' 1 (stance) and 3 (the lunge, facing right; mirrored for left).",
+      "battle": {
+        "downLeft": {
+          "file": "bull_ench_battle_downLeft.png",
+          "originX": 0.549
+        },
+        "upLeft": {
+          "file": "bull_ench_battle_upLeft.png",
+          "originX": 0.552
+        }
+      },
+      "poses": {
+        "ready": {
+          "downLeft": {
+            "file": "bull_ench_battle_downLeft.png",
+            "originX": 0.549
+          },
+          "upLeft": {
+            "file": "bull_ench_battle_upLeft.png",
+            "originX": 0.552
+          }
+        },
+        "windup": {
+          "downLeft": {
+            "file": "bull_ench_battle_downLeft.png",
+            "originX": 0.549
+          },
+          "upLeft": {
+            "file": "bull_ench_battle_upLeft.png",
+            "originX": 0.552
+          }
+        },
+        "guard": {
+          "downLeft": {
+            "file": "bull_ench_battle_downLeft.png",
+            "originX": 0.549
+          },
+          "upLeft": {
+            "file": "bull_ench_battle_upLeft.png",
+            "originX": 0.552
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "bull_ench_attack_downRight.png",
+            "originX": 0.46
+          }
+        }
+      }
     }
   },
   "e3": {
@@ -958,6 +1009,83 @@
     "weak": {
       "file": "archer_weak.png",
       "originX": 0.449
+    },
+    "enchanted": {
+      "note": "Under Rabdul's Enchant (roadmap 4.1): his 29 Oct sheet 'Archer imbued with rabdul's enchantment', her flaming bow drawn in four facings.",
+      "battle": {
+        "downRight": {
+          "file": "archer_ench_downRight.png",
+          "originX": 0.5
+        },
+        "upRight": {
+          "file": "archer_ench_upRight.png",
+          "originX": 0.4
+        },
+        "upLeft": {
+          "file": "archer_ench_upLeft.png",
+          "originX": 0.52
+        },
+        "downLeft": {
+          "file": "archer_ench_downLeft.png",
+          "originX": 0.556
+        }
+      },
+      "poses": {
+        "ready": {
+          "downRight": {
+            "file": "archer_ench_downRight.png",
+            "originX": 0.5
+          },
+          "upRight": {
+            "file": "archer_ench_upRight.png",
+            "originX": 0.4
+          },
+          "upLeft": {
+            "file": "archer_ench_upLeft.png",
+            "originX": 0.52
+          },
+          "downLeft": {
+            "file": "archer_ench_downLeft.png",
+            "originX": 0.556
+          }
+        },
+        "windup": {
+          "downRight": {
+            "file": "archer_ench_downRight.png",
+            "originX": 0.5
+          },
+          "upRight": {
+            "file": "archer_ench_upRight.png",
+            "originX": 0.4
+          },
+          "upLeft": {
+            "file": "archer_ench_upLeft.png",
+            "originX": 0.52
+          },
+          "downLeft": {
+            "file": "archer_ench_downLeft.png",
+            "originX": 0.556
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "archer_ench_downRight.png",
+            "originX": 0.5
+          },
+          "upRight": {
+            "file": "archer_ench_upRight.png",
+            "originX": 0.4
+          },
+          "upLeft": {
+            "file": "archer_ench_upLeft.png",
+            "originX": 0.52
+          },
+          "downLeft": {
+            "file": "archer_ench_downLeft.png",
+            "originX": 0.556
+          }
+        }
+      }
     }
   },
   "e1": {
@@ -1020,7 +1148,31 @@
       }
     },
     "portrait": "tayo_face.png",
-    "shout": "tayo_face_angry.png"
+    "shout": "tayo_face_angry.png",
+    "moves": {
+      "earthDrive": {
+        "note": "Earth Drive (roadmap 4.2): fist raised, swinging down, punching the ground, the follow-through. His 29 Oct sheet 'earth drive without effects'.",
+        "frameMs": 110,
+        "frames": [
+          {
+            "file": "tayo_drive_0.png",
+            "originX": 0.467
+          },
+          {
+            "file": "tayo_drive_1.png",
+            "originX": 0.497
+          },
+          {
+            "file": "tayo_drive_2.png",
+            "originX": 0.58
+          },
+          {
+            "file": "tayo_drive_3.png",
+            "originX": 0.565
+          }
+        ]
+      }
+    }
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
@@ -1140,6 +1292,21 @@
     "portrait": "rabdul_face.png",
     "shout": "rabdul_face.png",
     "note_facing": "Down-left and down-right were swapped in his standing and battle pictures: on his sheet the figure labeled SOUTH-WEST is drawn turned to the right. Fixed 29 Oct.",
-    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. chant, cast and fireAttack (preparing and completing his enchantment, the flaming spear) are for Enchant (roadmap 4.1)."
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. chant, cast and fireAttack (preparing and completing his enchantment, the flaming spear) are for Enchant (roadmap 4.1).",
+    "enchanted": {
+      "note": "Under his own Enchant (roadmap 4.1): he strikes with his flaming spear (his 31 Oct isometric fireAttack).",
+      "poses": {
+        "attack": {
+          "upLeft": {
+            "file": "rabdul_iso_fire_upLeft.png",
+            "originX": 0.83
+          },
+          "downLeft": {
+            "file": "rabdul_iso_fire_downLeft.png",
+            "originX": 0.315
+          }
+        }
+      }
+    }
   }
 }

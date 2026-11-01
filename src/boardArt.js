@@ -671,7 +671,8 @@ function drawTop(scene, col, row, map, t) {
 function shimmer(scene, x, y, depth, rand) {
   const glint = scene.add.image(x, y, tileKey('water', Math.floor(rand() * 4))).setDepth(depth + 0.05);
   glint.setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.05).setTint(0x8fe0ff);
-  scene.tweens.add({ targets: glint, alpha: 0.3, duration: 1400 + rand() * 1200, delay: rand() * 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  // (slow and faint: brighter, faster glints read as lights jumping about, Baiyee 1 Nov)
+  scene.tweens.add({ targets: glint, alpha: 0.15, duration: 2800 + rand() * 1800, delay: rand() * 2500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
 }
 
 // A wooden bridge over the water (map letter B): the water below it, the
@@ -1128,17 +1129,17 @@ function drawTorch(scene, item) {
   g.fillEllipse(x, y - 4, 4, 8);
   if (scene.textures.exists('fx-glow')) {
     const glow = scene.add.image(x, y - 6, 'fx-glow').setDepth(depth).setBlendMode('ADD').setScale(0.6).setAlpha(0.8);
-    scene.tweens.add({ targets: glow, alpha: 0.55, scale: 0.52, duration: 110 + Math.random() * 90, yoyo: true, repeat: -1 });
+    scene.tweens.add({ targets: glow, alpha: 0.66, scale: 0.58, duration: 700 + Math.random() * 400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
   if (scene.textures.exists('fx-dot')) {
     scene.add.particles(x, y - 10, 'fx-dot', {
-      speedY: { min: -40, max: -18 },
-      speedX: { min: -8, max: 8 },
-      scale: { start: 0.3, end: 0 },
-      alpha: { start: 0.9, end: 0 },
+      speedY: { min: -26, max: -14 },
+      speedX: { min: -4, max: 4 },
+      scale: { start: 0.22, end: 0 },
+      alpha: { start: 0.7, end: 0 },
       tint: [0xffb04a, 0xff7a2e],
-      lifespan: 900,
-      frequency: 160,
+      lifespan: 800,
+      frequency: 650,
       blendMode: 'ADD',
     }).setDepth(depth);
   }
@@ -1240,20 +1241,22 @@ function flame(scene, x, y, depth, size) {
   const g = scene.add.graphics().setDepth(depth);
   g.fillStyle(0xffb347, 0.9).fillEllipse(x, y - 4 * size, 9 * size, 16 * size);
   g.fillStyle(0xfff1c0, 1).fillEllipse(x, y - 2 * size, 4 * size, 8 * size);
-  scene.tweens.add({ targets: g, scaleY: 1.08, alpha: 0.85, duration: 120 + Math.random() * 80, yoyo: true, repeat: -1 });
+  // (Baiyee 1 Nov: the fast flicker and sparks looked like lights bouncing
+  // about, so the flames breathe slowly and only the odd spark drifts up)
+  scene.tweens.add({ targets: g, scaleY: 1.04, alpha: 0.9, duration: 420 + Math.random() * 260, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   if (scene.textures.exists('fx-glow')) {
-    const glow = scene.add.image(x, y - 4 * size, 'fx-glow').setDepth(depth).setBlendMode('ADD').setScale(0.75 * size).setAlpha(0.75);
-    scene.tweens.add({ targets: glow, alpha: 0.5, scale: 0.66 * size, duration: 110 + Math.random() * 90, yoyo: true, repeat: -1 });
+    const glow = scene.add.image(x, y - 4 * size, 'fx-glow').setDepth(depth).setBlendMode('ADD').setScale(0.72 * size).setAlpha(0.7);
+    scene.tweens.add({ targets: glow, alpha: 0.58, scale: 0.69 * size, duration: 900 + Math.random() * 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
   if (scene.textures.exists('fx-dot')) {
     scene.add.particles(x, y - 8 * size, 'fx-dot', {
-      speedY: { min: -40, max: -18 },
-      speedX: { min: -8, max: 8 },
-      scale: { start: 0.3 * size, end: 0 },
-      alpha: { start: 0.9, end: 0 },
+      speedY: { min: -24, max: -12 },
+      speedX: { min: -4, max: 4 },
+      scale: { start: 0.2 * size, end: 0 },
+      alpha: { start: 0.65, end: 0 },
       tint: [0xffb04a, 0xff7a2e],
-      lifespan: 900,
-      frequency: 200,
+      lifespan: 800,
+      frequency: 900,
       blendMode: 'ADD',
     }).setDepth(depth);
   }
@@ -1305,13 +1308,13 @@ function drawWaterfall(scene, w) {
   // white water and mist where it lands
   if (scene.textures.exists('fx-dot')) {
     scene.add.particles(sx, sy + length - 4, 'fx-dot', {
-      speed: { min: 8, max: 30 },
-      angle: { min: 190, max: 350 },
-      scale: { start: 0.5, end: 0 },
-      alpha: { start: 0.6, end: 0 },
+      speed: { min: 3, max: 10 },
+      angle: { min: 200, max: 340 },
+      scale: { start: 0.4, end: 0.1 },
+      alpha: { start: 0.3, end: 0 },
       tint: [0xdff6ff, 0x9fd8ec],
-      lifespan: 650,
-      frequency: 90,
+      lifespan: 900,
+      frequency: 170,
     }).setDepth(depthFor(c2, r2) + 0.3);
   }
 }

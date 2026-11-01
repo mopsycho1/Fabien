@@ -175,10 +175,13 @@ function caveAtmosphere(scene, parts, sealed = false) {
   // the dark edges stay fixed to the screen, whatever its shape (BattleScene sizes it)
   scene.vignette = scene.add.image(0, 0, 'fx-vignette').setOrigin(0, 0).setScrollFactor(0).setDisplaySize(GAME_WIDTH, 1280).setDepth(72);
 
-  // dust floating slowly in the light
+  // dust floating slowly in the light. Not in the Hidden Cavern (sealed): with
+  // no daylight it only showed as glowing dots drifting over the board, which
+  // looked like lights bouncing about (Baiyee, 1 Nov).
+  if (sealed) return parts;
   const dust = scene.add.particles(0, 0, 'fx-dot', {
-    x: sealed ? { min: -100, max: 820 } : { min: 200, max: 470 },
-    y: sealed ? { min: 250, max: 1000 } : { min: 200, max: 760 },
+    x: { min: 200, max: 470 },
+    y: { min: 200, max: 760 },
     speedX: { min: -6, max: 6 },
     speedY: { min: 2, max: 12 },
     lifespan: 7000,

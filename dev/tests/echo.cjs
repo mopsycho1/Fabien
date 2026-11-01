@@ -20,7 +20,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('names: Sudeen, Gaha, Layra vs Rabdul, Bull Commander (Tayo is on the bench)', [sudeen, gaha, layra, tayo, bull].map((u) => u.name).join() === 'Sudeen,Gaha,Layra,Rabdul,Bull Commander', b.units.map((u) => u.name).join());
   const keys = game.textures.getTextureKeys();
   check('Layra\'s 19 pictures loaded', keys.filter((k) => k.startsWith('h3:layra_')).length === 19, keys.filter((k) => k.startsWith('h3:layra_')).length);
-  check('the bull\'s pictures loaded', keys.filter((k) => k.startsWith('e2:bull_')).length === 15, keys.filter((k) => k.startsWith('e2:bull_')).length);
+  check('the bull\'s pictures loaded', keys.filter((k) => k.startsWith('e2:bull_')).length === 18 /* 15, plus his 3 enchanted ones (Phase 4) */, keys.filter((k) => k.startsWith('e2:bull_')).length);
   park(); St.applyBuff(sudeen, 'stone'); b.showStanding(sudeen);
   check('Sudeen under Stone shows his stone look', /sudeen_stone_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
   sudeen.status.buff = null; b.showStanding(sudeen);

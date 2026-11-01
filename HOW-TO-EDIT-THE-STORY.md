@@ -455,3 +455,12 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Sonic Javelin in his new frames** (`h2` poses `sonicWindup`, `sonicClose`; `fx/sonic_spear.png`, `fx/sonic_impact.png`): the wind-up, the spear in flight, the moment of impact, and the close-range strike. His release picture is being redone, so Gaha holds the wind-up as the spear leaves. When the new one comes, it goes in as the frame after the wind-up.
 - **Layra injured**: his 1 Nov set.
 - All cut by `dev/tools/make_cleanup.py`.
+
+## Phase 4: the enemy skills (1 Nov)
+
+- **Rabdul's Enchant** (`spells.json`, `enchant`): he sets Shango's symbol on a weapon, his own or an ally's up to 3 tiles away. For 3 of that unit's turns its hits do +2 damage (`"damage"`), or +1 against a Drenched target. Rabdul has 9 MP (`jobs.json`, `twinSpear`) and it costs 3, so he can cast it three times a battle.
+- **Enchanted looks** (`art.json`, `"enchanted"` under a character): while enchanted, a character's `"battle"` pictures and any `"poses"` listed there replace its usual ones. The bull has his flaming mace and shield, the archer her flaming bow, and Rabdul strikes with his flaming spear. Any character can get a look by adding an `"enchanted"` entry.
+- **Tayo's Earth Drive** (`spells.json`, `earthDrive`): a spike of rock bursts up under the foe in front of him. It does half damage (`"damageShare"`) and throws the foe back 1 tile (`"push"`). The spike stays as a wall for 2 of his turns (`"turns"`): nobody walks through it and it stops arrows.
+- **Four enemies on the Hidden Cavern**: Tayo is benched in `units.json`, but the cavern brings him in (`"alsoFighting"` in `maps/cavern.json`). To go back to three against three, take `"e1"` out of that list.
+- **Calmer lights**: the cavern's flames breathe slowly, sparks are rare, the glowing dust is gone, and the water glints and waterfall spray are softer (`boardArt.js`, `atmosphere.js`).
+- Cut by `dev/tools/make_phase4.py` from his 29 Oct sheets in `CHARACTER UPDATES`, and wired into `art.json` by `dev/tools/wire_phase4.py`.

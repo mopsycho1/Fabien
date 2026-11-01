@@ -19,11 +19,11 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -63,7 +63,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -85,6 +85,7 @@ function useText(spell) {
 // One color for each side
 const SIDE_COLORS = { hero: 0x3fa7a0, enemy: 0xb5523b };
 const GOLD = 0xffe08a;
+const SPIKE_LEVELS = 3;  // an Earth Drive spike counts as a block this many levels tall, for arrows (roadmap 4.2)
 // The modes in which the player is picking a target on the board: the
 // command menu gets out of the way then (roadmap 8.9).
 const TARGET_MODES = ['attack', 'engage', 'spellTarget', 'huskTile', 'approach'];
@@ -136,7 +137,14 @@ export default class BattleScene extends Phaser.Scene {
     mapData = MAPS[this.mapName];
     setBoardShape(mapData.board);    // how many tiles, and how big (each map has its own)
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
-    setHeightLookup(getHeight);       // and the attack rules, for shooting from high ground
+    // and the attack rules, for shooting from high ground. A spike of Tayo's
+    // Earth Drive counts as a tall block there, so it stops arrows (roadmap 4.2).
+    setHeightLookup((c, r) => getHeight(c, r) + (this.spikeAt(c, r) ? SPIKE_LEVELS : 0));
+    // a unit under Rabdul's Enchant shows its flaming weapon (art.json "enchanted", roadmap 4.1)
+    setLookLookup((id) => {
+      const u = this.units && this.units.find((x) => x.id === id);
+      return u && u.alive && isEnchanted(u) ? 'enchanted' : null;
+    });
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
     this.inHitStop = false;
@@ -176,7 +184,8 @@ export default class BattleScene extends Phaser.Scene {
     this.approach = null;           // tap-to-attack: { target, tile, options, optionKeys } while previewing
     this.stanceMenu = 'main';       // in a clash: 'main' (Press, Guard, Slip, More) or 'more'
     this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
-    this.decoys = [];               // Husk decoys (see addDecoy)
+    this.decoys = [];
+    this.spikes = [];               // Tayo's Earth Drive spikes standing as walls (see castEarthDrive)               // Husk decoys (see addDecoy)
     // clash stances: 'auto' (the default, from engagement.json) or 'manual', remembered on this device
     let savedChoice = null;
     try {
@@ -200,7 +209,9 @@ export default class BattleScene extends Phaser.Scene {
       const at = mapData.starts && mapData.starts[entry.id];
       return at ? { ...entry, col: at[0], row: at[1] } : entry;
     };
-    this.units = unitData.filter((entry) => !entry.bench).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
+    // (a map can bring benched units in: "alsoFighting" in its file)
+    const fielded = (entry) => !entry.bench || (mapData.alsoFighting || []).includes(entry.id);
+    this.units = unitData.filter(fielded).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
 
     createHudTextures(this);
     this.buildHud();
@@ -1022,6 +1033,11 @@ export default class BattleScene extends Phaser.Scene {
       const p = tileToScreen(d.col, d.row);
       d.view.setPosition(p.x, p.y).setDepth(depthFor(d.col, d.row) + 1);
     }
+    for (const sp of this.spikes) {
+      if (!sp.view || !sp.view.active) continue;
+      const p = tileToScreen(sp.col, sp.row);
+      sp.view.setPosition(p.x, p.y + 6).setDepth(depthFor(sp.col, sp.row) + 1);
+    }
     for (const u of this.units) if (u.alive) this.faceNearestOpponent(u);
     this.refreshEngagementMarks();
     // the colored tiles of the current choice are drawn again from the new side
@@ -1331,6 +1347,8 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
     }
     this.refreshWater(); // anyone standing in the water is Drenched (roadmap 11.4)
+    // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
+    this.tickSpikes(this.activeUnit);
     this.manualView = false;
     this.followUnit(this.activeUnit); // the camera turns to whoever acts (roadmap 11.5)
     const wasRooted = isRooted(this.activeUnit);
@@ -2358,7 +2376,12 @@ export default class BattleScene extends Phaser.Scene {
 
   // True if a living unit is standing on the tile.
   isBlocked(col, row) {
-    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row);
+    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row) || !!this.spikeAt(col, row);
+  }
+
+  // The Earth Drive spike standing on a tile, or undefined (roadmap 4.2).
+  spikeAt(col, row) {
+    return this.spikes && this.spikes.find((sp) => sp.col === col && sp.row === row);
   }
 
   // True if a Husk decoy's swarm is on the tile.
@@ -2884,6 +2907,8 @@ export default class BattleScene extends Phaser.Scene {
   // numbers. The fall is drawn by playDefeat, when the blow lands.)
   defeat(unit) {
     unit.alive = false;
+    // his spikes fall with him (roadmap 4.2)
+    for (const sp of this.spikes.filter((x) => x.owner === unit)) this.time.delayedCall(700, () => this.removeSpike(sp));
     if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
     unit.aiming = null;
     unit.meditating = null;
@@ -3442,7 +3467,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // It plans with what it can see: a hidden caster's decoy instead of her.
     // Her real tile still blocks the way, even if they do not know why.
-    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r);
+    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r);
     const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
@@ -3454,6 +3479,40 @@ export default class BattleScene extends Phaser.Scene {
 
   // Attacks the weakest hero in range, if any, then ends the turn.
   enemyAttack(unit) {
+    const finish = () => {
+      this.busy = false;
+      this.time.delayedCall(300, () => this.endTurn());
+    };
+    // Rabdul sets Shango's symbol on the weapon that will do most with it:
+    // the hardest-hitting ally (or himself) who is in the fight (roadmap 4.1)
+    if (unit.spells.includes('enchant') && canAfford(unit, 'enchant')) {
+      const ally = this.enchantPick(unit);
+      // his own weapon can wait when a foe is already in reach: he strikes now
+      const strikeNow = ally === unit && getTargetsInRange(unit, this.enemyEyes()).length > 0;
+      if (ally && !strikeNow) {
+        this.busy = true;
+        spendMp(unit, 'enchant');
+        startCooldown(unit, 'enchant');
+        unit.hasActed = true;
+        this.castEnchant(unit, ally, spells.enchant, finish);
+        return;
+      }
+    }
+    // Tayo drives a spike up under a foe right next to him: a caster first,
+    // then the weakest (roadmap 4.2)
+    if (unit.spells.includes('earthDrive') && canAfford(unit, 'earthDrive')) {
+      const near = this.enemyEyes()
+        .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && distance(unit, t) === 1)
+        .sort((a, b) => isCaster(b) - isCaster(a) || a.hp - b.hp);
+      if (near.length > 0) {
+        this.busy = true;
+        startCooldown(unit, 'earthDrive');
+        unit.hasActed = true;
+        this.castEarthDrive(unit, near[0], spells.earthDrive, finish);
+        return;
+      }
+    }
+
     // A Defence fighter (like a Guardian) tries to pin a hero fighter in an
     // engagement, to tie it up while its allies strike.
     // It only pins when an ally is close enough to take advantage of it.
@@ -4336,6 +4395,137 @@ export default class BattleScene extends Phaser.Scene {
       if (!best || path.length < best.path.length) best = { col: t.col, row: t.row, path };
     }
     return best;
+  }
+
+  // ---------- Rabdul's Enchant (roadmap 4.1) ----------
+
+  // Who Rabdul enchants: an ally (or himself) within reach of the spell, not
+  // enchanted already, and in the fight (locked in a clash, or a foe close
+  // enough to reach next turn). The hardest hitter first; himself last.
+  enchantPick(unit) {
+    const spell = spells.enchant;
+    const foes = this.units.filter((o) => o.alive && o.side !== unit.side && !o.hidden);
+    const inFight = (a) => !!a.engagedWith || foes.some((f) => distance(a, f) <= moveOf(a) + a.range + 1);
+    const options = this.units.filter((a) => a.alive && a.side === unit.side && !isEnchanted(a) && distance(unit, a) <= spell.range && inFight(a));
+    options.sort((a, b) => b.attack - a.attack || (a === unit) - (b === unit));
+    return options[0] || null;
+  }
+
+  // He chants (his ring of fire rises), raises his hand and Shango's symbol
+  // forms over it, then flies as a comet to the weapon and burns into it. The
+  // weapon is enchanted from then on: its pictures change to the flaming ones
+  // (art.json "enchanted") and the symbol glows at its feet.
+  castEnchant(caster, target, spell, onDone) {
+    const self = caster === target;
+    const dx = self ? (caster.facing.endsWith('Right') ? 1 : -1) : target.view.x - caster.view.x;
+    if (!self) this.faceToward(caster, dx, target.view.y - caster.view.y);
+    this.focusCamera((caster.view.x + target.view.x) / 2, (caster.view.y + target.view.y) / 2 - 50, 1.15, 300);
+    play('spell');
+    this.showPose(caster, 'chant', dx);
+    this.floatText(caster, spell.name, spell.color, { rise: 40 });
+    enchantChant(this, caster.view.x, caster.view.y, caster.view.depth);
+    this.time.delayedCall(640, () => {
+      this.showPose(caster, 'cast', dx);
+      const from = { x: caster.view.x + (dx >= 0 ? 16 : -16), y: caster.view.y - caster.topY + 6 };
+      const to = this.centerOf(target);
+      play('whoosh');
+      enchantSigil(this, from, to, () => {
+        applyEnchant(target, 'enchant', target === this.activeUnit);
+        enchantLand(this, to.x, to.y);
+        flameBurst(this, target.view.x, target.view.y);
+        play('spark');
+        this.floatText(target, 'Enchanted +' + spell.damage, spell.color, { pop: true });
+        this.refreshStatusTags();
+        if (target.alive && !target.engagedWith) this.showStanding(target); // the flaming weapon
+        this.time.delayedCall(520, () => {
+          if (caster.alive) {
+            this.faceNearestOpponent(caster);
+            this.showStanding(caster);
+          }
+          onDone();
+        });
+      });
+    });
+  }
+
+  // ---------- Tayo's Earth Drive (roadmap 4.2) ----------
+
+  // He raises his fist and drives it into the ground: a spike of rock bursts
+  // up under the foe in front of him. Half damage, and it is thrown back a
+  // tile (a wall or a unit behind it: a slam, the usual push rules). The
+  // spike stays on that tile as a wall for 2 of his turns (see startTurn):
+  // nobody can walk through it and it stops arrows (setHeightLookup). If the
+  // foe couldn't be moved, the spike breaks against it and no wall is left.
+  castEarthDrive(user, target, spell, onDone) {
+    const tile = { col: target.col, row: target.row };
+    const dx = target.view.x - user.view.x;
+    this.faceToward(user, dx, target.view.y - user.view.y);
+    const landed = this.landHit(target, this.skillHit(user, target, spell));
+    target.hp = Math.max(0, target.hp - landed.damage);
+    let pushed = null;
+    if (target.hp === 0) this.defeat(target);
+    else {
+      pushed = this.pushLoser(target, user, spell.push || 1);
+      if (target.engagedWith && distance(target, target.engagedWith) > 1) endDuel(target);
+    }
+    // the wall stays only where the tile is now clear
+    const spike = this.isBlocked(tile.col, tile.row) ? null : { col: tile.col, row: tile.row, owner: user, turnsLeft: spell.turns, view: null };
+    if (spike) this.spikes.push(spike);
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+
+    const m = moveFrames(user.id, 'earthDrive', dx >= 0 ? 'right' : 'left');
+    const frameMs = m ? m.frameMs : 110;
+    this.floatText(user, spell.name, spell.color, { rise: 40 });
+    play('whoosh');
+    if (!this.playMove(user, 'earthDrive', dx)) this.showPose(user, 'attack', dx);
+    // the fist meets the ground on his third picture
+    this.time.delayedCall(frameMs * 2, () => {
+      play('crash');
+      screenShake(this, 0.008, 200);
+      const p = tileToScreen(tile.col, tile.row);
+      const rock = raiseSpike(this, p.x, p.y, depthFor(tile.col, tile.row) + 1.2, TILE_WIDTH * 1.05); // about as tall as a fighter: a wall to hide behind
+      if (spike) spike.view = rock;
+      else this.time.delayedCall(520, () => crumbleSpike(this, rock)); // it broke against the foe
+      this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
+      if (pushed && (pushed.path.length || pushed.fall)) {
+        this.time.delayedCall(120, () => {
+          if (pushed.path.length) {
+            this.floatText(target, 'Thrown back!', '#d9a066', { rise: 46 });
+            this.slideAlong(target, pushed.path);
+          }
+          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
+        });
+      }
+    });
+    this.time.delayedCall(frameMs * 4 + 380, () => {
+      if (user.alive) {
+        this.faceNearestOpponent(user);
+        this.showStanding(user);
+      }
+    });
+    this.time.delayedCall(frameMs * 2 + 1250, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // The start of a unit's turn: its spikes stand one turn less.
+  tickSpikes(unit) {
+    for (const sp of this.spikes.filter((x) => x.owner === unit)) {
+      sp.turnsLeft -= 1;
+      if (sp.turnsLeft <= 0) this.removeSpike(sp);
+    }
+  }
+
+  // A spike crumbles back into the ground and the tile is free again.
+  removeSpike(sp) {
+    if (!this.spikes.includes(sp)) return;
+    this.spikes = this.spikes.filter((x) => x !== sp);
+    crumbleSpike(this, sp.view);
   }
 
   // Shield Toss: the shield spins across and slams the target, which is
@@ -5421,6 +5611,8 @@ export default class BattleScene extends Phaser.Scene {
       // (Gaha has the fire painted round him in his own Fury pictures, so no ribbons are added)
       this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
       this.keepAura(unit, 'bulwarkAura', verse === 'stone', () => bulwarkAura(this, unit));
+      // Rabdul's Enchant: Shango's symbol glowing at its feet (roadmap 4.1)
+      this.keepAura(unit, 'enchantAura', unit.alive && isEnchanted(unit), () => enchantAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);
       if (burning && !unit.burnAura) unit.burnAura = burnAura(this, unit);
