@@ -81,6 +81,7 @@
     "badge": "M",
     "attackEffect": "spark",
     "attackName": "Lightning",
+    "element": "lightning",
     "attackType": "magic",
     "chain": {
       "range": 2,

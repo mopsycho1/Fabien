@@ -33,7 +33,7 @@ const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_gr
 // Slow is from his first icon; the rest are from his "status effects" sheet
 // (30 Oct, roadmap 6.7). The Verses use the middle of his Swift, Fury and
 // Earth's Bulwark cards. Enchanted waits for Rabdul's Enchant (roadmap 4.1).
-const ICONS = ['slow', 'poison', 'stunned', 'offbalance', 'exposed', 'hidden', 'echo', 'meditating',
+const ICONS = ['drenched', 'slow', 'poison', 'stunned', 'offbalance', 'exposed', 'hidden', 'echo', 'meditating',
   'aiming', 'marked', 'burn', 'disoriented', 'enchanted', 'bloodied', 'charge', 'bulwark',
   'swiftness', 'fury', 'stone'];
 

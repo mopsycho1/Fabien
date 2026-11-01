@@ -50,7 +50,7 @@ function makeTextures(scene) {
 export function createAtmosphere(scene, setting) {
   makeTextures(scene);
   const parts = { emitters: [] };
-  if (setting === 'cave') return caveAtmosphere(scene, parts);
+  if (setting === 'cave' || setting === 'cavern') return caveAtmosphere(scene, parts, setting === 'cavern');
 
   // The sun's glow slowly breathes
   // (with the painted sky, the sun sits low on the left)
@@ -128,8 +128,9 @@ export function createAtmosphere(scene, setting) {
 
 // Inside the cave: no sky, no wind. One shaft of daylight falls through a
 // crack in the ceiling onto the board, dust drifts in it, and the edges of the
-// screen sink into darkness.
-function caveAtmosphere(scene, parts) {
+// screen sink into darkness. The Hidden Cavern (sealed) has no daylight:
+// only the dark edges and dust drifting in the firelight.
+function caveAtmosphere(scene, parts, sealed = false) {
   // the shaft of light: a soft slanted beam, brighter at the top
   if (!scene.textures.exists('fx-beam')) {
     const W = 360;
@@ -167,15 +168,17 @@ function caveAtmosphere(scene, parts) {
     v.fillRect(0, 0, 360, 640);
     V.refresh();
   }
-  const beam = scene.add.image(250, 150, 'fx-beam').setOrigin(0.5, 0).setDepth(70).setBlendMode(Phaser.BlendModes.ADD).setAngle(-11).setAlpha(0.9);
-  scene.tweens.add({ targets: beam, alpha: 0.65, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  if (!sealed) {
+    const beam = scene.add.image(250, 150, 'fx-beam').setOrigin(0.5, 0).setDepth(70).setBlendMode(Phaser.BlendModes.ADD).setAngle(-11).setAlpha(0.9);
+    scene.tweens.add({ targets: beam, alpha: 0.65, duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
   // the dark edges stay fixed to the screen, whatever its shape (BattleScene sizes it)
   scene.vignette = scene.add.image(0, 0, 'fx-vignette').setOrigin(0, 0).setScrollFactor(0).setDisplaySize(GAME_WIDTH, 1280).setDepth(72);
 
   // dust floating slowly in the light
   const dust = scene.add.particles(0, 0, 'fx-dot', {
-    x: { min: 200, max: 470 },
-    y: { min: 200, max: 760 },
+    x: sealed ? { min: -100, max: 820 } : { min: 200, max: 470 },
+    y: sealed ? { min: 250, max: 1000 } : { min: 200, max: 760 },
     speedX: { min: -6, max: 6 },
     speedY: { min: 2, max: 12 },
     lifespan: 7000,

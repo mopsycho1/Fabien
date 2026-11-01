@@ -8,7 +8,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game);
   const St = w.__status;
   const U = (l) => b.units.find((u) => u.label === l);
-  const Hm = require('/home/claude/fabien/src/data/map.json').heights;
+  const Hm = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - Hm[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);

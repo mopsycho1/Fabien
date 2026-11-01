@@ -334,7 +334,8 @@
     "push": 1,
     "mp": 0,
     "use": "enemy",
-    "text": "Stone turns her Lightning into this: the bolt knocks the target a tile back (into a wall, it slams). It still jumps to a second enemy."
+    "text": "Stone turns her Lightning into this: the bolt knocks the target a tile back (into a wall, it slams). It still jumps to a second enemy.",
+    "element": "lightning"
   },
   "wildfire": {
     "name": "Wildfire",

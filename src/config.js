@@ -7,24 +7,38 @@
 export const GAME_WIDTH = 720;
 export const GAME_HEIGHT = 1280;
 
-export const GRID_SIZE = 8; // 8 columns by 8 rows
+// How many columns and rows the board has. Set by the battle's map (see
+// setBoardShape below); the old 8 by 8 map is the default.
+export let GRID_SIZE = 8;
 
 // ---- How the board is drawn (isometric) ----
 // Each tile is drawn as a diamond: TILE_WIDTH wide and TILE_HEIGHT tall.
 // A true isometric diamond is exactly twice as wide as it is tall. We make
 // ours a bit taller than that, so tiles are easier to tap on a phone.
-export const TILE_WIDTH = 86;
-export const TILE_HEIGHT = 54;
+export let TILE_WIDTH = 86;
+export let TILE_HEIGHT = 54;
 
 // Each step of height lifts a tile by this many pixels.
-export const LEVEL_HEIGHT = 22;
+export let LEVEL_HEIGHT = 22;
 
 // Every tile is drawn as a block with sides. This is the thickness of a
 // block at height 0. Higher tiles are thicker (a taller block).
-export const BASE_DEPTH = 14;
+export let BASE_DEPTH = 14;
 
 // Where the board sits on the screen.
 // BOARD_CENTER_X is the middle of the screen. BOARD_TOP_Y is where tile
 // (column 0, row 0), the far corner of the board, is drawn.
 export const BOARD_CENTER_X = GAME_WIDTH / 2;
 export const BOARD_TOP_Y = 400;
+
+// Each map can have its own board size (roadmap 11.5): the Hidden Cavern is 9
+// by 9 with bigger tiles, so the characters have more room between them. A
+// map's "board" in its file sets these numbers when the battle starts; the
+// rest of the game reads them from here.
+export function setBoardShape(board = {}) {
+  GRID_SIZE = board.size || 8;
+  TILE_WIDTH = board.tileWidth || 86;
+  TILE_HEIGHT = board.tileHeight || 54;
+  LEVEL_HEIGHT = board.levelHeight || 22;
+  BASE_DEPTH = board.baseDepth || 14;
+}

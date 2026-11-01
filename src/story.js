@@ -18,7 +18,7 @@ export function startStep(scene, index) {
   if (step.type === 'dialogue') {
     scene.scene.start('DialogueScene', { stepIndex: index, sceneId: step.scene });
   } else if (step.type === 'battle') {
-    scene.scene.start('BattleScene', { stepIndex: index });
+    scene.scene.start('BattleScene', { stepIndex: index, map: step.map }); // "map" in story.json picks the battle's map (src/data/maps)
   } else {
     // A step type we do not know: say so, and skip it so the game keeps going
     console.warn('story.json: unknown step type "' + step.type + '" at step ' + index);

@@ -1,0 +1,80 @@
+{
+  "name": "The Hidden Cavern",
+  "note": "Suleiman's Hidden Cavern combat arena (roadmap Phase 11, his THE CAVE sheet): a sealed sandstone cavern lit only by fire. The ritual platform with its sigil stands in the middle at mid height, ringed by water; four wooden bridges cross to the walkways along the walls; high ledges sit in the corners. You can't climb from the water straight onto the platform (two levels up), so the bridges are the way in.",
+  "setting": "cavern",
+  "board": {
+    "size": 9,
+    "tileWidth": 112,
+    "tileHeight": 70,
+    "levelHeight": 28,
+    "baseDepth": 16
+  },
+  "boardNote": "size = columns and rows; tile sizes in the game's pixels. Bigger tiles than the first map give the characters more room (Suleiman 30 Oct).",
+  "camera": "follow",
+  "cameraNote": "follow: on a small screen the camera follows the unit whose turn it is, zoomed in; drag to look around, pinch or mouse wheel to see the whole board, or tap the little map top right.",
+  "figureScale": 0.95,
+  "heights": [
+    [3, 2, 2, 2, 2, 2, 2, 2, 3],
+    [2, 1, 1, 1, 1, 1, 1, 1, 2],
+    [2, 1, 0, 0, 1, 0, 0, 1, 2],
+    [1, 1, 0, 2, 2, 2, 0, 1, 1],
+    [1, 1, 1, 2, 2, 2, 1, 1, 1],
+    [1, 1, 0, 2, 2, 2, 0, 1, 1],
+    [2, 1, 0, 0, 1, 0, 0, 1, 2],
+    [2, 1, 1, 1, 1, 1, 1, 1, 2],
+    [3, 2, 1, 1, 1, 1, 1, 2, 3]
+  ],
+  "heightsNote": "Levels as in his height breakdown: 0 water, 1 low, 2 mid, 3 high. Row 0 is the far side, where the enemies start.",
+  "terrain": [
+    "RRFFFFFRR",
+    "FSFFFFFSF",
+    "FFWWBWWFF",
+    "FFWGGGWFF",
+    "SFBGGGBFS",
+    "FFWGGGWFF",
+    "FFWWBWWFF",
+    "FSFFFFFSF",
+    "RRFFSFFRR"
+  ],
+  "terrainNote": "One letter per tile: F stone floor, S sand, R rubble, G the ritual platform's sigil stone, W shallow water (walkable; it leaves you Drenched), B a wooden bridge over the water.",
+  "sigilCircle": [4, 4],
+  "sigilCircleNote": "His sigil ring is drawn across the 3 by 3 platform around this tile.",
+  "starts": {
+    "h1": [3, 7],
+    "h2": [5, 7],
+    "h3": [4, 8],
+    "e4": [3, 1],
+    "e2": [5, 1],
+    "e3": [4, 0],
+    "e1": [4, 1]
+  },
+  "startsNote": "Where each unit starts (column, row), by its id in units.json.",
+  "waterfalls": [[3, 5, 3, 6], [5, 5, 5, 6], [5, 5, 6, 5], [5, 3, 6, 3], [3, 3, 3, 2], [5, 3, 5, 2], [3, 3, 2, 3], [3, 5, 2, 5]],
+  "waterfallsNote": "Water pouring off the platform: [column, row] of the ledge, then [column, row] of the water below. Only the faces turned towards the camera show.",
+  "lamps": [[3, 3], [5, 3], [3, 5], [5, 5], [0, 0], [8, 0], [0, 8], [8, 8]],
+  "lampsNote": "Ritual lamps (decoration, and the light they give): on the platform's corner tiles and on the four high corners, each at the tile's outer corner.",
+  "surround": {
+    "ledgeHeight": 3,
+    "wallHeight": 9,
+    "props": [
+      {"prop": "stalagmiteTall", "at": [-1, -1]},
+      {"prop": "brazier", "at": [1, -1]},
+      {"prop": "stalagmiteShort", "at": [2, -1]},
+      {"prop": "pillar", "at": [3, -1]},
+      {"prop": "pots", "at": [5, -1]},
+      {"prop": "rockPile", "at": [6, -1]},
+      {"prop": "brazier", "at": [7, -1]},
+      {"prop": "stalagmiteShort", "at": [8, -1]},
+      {"prop": "rockPool", "at": [-1, 0]},
+      {"prop": "brazier", "at": [-1, 1]},
+      {"prop": "rockPile", "at": [-1, 2]},
+      {"prop": "pots", "at": [-1, 3]},
+      {"prop": "pillar", "at": [-1, 4]},
+      {"prop": "bones", "at": [-1, 5]},
+      {"prop": "stalagmiteShort", "at": [-1, 6]},
+      {"prop": "brazier", "at": [-1, 7]},
+      {"prop": "stalagmiteTall", "at": [-1, 8]}
+    ]
+  },
+  "surroundNote": "The cavern round the board, as the camera sees it (so it stays behind the board when the camera turns): a ledge one tile deep at ledgeHeight with his props on it, then rock walls wallHeight levels high. at = [view column, view row]; -1 is the ledge. Props: stalagmiteTall, stalagmiteShort, rockPile, pillar, pots, brazier (lit), bones, rockPool."
+}

@@ -20,7 +20,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     for (const [u, c, r] of placed) put(u, c, r);
     b.busy = false; b.cancelMode(); b.refreshStatusTags();
   };
-  const H = require('/home/claude/fabien/src/data/map.json').heights;
+  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
   const height = (c, r) => H[r][c];
 
   // ---------- 1.12 Herbs thrown ----------

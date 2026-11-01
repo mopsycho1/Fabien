@@ -7,7 +7,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game);
   const E = w.__engagement;
   const U = (l) => b.units.find((u) => u.label === l);
-  const H = require('/home/claude/fabien/src/data/map.json').heights;
+  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
   const T = require('/home/claude/fabien/src/data/terrain.json');
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - H[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   const idle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 9000) await sleep(30); await sleep(80); };

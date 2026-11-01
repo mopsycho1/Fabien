@@ -63,6 +63,7 @@ export function buildUnit(entry, jobs) {
     lineReach: !!(job && job.lineReach), // past 1 tile it only reaches in a straight line
     closeWeapon: job && job.closeWeapon ? { ...job.closeWeapon } : null, // what an archer fights with right next to a foe (a dagger)
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
+    element: job && job.element ? job.element : null, // what its attack is made of (Layra's: lightning), for Drenched (roadmap 11.4)
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy
     closePenalty: job && job.closePenalty ? job.closePenalty : 0, // harder to aim at someone right next to you
     engagedWith: null, // the unit it is locked in an engagement with, if any

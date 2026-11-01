@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, GRID_SIZE, TILE_WIDTH, TILE_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, setBoardShape } from '../config.js';
 import {
   tileToScreen,
   screenToTile,
@@ -15,7 +15,7 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
@@ -29,8 +29,8 @@ import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
-import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting, terrainAt } from '../boardArt.js';
-import { slashArc, hitSpark, dustPuff, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
+import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
+import { slashArc, hitSpark, dustPuff, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
 import {
   isMelee,
   canBeCaught,
@@ -63,10 +63,15 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
-import mapData from '../data/map.json';     // the height of every tile
+import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
+import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
+// The maps a battle can be fought on. A battle in story.json can name one
+// ("map": "cavern"); the game uses the Hidden Cavern otherwise.
+const MAPS = { cavern: cavernMap, yoba: yobaMap };
+let mapData = cavernMap; // the map of the battle being played (set in create)
 import spells from '../data/spells.json';   // the Sage's spells
 
 // Says when a spell can be used, from its "use" tag in spells.json.
@@ -110,6 +115,10 @@ export default class BattleScene extends Phaser.Scene {
   // (null means the battle was started on its own, outside the story.)
   init(data) {
     this.stepIndex = data && data.stepIndex !== undefined ? data.stepIndex : null;
+    // which map: the battle's own (story.json), else the Hidden Cavern; the
+    // test scripts can ask for another one (window.__mapName)
+    const asked = (data && data.map) || (typeof window !== 'undefined' && window.__mapName) || 'cavern';
+    this.mapName = MAPS[asked] ? asked : 'cavern';
   }
 
   // Phaser calls create() once, when the scene starts.
@@ -124,6 +133,8 @@ export default class BattleScene extends Phaser.Scene {
     this.cameras.main.fadeIn(500, 0, 0, 0);
     this.uiCam.fadeIn(500, 0, 0, 0);
 
+    mapData = MAPS[this.mapName];
+    setBoardShape(mapData.board);    // how many tiles, and how big (each map has its own)
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
     setHeightLookup(getHeight);       // and the attack rules, for shooting from high ground
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
@@ -184,7 +195,12 @@ export default class BattleScene extends Phaser.Scene {
     // Build every unit from the list in src/data/units.json.
     // buildUnit fills in each unit's numbers from its job (see jobs.js).
     // (a unit with "bench": true in units.json sits this battle out)
-    this.units = unitData.filter((entry) => !entry.bench).map((entry) => this.createUnit(buildUnit(entry, jobs)));
+    // (the map says where each unit starts: "starts" in its file)
+    const startAt = (entry) => {
+      const at = mapData.starts && mapData.starts[entry.id];
+      return at ? { ...entry, col: at[0], row: at[1] } : entry;
+    };
+    this.units = unitData.filter((entry) => !entry.bench).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
 
     createHudTextures(this);
     this.buildHud();
@@ -210,10 +226,22 @@ export default class BattleScene extends Phaser.Scene {
         return;
       }
       if (currentlyOver.length > 0) return;
+      // a map whose camera follows: the tap happens when the finger lifts (it may be a drag)
+      if (this.follow) {
+        this.boardDown(pointer);
+        return;
+      }
       // where the finger is on the battlefield, allowing for any camera zoom or pan
       const world = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
       const { col, row } = this.tileAtPoint(world.x, world.y);
       this.handleTap(col, row);
+    });
+    // dragging, pinching and the mouse wheel (roadmap 11.5)
+    this.input.addPointer(1); // two fingers at once, for the pinch
+    this.input.on('pointermove', (pointer) => this.follow && this.boardMove(pointer));
+    this.input.on('pointerup', (pointer) => this.follow && this.boardUp(pointer));
+    this.input.on('wheel', (pointer, over, dx, dy) => {
+      if (this.follow) this.zoomAt(pointer.x, pointer.y, this.cameras.main.zoom * Math.pow(1.0015, -dy));
     });
 
     // On a wide computer screen there are dark margins to the left and right
@@ -271,6 +299,148 @@ export default class BattleScene extends Phaser.Scene {
     const zoom = Math.max(0.7, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
     const freeY = (top + bottom) / 2;
     this.home = { zoom, x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 - (freeY - H / 2) / zoom };
+    // The camera that follows (roadmap 11.5, maps with "camera": "follow"):
+    // when the whole board would leave its tiles too small to read on this
+    // screen, the battle is played zoomed in on the unit whose turn it is.
+    // A tile is then at least MIN_TILE real screen pixels wide.
+    const shown = this.scale.displaySize.width / W || 1; // real screen pixels per game pixel
+    const MIN_TILE = 70;
+    this.follow = mapData.camera === 'follow';
+    const want = MIN_TILE / (TILE_WIDTH * shown);
+    this.playZoom = this.follow ? Math.min(2.2, Math.max(zoom, want)) : zoom;
+    this.zoomRange = [zoom, Math.max(this.playZoom * 1.5, zoom * 1.6)];
+    if (!this.follow || !this.rest) this.rest = { ...this.home, zoom: this.playZoom };
+    else this.rest.zoom = Math.min(Math.max(this.rest.zoom, this.zoomRange[0]), this.zoomRange[1]);
+  }
+
+  // Keeps a camera centre (x, y) at this zoom over the board: the view may
+  // not wander off it (it shows a little past the edges, so the corners can
+  // come out from under the cards). Returns the centre to use.
+  clampView(x, y, zoom) {
+    const b = this.boardBounds();
+    const pad = 150;
+    const halfW = this.lay.W / (2 * zoom);
+    const halfH = this.lay.H / (2 * zoom);
+    const fit = (v, lo, hi, half) => (hi - lo <= 2 * half ? (lo + hi) / 2 : Math.min(Math.max(v, lo + half), hi - half));
+    return { x: fit(x, b.x0 - pad, b.x1 + pad, halfW), y: fit(y, b.y0 - pad, b.y1 + pad, halfH) };
+  }
+
+  // The camera turns to the unit whose turn it is (or a unit that has just
+  // moved out of view). A view the player has dragged or pinched stays put
+  // until the next turn begins.
+  followUnit(unit, duration = 380, force = false) {
+    if (!this.follow || !unit || !unit.view || (this.manualView && !force)) return;
+    const zoom = this.rest.zoom;
+    const c = this.clampView(unit.view.x, unit.view.y - unit.centerY * 0.5, zoom);
+    this.rest = { zoom, x: c.x, y: c.y };
+    if (this.inCinematic) return;
+    const cam = this.cameras.main;
+    cam.pan(c.x, c.y, duration, 'Sine.easeInOut', true);
+    if (Math.abs(cam.zoom - zoom) > 0.001) cam.zoomTo(zoom, duration, 'Sine.easeInOut', true);
+  }
+
+  // After a unit moves: if it has walked to the edge of the view, follow it.
+  keepInView(unit) {
+    if (!this.follow || this.manualView || !unit || !unit.view) return;
+    const v = this.cameras.main.worldView;
+    const x = unit.view.x;
+    const y = unit.view.y - unit.centerY;
+    const inside = x > v.x + v.width * 0.18 && x < v.right - v.width * 0.18 && y > v.y + v.height * 0.18 && y < v.bottom - v.height * 0.25;
+    if (!inside) this.followUnit(unit, 300);
+  }
+
+  // ---------- Looking around: drag, pinch, mouse wheel (roadmap 11.5) ----------
+
+  // A finger (or the mouse) goes down on the board. On a map whose camera
+  // follows, nothing happens yet: it might be the start of a drag. Two
+  // fingers start a pinch.
+  boardDown(pointer) {
+    const cam = this.cameras.main;
+    if (this.press && this.press.id !== pointer.id) {
+      // a second finger: pinch to zoom
+      const a = this.press;
+      this.pinch = { a: a.id, b: pointer.id, dist: Math.hypot(pointer.x - a.cx, pointer.y - a.cy) || 1, zoom: cam.zoom };
+      a.moved = true;
+      return;
+    }
+    this.press = { id: pointer.id, x: pointer.x, y: pointer.y, cx: pointer.x, cy: pointer.y, sx: cam.scrollX, sy: cam.scrollY, moved: false };
+  }
+
+  // The finger moves: drag the view, or pinch it closer or further.
+  boardMove(pointer) {
+    const p = this.press;
+    if (!p || this.menuDrag || this.inCinematic) return;
+    const cam = this.cameras.main;
+    if (this.pinch) {
+      const other = this.input.manager.pointers.find((q) => q.id === (pointer.id === this.pinch.a ? this.pinch.b : this.pinch.a));
+      if (pointer.id === p.id) { p.cx = pointer.x; p.cy = pointer.y; }
+      const o = other && other.isDown ? other : null;
+      if (!o) return;
+      const ax = pointer.id === p.id ? pointer.x : p.cx;
+      const ay = pointer.id === p.id ? pointer.y : p.cy;
+      const dist = Math.hypot(o.x - ax, o.y - ay) || 1;
+      this.zoomAt((ax + o.x) / 2, (ay + o.y) / 2, (this.pinch.zoom * dist) / this.pinch.dist);
+      return;
+    }
+    if (pointer.id !== p.id || !pointer.isDown) return;
+    const dx = pointer.x - p.x;
+    const dy = pointer.y - p.y;
+    if (!p.moved && Math.hypot(dx, dy) < 12 * this.lay.s) return; // still a tap
+    p.moved = true;
+    this.manualView = true;
+    const zoom = cam.zoom;
+    const c = this.clampView(p.sx + this.lay.W / 2 - dx / zoom, p.sy + this.lay.H / 2 - dy / zoom, zoom);
+    cam.centerOn(c.x, c.y);
+    this.rest = { zoom, x: c.x, y: c.y };
+  }
+
+  // The finger lifts: if it never moved, it was a tap on the board.
+  boardUp(pointer) {
+    const p = this.press;
+    if (!p || p.id !== pointer.id) {
+      if (this.pinch && (pointer.id === this.pinch.a || pointer.id === this.pinch.b)) this.pinch = null;
+      return;
+    }
+    this.press = null;
+    this.pinch = null;
+    if (p.moved || this.inCinematic) return;
+    const world = this.cameras.main.getWorldPoint(p.x, p.y);
+    const { col, row } = this.tileAtPoint(world.x, world.y);
+    this.handleTap(col, row);
+  }
+
+  // Zooms the board camera to "zoom" (kept between the whole board and close
+  // up), keeping the spot under the screen point (sx, sy) where it is.
+  zoomAt(sx, sy, zoom) {
+    if (!this.follow || this.inCinematic) return;
+    const cam = this.cameras.main;
+    const z = Math.min(Math.max(zoom, this.zoomRange[0]), this.zoomRange[1]);
+    const { W, H } = this.lay;
+    const before = { x: cam.scrollX + W / 2 + (sx - W / 2) / cam.zoom, y: cam.scrollY + H / 2 + (sy - H / 2) / cam.zoom };
+    const cx = before.x - (sx - W / 2) / z;
+    const cy = before.y - (sy - H / 2) / z;
+    const c = this.clampView(cx, cy, z);
+    cam.setZoom(z);
+    cam.centerOn(c.x, c.y);
+    this.rest = { zoom: z, x: c.x, y: c.y };
+    this.manualView = true;
+  }
+
+  // The little map top right: the whole board, or back to the unit.
+  toggleWholeBoard() {
+    if (!this.follow || this.inCinematic || this.busy) return;
+    const cam = this.cameras.main;
+    play('select');
+    if (cam.zoom > this.home.zoom * 1.04) {
+      this.rest = { ...this.home };
+      this.manualView = true;
+      cam.pan(this.home.x, this.home.y, 300, 'Sine.easeInOut', true);
+      cam.zoomTo(this.home.zoom, 300, 'Sine.easeInOut', true);
+    } else {
+      this.manualView = false;
+      this.rest.zoom = this.playZoom;
+      this.followUnit(this.activeUnit, 300, true);
+    }
   }
 
   // Where the board is in the world: every tile, plus room for the figures
@@ -295,8 +465,9 @@ export default class BattleScene extends Phaser.Scene {
   // The board camera's normal view (the whole board, fitted to the screen).
   goHome() {
     const cam = this.cameras.main;
-    cam.setZoom(this.home.zoom);
-    cam.centerOn(this.home.x, this.home.y);
+    const view = this.follow && this.rest ? this.rest : this.home; // a map whose camera follows rests on the unit's view
+    cam.setZoom(view.zoom);
+    cam.centerOn(view.x, view.y);
   }
 
   // The backdrop reaches as far left and right as the screen can see.
@@ -418,6 +589,9 @@ export default class BattleScene extends Phaser.Scene {
       this.rotateSpots = [];
     }
     this.compass = keep(this.add.graphics());
+    // tap the little map: the whole board, or back to the unit (roadmap 11.5)
+    const compassHit = keep(this.add.circle(this.compassPos.x, this.compassPos.y, Math.round(26 * s), 0x000000, 0.001).setInteractive({ useHandCursor: true }));
+    compassHit.on('pointerdown', () => this.toggleWholeBoard());
     this.refreshCompass();
     if (!this.keysBound) {
       this.keysBound = true;
@@ -785,9 +959,11 @@ export default class BattleScene extends Phaser.Scene {
   // it drew, so turning the camera can clear it and draw it again.
   buildBoard() {
     const before = new Set(this.children.list);
+    prepareLights(mapData); // where the fires are, as the camera sees them (the Hidden Cavern is lit only by fire)
     drawUnderside(this); // the cave floor around the board, or the rock hanging under it
     this.drawBoard();
     drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
+    drawCavern(this, mapData);  // the Hidden Cavern: its walls, ledge and props, waterfalls, lamps (Phase 11)
     this.boardObjects = this.children.list.filter((o) => !before.has(o));
   }
 
@@ -1154,6 +1330,9 @@ export default class BattleScene extends Phaser.Scene {
       const burnt = this.activeUnit;
       this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
     }
+    this.refreshWater(); // anyone standing in the water is Drenched (roadmap 11.4)
+    this.manualView = false;
+    this.followUnit(this.activeUnit); // the camera turns to whoever acts (roadmap 11.5)
     const wasRooted = isRooted(this.activeUnit);
     clearRooted(this.activeUnit); // Gaha's planted feet: until his next turn
     if (wasRooted && !this.activeUnit.engagedWith) this.showStanding(this.activeUnit); // out of his rooted guard
@@ -1259,6 +1438,11 @@ export default class BattleScene extends Phaser.Scene {
     if (this.battleOver) return;
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
+    // still in the water: still soaked; out of it: a turn drier (roadmap 11.4)
+    if (this.activeUnit.alive) {
+      if (this.inWater(this.activeUnit)) applyDrenched(this.activeUnit, terrain.water.drenchedTurns);
+      else dryOff(this.activeUnit);
+    }
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
@@ -1337,8 +1521,8 @@ export default class BattleScene extends Phaser.Scene {
   refreshTileInfo() {
     if (!this.tileText || !this.activeUnit) return;
     const t = this.pendingTarget || (this.approach && this.approach.tile) || this.activeUnit;
-    const ground = terrainAt(mapData, t.col, t.row);
-    this.tileText.setText(ground.charAt(0).toUpperCase() + ground.slice(1) + '   ·   ELEV ' + getHeight(t.col, t.row));
+    const ground = groundName(terrainAt(mapData, t.col, t.row));
+    this.tileText.setText(ground + '   ·   ELEV ' + getHeight(t.col, t.row));
   }
 
   // Outlines: red-orange on the enemy picked for attack, gold on the unit
@@ -1374,11 +1558,13 @@ export default class BattleScene extends Phaser.Scene {
       if (usesCloseWeapon(unit, target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
       const hAcc = heightAccuracy(unit, target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
+      const wet = drenchedEffect(unit, target);
+      if (wet) notes.push(wet === 'more' ? 'Drenched: lightning hits harder' : 'Drenched: fire does less');
       const atk = activeMove(unit, 'attack');
       const fire = atk !== 'attack' && spells[atk].element === 'fire';
       const next = fire ? null : chainTarget(unit, target, this.units); // fire doesn't jump
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
-      const verse = atk === 'attack' ? '' : spells[atk].push ? ' Knocked back a tile.' : fire ? ' Sets it alight: ' + spells[atk].burn + ' a turn for ' + spells[atk].turns + ' turns.' : '';
+      const verse = atk === 'attack' ? '' : spells[atk].push ? ' Knocked back a tile.' : fire ? (isDrenched(target) ? ' Too wet to catch fire.' : ' Sets it alight: ' + spells[atk].burn + ' a turn for ' + spells[atk].turns + ' turns.') : '';
       text =
         (atk !== 'attack' ? spells[atk].button + ' at ' : '') + target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
         getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump + verse +
@@ -2267,7 +2453,10 @@ export default class BattleScene extends Phaser.Scene {
       tweens: steps,
       onComplete: () => {
         unit.view.setDepth(depthFor(col, row) + 1); // settle into its new place in the drawing order
-        dustPuff(this, unit.view.x, unit.view.y);
+        if (this.inWater(unit)) splash(this, unit.view.x, unit.view.y);
+        else dustPuff(this, unit.view.x, unit.view.y);
+        this.refreshWater();
+        this.keepInView(unit);
         this.faceNearestOpponent(unit); // on arriving, look at the nearest enemy
         // everyone else may now be closer to (or further from) an enemy: relaxed or battle stance
         for (const u of this.units) if (u !== unit && u.alive && !u.engagedWith) this.showStanding(u);
@@ -2522,7 +2711,7 @@ export default class BattleScene extends Phaser.Scene {
     const lethal = result.hit && target.hp === 0;
     let pushed = null;
     if (variant && result.hit && target.alive) {
-      if (fire) applyBurn(target, moveId); // Wildfire: it burns for a few turns
+      if (fire && !isDrenched(target)) applyBurn(target, moveId); // Wildfire: it burns for a few turns (not a Drenched unit: the fire hisses out)
       if (variant.push) {
         pushed = this.pushLoser(target, attacker, variant.push); // Thunderclap: knocked a tile back
         if (target.engagedWith && distance(target, target.engagedWith) > 1) {
@@ -2541,7 +2730,7 @@ export default class BattleScene extends Phaser.Scene {
           this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, target.view.x - attacker.view.x));
         });
       }
-      if (fire && result.hit && target.alive) this.time.delayedCall(520, () => { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
+      if (fire && result.hit && target.alive) this.time.delayedCall(520, () => { this.floatText(target, isDrenched(target) ? 'Too wet to burn' : 'Burning!', isDrenched(target) ? '#bfe8ff' : '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
     };
 
     // Lightning jumps to a second enemy near the first, if the first bolt hit
@@ -2754,6 +2943,7 @@ export default class BattleScene extends Phaser.Scene {
     unit.sprite.setTexture(frame.key);
     unit.sprite.setFlipX(frame.flip);
     unit.sprite.setOrigin(frame.originX, 1);
+    if (unit.wading) this.cropWading(unit); // wading: the new picture's feet stay under the water too
     return true;
   }
 
@@ -3221,7 +3411,7 @@ export default class BattleScene extends Phaser.Scene {
     // After a win, "Continue" moves the story on to the next step
     if (won && this.stepIndex !== null) addButton('Continue', 'press', () => startStep(this, this.stepIndex + 1));
     // Restarting the scene builds a brand new battle from units.json
-    addButton(won ? 'Play again' : 'Try again', 'back', () => this.scene.restart({ stepIndex: this.stepIndex }));
+    addButton(won ? 'Play again' : 'Try again', 'back', () => this.scene.restart({ stepIndex: this.stepIndex, map: this.mapName }));
   }
 
   // ---------- Enemy turns ----------
@@ -3858,8 +4048,68 @@ export default class BattleScene extends Phaser.Scene {
       const { x, y } = tileToScreen(tile.col, tile.row);
       return { x, y, duration: 170, ease: 'Quad.easeOut', onStart: () => unit.view.setDepth(depthFor(tile.col, tile.row) + 1) };
     });
-    this.tweens.chain({ targets: unit.view, tweens });
+    this.tweens.chain({ targets: unit.view, tweens, onComplete: () => this.refreshWater() });
     this.tweens.add({ targets: unit.idleTargets, y: '-=8', duration: 85, yoyo: true, repeat: path.length - 1 });
+  }
+
+  // ---------- Water (the Hidden Cavern, roadmap 11.4) ----------
+
+  // True if the unit stands in water (map letter W).
+  inWater(unit) {
+    return terrainAt(mapData, unit.col, unit.row) === 'water';
+  }
+
+  // Everyone standing in water is Drenched (a word pops up the first time),
+  // and the water puts out a burn. Wading figures stand in the water up to
+  // their shins.
+  refreshWater() {
+    for (const u of this.units) {
+      const wet = u.alive && !u.hidden && this.inWater(u);
+      if (wet) {
+        if (!isDrenched(u)) this.floatText(u, 'Drenched', '#7fd0ff', { rise: 40 });
+        applyDrenched(u, terrain.water.drenchedTurns);
+        if (isBurning(u)) {
+          cureBurn(u);
+          this.time.delayedCall(300, () => this.floatText(u, 'Put out', '#bfe8ff', { rise: 52 }));
+        }
+      }
+      this.setWading(u, wet);
+    }
+    this.refreshStatusTags();
+  }
+
+  // Shows or hides a figure wading: sunk a little, its feet hidden under the
+  // waterline, with rings spreading round it.
+  setWading(unit, on) {
+    if (!unit.sprite || !unit.view || !unit.view.active || !!unit.wading === on) return;
+    const sink = Math.round(TILE_HEIGHT * 0.16);
+    unit.wading = on;
+    unit.sprite.y += on ? sink : -sink;
+    if (on) {
+      const rings = this.add.graphics();
+      rings.lineStyle(2, 0xbfeaff, 0.7).strokeEllipse(0, 6, 46, 14);
+      rings.lineStyle(1.5, 0xbfeaff, 0.4).strokeEllipse(0, 6, 62, 19);
+      const front = this.add.ellipse(0, 9, 40, 9, 0x3a8aa0, 0.35);
+      unit.view.add([front, rings]);
+      this.tweens.add({ targets: rings, scaleX: 1.15, scaleY: 1.15, alpha: 0.35, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      unit.wadeParts = [front, rings];
+    } else {
+      for (const o of unit.wadeParts || []) o.destroy();
+      unit.wadeParts = null;
+    }
+    this.cropWading(unit);
+  }
+
+  // The part of the figure under the water is not drawn.
+  cropWading(unit) {
+    const s = unit.sprite;
+    if (!s || !s.frame) return;
+    if (!unit.wading) {
+      if (s.isCropped) s.setCrop();
+      return;
+    }
+    const cut = Math.round(TILE_HEIGHT * 0.16) / Math.abs(s.scaleY || 1);
+    s.setCrop(0, 0, s.frame.realWidth, Math.max(1, s.frame.realHeight - cut));
   }
 
   // An engaged unit spends its turn trying to get loose.
@@ -5285,7 +5535,8 @@ export default class BattleScene extends Phaser.Scene {
   // zoom is relative to the normal view (1.3 = 30% closer than the whole board).
   focusCamera(x, y, zoom = 1.3, duration = 260) {
     const cam = this.cameras.main;
-    const z = zoom * this.home.zoom;
+    const base = this.follow && this.rest ? Math.max(this.home.zoom, this.rest.zoom) : this.home.zoom;
+    const z = Math.min(zoom * base, this.zoomRange ? this.zoomRange[1] * 1.25 : Infinity);
     const b = this.boardBounds();
     const cx = Math.min(Math.max(x, b.x0), b.x1);
     const cy = Math.min(Math.max(y, b.y0), b.y1);
@@ -5296,8 +5547,9 @@ export default class BattleScene extends Phaser.Scene {
   // Back to the normal view of the whole board.
   resetCamera(duration = 320) {
     const cam = this.cameras.main;
-    cam.pan(this.home.x, this.home.y, duration, 'Sine.easeInOut', true);
-    cam.zoomTo(this.home.zoom, duration, 'Sine.easeInOut', true, (c, progress) => {
+    const view = this.follow && this.rest ? this.rest : this.home;
+    cam.pan(view.x, view.y, duration, 'Sine.easeInOut', true);
+    cam.zoomTo(view.zoom, duration, 'Sine.easeInOut', true, (c, progress) => {
       if (progress === 1) this.goHome();
     });
   }

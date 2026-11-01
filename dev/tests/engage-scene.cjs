@@ -9,7 +9,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   w.__engagement.engagementRules.mode = 'classic'; // this test checks the older Engage (Press / Break away)
   const U = (l) => b.units.find((u) => u.label === l);
   const waitFor = async (fn, ms = 8000) => { const t = Date.now(); while (Date.now() - t < ms) { if (fn()) return true; await sleep(20); } return false; };
-  const H = require('/home/claude/fabien/src/data/map.json').heights; // the real map
+  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights; // the real map
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - H[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   // row 4 of a normal turn is two half buttons since Phase 2: Items | End turn
   const labels = () => b.slots.map((s, i) => (s.view.visible ? s.label.text + (s.enabled ? '' : '(dim)') : i === 3 && b.lowHalves[1].view.visible ? b.lowHalves.map((h) => h.label.text + (h.enabled ? '' : '(dim)')).join('/') : '-')).join(' | ');

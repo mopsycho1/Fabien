@@ -1,4 +1,4 @@
-import { statMod, isStunned, isDisoriented } from './status.js';
+import { statMod, isStunned, isDisoriented, isDrenched, attackElement } from './status.js';
 import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
@@ -95,10 +95,26 @@ export function getDamage(attacker, defender) {
     const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
     // a Disoriented unit takes extra damage from every kind of magic (conditions.json)
     const dazed = isDisoriented(defender) ? conditions.disoriented.magicDamage : 0;
-    return Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank + dazed;
+    return soaked(attacker, defender, Math.max(1, power - (defender.magicDefense + statMod(defender, 'magicDefense'))) + flank + dazed);
   }
   const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
-  return Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank;
+  return soaked(attacker, defender, Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank);
+}
+
+// A Drenched target (roadmap 11.4) takes more from lightning and less from
+// fire (terrain.json, water); other attacks are unchanged. Never below 1.
+function soaked(attacker, defender, damage) {
+  if (!isDrenched(defender)) return damage;
+  const element = attackElement(attacker);
+  const times = element === 'lightning' ? terrain.water.lightningTimes : element === 'fire' ? terrain.water.fireTimes : 1;
+  return Math.max(1, Math.round(damage * times));
+}
+
+// How a Drenched target changes this attacker's damage: 'more', 'less' or null (previews).
+export function drenchedEffect(attacker, defender) {
+  if (!isDrenched(defender)) return null;
+  const element = attackElement(attacker);
+  return element === 'lightning' ? 'more' : element === 'fire' ? 'less' : null;
 }
 
 // True when an archer is right next to its target: it fights with its close

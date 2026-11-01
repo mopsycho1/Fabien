@@ -112,6 +112,20 @@ export function dustPuff(scene, x, y) {
   });
 }
 
+// A splash where a unit steps into water (the Hidden Cavern, roadmap 11.4):
+// drops thrown up and a ring spreading out.
+export function splash(scene, x, y) {
+  const drops = [-22, -12, -4, 6, 14, 24].map((dx) => ({ dx, up: 18 + Math.random() * 16 }));
+  play(scene, 480, (g, t) => {
+    g.lineStyle(2, 0xbfeaff, 0.7 * (1 - t));
+    g.strokeEllipse(x, y + 4, 30 + 50 * t, 9 + 15 * t);
+    for (const d of drops) {
+      g.fillStyle(0xdff6ff, 0.8 * (1 - t));
+      g.fillCircle(x + d.dx * (0.5 + t), y - d.up * 4 * t * (1 - t), 2.5);
+    }
+  });
+}
+
 // An arrow flying from one point to another. onHit runs when it lands.
 export function arrowShot(scene, fromX, fromY, toX, toY, onHit) {
   const angle = Math.atan2(toY - fromY, toX - fromX);

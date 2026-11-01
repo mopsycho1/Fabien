@@ -418,3 +418,29 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **His cursor** (`src/cursor.js`, pictures `public/art/ui/cursor_*.png`, tips in `src/data/cursor.json`): on computers the mouse pointer is his arrowhead. It glows over anything you can tap, shows rings while the button is held, and shows a dashed ring while the game is busy (moves playing, the enemy's turn). Phones and tablets have no cursor.
 - **Turn buttons on phones**: on a phone or tablet the two turn-the-map buttons sit halfway down the left and right sides of the screen, under your thumbs. The little map of the board stays top right. On a computer they stay top right as before.
 - **Herbs are thrown** (`spells.json`, `herbs`): Sudeen throws the pouch to an ally up to `range` tiles away (2), one tile further for each level he stands above them (`rangePerLevel`). The pouch flies in an arc, so walls don't stop it, and the healing lands when it does. On himself he just uses it.
+
+## Phase 11: the Hidden Cavern (1 Nov)
+
+- **Maps live in `src/data/maps`.** The game is fought in `cavern.json`, Suleiman's Hidden Cavern. `yoba.json` is the first cave map, kept because the rule tests in `dev/tests` were written for its tiles. A battle in `story.json` can name its map with `"map": "cavern"`; with no name it uses the cavern.
+- **Editing the cavern** (`cavern.json`; each part has a note beside it):
+  - `board`: how many tiles a side (9) and how big they are. The tiles are bigger than on the first map, which gives the characters more room. `figureScale` sets how big the characters are drawn.
+  - `heights`: one row per line, as his height breakdown: 0 water, 1 low, 2 mid, 3 high. Row 0 is the far side, where the enemies start.
+  - `terrain`: one letter per tile. F stone floor, S sand, R rubble, G the platform's sigil stone, W shallow water, B a wooden bridge over the water.
+  - `sigilCircle`: the tile his sigil ring is drawn round, across the 3 by 3 platform.
+  - `starts`: where each unit starts, by its id in `units.json`.
+  - `waterfalls`: water pouring off a ledge into the water below it.
+  - `lamps`: the ritual lamps, which also give the cavern its light.
+  - `surround`: the ledge and rock walls round the far sides, and his props on the ledge.
+- **The bridges are the way onto the platform.** A unit can step up at most one level, so it can't climb from the water (0) onto the platform (2). It has to cross a bridge (1). Layra under Swiftness ignores this, and Gaha's Fury Dive leaps.
+- **His pictures** (cut by `dev/tools/make_cavern.py` into `public/art/terrain/cave_*`): the four looks of each ground, his sunlit and shadowed rock for the sides of the tiles and the walls, his eight props, and his tall cavern painting behind the board. The cavern is lit only by fire, as his sheet says ("no natural openings"). Each tile is as bright as the lamps and braziers near it make it.
+- **Water** (rules in `terrain.json`, `water`):
+  - Units can wade through it. A unit standing in water is **Drenched** and stays so for 2 of its own turns after it leaves.
+  - A Drenched unit takes 1.5 times the damage from lightning (Layra's Lightning and Thunderclap) and half from fire (Wildfire), and can't be set alight.
+  - Walking into water puts out a burn. Wading figures stand in the water up to their shins.
+  - What an attack is made of is `"element"` in `jobs.json` (Layra: lightning) or `spells.json` (Wildfire: fire, Thunderclap: lightning).
+- **The camera** (`"camera": "follow"` in the map):
+  - **On a screen too small to show the whole board clearly**, the battle is played zoomed in, and the camera turns to whoever's turn it is.
+  - **Drag the board** to look around. A drag never moves anyone, because taps on the board happen when the finger lifts.
+  - **Pinch, or use the mouse wheel**, to zoom between the whole board and close up.
+  - **Tap the little map** top right for the whole board, and tap it again to go back to the unit.
+  - **On a computer** the whole board usually fits, so the camera stays put.

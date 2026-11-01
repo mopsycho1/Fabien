@@ -66,9 +66,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([[gaha, 4, 6], [rabdul, 0, 0]]);
   b.activeUnit = gaha; gaha.facing = 'upRight';
   let seen = [];
-  let watch = setInterval(() => seen.push(key(gaha).replace(/^\w+:/, '')), 15);
+  // (every picture shown on him is recorded, so a busy computer can't skip one)
+  const realShow = b.showFrame.bind(b);
+  b.showFrame = (u, f) => { const ok = realShow(u, f); if (u === gaha && f) seen.push(f.key.replace(/^\w+:/, '')); return ok; };
+  let watch = setInterval(() => {}, 1000);
   await new Promise((res) => b.moveUnit(gaha, 2, 6, res));
   clearInterval(watch);
+  b.showFrame = realShow;
   const walked = [...new Set(seen.filter((k) => /walk/.test(k)))];
   check('9.12 walking up-left: his walking frames play while he moves', ['walk0', 'walk1', 'walk2'].every((f) => walked.some((k) => k.includes(f))), walked.join(','));
   const order = seen.filter((k) => /walk/.test(k)).map((k) => k.match(/walk(\d)/)[1]).filter((v, i, a) => v !== a[i - 1]).join('');

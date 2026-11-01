@@ -11,7 +11,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game);
   const E = w.__engagement, St = w.__status, G = w.__grid;
   const combat = require('./combat-bundle.cjs');
-  const MAPH = require('/home/claude/fabien/src/data/map.json').heights; // the Node copy of the rules needs the map's heights too
+  const MAPH = require('/home/claude/fabien/src/data/maps/yoba.json').heights; // the Node copy of the rules needs the map's heights too
   combat.setHeightLookup((c, r) => (MAPH[r] && MAPH[r][c]) || 0);
   const U = (l) => b.units.find((u) => u.label === l);
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); u.view.setDepth(G.depthFor(c, r) + 1); };

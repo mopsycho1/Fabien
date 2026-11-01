@@ -348,6 +348,36 @@ export function tickBurn(unit) {
   return lost;
 }
 
+// ---------- Drenched (the Hidden Cavern's water, roadmap 11.4) ----------
+
+// A unit standing in water is Drenched, and stays so for a few of its own
+// turns after it leaves (terrain.json, water). Drenched units take more
+// damage from lightning and less from fire (combat.js), and can't be set alight.
+export function applyDrenched(unit, turns) {
+  statusOf(unit).drenched = { turnsLeft: turns };
+}
+
+export function isDrenched(unit) {
+  return !!(unit && unit.status && unit.status.drenched);
+}
+
+// The end of its own turn, out of the water: a turn drier.
+export function dryOff(unit) {
+  const d = statusOf(unit).drenched;
+  if (!d) return;
+  d.turnsLeft -= 1;
+  if (d.turnsLeft <= 0) statusOf(unit).drenched = null;
+}
+
+// What a unit's attack is made of right now: its Verse-changed attack's
+// element (Wildfire: fire, Thunderclap: lightning), else its own (Layra's
+// Lightning), else nothing in particular.
+export function attackElement(unit) {
+  const id = activeMove(unit, 'attack');
+  if (id !== 'attack' && spells[id] && spells[id].element) return spells[id].element;
+  return unit.element || null;
+}
+
 // ---------- Cooldowns ----------
 
 // A Verse-changed move has no cooldown of its own; using it starts the
@@ -418,6 +448,7 @@ export function statusTags(unit) {
   if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
   if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall
+  if (statusOf(unit).drenched) tags.push({ text: 'DRENCHED', color: '#7fd0ff', icon: 'drenched' }); // waded through the cavern's water
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

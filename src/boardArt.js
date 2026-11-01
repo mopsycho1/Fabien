@@ -1,5 +1,5 @@
 import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, GAME_WIDTH, GAME_HEIGHT, LEVEL_HEIGHT, BASE_DEPTH, BOARD_CENTER_X, BOARD_TOP_Y } from './config.js';
-import { tileToScreen, getHeight, tileSideDepth, depthFor, toView, fromView } from './grid.js';
+import { tileToScreen, getHeight, tileSideDepth, depthFor, toView, fromView, viewToScreen } from './grid.js';
 
 // How the battlefield LOOKS: ground, cliff sides, shadows, the rocky
 // underside, the sky behind, and scenery around the edges. It uses the terrain
@@ -19,13 +19,33 @@ const PALETTE = {
   rift: { top: '#7a6e64', side: 0x4a3e35 },
   sigil: { top: '#3a2418', side: 0x2a1a10 },
   grass: { top: '#b8532c', side: 0x7a3a22 },
+  // the Hidden Cavern (Phase 11): his ground pictures, four looks each
+  floor: { top: '#9a6638', side: 0x5a3a22 },
+  caveSand: { top: '#c98e45', side: 0x6a4626 },
+  rubble: { top: '#6e4a2c', side: 0x4a3020 },
+  caveSigil: { top: '#94622f', side: 0x5a3a22 },
+  water: { top: '#1f4a50', side: 0x2a2018 },
+  bridge: { top: '#7a5230', side: 0x3a2414 },
 };
+// What the top right of the battle screen calls each kind of ground
+const GROUND_NAMES = { caveSand: 'Sand', caveSigil: 'Sigil', rubble: 'Rubble', floor: 'Floor', water: 'Water', bridge: 'Bridge', rift: 'Rift', rock: 'Rock' };
+export function groundName(kind) {
+  return GROUND_NAMES[kind] || kind.charAt(0).toUpperCase() + kind.slice(1);
+}
 // The letters used in map.json for each kind of ground:
 //   s = red sand        d = dusty sand with pebbles   c = cracked earth
 //   r = grey stone      k = stone split by dark veins  v = cave floor with a glowing sigil
 //   g = a withered thicket on sand
-const LETTERS = { s: 'sand', d: 'dust', c: 'cracked', r: 'rock', k: 'rift', v: 'sigil', g: 'grass' };
+// The Hidden Cavern's letters are capitals:
+//   F = stone floor   S = sand   R = rubble   G = the ritual platform's sigil stone
+//   W = shallow water (walkable, leaves you Drenched)   B = a wooden bridge over water
+const LETTERS = { s: 'sand', d: 'dust', c: 'cracked', r: 'rock', k: 'rift', v: 'sigil', g: 'grass', F: 'floor', S: 'caveSand', R: 'rubble', G: 'caveSigil', W: 'water', B: 'bridge' };
 const VARIANTS = 3; // each kind of ground is drawn 3 slightly different ways
+// His cavern grounds come as four squares each (dev/tools/make_cavern.py)
+const CAVE_GROUND = { floor: 'floor', caveSand: 'sand', rubble: 'rubble', caveSigil: 'sigil', water: 'water', bridge: 'water' };
+function variantsOf(kind) {
+  return CAVE_GROUND[kind] ? 4 : VARIANTS;
+}
 
 // ---------- Terrain pictures ----------
 // The ground, cliff sides, sky and scenery are pictures in public/art/terrain,
@@ -50,17 +70,48 @@ const TERRAIN_FILES = {
   cliffHigh: 'prop_cliff_high.png',
   spire: 'prop_spire.png',
   sigilWall: 'prop_sigil_wall.png',
+  // the Hidden Cavern (his NEW CAVE MAP DESIGNS, cut by dev/tools/make_cavern.py)
+  'face:caveLit': 'cave_wall_lit.jpg',
+  'face:caveDark': 'cave_wall_dark.jpg',
+  sigilRing: 'cave_sigilring.jpg',
+  caveBackdrop: 'cave_backdrop.jpg',
+  stalagmiteTall: 'cave_stalagmiteTall.png',
+  stalagmiteShort: 'cave_stalagmiteShort.png',
+  pillar: 'cave_pillar.png',
+  rockPile: 'cave_rockPile.png',
+  pots: 'cave_pots.png',
+  brazier: 'cave_brazier.png',
+  rockPool: 'cave_rockPool.png',
+  bones: 'cave_bones.png',
+};
+for (const [kind, file] of Object.entries({ floor: 'floor', caveSand: 'sand', rubble: 'rubble', caveSigil: 'sigil', water: 'water' })) {
+  for (let v = 0; v < 4; v++) TERRAIN_FILES['top:' + kind + ':' + v] = 'cave_' + file + '_' + v + '.jpg';
+}
+// How wide each prop's base is drawn (game pixels) and where its feet are
+// across the picture (the pictures are cut at twice this size)
+const CAVE_PROPS = {
+  stalagmiteTall: { width: 120, originX: 0.501 },
+  pillar: { width: 84, originX: 0.466 },
+  stalagmiteShort: { width: 100, originX: 0.574 },
+  rockPile: { width: 112, originX: 0.517 },
+  pots: { width: 74, originX: 0.756 },
+  brazier: { width: 52, originX: 0.379 },
+  rockPool: { width: 150, originX: 0.572 },
+  bones: { width: 100, originX: 0.456 },
 };
 
 // ---------- The setting: an open wasteland, or inside a cave ----------
 // map.json says "setting": "cave" or "wasteland". A cave is darker, closed in
 // by rock walls, lit by torches, and has no sky. The same pictures are used;
 // in a cave they are drawn darker.
+// "cavern" is the Hidden Cavern (Phase 11): his own pictures, lit by fire.
 let setting = 'wasteland';
 const CAVE_DARK = 'rgba(14, 7, 4, 0.3)'; // laid over pictures in a cave
+const darkness = () => (setting === 'cavern' ? 'rgba(14, 7, 4, 0.12)' : CAVE_DARK);
+const inCave = () => setting !== 'wasteland';
 
 export function setBoardSetting(name) {
-  setting = name === 'cave' ? 'cave' : 'wasteland';
+  setting = name === 'cave' || name === 'cavern' ? name : 'wasteland';
 }
 export function boardSetting() {
   return setting;
@@ -78,7 +129,7 @@ function darkenCanvas(ctx, w, h, color) {
 
 // The picture to use for a scenery key: in a cave, a darker copy (made once).
 function sceneryKey(scene, key) {
-  if (setting !== 'cave' || !scene.textures.exists(key)) return key;
+  if (!inCave() || setting === 'cavern' || !scene.textures.exists(key)) return key;
   const darkKey = key + ':cave';
   if (!scene.textures.exists(darkKey)) {
     const src = scene.textures.get(key).getSourceImage();
@@ -100,6 +151,7 @@ export function preloadBoardArt(scene) {
 
 // The picture behind a terrain key, or null if it did not load.
 function terrainImage(scene, key) {
+  if (!scene.textures.exists('terrain:' + key) && /:\d$/.test(key)) key = key.replace(/:\d$/, ':0');
   const k = 'terrain:' + key;
   return scene.textures.exists(k) ? scene.textures.get(k).getSourceImage() : null;
 }
@@ -238,18 +290,25 @@ function paintGround(ctx, kind, S, rand) {
 
 // Makes the tile pictures: for each kind of ground, a few variants, each bent
 // into the diamond shape of a tile. Does nothing if they already exist.
+// The name of the diamond picture for a kind of ground (and one of its looks).
+// The tile size is part of the name, since each map can have its own.
+function tileKey(kind, v) {
+  return 'tile:' + setting + ':' + TILE_WIDTH + ':' + kind + ':' + v;
+}
+
 export function createBoardTextures(scene) {
-  const S = 128; // size of the flat square patch
   const W = TILE_WIDTH + 2;
   const H = TILE_HEIGHT + 2;
 
   for (const kind of Object.keys(PALETTE)) {
-    for (let v = 0; v < VARIANTS; v++) {
-      const key = 'tile:' + setting + ':' + kind + ':' + v;
+    const cave = !!CAVE_GROUND[kind];
+    const S = cave ? 256 : 128; // size of the flat square patch
+    for (let v = 0; v < variantsOf(kind); v++) {
+      const key = tileKey(kind, v);
       if (scene.textures.exists(key)) continue;
 
       // 1. a flat square of ground: the picture if we have one, otherwise painted in code
-      const picture = terrainImage(scene, 'top:' + kind);
+      const picture = kind === 'bridge' ? planks(S, v) : cave ? terrainImage(scene, 'top:' + kind + ':' + v) : terrainImage(scene, 'top:' + kind);
       const square = document.createElement('canvas');
       square.width = S;
       square.height = S;
@@ -257,8 +316,8 @@ export function createBoardTextures(scene) {
       if (picture) {
         // The same picture three ways, so the ground does not look stamped:
         // as it is, mirrored across the diamond, and turned half way round.
-        if (v === 1) sq.setTransform(0, 1, 1, 0, 0, 0);
-        if (v === 2) sq.setTransform(-1, 0, 0, -1, S, S);
+        if (!cave && v === 1) sq.setTransform(0, 1, 1, 0, 0, 0);
+        if (!cave && v === 2) sq.setTransform(-1, 0, 0, -1, S, S);
         sq.drawImage(picture, 0, 0, S, S);
       } else {
         paintGround(sq, kind, S, makeRandom(1000 + v * 77 + kind.length * 13));
@@ -278,7 +337,7 @@ export function createBoardTextures(scene) {
       ctx.setTransform(TILE_WIDTH / 2 / S, TILE_HEIGHT / 2 / S, -TILE_WIDTH / 2 / S, TILE_HEIGHT / 2 / S, W / 2, 1);
       ctx.drawImage(square, 0, 0);
       ctx.restore();
-      if (setting === 'cave') darkenCanvas(ctx, W, H, CAVE_DARK);
+      if (inCave()) darkenCanvas(ctx, W, H, darkness());
 
       // 3. an edge: light on the far edges, dark on the near ones
       ctx.lineWidth = 1.6;
@@ -298,6 +357,77 @@ export function createBoardTextures(scene) {
       texture.refresh();
     }
   }
+  if (setting === 'cavern') makeSigilRing(scene);
+}
+
+// Wooden planks for a bridge, as a flat square (the diamond is made from it):
+// boards across, two ropes along the sides. v 0 and 2: the boards run one
+// way, 1 and 3 the other (a bridge's boards lie across the way you walk).
+function planks(S, v) {
+  const c = document.createElement('canvas');
+  c.width = S;
+  c.height = S;
+  const g = c.getContext('2d');
+  if (v % 2 === 1) g.setTransform(0, 1, 1, 0, 0, 0); // turned a quarter
+  const n = 7;
+  const bw = S / n;
+  for (let i = 0; i < n; i++) {
+    const shade = 0.82 + ((i * 37) % 9) / 40;
+    g.fillStyle = `rgb(${Math.round(122 * shade)}, ${Math.round(84 * shade)}, ${Math.round(50 * shade)})`;
+    g.fillRect(i * bw + 1.5, S * 0.06, bw - 3, S * 0.88);
+    g.fillStyle = 'rgba(40, 22, 10, 0.5)'; // the grain
+    for (let k = 0; k < 4; k++) g.fillRect(i * bw + 4 + k * (bw / 5), S * 0.1, 1, S * 0.8);
+    g.fillStyle = 'rgba(20, 12, 6, 0.85)'; // nails
+    g.fillRect(i * bw + bw / 2 - 2, S * 0.14, 4, 4);
+    g.fillRect(i * bw + bw / 2 - 2, S * 0.82, 4, 4);
+  }
+  // the ropes along both sides
+  g.fillStyle = '#4a3018';
+  g.fillRect(0, S * 0.04, S, S * 0.05);
+  g.fillRect(0, S * 0.91, S, S * 0.05);
+  g.fillStyle = 'rgba(210, 170, 110, 0.5)';
+  for (let x = 0; x < S; x += 10) {
+    g.fillRect(x, S * 0.05, 5, 3);
+    g.fillRect(x + 5, S * 0.92, 5, 3);
+  }
+  return c;
+}
+
+// His sigil ring laid across the 3 by 3 ritual platform: one diamond per
+// tile, each holding its ninth of the ring (by where the tile is as the
+// camera sees it, so the ring always looks whole).
+function makeSigilRing(scene) {
+  const ring = terrainImage(scene, 'sigilRing');
+  if (!ring) return;
+  const W = TILE_WIDTH + 2;
+  const H = TILE_HEIGHT + 2;
+  for (let dvc = -1; dvc <= 1; dvc++) {
+    for (let dvr = -1; dvr <= 1; dvr++) {
+      const key = 'tile:cavern:' + TILE_WIDTH + ':ring:' + dvc + ':' + dvr;
+      if (scene.textures.exists(key)) continue;
+      const S = 256;
+      const square = document.createElement('canvas');
+      square.width = S;
+      square.height = S;
+      const third = ring.width / 3;
+      square.getContext('2d').drawImage(ring, (dvc + 1) * third, (dvr + 1) * third, third, third, 0, 0, S, S);
+      const texture = scene.textures.createCanvas(key, W, H);
+      const ctx = texture.getContext();
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(W / 2, 1);
+      ctx.lineTo(W - 1, H / 2);
+      ctx.lineTo(W / 2, H - 1);
+      ctx.lineTo(1, H / 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.setTransform(TILE_WIDTH / 2 / S, TILE_HEIGHT / 2 / S, -TILE_WIDTH / 2 / S, TILE_HEIGHT / 2 / S, W / 2, 1);
+      ctx.drawImage(square, 0, 0);
+      ctx.restore();
+      darkenCanvas(ctx, W, H, darkness());
+      texture.refresh();
+    }
+  }
 }
 
 // ---------- Cliff side pictures ----------
@@ -309,17 +439,19 @@ export function createBoardTextures(scene) {
 // A side is a slanted strip: rock on top, and the woven band at the bottom.
 // We draw the straight rock picture through a "skew", which slants it to
 // follow the edge of the diamond.
-function sideTexture(scene, side, height, variant) {
-  const key = 'face:' + setting + ':' + side + ':' + height + ':' + variant;
+function sideTexture(scene, side, height, variant, fade = false) {
+  const key = 'face:' + setting + ':' + TILE_WIDTH + ':' + side + ':' + height + ':' + variant + (fade ? ':fade' : '');
   if (scene.textures.exists(key)) return key;
-  const rock = terrainImage(scene, 'face:' + side + 'Rock');
-  const band = terrainImage(scene, 'face:' + side + 'Band');
+  // the Hidden Cavern: his sunlit rock on the left faces, his shadowed rock on the right
+  const cavern = setting === 'cavern';
+  const rock = cavern ? terrainImage(scene, side === 'left' ? 'face:caveLit' : 'face:caveDark') : terrainImage(scene, 'face:' + side + 'Rock');
+  const band = cavern ? rock : terrainImage(scene, 'face:' + side + 'Band');
   if (!rock || !band) return null;
 
   const hw = TILE_WIDTH / 2;
   const hh = TILE_HEIGHT / 2;
-  const rockH = height * LEVEL_HEIGHT;
-  const depth = BASE_DEPTH + rockH;
+  const rockH = height * LEVEL_HEIGHT + (cavern ? BASE_DEPTH : 0); // (in the cavern the rock goes all the way down)
+  const depth = BASE_DEPTH + height * LEVEL_HEIGHT;
   const texture = scene.textures.createCanvas(key, Math.ceil(hw) + 1, Math.ceil(hh + depth) + 1);
   const ctx = texture.getContext();
 
@@ -347,15 +479,29 @@ function sideTexture(scene, side, height, variant) {
     ctx.restore();
   }
   // the woven band along the bottom
-  ctx.drawImage(band, 0, rockH, hw, BASE_DEPTH);
+  if (!cavern) ctx.drawImage(band, 0, rockH, hw, BASE_DEPTH);
 
   // shade: light comes from the top left, so the right side is darker
-  ctx.fillStyle = side === 'left' ? 'rgba(20, 8, 2, 0.12)' : 'rgba(20, 8, 2, 0.42)';
+  // (his cavern rock is already lit and shadowed)
+  ctx.fillStyle = cavern ? (side === 'left' ? 'rgba(20, 8, 2, 0.1)' : 'rgba(20, 8, 2, 0.2)') : side === 'left' ? 'rgba(20, 8, 2, 0.12)' : 'rgba(20, 8, 2, 0.42)';
   ctx.fillRect(0, 0, hw, depth);
   // a dark line along the bottom edge
   ctx.fillStyle = 'rgba(15, 6, 2, 0.6)';
   ctx.fillRect(0, depth - 2, hw, 2);
-  if (setting === 'cave') darkenCanvas(ctx, texture.width, texture.height, CAVE_DARK);
+  if (inCave()) darkenCanvas(ctx, texture.width, texture.height, darkness());
+  if (fade) {
+    // a cavern wall: it sinks into darkness as it rises
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'source-atop';
+    const grad = ctx.createLinearGradient(0, 0, 0, texture.height);
+    grad.addColorStop(0, 'rgba(6, 3, 2, 0.97)');
+    grad.addColorStop(0.55, 'rgba(6, 3, 2, 0.8)');
+    grad.addColorStop(1, 'rgba(6, 3, 2, 0.35)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, texture.width, texture.height);
+    ctx.restore();
+  }
 
   texture.refresh();
   return key;
@@ -379,11 +525,17 @@ export function drawTileBlock(scene, col, row, map) {
   // --- the cliff sides ---
   // With pictures: two slanted pictures, one each side. Without: drawn in code.
   const variant = rand() < 0.5 ? 0 : 1;
+  if (kind === 'bridge') {
+    drawBridge(scene, col, row, map, { x, y, hw, hh, height, depth, rand });
+    return;
+  }
   const leftKey = sideTexture(scene, 'left', height, variant);
   const rightKey = sideTexture(scene, 'right', height, 1 - variant);
   if (leftKey && rightKey) {
-    scene.add.image(x - hw, y, leftKey).setOrigin(0, 0).setDepth(depth);
-    scene.add.image(x, y, rightKey).setOrigin(0, 0).setDepth(depth);
+    const v = toView(col, row);
+    const lit = fireTint(lightAt(v.vc + 0.5, v.vr + 0.5) * 0.92);
+    scene.add.image(x - hw, y, leftKey).setOrigin(0, 0).setDepth(depth).setTint(lit);
+    scene.add.image(x, y, rightKey).setOrigin(0, 0).setDepth(depth).setTint(lit);
     const edge = scene.add.graphics().setDepth(depth);
     edge.lineStyle(1.5, 0x140802, 0.5); // where the two sides meet
     edge.lineBetween(x, y + hh, x, y + hh + sideDepth);
@@ -441,9 +593,25 @@ function drawTop(scene, col, row, map, t) {
   const { x, y, hw, hh, height, depth, kind, rand, pictures } = t;
 
   // --- the ground ---
-  const variant = Math.floor(rand() * VARIANTS);
-  const top = scene.add.image(x, y, 'tile:' + setting + ':' + kind + ':' + variant).setDepth(depth);
+  const variant = Math.floor(rand() * variantsOf(kind));
+  let key = tileKey(kind, variant);
+  // the platform's tiles round the sigil circle hold his ring (map.json "sigilCircle")
+  const ringAt = map.sigilCircle;
+  if (kind === 'caveSigil' && ringAt && Math.abs(col - ringAt[0]) <= 1 && Math.abs(row - ringAt[1]) <= 1) {
+    const a = toView(col, row);
+    const b = toView(ringAt[0], ringAt[1]);
+    const ringKey = 'tile:cavern:' + TILE_WIDTH + ':ring:' + (a.vc - b.vc) + ':' + (a.vr - b.vr);
+    if (scene.textures.exists(ringKey)) key = ringKey;
+  }
+  const top = scene.add.image(x, y, key).setDepth(depth);
   top.setTint(shade(0xffffff, Math.min(1, 0.88 + 0.04 * height))); // higher ground is a little lighter
+  if (setting === 'cavern') {
+    // lit by the fires near it; water keeps its colour (it shines back)
+    const v = toView(col, row);
+    const f = lightAt(v.vc, v.vr) * (0.94 + 0.03 * height);
+    top.setTint(kind === 'water' ? fireTint(Math.max(0.78, f)) & 0xffffff : fireTint(f));
+  }
+  if (kind === 'water') shimmer(scene, x, y, depth, rand);
 
   // --- shadows, and small details, on top of the ground ---
   const details = scene.add.graphics().setDepth(depth + 0.1);
@@ -479,7 +647,7 @@ function drawTop(scene, col, row, map, t) {
     img.setTint(shade(0xffffff, Math.min(1, 0.88 + 0.04 * height)));
     return;
   }
-  if (pictures) return; // the pictures already have their own pebbles
+  if (pictures || CAVE_GROUND[kind]) return; // the pictures already have their own pebbles
 
   // Small things lying on the ground, kept away from the middle where units stand
   const count = rand() < 0.6 ? 1 + Math.floor(rand() * 3) : 0;
@@ -496,6 +664,49 @@ function drawTop(scene, col, row, map, t) {
     if (!ok) continue;
     drawDetail(details, kind, x + px, y + py, rand);
   }
+}
+
+// Light playing on the water: another of his pool pictures laid over the
+// tile, glowing in and out.
+function shimmer(scene, x, y, depth, rand) {
+  const glint = scene.add.image(x, y, tileKey('water', Math.floor(rand() * 4))).setDepth(depth + 0.05);
+  glint.setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.05).setTint(0x8fe0ff);
+  scene.tweens.add({ targets: glint, alpha: 0.3, duration: 1400 + rand() * 1200, delay: rand() * 1500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+}
+
+// A wooden bridge over the water (map letter B): the water below it, the
+// deck of planks on top (at the tile's height, so it is walked at that
+// height), and posts at its corners down into the water.
+function drawBridge(scene, col, row, map, t) {
+  const { x, y, hw, hh, height, depth, rand } = t;
+  const drop = height * LEVEL_HEIGHT; // how far the water is below the deck
+  // the water underneath
+  const water = scene.add.image(x, y + drop, tileKey('water', Math.floor(rand() * 4))).setDepth(depth - 0.4);
+  water.setTint(0xb8c8c8);
+  shimmer(scene, x, y + drop, depth - 0.35, rand);
+  const wl = sideTexture(scene, 'left', 0, 0);
+  const wr = sideTexture(scene, 'right', 0, 1);
+  if (wl && wr) {
+    scene.add.image(x - hw, y + drop, wl).setOrigin(0, 0).setDepth(depth - 0.4);
+    scene.add.image(x, y + drop, wr).setOrigin(0, 0).setDepth(depth - 0.4);
+  }
+  // the boards lie across the way you walk: along the rows or the columns
+  const land = (c, r) => getHeight(c, r) > 0 && terrainAt(map, c, r) !== 'water';
+  const alongRows = land(col, row - 1) || land(col, row + 1);
+  const a = toView(col, row);
+  const b = toView(col, row + 1);
+  const runsVc = alongRows ? Math.abs(b.vc - a.vc) === 1 : Math.abs(b.vc - a.vc) !== 1;
+  // the posts
+  const g = scene.add.graphics().setDepth(depth - 0.3);
+  for (const [px, py] of [[x - hw * 0.72, y], [x + hw * 0.72, y], [x, y + hh * 0.72]]) {
+    g.fillStyle(0x2a180c, 1).fillRect(px - 3, py, 6, drop + 6);
+    g.fillStyle(0x6a4428, 1).fillRect(px - 3, py, 3, drop + 6);
+  }
+  // the deck: planks across the way it runs (picture 1 or 0), a dark edge under it
+  const deck = scene.add.image(x, y, tileKey('bridge', runsVc ? 1 : 0)).setDepth(depth);
+  deck.setTint(fireTint(lightAt(a.vc, a.vr) * 0.95));
+  g.fillStyle(0x1a0e06, 0.85);
+  g.fillPoints([{ x: x - hw, y }, { x, y: y + hh }, { x: x + hw, y }, { x: x + hw, y: y + 5 }, { x, y: y + hh + 5 }, { x: x - hw, y: y + 5 }], true);
 }
 
 // One small thing on the ground: a pebble, a rock, or a dry tuft.
@@ -555,7 +766,7 @@ let undersideAt = { x: 0, y: 0 }; // where the underside picture goes (it is mad
 // The board is a floating piece of ground. This draws the jagged rock that
 // hangs beneath it, and a soft shadow below.
 export function drawUnderside(scene) {
-  if (setting === 'cave') {
+  if (inCave()) {
     drawCaveFloor(scene);
     return;
   }
@@ -672,7 +883,7 @@ export function drawUnderside(scene) {
 // x0 and x1 say how far left and right of the world it must reach (a
 // landscape screen sees more of the world's sides; roadmap 8.1).
 export function drawBackdrop(scene, x0 = 0, x1 = GAME_WIDTH) {
-  if (setting === 'cave') {
+  if (inCave()) {
     drawCaveBackdrop(scene, x0, x1);
     return;
   }
@@ -826,8 +1037,12 @@ function drawSandfall(scene, item, hw, hh) {
 // When we have a painted cave picture, add it to TERRAIN_FILES as
 // caveBackdrop and it is used instead.
 function drawCaveBackdrop(scene, X0 = 0, X1 = GAME_WIDTH) {
-  if (scene.textures.exists('terrain:caveBackdrop')) {
-    scene.add.image(X0, 0, 'terrain:caveBackdrop').setOrigin(0, 0).setDepth(-21).setDisplaySize(X1 - X0, GAME_HEIGHT);
+  if (setting === 'cavern' && scene.textures.exists('terrain:caveBackdrop')) {
+    // his tall cavern painting (roadmap 11.6), filling the width, its top at
+    // the top of the world, a little darker so the board stands out
+    const img = scene.add.image((X0 + X1) / 2, -120, 'terrain:caveBackdrop').setOrigin(0.5, 0).setDepth(-21);
+    img.setScale(Math.max((X1 - X0) / img.width, (GAME_HEIGHT + 120) / img.height));
+    img.setTint(0x9a8a7a);
   } else {
     const g = scene.add.graphics().setDepth(-21);
     const bands = 30;
@@ -883,7 +1098,7 @@ function drawCaveBackdrop(scene, X0 = 0, X1 = GAME_WIDTH) {
 // so the board is part of the cavern instead of a floating island.
 // These outer tiles are only decoration: units cannot walk on them.
 function drawCaveFloor(scene) {
-  const kinds = ['rock', 'rift', 'cracked', 'rock', 'dust'];
+  const kinds = setting === 'cavern' ? ['floor', 'rubble', 'floor', 'caveSand', 'rubble'] : ['rock', 'rift', 'cracked', 'rock', 'dust'];
   const ring = [];
   for (let c = -1; c <= GRID_SIZE + 2; c++) for (let r = GRID_SIZE; r <= GRID_SIZE + 2; r++) ring.push([c, r]);
   for (let r = -1; r < GRID_SIZE; r++) for (let c = GRID_SIZE; c <= GRID_SIZE + 2; c++) ring.push([c, r]);
@@ -893,7 +1108,7 @@ function drawCaveFloor(scene) {
     const x = BOARD_CENTER_X + ((c - r) * TILE_WIDTH) / 2;
     const y = BOARD_TOP_Y + ((c + r) * TILE_HEIGHT) / 2;
     const kind = kinds[Math.floor(rand() * kinds.length)];
-    const img = scene.add.image(x, y, 'tile:' + setting + ':' + kind + ':' + Math.floor(rand() * VARIANTS));
+    const img = scene.add.image(x, y, tileKey(kind, Math.floor(rand() * variantsOf(kind))));
     img.setDepth((c + r) * 2).setAlpha(away === 1 ? 0.42 : away === 2 ? 0.16 : 0.05);
   }
 }
@@ -927,4 +1142,202 @@ function drawTorch(scene, item) {
       blendMode: 'ADD',
     }).setDepth(depth);
   }
+}
+
+// ---------- Firelight in the Hidden Cavern ----------
+// His cavern has no natural openings: it is lit only by fire. Each tile is as
+// bright as the flames near it make it (the ritual lamps, the braziers on the
+// ledge), warm near them and dark between. Worked out in the camera's view,
+// again each time the board is drawn.
+let lights = [];
+export function prepareLights(map) {
+  lights = [];
+  if (setting !== 'cavern') return;
+  for (const [c, r] of map.lamps || []) {
+    const v = toView(c, r);
+    lights.push({ vc: v.vc, vr: v.vr, strength: 0.5, reach: 1.35 });
+  }
+  for (const item of (map.surround && map.surround.props) || []) {
+    if (item.prop === 'brazier') lights.push({ vc: item.at[0], vr: item.at[1], strength: 0.7, reach: 1.9 });
+  }
+}
+
+// How lit a spot in the view is: 0.42 in the dark, up to about 1.1 by a fire.
+function lightAt(vc, vr) {
+  if (setting !== 'cavern') return 1;
+  let sum = 0;
+  for (const l of lights) {
+    const d2 = (vc - l.vc) ** 2 + (vr - l.vr) ** 2;
+    sum += l.strength * Math.exp(-d2 / (2 * l.reach * l.reach));
+  }
+  return Math.min(1.12, 0.42 + 0.75 * Math.min(1, sum));
+}
+
+// A warm tint for that much light (firelight is orange: less blue than red).
+function fireTint(f) {
+  const r = Math.min(255, Math.round(255 * f));
+  const g = Math.min(255, Math.round(255 * f * 0.92));
+  const b = Math.min(255, Math.round(255 * f * 0.8));
+  return (r << 16) | (g << 8) | b;
+}
+
+// ---------- The Hidden Cavern around the board (Phase 11) ----------
+
+// Everything in the cavern that isn't a tile you can stand on: the ledge and
+// rock walls round the far sides with his props on the ledge, water pouring
+// off the ritual platform, and the ritual lamps. All read from the map file.
+export function drawCavern(scene, map) {
+  if (setting !== 'cavern') return;
+  drawSurround(scene, map.surround || {});
+  for (const w of map.waterfalls || []) drawWaterfall(scene, w);
+  for (const [c, r] of map.lamps || []) drawLamp(scene, c, r, map.sigilCircle || [4, 4]);
+}
+
+// A block of rock seen from the camera at a place in the VIEW (it stays
+// behind the board whichever way the camera turns): sides of his rock and a
+// rubble top. Used for the ledge and the walls round the board.
+function drawViewBlock(scene, vc, vr, height, topKind, depthShift, wall = false) {
+  const { x, y } = viewToScreen(vc, vr, height);
+  const hw = TILE_WIDTH / 2;
+  const rand = makeRandom(vc * 71 + vr * 13 + height * 7 + 11);
+  const depth = (vc + vr) * 2 + depthShift;
+  const v = rand() < 0.5 ? 0 : 1;
+  const l = sideTexture(scene, 'left', height, v, wall);
+  const r = sideTexture(scene, 'right', height, 1 - v, wall);
+  const lit = fireTint(lightAt(vc + 0.5, vr + 0.5) * (wall ? 1 : 0.9));
+  if (l && r) {
+    scene.add.image(x - hw, y, l).setOrigin(0, 0).setDepth(depth).setTint(lit);
+    scene.add.image(x, y, r).setOrigin(0, 0).setDepth(depth).setTint(lit);
+  }
+  scene.add.image(x, y, tileKey(topKind, Math.floor(rand() * 4))).setDepth(depth).setTint(wall ? 0x1c140e : fireTint(lightAt(vc, vr) * 0.85));
+  return { x, y, depth };
+}
+
+// The ledge one tile deep round the far sides (with his props on it), then
+// the rock walls behind it, reaching up into the dark.
+function drawSurround(scene, surround) {
+  const n = GRID_SIZE;
+  const ledge = surround.ledgeHeight || 3;
+  const wall = surround.wallHeight || 9;
+  for (let vc = -2; vc <= n; vc++) drawViewBlock(scene, vc, -2, wall + (vc % 3 === 0 ? 1 : 0), 'rubble', -0.6, true);
+  for (let vr = -1; vr <= n; vr++) drawViewBlock(scene, -2, vr, wall + (vr % 3 === 1 ? 1 : 0), 'rubble', -0.6, true);
+  for (let vc = -1; vc <= n; vc++) drawViewBlock(scene, vc, -1, ledge, 'floor', -0.5);
+  for (let vr = 0; vr <= n; vr++) drawViewBlock(scene, -1, vr, ledge, 'floor', -0.5);
+  for (const item of surround.props || []) {
+    const [vc, vr] = item.at;
+    const spec = CAVE_PROPS[item.prop];
+    if (!spec || !scene.textures.exists('terrain:' + item.prop)) continue;
+    const { x, y } = viewToScreen(vc, vr, ledge);
+    const img = scene.add.image(x, y + TILE_HEIGHT * 0.18, 'terrain:' + item.prop).setOrigin(spec.originX, 1);
+    img.setScale((spec.width * (TILE_WIDTH / 112)) / img.width).setDepth((vc + vr) * 2 - 0.3).setTint(fireTint(lightAt(vc, vr) * 0.95));
+    if (item.flip) img.setFlipX(true);
+    if (item.prop === 'brazier') flame(scene, x + (0.5 - spec.originX) * img.displayWidth, y + TILE_HEIGHT * 0.18 - img.displayHeight * 0.92, (vc + vr) * 2 - 0.2, 1);
+  }
+}
+
+// A flickering flame with its glow and sparks (braziers, lamps).
+function flame(scene, x, y, depth, size) {
+  const g = scene.add.graphics().setDepth(depth);
+  g.fillStyle(0xffb347, 0.9).fillEllipse(x, y - 4 * size, 9 * size, 16 * size);
+  g.fillStyle(0xfff1c0, 1).fillEllipse(x, y - 2 * size, 4 * size, 8 * size);
+  scene.tweens.add({ targets: g, scaleY: 1.08, alpha: 0.85, duration: 120 + Math.random() * 80, yoyo: true, repeat: -1 });
+  if (scene.textures.exists('fx-glow')) {
+    const glow = scene.add.image(x, y - 4 * size, 'fx-glow').setDepth(depth).setBlendMode('ADD').setScale(0.75 * size).setAlpha(0.75);
+    scene.tweens.add({ targets: glow, alpha: 0.5, scale: 0.66 * size, duration: 110 + Math.random() * 90, yoyo: true, repeat: -1 });
+  }
+  if (scene.textures.exists('fx-dot')) {
+    scene.add.particles(x, y - 8 * size, 'fx-dot', {
+      speedY: { min: -40, max: -18 },
+      speedX: { min: -8, max: 8 },
+      scale: { start: 0.3 * size, end: 0 },
+      alpha: { start: 0.9, end: 0 },
+      tint: [0xffb04a, 0xff7a2e],
+      lifespan: 900,
+      frequency: 200,
+      blendMode: 'ADD',
+    }).setDepth(depth);
+  }
+}
+
+// A small ritual lamp at the outer corner of a platform tile: a stone bowl
+// with a flame (his main view has them round the sigil).
+function drawLamp(scene, col, row, centre) {
+  const { x, y } = tileToScreen(col, row);
+  const a = toView(col, row);
+  const b = toView(centre[0], centre[1]);
+  const dvc = Math.sign(a.vc - b.vc);
+  const dvr = Math.sign(a.vr - b.vr);
+  // the corner pointing away from the middle of the platform
+  const cx = x + ((dvc - dvr) * TILE_WIDTH) / 4 * 0.72;
+  const cy = y + ((dvc + dvr) * TILE_HEIGHT) / 4 * 0.72;
+  const front = dvc + dvr > 0; // the corner nearest the camera is drawn in front of the tile's figure
+  const depth = depthFor(col, row) + (front ? 1.5 : 0.3);
+  const g = scene.add.graphics().setDepth(depth);
+  g.fillStyle(0x000000, 0.35).fillEllipse(cx, cy + 2, 22, 8);
+  g.fillStyle(0x3a2a1c, 1).fillEllipse(cx, cy - 3, 18, 9);
+  g.fillStyle(0x6a5038, 1).fillEllipse(cx, cy - 6, 16, 6);
+  flame(scene, cx, cy - 7, depth + 0.01, 0.8);
+}
+
+// Water pouring off a ledge into the water below: [col, row, toCol, toRow].
+// Only a face turned towards the camera shows it.
+function drawWaterfall(scene, w) {
+  const [c, r, c2, r2] = w;
+  const drop = getHeight(c, r) - getHeight(c2, r2);
+  if (drop <= 0) return;
+  const a = toView(c, r);
+  const b = toView(c2, r2);
+  let left;
+  if (b.vc - a.vc === 0 && b.vr - a.vr === 1) left = true; // the front-left face
+  else if (b.vc - a.vc === 1 && b.vr - a.vr === 0) left = false; // the front-right face
+  else return;
+  makeFallTexture(scene);
+  const { x, y } = tileToScreen(c, r);
+  const hw = TILE_WIDTH / 2;
+  const hh = TILE_HEIGHT / 2;
+  const sx = left ? x - hw / 2 : x + hw / 2;
+  const sy = y + hh / 2;
+  const length = drop * LEVEL_HEIGHT + 6;
+  const depth = depthFor(c, r) + 0.25;
+  const fall = scene.add.tileSprite(sx, sy - 2, 26, length, 'fx-waterfall').setOrigin(0.5, 0).setDepth(depth).setAlpha(0.85);
+  fall.setBlendMode(Phaser.BlendModes.SCREEN);
+  scene.tweens.add({ targets: fall, tilePositionY: -256, duration: 1600, repeat: -1 });
+  // white water and mist where it lands
+  if (scene.textures.exists('fx-dot')) {
+    scene.add.particles(sx, sy + length - 4, 'fx-dot', {
+      speed: { min: 8, max: 30 },
+      angle: { min: 190, max: 350 },
+      scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      tint: [0xdff6ff, 0x9fd8ec],
+      lifespan: 650,
+      frequency: 90,
+    }).setDepth(depthFor(c2, r2) + 0.3);
+  }
+}
+
+// The falling water: pale streaks on a soft blue, drawn once, scrolled down.
+function makeFallTexture(scene) {
+  if (scene.textures.exists('fx-waterfall')) return;
+  const W = 32;
+  const H = 256;
+  const tex = scene.textures.createCanvas('fx-waterfall', W, H);
+  const g = tex.getContext();
+  const grad = g.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, 'rgba(120, 190, 210, 0)');
+  grad.addColorStop(0.25, 'rgba(120, 190, 210, 0.45)');
+  grad.addColorStop(0.75, 'rgba(120, 190, 210, 0.45)');
+  grad.addColorStop(1, 'rgba(120, 190, 210, 0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, W, H);
+  const rand = makeRandom(9);
+  for (let i = 0; i < 40; i++) {
+    const x = 5 + rand() * (W - 10);
+    const y = rand() * H;
+    const len = 20 + rand() * 60;
+    g.fillStyle = `rgba(235, 250, 255, ${0.35 + rand() * 0.4})`;
+    g.fillRect(x, y, 1.5, len);
+    if (y + len > H) g.fillRect(x, y - H, 1.5, len); // wraps round, so it scrolls without a seam
+  }
+  tex.refresh();
 }
