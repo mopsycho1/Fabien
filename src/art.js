@@ -210,6 +210,16 @@ export function attackFrame(id, side) {
   return poseFrame(id, 'attack', side);
 }
 
+// His clash banner for a unit (roadmap 8.15), or null: the picture, where its
+// point is (tip, across the picture), and the small picture of its name plate
+// laid over the plate when the banner is flipped for the right-hand side.
+// These are not loaded at the start; the battle loads them in the background.
+export function clashArt(id) {
+  const c = art[id] && art[id].clash;
+  if (!c) return null;
+  return { key: textureKey(id, c.file), file: c.file, tip: c.tip, nameKey: textureKey(id, c.name.file), nameFile: c.name.file, nameX: c.name.x, nameY: c.name.y };
+}
+
 // His walking frames for a facing ("walk" in art.json): a list of frames, or
 // null. A walk drawn facing up-left is mirrored for up-right, but never used
 // for walking towards the camera (that needs its own frames).

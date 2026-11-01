@@ -12,6 +12,7 @@ const FILES = [
   'swift_ribbons', 'swift_ring', 'swift_streaks',
   'stone_burst_0', 'stone_burst_1', 'stone_burst_2',
   'bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2', // crystals from his Earth's Bulwark card
+  'herb_pouch', // Sudeen's herb pouch, thrown to an ally (his 31 Oct 11:51 sheet, roadmap 1.12)
   'slow_ring', 'slow_pull', 'slow_spiral', 'slow_waves', 'slow_motes',
   // Gaha's Sonic Javelin (roadmap 3.11) and the Swift looks (3.10). These are
   // painted on white, not black, so they are drawn normally, not added as light.

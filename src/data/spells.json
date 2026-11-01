@@ -166,12 +166,13 @@
     "short": "HERBS",
     "kind": "heal",
     "color": "#9fdc8a",
-    "range": 1,
+    "range": 2,
     "heal": 10,
     "cooldown": 3,
-    "text": "Press healing herbs on yourself or an ally next to you: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns.",
+    "text": "Throw a pouch of healing herbs to an ally up to 2 tiles away (one tile further for each level you stand above them), or use it yourself: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns.",
     "mp": 0,
-    "use": "ally"
+    "use": "ally",
+    "rangePerLevel": 1
   },
   "poisonArrow": {
     "name": "Poison Arrow",

@@ -6,6 +6,7 @@ import EndScene from './scenes/EndScene.js';
 import EffectsLab from './scenes/EffectsLab.js';
 import { pickSize, followWindow } from './layout.js';
 import { musicState } from './audio.js';
+import { installCursor } from './cursor.js';
 
 // The game takes the shape of the window: landscape or portrait (see layout.js).
 const size = pickSize(window.innerWidth, window.innerHeight);
@@ -29,5 +30,6 @@ const game = new Phaser.Game({
   loader: { imageLoadType: 'HTMLImageElement' }, // load pictures straight from their files
 });
 followWindow(game);
+installCursor(game); // his game cursor on computers (roadmap 8.17)
 window.__game = game; // lets the test scripts look inside the running game
 window.__musicState = musicState;

@@ -197,7 +197,16 @@
         ]
       }
     },
-    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored."
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored.",
+    "clash": {
+      "file": "clash/sudeen_clash.webp",
+      "tip": 0.894,
+      "name": {
+        "file": "clash/sudeen_clash_name.webp",
+        "x": 0.5291,
+        "y": 0.0267
+      }
+    }
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -488,7 +497,17 @@
         }
       ]
     },
-    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Walk: his 3 frames walking away to the upper left (19:33), played 1, 2, 3, 2; mirrored for the upper right. Spear Throw: his wind-up and release (21:47)."
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Walk: his 3 frames walking away to the upper left (19:33), played 1, 2, 3, 2; mirrored for the upper right. Spear Throw: his wind-up and release (21:47).",
+    "clash": {
+      "file": "clash/gaha_clash.webp",
+      "tip": 0.899,
+      "name": {
+        "file": "clash/gaha_clash_name.webp",
+        "x": 0.525,
+        "y": 0.0267
+      }
+    },
+    "note_clash": "His own clash banner (roadmap 8.15): drawn on the left of a clash as it is; on the right it is flipped and the small name picture goes over its plate so the name still reads the right way. Loaded in the background once a battle starts (dev/tools/cut_banners31.py). Gadara's and Alagara's are cut too (public/art/clash) for Phase 10."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -733,7 +752,16 @@
       "originX": 0.534
     },
     "note_facing": "Down-left and down-right were swapped in his standing and battle pictures (he looked right, away from the heroes, at the start of a battle). Fixed 29 Oct: in a down view his face should point the way he faces.",
-    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and guard: \"guarding\" (11:20)."
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and guard: \"guarding\" (11:20).",
+    "clash": {
+      "file": "clash/bull_clash.webp",
+      "tip": 0.873,
+      "name": {
+        "file": "clash/bull_clash_name.webp",
+        "x": 0.5417,
+        "y": 0.0267
+      }
+    }
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",

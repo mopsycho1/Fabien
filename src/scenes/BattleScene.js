@@ -23,10 +23,10 @@ import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura,
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
-import { uiScaleFor } from '../layout.js';
+import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, setBoardSetting, terrainAt } from '../boardArt.js';
@@ -188,6 +188,7 @@ export default class BattleScene extends Phaser.Scene {
 
     createHudTextures(this);
     this.buildHud();
+    this.loadClashArt(); // his clash banners, in the background (roadmap 8.15)
     // A small gold diamond floats over the unit whose turn it is (roadmap 8.4)
     this.activeMarker = this.add.graphics().setDepth(77);
     this.activeMarker.fillStyle(GOLD, 1).fillPoints([{ x: 0, y: -9 }, { x: 7, y: 0 }, { x: 0, y: 9 }, { x: -7, y: 0 }], true);
@@ -222,6 +223,11 @@ export default class BattleScene extends Phaser.Scene {
     this.input.on('pointerdownoutside', () => {
       this.handleTap(-1, -1);
     });
+    // dragging the menu by its grip (roadmap 8.16)
+    this.menuPin = null;
+    this.menuDrag = null;
+    this.input.on('pointermove', (pointer) => this.dragMenu(pointer));
+    this.input.on('pointerup', () => (this.menuDrag = null));
 
     this.events.once('shutdown', () => stopMusic());
     startBattleMusic();
@@ -367,15 +373,15 @@ export default class BattleScene extends Phaser.Scene {
     // map of the board, and sound on or off
     const r = S(21);
     const iy = m + bh + S(12) + r;
-    const round = (x, icon, onTap) => {
-      const pic = iconImage(this, x, iy, icon, r * 2);
+    const round = (x, icon, onTap, y = iy) => {
+      const pic = iconImage(this, x, y, icon, r * 2);
       if (pic) keep(pic);
       else {
         const g = keep(this.add.graphics());
-        g.fillStyle(UI.ink, 0.9).fillCircle(x, iy, r).lineStyle(2, UI.bronze, 1).strokeCircle(x, iy, r);
-        drawIcon(g, icon, x, iy, r * 1.1, UI.bronzeLight);
+        g.fillStyle(UI.ink, 0.9).fillCircle(x, y, r).lineStyle(2, UI.bronze, 1).strokeCircle(x, y, r);
+        drawIcon(g, icon, x, y, r * 1.1, UI.bronzeLight);
       }
-      const hit = keep(this.add.circle(x, iy, r + 4, 0x000000, 0.001).setInteractive({ useHandCursor: true }));
+      const hit = keep(this.add.circle(x, y, r + 4, 0x000000, 0.001).setInteractive({ useHandCursor: true }));
       hit.on('pointerdown', onTap);
       return pic;
     };
@@ -393,9 +399,24 @@ export default class BattleScene extends Phaser.Scene {
     };
     showSound();
     const rx = muteX - r * 2 - S(16);
-    round(rx, 'redo', () => this.rotateCamera(1));
-    this.compassPos = { x: rx - r - S(30), y: iy };
-    round(rx - r * 2 - S(40), 'undo', () => this.rotateCamera(-1));
+    if (isPhone(this)) {
+      // On a phone the turn buttons sit halfway down the two sides of the
+      // screen, under the thumbs (roadmap 8.18, Suleiman 31 Oct 09:44); the
+      // little map of the board stays up here. In landscape the left one
+      // stands just right of the turn order column.
+      const ry = Math.round(H / 2);
+      const lx = this.lay.portrait ? m + r : m + S(92);
+      const rxSide = W - m - r;
+      round(lx, 'undo', () => this.rotateCamera(-1), ry);
+      round(rxSide, 'redo', () => this.rotateCamera(1), ry);
+      this.rotateSpots = [{ x: lx, y: ry }, { x: rxSide, y: ry }];
+      this.compassPos = { x: rx, y: iy };
+    } else {
+      round(rx, 'redo', () => this.rotateCamera(1));
+      this.compassPos = { x: rx - r - S(30), y: iy };
+      round(rx - r * 2 - S(40), 'undo', () => this.rotateCamera(-1));
+      this.rotateSpots = [];
+    }
     this.compass = keep(this.add.graphics());
     this.refreshCompass();
     if (!this.keysBound) {
@@ -424,7 +445,14 @@ export default class BattleScene extends Phaser.Scene {
     this.halves = [row(), row()];
     this.lowHalves = [row(), row()];
     for (const b of [...this.halves, ...this.lowHalves]) b.set(null);
-    this.menu = keep(this.add.container(0, 0, [this.menuPanel, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5));
+    // The grip along its top edge: drag it to put the menu anywhere (roadmap
+    // 8.16, Suleiman 31 Oct 09:43 "see if you can make the battle ui movable").
+    // It stays where you put it for the rest of the battle; double-tap the
+    // grip to send it back beside the unit.
+    this.menuGrip = this.add.graphics();
+    this.menuGripHit = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive();
+    this.menuGripHit.on('pointerdown', (pointer) => this.grabMenu(pointer));
+    this.menu = keep(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5));
     this.menuRows = [];
     this.menuSize = { w: 0, h: 0 };
     this.menuShown = null;
@@ -467,11 +495,17 @@ export default class BattleScene extends Phaser.Scene {
     const caster = this.activeUnit && this.activeUnit.maxMp > 0 && !isMelee(this.activeUnit);
     const header = this.mode === 'spell' || this.spellGroup ? this.spellGroup || (caster ? 'Verses' : 'Skills') : '';
     const headH = header ? Math.round(24 * s) : 0;
-    rows.forEach((r, i) => r.place(pad, pad + headH + i * rowH, menuW - 2 * pad, rowH, s));
-    const h = pad * 2 + headH + rows.length * rowH;
+    const gripH = Math.round(14 * s);
+    rows.forEach((r, i) => r.place(pad, pad + gripH + headH + i * rowH, menuW - 2 * pad, rowH, s));
+    const h = pad * 2 + gripH + headH + rows.length * rowH;
     this.menuPanel.clear();
     darkPanel(this.menuPanel, 0, 0, menuW, h, s);
-    this.menuHeader.setText(header.toUpperCase()).setPosition(pad + Math.round(10 * s), pad + headH / 2);
+    // the grip: two short rows of gold dots, centred along the top
+    this.menuGrip.clear().fillStyle(this.menuPin ? 0xffd27a : UI.bronzeLight, this.menuPin ? 0.95 : 0.7);
+    for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(menuW / 2 + i * 7 * s, pad + gripH / 2 + dy * s, 1.6 * s);
+    this.menuGripHit.setSize(menuW, pad + gripH + Math.round(4 * s));
+    if (this.menuGripHit.input) this.menuGripHit.input.hitArea.setTo(0, 0, menuW, pad + gripH + Math.round(4 * s));
+    this.menuHeader.setText(header.toUpperCase()).setPosition(pad + Math.round(10 * s), pad + gripH + headH / 2);
     this.menuRows = rows;
     this.menuSize = { w: menuW, h };
     this.ui(this.menu);
@@ -496,9 +530,18 @@ export default class BattleScene extends Phaser.Scene {
       // a hidden menu must not catch taps meant for the board
       this.menuShown = show;
       for (const r of [...this.slots, ...this.halves, ...this.lowHalves]) if (r.hit.input) r.hit.input.enabled = show;
+      if (this.menuGripHit.input) this.menuGripHit.input.enabled = show;
     }
     if (!show) return;
     const { W, H, s, m, cardW, infoW } = this.lay;
+    // put somewhere by hand (8.16): it stays there, kept on the screen
+    if (this.menuPin) {
+      const { w, h } = this.menuSize;
+      const x = Math.min(Math.max(this.menuPin.fx * W, m), W - m - w);
+      const y = Math.min(Math.max(this.menuPin.fy * H, m), H - m - h);
+      this.menu.setPosition(Math.round(x), Math.round(y));
+      return;
+    }
     const cam = this.cameras.main;
     const toScreen = (x, y) => ({ x: (x - cam.worldView.x) * cam.zoom, y: (y - cam.worldView.y) * cam.zoom });
     const at = toScreen(u.view.x, u.view.y - u.centerY);
@@ -512,6 +555,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     for (const t of this.targetsInRange) points.push({ ...toScreen(t.view.x, t.view.y - t.centerY), weight: 4 });
     for (const o of this.units) if (o.alive) points.push({ ...toScreen(o.view.x, o.view.y - o.centerY * 0.6), weight: o === u ? 8 : 2 });
+    for (const p of this.rotateSpots || []) points.push({ ...p, weight: 6 }); // the turn buttons on a phone's sides
     const topSafe = m + 100 * s;
     const fit = (x, y) => {
       x = Math.min(Math.max(x, m), W - m - w);
@@ -540,6 +584,38 @@ export default class BattleScene extends Phaser.Scene {
       if (!best || score < best.score) best = { ...p, score };
     });
     this.menu.setPosition(Math.round(best.x), Math.round(best.y));
+  }
+
+  // The menu's grip was pressed (8.16): start dragging it. A second tap on it
+  // soon after sends the menu back beside the unit.
+  grabMenu(pointer) {
+    const now = this.time.now;
+    if (this.lastGripTap && now - this.lastGripTap < 350) {
+      this.lastGripTap = 0;
+      this.menuDrag = null;
+      this.menuPin = null;
+      play('click');
+      this.layoutMenu();
+      return;
+    }
+    this.lastGripTap = now;
+    this.menuDrag = { px: pointer.x, py: pointer.y, mx: this.menu.x, my: this.menu.y, moved: false };
+  }
+
+  // The finger (or mouse) moves while holding the grip: the menu follows it.
+  dragMenu(pointer) {
+    const d = this.menuDrag;
+    if (!d || !pointer.isDown) return;
+    const dx = pointer.x - d.px;
+    const dy = pointer.y - d.py;
+    if (!d.moved && Math.hypot(dx, dy) < 6) return; // a tap, not a drag yet
+    if (!d.moved) {
+      d.moved = true;
+      this.menuPin = { fx: d.mx / this.lay.W, fy: d.my / this.lay.H };
+      this.layoutMenu(); // the grip lights up
+    }
+    this.menuPin = { fx: (d.mx + dx) / this.lay.W, fy: (d.my + dy) / this.lay.H };
+    this.placeMenu();
   }
 
   // The small cancel tag shown while a target is being picked (roadmap 8.9).
@@ -1834,7 +1910,7 @@ export default class BattleScene extends Phaser.Scene {
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u))
     );
     if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
-      this.showMessage('Nobody next to you needs healing');
+      this.showMessage('Nobody in reach needs healing');
       this.selectedSpell = null;
       this.mode = 'spell';
       return;
@@ -4649,28 +4725,63 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  // Herbs: a little health back for the unit itself or an ally next to it.
+  // Herbs: a little health back for the unit itself or an ally in reach.
+  // For an ally he throws the pouch (roadmap 1.12, Suleiman 31 Oct 12:04):
+  // up to 2 tiles, one further for each level he stands above them
+  // (spells.json range and rangePerLevel); it flies in an arc, so walls don't stop it.
   castHeal(healer, target, spell, onDone) {
     const amount = Math.min(spell.heal, target.maxHp - target.hp);
     target.hp += amount;
     const cured = isPoisoned(target) || isBurning(target);
     curePoison(target); // the herbs draw out poison too
     cureBurn(target);   // and put out a burn
-    if (cured) this.time.delayedCall(350, () => this.floatText(target, 'Cured', '#9fdc6a', { rise: 46 }));
-    this.refreshStatusTags();
-    this.updateHpBar(target);
     this.refreshButtons();
-    if (target !== healer) this.faceToward(healer, target.view.x - healer.view.x, target.view.y - healer.view.y);
-    this.showPose(healer, 'heal', target.view.x - healer.view.x || 1); // the herb pouch held up
+    const dx = target.view.x - healer.view.x || 1;
+    if (target !== healer) this.faceToward(healer, dx, target.view.y - healer.view.y);
+    this.showPose(healer, 'heal', dx); // the herb pouch raised (his 11:51 pictures)
     this.time.delayedCall(800, () => healer.alive && this.showStanding(healer));
-    play('spell');
-    buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
-    this.floatText(target, '+' + amount, spell.color, { pop: true });
-    if (target.lowGlow && target.hp / target.maxHp > 0.3) {
-      target.lowGlow.destroy();
-      target.lowGlow = null;
-    }
-    this.time.delayedCall(900, onDone);
+    // where it lands: the healing shows there
+    const land = () => {
+      if (cured) this.time.delayedCall(350, () => this.floatText(target, 'Cured', '#9fdc6a', { rise: 46 }));
+      this.refreshStatusTags();
+      this.updateHpBar(target);
+      play('spell');
+      buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
+      this.floatText(target, '+' + amount, spell.color, { pop: true });
+      if (target.lowGlow && target.hp / target.maxHp > 0.3) {
+        target.lowGlow.destroy();
+        target.lowGlow = null;
+      }
+    };
+    let flight = 0;
+    if (target !== healer && this.textures.exists('fx:herb_pouch')) {
+      const tiles = distance(healer, target);
+      flight = 240 + tiles * 90;
+      const from = { x: healer.view.x + Math.sign(dx) * 12, y: healer.view.y - healer.topY * 0.85 };
+      const to = this.centerOf(target);
+      const peak = 46 + tiles * 16;
+      const pouch = this.add.image(from.x, from.y, 'fx:herb_pouch').setDepth(Math.max(healer.view.depth, target.view.depth) + 2);
+      const p = { t: 0 };
+      this.time.delayedCall(140, () => {
+        play('whoosh');
+        this.tweens.add({
+          targets: p,
+          t: 1,
+          duration: flight,
+          ease: 'Linear',
+          onUpdate: () => {
+            pouch.setPosition(from.x + (to.x - from.x) * p.t, from.y + (to.y - from.y) * p.t - peak * 4 * p.t * (1 - p.t));
+            pouch.setAngle(p.t * 300 * Math.sign(dx));
+          },
+          onComplete: () => {
+            pouch.destroy();
+            land();
+          },
+        });
+      });
+      flight += 140;
+    } else land();
+    this.time.delayedCall(900 + flight, onDone);
   }
 
   // Husk: the caster leaves a decoy that looks exactly like her and slips away
@@ -5198,11 +5309,15 @@ export default class BattleScene extends Phaser.Scene {
   // split frame (the hero on the red panel, the foe on the blue), with their
   // names; a flash and a shake where they meet, then they fly apart.
   clashBanner(a, b, onDone) {
+    const hero = a.side === 'hero' ? a : b;
+    const foe = hero === a ? b : a;
+    // both fighters have their own banner (8.15), loaded: his banners face to face
+    const ha = clashArt(hero.id);
+    const fa = clashArt(foe.id);
+    if (ha && fa && [ha.key, fa.key, fa.nameKey].every((k) => this.textures.exists(k))) return this.bannerClash(hero, foe, ha, fa, onDone);
     if (!this.textures.exists('ui:clash_frame')) return this.cutIn(a, 'ENGAGE!', onDone);
     play('cutin');
     const { W, H, s } = this.lay;
-    const hero = a.side === 'hero' ? a : b;
-    const foe = hero === a ? b : a;
     const [fw, fh] = clashData.size;
     const k = Math.min(W * 0.98, 1120 * s) / fw;
     const cx = W / 2;
@@ -5275,6 +5390,92 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
+
+  // His own clash banners (roadmap 8.15, 31 Oct): the hero's slams in from the
+  // left, the foe's from the right (flipped, with its name plate laid over so
+  // the name still reads the right way), their points meeting in the middle;
+  // a flash and a shake where they meet, then they fly apart.
+  bannerClash(hero, foe, ha, fa, onDone) {
+    play('cutin');
+    const { W, H, portrait } = this.lay;
+    const cx = W / 2;
+    const cy = Math.round(H * (portrait ? 0.42 : 0.44));
+    const overlap = 18;
+    const sides = [
+      [ha, false, -1],
+      [fa, true, 1],
+    ].map(([art, flip, dir], i) => {
+      const img = this.ui(this.add.image(0, 0, art.key).setOrigin(0, 0).setFlipX(flip).setDepth(252 + i * 2));
+      // about half the screen tall (a third when the phone is upright)
+      const k = (H * (portrait ? 0.3 : 0.52)) / img.height;
+      img.setScale(k);
+      const w = img.width * k;
+      const h = img.height * k;
+      // its point: on the left banner at tip across, on the flipped one at 1 - tip
+      const left = flip ? cx - overlap - (1 - art.tip) * w : cx + overlap - art.tip * w;
+      const top = cy - h / 2 + (flip ? 0.07 : -0.07) * h;
+      let name = null;
+      if (flip) name = this.ui(this.add.image(0, 0, art.nameKey).setOrigin(0, 0).setScale(k).setDepth(253 + i * 2));
+      const place = (dx) => {
+        img.setPosition(left + dx, top);
+        if (name) name.setPosition(left + dx + art.nameX * w, top + art.nameY * h);
+      };
+      return { objs: name ? [img, name] : [img], place, dir };
+    });
+    const t = { p: 1 };
+    const placeAll = () => sides.forEach((side) => side.place(side.dir * t.p * W));
+    placeAll();
+    this.tweens.add({ targets: t, p: 0, duration: 200, ease: 'Cubic.easeOut', onUpdate: placeAll, onComplete: placeAll });
+    this.time.delayedCall(200, () => {
+      play('clash');
+      screenShake(this, 0.006, 160);
+      // a thin bright slash where the points meet, widening as it fades
+      const flash = this.ui(this.add.rectangle(cx, cy, Math.round(W * 0.012), Math.round(H * 0.46), 0xfff6e0, 0.95).setAngle(14).setDepth(256).setBlendMode(Phaser.BlendModes.ADD));
+      this.tweens.add({ targets: flash, alpha: 0, scaleX: 5, duration: 200, ease: 'Cubic.easeOut', onComplete: () => flash.destroy() });
+    });
+    this.time.delayedCall(1000, () => {
+      this.tweens.add({ targets: t, p: 1, duration: 220, ease: 'Cubic.easeIn', onUpdate: placeAll });
+    });
+    this.time.delayedCall(1240, () => {
+      for (const side of sides) side.objs.forEach((o) => o.destroy());
+      onDone();
+    });
+  }
+
+  // His clash banners for the units in this battle, loaded in the background
+  // once it has started so they don't slow the first load (roadmap 8.15).
+  // Until a pair is loaded, a clash shows the shared banner with both faces.
+  loadClashArt() {
+    if (typeof window !== 'undefined' && window.__noWebp) return; // the test browser can't read WebP
+    let queued = 0;
+    for (const u of this.units) {
+      const c = clashArt(u.id);
+      if (!c) continue;
+      for (const [key, file] of [[c.key, c.file], [c.nameKey, c.nameFile]]) {
+        if (this.textures.exists(key)) continue;
+        this.load.image(key, './art/' + file);
+        queued++;
+      }
+    }
+    if (queued) this.load.start();
+  }
+
+  // For his game cursor (cursor.js, roadmap 8.17): wait while things move or
+  // on the enemy's turn...
+  cursorBusy() {
+    if (!this.lay || this.battleOver) return false;
+    return !!(this.busy || this.inCinematic || this.rotating || (this.activeUnit && this.activeUnit.side !== 'hero'));
+  }
+
+  // ...and the hover look over anything that can be tapped on the board: a
+  // figure, a blue tile, a target.
+  cursorHover(x, y) {
+    if (!this.lay || !this.units) return false;
+    const w = this.cameras.main.getWorldPoint(x, y);
+    if (this.figureAt(w.x, w.y)) return true;
+    const t = screenToTile(w.x, w.y);
+    return this.reachableKeys.has(t.col + ',' + t.row) || this.targetsInRange.some((u) => u.col === t.col && u.row === t.row);
+  }
 
   // A band sweeps across the screen with the unit's face and a big word,
   // like "ENGAGE!" or "FINISHING BLOW". Then onDone runs.

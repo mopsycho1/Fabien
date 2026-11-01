@@ -87,3 +87,13 @@ export function fitDesign(scene, designW = 720, designH = 1280) {
   scene.events.on('layout', fit);
   scene.events.once('shutdown', () => scene.events.off('layout', fit));
 }
+
+// True on a phone or tablet (no mouse): the battle puts its turn buttons on
+// the sides of the screen there (roadmap 8.18). A touch laptop counts as a
+// computer unless its screen is phone-sized.
+export function isPhone(scene) {
+  const d = scene.sys.game.device;
+  if (d.os.android || d.os.iOS || d.os.iPad || d.os.iPhone || d.os.windowsPhone || d.os.kindle) return true;
+  const small = Math.min(window.screen.width, window.screen.height);
+  return !!d.input.touch && small > 0 && small < 600;
+}
