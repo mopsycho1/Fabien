@@ -98,6 +98,32 @@
           "file": "sudeen_iso_heal_downRight.png",
           "originX": 0.401
         }
+      },
+      "dodge": {
+        "upRight": {
+          "file": "sudeen_cu_dodge_upRight.png",
+          "originX": 0.203
+        },
+        "downLeft": {
+          "file": "sudeen_cu_dodge_downLeft.png",
+          "originX": 0.572
+        }
+      },
+      "clashSlip": {
+        "upRight": {
+          "file": "sudeen_cu_dodge_upRight.png",
+          "originX": 0.203
+        },
+        "downLeft": {
+          "file": "sudeen_cu_dodge_downLeft.png",
+          "originX": 0.572
+        }
+      },
+      "slipStrike": {
+        "downLeft": {
+          "file": "sudeen_cu_slipStrike_downLeft.png",
+          "originX": 0.579
+        }
       }
     },
     "portrait": "sudeen_face.png",
@@ -206,7 +232,8 @@
         "x": 0.5291,
         "y": 0.0267
       }
-    }
+    },
+    "note_slip": "Dodge and the slip strike (roadmap 9.8, his 30 Oct 20:00 sheet, drawn facing left): a Slip that wins a clash beat shows the strike."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -305,8 +332,14 @@
         }
       },
       "dodge": {
-        "file": "gaha_dodge.png",
-        "originX": 0.562
+        "upRight": {
+          "file": "gaha_cu_clashSlip_upRight.png",
+          "originX": 0.578
+        },
+        "downRight": {
+          "file": "gaha_cu_clashSlip_downRight.png",
+          "originX": 0.607
+        }
       },
       "throw": {
         "file": "gaha_iso_throw_downRight.png",
@@ -337,6 +370,48 @@
       "throwRelease": {
         "file": "gaha_iso_release_downRight.png",
         "originX": 0.248
+      },
+      "clashPress": {
+        "upRight": {
+          "file": "gaha_cu_clashPress_upRight.png",
+          "originX": 0.376
+        },
+        "downRight": {
+          "file": "gaha_cu_clashPress_downRight.png",
+          "originX": 0.661
+        }
+      },
+      "clashGuard": {
+        "upRight": {
+          "file": "gaha_cu_clashGuard_upRight.png",
+          "originX": 0.416
+        },
+        "downRight": {
+          "file": "gaha_cu_clashGuard_downRight.png",
+          "originX": 0.375
+        }
+      },
+      "clashSlip": {
+        "upRight": {
+          "file": "gaha_cu_clashSlip_upRight.png",
+          "originX": 0.578
+        },
+        "downRight": {
+          "file": "gaha_cu_clashSlip_downRight.png",
+          "originX": 0.607
+        }
+      },
+      "sonicWindup": {
+        "downRight": {
+          "file": "gaha_cu_sonicWindup.png",
+          "originX": 0.281
+        }
+      },
+      "sonicClose": {
+        "downRight": {
+          "file": "gaha_cu_sonicClose.png",
+          "originX": 0.154
+        }
       }
     },
     "portrait": "gaha_face.png",
@@ -507,7 +582,8 @@
         "y": 0.0267
       }
     },
-    "note_clash": "His own clash banner (roadmap 8.15): drawn on the left of a clash as it is; on the right it is flipped and the small name picture goes over its plate so the name still reads the right way. Loaded in the background once a battle starts (dev/tools/cut_banners31.py). Gadara's and Alagara's are cut too (public/art/clash) for Phase 10."
+    "note_clash": "His own clash banner (roadmap 8.15): drawn on the left of a clash as it is; on the right it is flipped and the small name picture goes over its plate so the name still reads the right way. Loaded in the background once a battle starts (dev/tools/cut_banners31.py). Gadara's and Alagara's are cut too (public/art/clash) for Phase 10.",
+    "note_clash_poses": "Clash close-ups (roadmap 9.9): Press, Guard and Slip from his 30 Oct 21:14, 20:15 and 21:03 sheets, shown when the camera zooms on a clash. Sonic Javelin (9.16): his 1 Nov wind-up (08:32) and close-range strike (08:22). Cut by dev/tools/make_cleanup.py."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -565,11 +641,11 @@
       },
       "hurt": {
         "upRight": {
-          "file": "layra_iso_hurt_upRight.png",
+          "file": "layra_iso_hurt2_upRight.png",
           "originX": 0.435
         },
         "downRight": {
-          "file": "layra_iso_hurt_downRight.png",
+          "file": "layra_iso_hurt2_downRight.png",
           "originX": 0.382
         }
       },

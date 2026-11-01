@@ -444,3 +444,14 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
   - **Pinch, or use the mouse wheel**, to zoom between the whole board and close up.
   - **Tap the little map** top right for the whole board, and tap it again to go back to the unit.
   - **On a computer** the whole board usually fits, so the camera stays put.
+
+## The clean-up batch (1 Nov)
+
+- **Blue and red tiles in the Final Fantasy Tactics style**: each highlighted tile is a see-through pane with a small gap round it and a bright glowing edge, and they all pulse together (`showHighlights` in `BattleScene.js`). Making them bend over slopes needs ramp tiles (roadmap Phase 12).
+- **Gaha's clash close-ups** (`art.json`, `h2`, poses `clashPress`, `clashGuard`, `clashSlip`): when the camera zooms in on a clash he shows his lunge, his block and his low dodge. Any character can get these by adding the same three poses. His low dodge is now his everyday dodge too.
+- **Sudeen's slip strike** (`h1`, `dodge` and `slipStrike`): when he wins a clash beat with Slip, he dodges and then strikes.
+- **Empower**: spending Poise to Empower a stance makes his golden aura burst up round the fighter (`public/art/fx/empower_aura.jpg`, drawn on black so it glows).
+- **Layra concentrating**: as she gathers a Verse, its element rises round her from his sheets: wind for Swift, earth for Earth's Bulwark, fire for Fury, the purple swirl for Slow. Wildfire flies as his fire.
+- **Sonic Javelin in his new frames** (`h2` poses `sonicWindup`, `sonicClose`; `fx/sonic_spear.png`, `fx/sonic_impact.png`): the wind-up, the spear in flight, the moment of impact, and the close-range strike. His release picture is being redone, so Gaha holds the wind-up as the spear leaves. When the new one comes, it goes in as the frame after the wind-up.
+- **Layra injured**: his 1 Nov set.
+- All cut by `dev/tools/make_cleanup.py`.

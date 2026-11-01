@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -2936,6 +2936,19 @@ export default class BattleScene extends Phaser.Scene {
     this.showStanding(unit);
   }
 
+  // True if the unit has pictures for this pose.
+  hasPose(unit, pose) {
+    return !!poseFrame(unit.id, pose, 'right');
+  }
+
+  // The picture for a stance in a clash: his close-up poses when the unit
+  // has them (Gaha, roadmap 9.9), else the usual ones.
+  clashPose(unit, stance) {
+    const own = { press: 'clashPress', guard: 'clashGuard', slip: 'clashSlip', break: 'clashSlip' }[stance];
+    if (own && this.hasPose(unit, own)) return own;
+    return { press: 'windup', guard: 'guard', slip: 'dodge', break: 'dodge' }[stance];
+  }
+
   // Shows one picture on a unit. "frame" is { key, flip } from art.js.
   // Returns true if the picture was shown.
   showFrame(unit, frame) {
@@ -3740,14 +3753,15 @@ export default class BattleScene extends Phaser.Scene {
     const dy = bHome.y - aHome.y;
     const mid = { x: (aHome.x + bHome.x) / 2, y: (aHome.y - a.centerY + bHome.y - b.centerY) / 2 };
     const headY = Math.min(aHome.y - a.topY, bHome.y - b.topY);
-    const stancePose = { press: 'windup', guard: 'guard', slip: 'dodge', break: 'dodge' };
+    // his close-up clash poses (roadmap 9.9) when the fighter has them
+    const stancePose = (u, stance) => this.clashPose(u, stance);
 
     this.beginCinematic();
     this.focusCamera(mid.x, mid.y + 30, opening || beat.decisive ? 1.35 : 1.18, 260);
     this.faceToward(a, dx, dy);
     this.faceToward(b, -dx, -dy);
-    this.showPose(a, stancePose[beat.actorStance], dx);
-    this.showPose(b, stancePose[beat.holderStance], -dx);
+    this.showPose(a, stancePose(a, beat.actorStance), dx);
+    this.showPose(b, stancePose(b, beat.holderStance), -dx);
     this.showDuelFaces(beat); // both faces at the screen edges
 
     const steps = [];
@@ -3761,7 +3775,10 @@ export default class BattleScene extends Phaser.Scene {
       this.floatText(a, stanceName(beat.actorStance).toUpperCase() + (beat.empowered ? '+' : ''), stanceColor[beat.actorStance]);
       this.floatText(b, stanceName(beat.holderStance).toUpperCase(), stanceColor[beat.holderStance]);
       // spending Poise to Empower shows his Empower card beside the fighter
-      if (beat.empowered) this.statusCard(a, 'empower', { label: 'Empower', color: '#ffd27a', side: away(a) });
+      if (beat.empowered) {
+        this.statusCard(a, 'empower', { label: 'Empower', color: '#ffd27a', side: away(a) });
+        empowerAura(this, a); // his golden aura bursts up (roadmap 9.6)
+      }
     });
 
     if (beat.kind === 'break') {
@@ -3782,8 +3799,10 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       // close in and the blades meet
       at(380, () => {
-        this.showPose(a, beat.actorStance === 'press' ? 'attack' : 'ready', dx);
-        this.showPose(b, beat.holderStance === 'press' ? 'attack' : 'ready', -dx);
+        // the blades meet: a Press strikes; Guard and Slip hold their close-up stance
+        const meet = (u, stance) => (stance === 'press' ? (this.hasPose(u, 'clashPress') ? 'clashPress' : 'attack') : this.hasPose(u, this.clashPose(u, stance)) && this.clashPose(u, stance) !== 'dodge' ? this.clashPose(u, stance) : 'ready');
+        this.showPose(a, meet(a, beat.actorStance), dx);
+        this.showPose(b, meet(b, beat.holderStance), -dx);
         this.tweens.add({ targets: a.view, x: aHome.x + dx * 0.2, y: aHome.y + dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
         this.tweens.add({ targets: b.view, x: bHome.x - dx * 0.2, y: bHome.y - dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
       });
@@ -3804,6 +3823,13 @@ export default class BattleScene extends Phaser.Scene {
           color = beat.winner.side === 'hero' ? '#9fe0c8' : '#ff8a6a';
           // a Press that wins the beat shows his Press card beside the winner
           if (winStance === 'press') this.statusCard(beat.winner, 'press', { label: 'Press', color: '#ff9a6a', side: away(beat.winner) });
+          // a Slip that wins: the dodge turns into a strike (Sudeen, roadmap 9.8)
+          if (winStance === 'slip' && this.hasPose(beat.winner, 'slipStrike')) {
+            const w = beat.winner;
+            const wdx = (w === a ? dx : -dx);
+            this.showPose(w, 'slipStrike', wdx);
+            play('slash');
+          }
         }
         if (beat.decisive) {
           title = 'DECISIVE!';
@@ -4217,6 +4243,7 @@ export default class BattleScene extends Phaser.Scene {
     const lead = poseFrame(caster.id, 'chant', 'right') ? 420 : 0;
     if (lead) {
       this.showPose(caster, 'chant', dxT);
+      elementRise(this, caster, id, lead); // the element gathers round her (roadmap 9.10)
       this.time.delayedCall(lead, () => caster.alive && this.showPose(caster, 'cast', dxT));
     } else this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', dxT);
     this.time.delayedCall(lead + 250, () => {
@@ -4751,6 +4778,14 @@ export default class BattleScene extends Phaser.Scene {
           });
         }
       };
+      // his 1 Nov wind-up (roadmap 9.16): the spear drawn back, then it flies.
+      // (His release picture is being redone, so he holds the wind-up as it goes.)
+      if (this.hasPose(user, 'sonicWindup')) {
+        this.showPose(user, 'sonicWindup', dx);
+        this.time.delayedCall(300, release);
+        finish(300 + flight + 420);
+        return;
+      }
       const ms = this.playMove(user, 'sonicThrow', dx, { at: { 3: release } });
       if (!ms) {
         this.showPose(user, 'throw', dx);
@@ -4787,6 +4822,13 @@ export default class BattleScene extends Phaser.Scene {
         const dx = target.view.x - user.view.x;
         this.faceToward(user, dx, target.view.y - user.view.y);
         const r = results[0];
+        // his 1 Nov close-range strike (roadmap 9.16)
+        if (this.hasPose(user, 'sonicClose')) {
+          this.showPose(user, 'sonicClose', dx);
+          this.time.delayedCall(110, () => { play('hit'); screenShake(this, 0.007, 160); showHit(r, dx); });
+          finish(650);
+          return;
+        }
         const ms = this.playMove(user, 'sonicWhirl', dx, {
           from: 3,
           at: { 2: () => { play('hit'); screenShake(this, 0.007, 160); showHit(r, dx); } },
@@ -5911,24 +5953,24 @@ export default class BattleScene extends Phaser.Scene {
   showHighlights(tiles, color, options = {}) {
     if (!options.keep) this.clearHighlights();
     const alpha = options.alpha !== undefined ? options.alpha : 0.6;
-
+    // In the style of Final Fantasy Tactics (roadmap 8.19, Baiyee 1 Nov): each
+    // tile a see-through pane with a small gap round it, a bright glowing edge,
+    // and all of them breathing together
+    const edge = Phaser.Display.Color.ValueToColor(color).lighten(28).color;
+    const added = [];
     for (const tile of tiles) {
       const { x, y } = tileToScreen(tile.col, tile.row);
-      const hw = TILE_WIDTH / 2 - 4;
-      const hh = TILE_HEIGHT / 2 - 3;
-
+      const hw = TILE_WIDTH / 2 - Math.max(5, TILE_WIDTH * 0.06);
+      const hh = TILE_HEIGHT / 2 - Math.max(3, TILE_HEIGHT * 0.06);
+      const pts = [{ x, y: y - hh }, { x: x + hw, y }, { x, y: y + hh }, { x: x - hw, y }];
       const diamond = this.add.graphics().setDepth(depthFor(tile.col, tile.row) + 0.5);
-      diamond.fillStyle(color, alpha);
-      diamond.beginPath();
-      diamond.moveTo(x, y - hh);
-      diamond.lineTo(x + hw, y);
-      diamond.lineTo(x, y + hh);
-      diamond.lineTo(x - hw, y);
-      diamond.closePath();
-      diamond.fillPath();
-
+      diamond.fillStyle(color, alpha * 0.55).fillPoints(pts, true);
+      diamond.lineStyle(6, edge, 0.22).strokePoints(pts, true, true); // the glow round the edge
+      diamond.lineStyle(2.2, edge, 0.95).strokePoints(pts, true, true); // the bright edge
       this.highlights.push(diamond);
+      added.push(diamond);
     }
+    if (added.length) this.tweens.add({ targets: added, alpha: 0.62, duration: 760, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
   clearHighlights() {

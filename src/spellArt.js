@@ -12,6 +12,12 @@ const FILES = [
   'swift_ribbons', 'swift_ring', 'swift_streaks',
   'stone_burst_0', 'stone_burst_1', 'stone_burst_2',
   'bulwark_crystal_0', 'bulwark_crystal_1', 'bulwark_crystal_2', // crystals from his Earth's Bulwark card
+  // the clean-up batch (1 Nov, dev/tools/make_cleanup.py): the element rising
+  // round Layra as she concentrates (9.10), his fire beam for Wildfire, his
+  // new Sonic Javelin spear and impact (9.16)
+  'rise_earth_0', 'rise_earth_1', 'rise_earth_2', 'rise_hex_0', 'rise_hex_1', 'rise_hex_2',
+  'rise_wind_0', 'rise_wind_1', 'rise_wind_2', 'rise_fire_0', 'rise_fire_1', 'fire_beam',
+  'sonic_spear', 'sonic_impact',
   'herb_pouch', // Sudeen's herb pouch, thrown to an ally (his 31 Oct 11:51 sheet, roadmap 1.12)
   'slow_ring', 'slow_pull', 'slow_spiral', 'slow_waves', 'slow_motes',
   // Gaha's Sonic Javelin (roadmap 3.11) and the Swift looks (3.10). These are
@@ -43,6 +49,7 @@ export const CARDS = ['offbalance', 'swiftness', 'fury', 'stone', 'press', 'empo
 
 export function preloadSpellArt(scene) {
   for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
+  scene.load.image('fx:empower_aura', './art/fx/empower_aura.jpg'); // drawn on black: it glows (added light)
   for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
   for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
 }
@@ -317,6 +324,20 @@ export function hasSonicArt(scene) {
 // The javelin in flight with its sonic rings, from (x0, y0) to (x1, y1).
 // scale matches the thrower's pictures. onArrive runs when it gets there.
 export function sonicSpear(scene, x0, y0, x1, y1, scale, duration, onArrive) {
+  if (has(scene, ['sonic_spear'])) {
+    // his 1 Nov flying spear (roadmap 9.16): one picture, tip to the right
+    const spear = scene.add.image(x0, y0, 'fx:sonic_spear').setOrigin(0.9, 0.5).setScale(scale).setDepth(80);
+    spear.setRotation(Math.atan2(y1 - y0, x1 - x0));
+    if (x1 < x0) spear.setFlipY(true);
+    scene.tweens.add({
+      targets: spear, x: x1, y: y1, duration, ease: 'Linear',
+      onComplete: () => {
+        scene.tweens.add({ targets: spear, alpha: 0, duration: 140, onComplete: () => spear.destroy() });
+        if (onArrive) onArrive();
+      },
+    });
+    return spear;
+  }
   if (!scene.anims.exists('sonicSpear')) {
     scene.anims.create({ key: 'sonicSpear', frames: SPEAR.map((k) => ({ key: 'fx:' + k })), frameRate: 18, repeat: -1 });
   }
@@ -348,6 +369,13 @@ export function sonicRing(scene, x, y, angle, scale) {
 
 // Where the javelin stops: rocks and dust burst up.
 export function sonicImpact(scene, x, y, scale, flip) {
+  if (has(scene, ['sonic_impact'])) {
+    // his 1 Nov moment of impact: the spear driven into the ground, rocks and wind
+    const img = scene.add.image(x, y + 6, 'fx:sonic_impact').setOrigin(0.52, 0.62).setScale(scale * 0.9).setDepth(80).setFlipX(flip).setAlpha(0);
+    scene.tweens.add({ targets: img, alpha: 1, scale: scale, duration: 90 });
+    scene.tweens.add({ targets: img, alpha: 0, delay: 520, duration: 320, onComplete: () => img.destroy() });
+    return;
+  }
   flipbook(scene, ['sj_impact_0', 'sj_impact_1'], x, y + 10, { frameMs: 110, scale, depth: 80, flip });
 }
 
@@ -359,6 +387,19 @@ export function earthBurst(scene, x, y, scale, flip) {
 // Layra's Wildfire (roadmap 3.9): a ball of fire flies to the target and
 // bursts into a column of flame. Uses the Fury pictures if they are there.
 export function fireball(scene, x0, y0, x1, y1, onArrive) {
+  if (has(scene, ['fire_beam'])) {
+    // his fire from the Wildfire sheet (roadmap 9.10): its head is on the left as drawn
+    const beam = scene.add.image(x0, y0, 'fx:fire_beam').setOrigin(0.15, 0.5).setScale(0.7).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
+    beam.setRotation(Math.atan2(y1 - y0, x1 - x0) + Math.PI);
+    scene.tweens.add({
+      targets: beam, x: x1, y: y1, duration: 300, ease: 'Quad.easeIn',
+      onComplete: () => {
+        scene.tweens.add({ targets: beam, alpha: 0, duration: 120, onComplete: () => beam.destroy() });
+        if (onArrive) onArrive();
+      },
+    });
+    return;
+  }
   const ball = scene.add.circle(x0, y0, 11, 0xffb347, 1).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
   const core = scene.add.circle(x0, y0, 6, 0xfff1c2, 1).setDepth(81).setBlendMode(Phaser.BlendModes.ADD);
   const trail = scene.time.addEvent({
@@ -409,4 +450,41 @@ export function burnAura(scene, unit) {
     embers.push(e);
   }
   return embers;
+}
+
+// ---------- The clean-up batch (1 Nov) ----------
+
+// Empower (roadmap 9.6): his golden aura bursts up round a fighter who spends
+// Poise to Empower a stance. Drawn on black, so it is added as light.
+export function empowerAura(scene, unit) {
+  if (!scene.textures.exists('fx:empower_aura') || !unit.view) return;
+  const img = scene.add.image(unit.view.x, unit.view.y + 8, 'fx:empower_aura').setOrigin(0.5, 0.92).setDepth(unit.view.depth + 0.5);
+  img.setBlendMode(Phaser.BlendModes.ADD).setScale(0.35, 0.2).setAlpha(0);
+  scene.tweens.add({ targets: img, alpha: 1, scaleX: 0.55, scaleY: 0.6, duration: 220, ease: 'Back.easeOut' });
+  scene.tweens.add({ targets: img, alpha: 0, delay: 650, duration: 380, onComplete: () => img.destroy() });
+}
+
+// The element a Verse is made of, for the swirl that rises round Layra as
+// she concentrates (roadmap 9.10, his 30 Oct rows): earth, wind, fire, and the
+// purple for her Hex.
+const ELEMENT_OF = { swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex', husk: 'wind' };
+
+// The swirl rising at the caster's feet while she gathers the Verse (two
+// pictures), then the sphere as it is released. Returns true if drawn.
+export function elementRise(scene, unit, spellId, ms) {
+  const el = ELEMENT_OF[spellId];
+  if (!el || !has(scene, ['rise_' + el + '_0', 'rise_' + el + '_1']) || !unit.view) return false;
+  const x = unit.view.x;
+  const y = unit.view.y + 6;
+  const depth = unit.view.depth + 0.4;
+  const img = scene.add.image(x, y, 'fx:rise_' + el + '_0').setOrigin(0.5, 1).setScale(0.7).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+  scene.tweens.add({ targets: img, alpha: 0.95, duration: 120 });
+  scene.time.delayedCall(ms * 0.5, () => img.active && img.setTexture('fx:rise_' + el + '_1'));
+  scene.time.delayedCall(ms, () => {
+    if (!img.active) return;
+    const sphere = 'rise_' + el + '_' + (el === 'fire' ? 1 : 2);
+    if (has(scene, [sphere])) img.setTexture('fx:' + sphere);
+    scene.tweens.add({ targets: img, alpha: 0, scale: 0.85, duration: 300, onComplete: () => img.destroy() });
+  });
+  return true;
 }
