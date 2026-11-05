@@ -188,7 +188,7 @@ export function swiftAura(scene, unit) {
   if (!scene.anims.exists('swiftSwirl')) {
     scene.anims.create({ key: 'swiftSwirl', frames: SWIRL.map((k) => ({ key: 'fx:' + k })), frameRate: 11, repeat: -1 });
   }
-  const swirl = scene.add.sprite(0, 10, 'fx:' + SWIRL[0]).setOrigin(0.5, 1).setScale(0.62).setAlpha(0.8);
+  const swirl = scene.add.sprite(0, 10, 'fx:' + SWIRL[0]).setOrigin(0.5, 1).setScale(0.9).setAlpha(0.8);
   swirl.play('swiftSwirl');
   unit.view.add(swirl);
   return [swirl];
@@ -198,7 +198,7 @@ export function swiftAura(scene, unit) {
 // Returns true if the pictures were there.
 export function swiftTrail(scene, x, y, dx) {
   if (!has(scene, TRAIL)) return false;
-  flipbook(scene, TRAIL, x, y + 8, { frameMs: 45, scale: 0.62, depth: 78, flip: dx < 0 });
+  flipbook(scene, TRAIL, x, y + 8, { frameMs: 45, scale: 0.9, depth: 78, flip: dx < 0 });
   return true;
 }
 

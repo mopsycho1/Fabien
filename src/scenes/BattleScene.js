@@ -6145,7 +6145,9 @@ export default class BattleScene extends Phaser.Scene {
       callback: () => {
         if (!this.idleLifeOn || this.busy || this.inCinematic || this.battleOver) return;
         if (Math.random() < 0.4) return;
-        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit);
+        // Only units already in battle stance glance about. A relaxed unit flicking
+        // into the ready pose looked like a random stance switch (roadmap 1.13).
+        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit && this.isAlert(u));
         if (calm.length === 0) return;
         const u = calm[Math.floor(Math.random() * calm.length)];
         const foes = this.units.filter((f) => f.alive && f.side !== u.side);

@@ -382,22 +382,22 @@
       },
       "clashPress": {
         "upRight": {
-          "file": "gaha_cu_clashPress_upRight.png",
-          "originX": 0.376
+          "file": "gaha_iso_attack_upRight.png",
+          "originX": 0.059
         },
         "downRight": {
-          "file": "gaha_cu_clashPress_downRight.png",
-          "originX": 0.661
+          "file": "gaha_iso_attack_downRight.png",
+          "originX": 0.733
         }
       },
       "clashGuard": {
         "upRight": {
-          "file": "gaha_cu_clashGuard_upRight.png",
-          "originX": 0.416
+          "file": "gaha_iso_guard_upRight.png",
+          "originX": 0.654
         },
         "downRight": {
-          "file": "gaha_cu_clashGuard_downRight.png",
-          "originX": 0.375
+          "file": "gaha_iso_guard_downRight.png",
+          "originX": 0.077
         }
       },
       "clashSlip": {
