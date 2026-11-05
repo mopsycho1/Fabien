@@ -23,7 +23,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 
 ## Commands
 - Play locally: `npm install` once, then `npm run dev` (or `npx vite build` and `npx vite preview --port 4173`).
-- Tests (jsdom, in dev/tests): `cd dev/tests && npm install` once. Each run: start the picture server in another terminal, `cd public && python3 -m http.server 8800`, then `bash bundle.sh` after any code change, then `node <test>.cjs`.
+- Tests (jsdom, in dev/tests): `cd dev/tests && npm install` once. Each run: start the picture server in another terminal, `node serve.cjs` (in dev/tests; the old python server drops pictures on Mac), then `bash bundle.sh` after any code change, then `node <test>.cjs`.
   - Most tests use the old 8x8 map (yoba). Cavern tests: `FABIEN_MAP=cavern FABIEN_BENCH= node n41.cjs`, `FABIEN_MAP=cavern FABIEN_BENCH=e1 node n39.cjs`.
   - Full suite: loop over every `n*.cjs` plus notes27, notes27b, poison, echo, signatures, gaha, three, archer, sage-l, approach, speed, duel-rules, duel-scene, terrain, engage-scene, tap-behind, tap-circles, tap-acted, story-smoke, rotate. sage-l and story-smoke can fail under load: rerun alone.
   - Bot battles (balance): `FABIEN_MAP=cavern node bot.cjs 2`. FABIEN_BENCH=<ids> picks who sits out, NO_ENCHANT=1 turns Enchant off.
