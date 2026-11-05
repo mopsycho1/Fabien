@@ -49,7 +49,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the poses
   const poses = { sudeen: ['ready', 'guard', 'attack', 'hurt', 'heal'], gaha: ['ready', 'guard', 'attack', 'hurt'], layra: ['ready', 'cast', 'chant', 'meditate', 'hurt'], rabdul: ['ready', 'attack', 'dodge', 'hurt'], bull: ['ready', 'guard', 'attack', 'hurt'] };
   for (const [u, name] of [[sudeen, 'sudeen'], [gaha, 'gaha'], [layra, 'layra'], [rabdul, 'rabdul'], [bull, 'bull']]) {
-    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') ? 'new' : key(u)); });
+    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') || /rabdul_hurt_/.test(key(u)) ? 'new' : key(u)); });
     check('9.11 ' + name + "'s poses are his new pictures", got.every((g) => g.endsWith('=new')), got.join(' '));
   }
   // Verse looks

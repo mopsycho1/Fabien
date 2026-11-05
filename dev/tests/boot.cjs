@@ -8,7 +8,7 @@ exports.start = async function start() {
   vc.on('warn', (...a) => errors.push('console.warn: ' + a.join(' ')));
   vc.on('error', (...a) => errors.push('console.error: ' + a.join(' ')));
   const dom = new JSDOM('<!doctype html><html><body><div id="game"></div></body></html>', {
-    url: 'http://localhost:8800/', runScripts: 'outside-only', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc,
+    url: 'http://localhost:' + (process.env.FABIEN_PORT || 8800) + '/', runScripts: 'outside-only', resources: 'usable', pretendToBeVisual: true, virtualConsole: vc,
   });
   const w = dom.window;
   w.addEventListener('error', (e) => errors.push('window error: ' + e.message));

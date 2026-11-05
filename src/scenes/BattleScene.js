@@ -3104,7 +3104,12 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Close fighters: wind up, dash in leaving after-images, strike, step back
-    this.showPose(attacker, readyPose, dx);
+    // a fighter with a frame-by-frame thrust (Gaha, 6.3): frames 0 to 2 are the draw back,
+    // 3 is the full thrust as the blow lands, 4 and 5 bring the spear home
+    const up = attacker.facing && attacker.facing.startsWith('up');
+    const thrust = !close && moveFrames(attacker.id, up ? 'thrustUp' : 'thrust', 'right') ? (up ? 'thrustUp' : 'thrust') : null;
+    if (thrust) this.playMove(attacker, thrust, dx, { to: 3 });
+    else this.showPose(attacker, readyPose, dx);
     this.tweens.add({
       targets: attacker.view,
       x: from.x - (dx / dist) * 8, // draw back a little first
@@ -3113,7 +3118,8 @@ export default class BattleScene extends Phaser.Scene {
       ease: 'Quad.easeOut',
       onComplete: () => {
         play('whoosh');
-        this.showPose(attacker, strikePose, dx);
+        if (thrust) this.playMove(attacker, thrust, dx, { from: 3, to: 4 });
+        else this.showPose(attacker, strikePose, dx);
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
           targets: attacker.view,
@@ -3123,6 +3129,7 @@ export default class BattleScene extends Phaser.Scene {
           ease: 'Quad.easeIn',
           onComplete: () => {
             impact();
+            if (thrust) this.playMove(attacker, thrust, dx, { from: 4 }); // pull the spear back
             this.tweens.add({
               targets: attacker.view,
               x: from.x,
@@ -3298,6 +3305,10 @@ export default class BattleScene extends Phaser.Scene {
     for (const piece of view.list) if (!unit.idleTargets.includes(piece)) piece.setVisible(false);
 
     const hasDown = !!poseFrame(unit.id, 'down', 'right');
+    // some fighters have two more pictures for the fall: on one knee, then crumpling (6.1, 6.2)
+    const hasKneel = !!poseFrame(unit.id, 'kneel', 'right');
+    const hasCrumple = !!poseFrame(unit.id, 'crumple', 'right');
+    let stage = 0; // 0 knocked, 1 kneel
     this.showPose(unit, 'knocked', -dx);
     const x0 = view.x;
     const y0 = view.y;
@@ -3311,11 +3322,18 @@ export default class BattleScene extends Phaser.Scene {
         view.x = x0 + away * 36 * flight.p;
         view.y = y0 - Math.sin(flight.p * Math.PI) * 28;
         if (!hasDown) view.angle = away * 85 * flight.p; // no lying-down picture: topple over
+        if (hasKneel && stage === 0 && flight.p > 0.55) {
+          stage = 1;
+          this.showPose(unit, 'kneel', -dx);
+        }
       },
       onComplete: () => {
         // the crash
         play('crash');
-        if (hasDown) this.showPose(unit, 'down', -dx);
+        if (hasCrumple) {
+          this.showPose(unit, 'crumple', -dx);
+          if (hasDown) this.time.delayedCall(240, () => unit.view && unit.view.active && this.showPose(unit, 'down', -dx));
+        } else if (hasDown) this.showPose(unit, 'down', -dx);
         dustPuff(this, view.x, view.y);
         groundRing(this, view.x, view.y, 0xe8c08a, 1.2);
         screenShake(this, 0.006, 170);

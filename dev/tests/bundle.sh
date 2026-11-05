@@ -1,6 +1,6 @@
 #!/bin/bash
 OUT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd /home/claude/fabien
+cd "$OUT_DIR/../.."
 cat > harness-entry.js << 'EOT'
 import Phaser from 'phaser';
 import StartScene from './src/scenes/StartScene.js';

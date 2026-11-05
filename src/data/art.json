@@ -126,8 +126,8 @@
         }
       }
     },
-    "portrait": "sudeen_face.png",
-    "shout": "sudeen_shout.png",
+    "portrait": "sudeen_head_0.png",
+    "shout": "sudeen_head_6.png",
     "buffed": {
       "stone": {
         "downLeft": {
@@ -233,7 +233,16 @@
         "y": 0.0267
       }
     },
-    "note_slip": "Dodge and the slip strike (roadmap 9.8, his 30 Oct 20:00 sheet, drawn facing left): a Slip that wins a clash beat shows the strike."
+    "note_slip": "Dodge and the slip strike (roadmap 9.8, his 30 Oct 20:00 sheet, drawn facing left): a Slip that wins a clash beat shows the strike.",
+    "headTurn": [
+      "sudeen_head_0.png",
+      "sudeen_head_1.png",
+      "sudeen_head_2.png",
+      "sudeen_head_3.png",
+      "sudeen_head_4.png",
+      "sudeen_head_5.png",
+      "sudeen_head_6.png"
+    ]
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -536,6 +545,64 @@
           {
             "file": "gaha_dive_4.png",
             "originX": 0.537
+          }
+        ]
+      },
+      "thrust": {
+        "frameMs": 50,
+        "frames": [
+          {
+            "file": "gaha_thrust_0.png",
+            "originX": 0.529
+          },
+          {
+            "file": "gaha_thrust_1.png",
+            "originX": 0.509
+          },
+          {
+            "file": "gaha_thrust_2.png",
+            "originX": 0.424
+          },
+          {
+            "file": "gaha_thrust_3.png",
+            "originX": 0.345
+          },
+          {
+            "file": "gaha_thrust_4.png",
+            "originX": 0.353
+          },
+          {
+            "file": "gaha_thrust_5.png",
+            "originX": 0.488
+          }
+        ]
+      },
+      "thrustUp": {
+        "frameMs": 50,
+        "frames": [
+          {
+            "file": "gaha_thrustUp_0.png",
+            "originX": 0.551
+          },
+          {
+            "file": "gaha_thrustUp_1.png",
+            "originX": 0.563
+          },
+          {
+            "file": "gaha_thrustUp_2.png",
+            "originX": 0.67
+          },
+          {
+            "file": "gaha_thrustUp_3.png",
+            "originX": 0.512
+          },
+          {
+            "file": "gaha_thrustUp_4.png",
+            "originX": 0.561
+          },
+          {
+            "file": "gaha_thrustUp_5.png",
+            "originX": 0.577
           }
         ]
       }
@@ -983,16 +1050,34 @@
         "originX": 0.493
       },
       "hurt": {
-        "file": "archer_hurt.png",
-        "originX": 0.448
+        "downLeft": {
+          "file": "archer_fall_0.png",
+          "originX": 0.452
+        },
+        "upLeft": {
+          "file": "archer_fall_0.png",
+          "originX": 0.452
+        }
       },
       "knocked": {
-        "file": "archer_knocked.png",
-        "originX": 0.447
+        "downLeft": {
+          "file": "archer_fall_1.png",
+          "originX": 0.479
+        },
+        "upLeft": {
+          "file": "archer_fall_1.png",
+          "originX": 0.479
+        }
       },
       "down": {
-        "file": "archer_down.png",
-        "originX": 0.447
+        "downLeft": {
+          "file": "archer_fall_5.png",
+          "originX": 0.461
+        },
+        "upLeft": {
+          "file": "archer_fall_5.png",
+          "originX": 0.461
+        }
       },
       "poison": {
         "file": "archer_poison.png",
@@ -1001,10 +1086,30 @@
       "poisonShot": {
         "file": "archer_poisonShot.png",
         "originX": 0.477
+      },
+      "kneel": {
+        "downLeft": {
+          "file": "archer_fall_2.png",
+          "originX": 0.513
+        },
+        "upLeft": {
+          "file": "archer_fall_2.png",
+          "originX": 0.513
+        }
+      },
+      "crumple": {
+        "downLeft": {
+          "file": "archer_fall_4.png",
+          "originX": 0.423
+        },
+        "upLeft": {
+          "file": "archer_fall_4.png",
+          "originX": 0.423
+        }
       }
     },
     "portrait": "archer_face.png",
-    "portraitHurt": "archer_face_hurt.png",
+    "portraitHurt": "archer_face_fall1.png",
     "shout": "archer_face.png",
     "weak": {
       "file": "archer_weak.png",
@@ -1086,7 +1191,14 @@
           }
         }
       }
-    }
+    },
+    "hurtFaces": [
+      "archer_face_fall0.png",
+      "archer_face_fall1.png",
+      "archer_face_fall2.png",
+      "archer_face_fall3.png"
+    ],
+    "note_fall": "Her fall from 'Archer fully defeated' (6.2): the old hurt, knocked and down pictures are replaced."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",
@@ -1249,13 +1361,17 @@
         }
       },
       "hurt": {
-        "upLeft": {
-          "file": "rabdul_iso_hurt_upLeft.png",
-          "originX": 0.53
-        },
         "downLeft": {
-          "file": "rabdul_iso_hurt_downLeft.png",
-          "originX": 0.606
+          "file": "rabdul_hurt_downLeft.png",
+          "originX": 0.542
+        },
+        "upLeft": {
+          "file": "rabdul_hurt_upLeft.png",
+          "originX": 0.526
+        },
+        "upRight": {
+          "file": "rabdul_hurt_upRight.png",
+          "originX": 0.489
         }
       },
       "chant": {
@@ -1287,6 +1403,46 @@
           "file": "rabdul_iso_fire_downLeft.png",
           "originX": 0.315
         }
+      },
+      "knocked": {
+        "downLeft": {
+          "file": "rabdul_fall_0.png",
+          "originX": 0.482
+        },
+        "upLeft": {
+          "file": "rabdul_fall_0.png",
+          "originX": 0.482
+        }
+      },
+      "kneel": {
+        "downLeft": {
+          "file": "rabdul_fall_1.png",
+          "originX": 0.49
+        },
+        "upLeft": {
+          "file": "rabdul_fall_1.png",
+          "originX": 0.49
+        }
+      },
+      "crumple": {
+        "downLeft": {
+          "file": "rabdul_fall_2.png",
+          "originX": 0.501
+        },
+        "upLeft": {
+          "file": "rabdul_fall_2.png",
+          "originX": 0.501
+        }
+      },
+      "down": {
+        "downLeft": {
+          "file": "rabdul_fall_3.png",
+          "originX": 0.478
+        },
+        "upLeft": {
+          "file": "rabdul_fall_3.png",
+          "originX": 0.478
+        }
       }
     },
     "portrait": "rabdul_face.png",
@@ -1307,6 +1463,14 @@
           }
         }
       }
-    }
+    },
+    "portraitHurt": "rabdul_face_hurt1.png",
+    "hurtFaces": [
+      "rabdul_face_hurt0.png",
+      "rabdul_face_hurt1.png",
+      "rabdul_face_hurt2.png",
+      "rabdul_face_hurt3.png"
+    ],
+    "note_hurt": "Hurt in three facings (the others are mirrored), the fall in four pictures (knocked, kneel, crumple, down), and a hurt face; from 'Rabdul defeated 1' and 'Rabdul defeated4' (6.1)."
   }
 }

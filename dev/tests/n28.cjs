@@ -20,7 +20,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // line-up
   check('Rabdul takes the E1 slot; Tayo sits on the bench', rabdul && rabdul.name === 'Rabdul' && !b.units.some((u) => u.name === 'Tayo'), b.units.map((u) => u.name).join());
-  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 17);
+  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 23); /* 6.1: three hurt, four fall, one hurt face */
   park(); rabdul.facing = 'upLeft'; b.showStanding(rabdul);
   check('Rabdul facing up-left shows his labeled north-west view', /rabdul_iso_stand_upLeft/.test(key(rabdul)), key(rabdul));
   put(rabdul, 3, 5); put(gaha, 3, 6); rabdul.facing = 'downLeft'; b.faceNearestOpponent(rabdul);
