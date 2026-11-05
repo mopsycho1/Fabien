@@ -1,3 +1,4 @@
+const path = require('path');
 // The stance duel on the battle screen.
 const { start, battle } = require('./boot.cjs');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -7,7 +8,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game); b.setSpeed('base', 3);
   const E = w.__engagement, St = w.__status;
   const U = (l) => b.units.find((u) => u.label === l);
-  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
+  const H = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights;
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - H[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   const idle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 9000) await sleep(30); await sleep(80); };
   const turnOf = (u) => { b.activeUnit = u; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; b.stanceMenu = 'main'; b.empower = false; b.cancelMode(); };

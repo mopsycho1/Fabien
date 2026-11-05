@@ -1,3 +1,4 @@
+const path = require('path');
 // Phase 11 (1 Nov): the Hidden Cavern. Run with the cavern map:
 // Runs with FABIEN_MAP=cavern FABIEN_BENCH=e1: the line-up it was written for (Rabdul, the bull, the archer), from before Phase 4 put Tayo in for the bull.
 //   FABIEN_MAP=cavern node n39.cjs
@@ -12,7 +13,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const t0 = Date.now(); while (Date.now() - t0 < 8000 && !game.textures.exists('terrain:cave_floor_0') && !game.textures.exists('terrain:top:floor:0')) await sleep(50);
   const b = await battle(game); await sleep(600);
   const G = w.__grid, S = w.__status, E = w.__engagement;
-  const map = require('/home/claude/fabien/src/data/maps/cavern.json');
+  const map = require(path.join(__dirname, '../../src/data/maps/cavern.json'));
   const U = (l) => b.units.find((u) => u.label === l);
   const sudeen = U('H1'), gaha = U('H2'), layra = U('H3'), rabdul = U('E1'), bull = U('E2'), archer = U('E3');
   const all = [sudeen, gaha, layra, rabdul, bull, archer];

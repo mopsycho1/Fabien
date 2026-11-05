@@ -1,7 +1,8 @@
+const path = require('path');
 // The stance duel rules, tested on their own with controlled dice.
 const E = require('./eng-bundle.cjs');
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
-const jobs = require('/home/claude/fabien/src/data/jobs.json');
+const jobs = require(path.join(__dirname, '../../src/data/jobs.json'));
 const mk = (job, extra = {}) => ({ job, contest: { ...jobs[job].contest }, stances: { ...jobs[job].stances }, col: 0, row: 0, alive: true, status: { offBalance: false, buff: null }, ...extra });
 const dice = (...faces) => { const q = faces.map((f) => (f - 1) / 6 + 0.01); return { random: () => q.length ? q.shift() : 0.5, heightOf: () => 0 }; };
 

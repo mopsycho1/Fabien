@@ -1,3 +1,4 @@
+const path = require('path');
 // Phase 3 of the Fabien Roadmap (29 Oct): Intercept as a long-range engage, the
 // Verse-changed moves (Sudeen, Gaha, Layra), the MP bar rule, Gaha's Stone guard,
 // Layra's hop, Wildfire's Burn, and the Swift looks.
@@ -94,7 +95,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 3.6 + 3.11 Sonic Javelin ----------
   reset([[gaha, 0, 3], [archer, 3, 3], [bull, 5, 3]]);
   S.applyBuff(gaha, 'swiftness');
-  const plan = b.javelinForm(gaha, archer, require('/home/claude/fabien/src/data/spells.json').sonicJavelin);
+  const plan = b.javelinForm(gaha, archer, require(path.join(__dirname, '../../src/data/spells.json')).sonicJavelin);
   check('3.11 3 tiles away: the throw form', plan.form === 'throw', plan.form);
   let sawThrow = false; const watch = setInterval(() => { if (/gaha_sj_throw|gaha_cu_sonicWindup/.test(gaha.sprite.texture.key)) sawThrow = true; /* (his 1 Nov wind-up since the clean-up batch) */ }, 20);
   const pA = archer.hp, pB = bull.hp;

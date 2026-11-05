@@ -1,6 +1,7 @@
+const path = require('path');
 // How often each side wins a beat, over many dice rolls, for every pairing.
 const E = require('./eng-bundle.cjs');
-const jobs = require('/home/claude/fabien/src/data/jobs.json');
+const jobs = require(path.join(__dirname, '../../src/data/jobs.json'));
 const mk = (job) => ({ job, contest: { ...jobs[job].contest }, stances: { ...jobs[job].stances }, col: 0, row: 0, status: { offBalance: false, buff: null } });
 const ctx = { random: Math.random, heightOf: () => 0 };
 const rows = [];

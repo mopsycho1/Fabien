@@ -1,3 +1,4 @@
+const path = require('path');
 // The battle-screen batch (1 Nov): his clash banners (8.15), the movable menu
 // (8.16), his cursor's states (8.17), the turn buttons on a phone's sides
 // (8.18), Sudeen's herbs thrown (1.12).
@@ -20,7 +21,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     for (const [u, c, r] of placed) put(u, c, r);
     b.busy = false; b.cancelMode(); b.refreshStatusTags();
   };
-  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
+  const H = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights;
   const height = (c, r) => H[r][c];
 
   // ---------- 1.12 Herbs thrown ----------
@@ -55,15 +56,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('1.12 he throws the pouch: it flies to the ally', pouchSeen);
   check('1.12 and heals on landing (+10)', gaha.hp === 20, gaha.hp);
   check('1.12 his herb picture as he throws', true);
-  check('1.12 the Herbs text says it is thrown', /Throw a pouch/.test(require('/home/claude/fabien/src/data/spells.json').herbs.text));
+  check('1.12 the Herbs text says it is thrown', /Throw a pouch/.test(require(path.join(__dirname, '../../src/data/spells.json')).herbs.text));
 
   // ---------- 8.15 his clash banners ----------
   // (the test browser can't read his WebP pictures: stand-in pictures with the same names)
   const A = w.__artClash || null;
-  const art = require('/home/claude/fabien/src/data/art.json');
+  const art = require(path.join(__dirname, '../../src/data/art.json'));
   check('8.15 Sudeen, Gaha and the bull have their banners in art.json', ['h1', 'h2', 'e2'].every((id) => art[id].clash && art[id].clash.file && art[id].clash.name.file));
   const fs = require('fs');
-  check('8.15 the banner pictures exist', ['h1', 'h2', 'e2'].every((id) => fs.existsSync('/home/claude/fabien/public/art/' + art[id].clash.file) && fs.existsSync('/home/claude/fabien/public/art/' + art[id].clash.name.file)));
+  check('8.15 the banner pictures exist', ['h1', 'h2', 'e2'].every((id) => fs.existsSync(path.join(__dirname, '../../public/art/') + art[id].clash.file) && fs.existsSync(path.join(__dirname, '../../public/art/') + art[id].clash.name.file)));
   for (const id of ['h1', 'h2', 'e2']) {
     const c = art[id].clash;
     game.textures.createCanvas(id + ':' + c.file, 466, 400);
@@ -145,8 +146,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.busy = false; b.activeUnit = bull;
   check('8.17 busy on the enemy\'s turn', b.cursorBusy());
   b.activeUnit = gaha;
-  const cur = require('/home/claude/fabien/src/data/cursor.json');
-  check('8.17 his four cursor pictures and their tips', ['default', 'hover', 'press', 'busy'].every((k) => fs.existsSync('/home/claude/fabien/public/art/ui/cursor_' + k + '.png') && cur[k][3] <= 64));
+  const cur = require(path.join(__dirname, '../../src/data/cursor.json'));
+  check('8.17 his four cursor pictures and their tips', ['default', 'hover', 'press', 'busy'].every((k) => fs.existsSync(path.join(__dirname, '../../public/art/ui/cursor_') + k + '.png') && cur[k][3] <= 64));
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

@@ -1,3 +1,4 @@
+const path = require('path');
 // Fixes 1.7 and 1.8 (29 Oct evening): the archer's combat-ready stance; the bull and Rabdul facing the heroes at the start.
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -12,9 +13,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); };
   const key = (u) => u.sprite.texture.key;
   const bull = U('E2'), rabdul = U('E1'), archer = U('E3'), gaha = U('H2'), sudeen = U('H1'), layra = U('H3');
-  const A = '/home/claude/fabien/public/art/';
+  const A = path.join(__dirname, '../../public/art/');
   const md5 = (f) => execSync('md5sum ' + A + f).toString().slice(0, 32);
-  const was = (f) => execSync('cd /home/claude/fabien && git show a06e253:public/art/' + f + ' | md5sum').toString().slice(0, 32); // before this fix
+  const was = (f) => execSync('cd ' + JSON.stringify(path.join(__dirname, '../..')) + ' && git show a06e253:public/art/' + f + ' | md5sum').toString().slice(0, 32); // before this fix
   // 1.8
   // (1.8's swapped files were replaced by his 31 Oct isometric pictures, Phase 9; the facing check below still holds)
   check('1.8 at the start both face down-left, toward the heroes, with the down-left picture',

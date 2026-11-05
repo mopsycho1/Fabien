@@ -1,3 +1,4 @@
+const path = require('path');
 // Gaha's pictures: relaxed, battle stance, Verse looks, poses, hurt face.
 const { start, battle } = require('./boot.cjs');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -8,7 +9,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game);
   const St = w.__status;
   const U = (l) => b.units.find((u) => u.label === l);
-  const Hm = require('/home/claude/fabien/src/data/maps/yoba.json').heights;
+  const Hm = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights;
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - Hm[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);
@@ -33,7 +34,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   }
   check('every action pose shows', true);
   b.showStanding(gaha);
-  const art = require('/home/claude/fabien/src/data/art.json');
+  const art = require(path.join(__dirname, '../../src/data/art.json'));
   b.refreshCard(gaha, true);
   const calm = game.textures.getTextureKeys().filter((k) => k.startsWith('round:h2:') && k.endsWith('gaha_face.png'));
   gaha.hp = Math.floor(gaha.maxHp * 0.3); b.updateHpBar(gaha); b.refreshCard(gaha, true);

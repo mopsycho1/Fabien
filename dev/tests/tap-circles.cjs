@@ -1,3 +1,4 @@
+const path = require('path');
 const { start, battle } = require('./boot.cjs');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
@@ -5,7 +6,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const { w, game, errors } = await start();
   const b = await battle(game);
   const U = (l) => b.units.find((u) => u.label === l);
-  const H = require('/home/claude/fabien/src/data/maps/yoba.json').heights; // the real map
+  const H = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights; // the real map
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - H[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
   const tap = (x, y) => b.input.emit('pointerdown', { x, y }, []);
   const mid = (u) => ({ x: u.view.x, y: u.view.y - u.centerY });

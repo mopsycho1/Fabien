@@ -1,3 +1,4 @@
+const path = require('path');
 // Phase 1 of the Fabien Roadmap (29 Oct): Gaha's facing, Sudeen's battle stance,
 // Rabdul's size, archer range 5 and keeping distance, line of sight, wall slams.
 const { start, battle } = require('./boot.cjs');
@@ -11,7 +12,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game);
   const E = w.__engagement, St = w.__status, G = w.__grid;
   const combat = require('./combat-bundle.cjs');
-  const MAPH = require('/home/claude/fabien/src/data/maps/yoba.json').heights; // the Node copy of the rules needs the map's heights too
+  const MAPH = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights; // the Node copy of the rules needs the map's heights too
   combat.setHeightLookup((c, r) => (MAPH[r] && MAPH[r][c]) || 0);
   const U = (l) => b.units.find((u) => u.label === l);
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); u.view.setDepth(G.depthFor(c, r) + 1); };
@@ -25,8 +26,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const md5 = (f) => execSync('md5sum ' + f).toString().slice(0, 32);
 
   // 1.1 Gaha's up-right standing picture is now the one with his face turned right
-  const A = '/home/claude/fabien/public/art/';
-  const was = (f) => execSync('cd /home/claude/fabien && git show 69d9a91:public/art/' + f + ' | md5sum').toString().slice(0, 32); // the pictures before the Phase 1 fix
+  const A = path.join(__dirname, '../../public/art/');
+  const was = (f) => execSync('cd ' + JSON.stringify(path.join(__dirname, '../..')) + ' && git show 69d9a91:public/art/' + f + ' | md5sum').toString().slice(0, 32); // the pictures before the Phase 1 fix
   // (1.1's swapped files were replaced by his 31 Oct isometric pictures, Phase 9; the facing check below still holds)
   check('1.1 at the start Gaha faces up-right, toward the enemy, with the up-right picture', gaha.facing === 'upRight' && key(gaha) === 'h2:gaha_iso_stand_upRight.png' && !gaha.sprite.flipX, gaha.facing + ' ' + key(gaha));
 
@@ -49,7 +50,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('1.3 Rabdul in battle stance is at least 75% of the bull\'s height (and as tall standing)', /rabdul_iso_battle/.test(key(rabdul)) && rh >= 0.75 * bh, Math.round(rh) + ' vs ' + Math.round(bh));
 
   // 1.4 archer range 5
-  check('1.4 the archer\'s bow and Poison Arrow reach 5 tiles', archer.range === 5 && require('/home/claude/fabien/src/data/spells.json').poisonArrow.range === 5);
+  check('1.4 the archer\'s bow and Poison Arrow reach 5 tiles', archer.range === 5 && require(path.join(__dirname, '../../src/data/spells.json')).poisonArrow.range === 5);
   park(); put(archer, 2, 2); put(layra, 2, 7); // 5 tiles straight down the open column 2
   check('1.4 she can shoot a hero 5 tiles away in the open', combat.inReach(archer, layra));
   // 1.4 she keeps her distance: a hero next to her, her turn: she steps away and shoots
@@ -73,7 +74,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the marked target ducks behind the block before the arrow flies
   park(); put(archer, 4, 2); put(gaha, 5, 6);
   b.activeUnit = archer; archer.hasActed = false; archer.status.cooldowns = {};
-  b.castPoisonArrow(archer, gaha, require('/home/claude/fabien/src/data/spells.json').poisonArrow, () => {}); await idle(); await sleep(300);
+  b.castPoisonArrow(archer, gaha, require(path.join(__dirname, '../../src/data/spells.json')).poisonArrow, () => {}); await idle(); await sleep(300);
   check('1.5 the archer takes aim at Gaha', archer.aiming && archer.aiming.target === gaha);
   put(gaha, 4, 6); const hp0 = gaha.hp;
   let done = false; b.releaseAim(archer, () => { done = true; }); await sleep(1200); await idle();
@@ -88,7 +89,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); put(gaha, 4, 7); put(rabdul, 4, 6); turnOf(gaha);
   w.Math.random = () => (/rollAttack/.test(new Error().stack) ? 0.01 : real());
   const rhp = rabdul.hp;
-  b.castThrow(gaha, rabdul, require('/home/claude/fabien/src/data/spells.json').spearThrow, () => {}); await sleep(1700); await idle();
+  b.castThrow(gaha, rabdul, require(path.join(__dirname, '../../src/data/spells.json')).spearThrow, () => {}); await sleep(1700); await idle();
   w.Math.random = real;
   const thrown = combat.getDamage(gaha, { ...rabdul, status: { cooldowns: {} } });
   check('1.6 pushed into the high block, Rabdul stays put (not knocked toward Gaha)', rabdul.col === 4 && rabdul.row === 6, rabdul.col + ',' + rabdul.row);
