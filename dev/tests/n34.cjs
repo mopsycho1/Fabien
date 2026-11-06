@@ -49,7 +49,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([[layra, 2, 6], [sudeen, 3, 6]]);
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'fury');
-  check('6.18 Sudeen under Fury: his ring, his rising fire and sparks', sudeen.furyAura && sudeen.furyAura.objects.length === 4 && sudeen.furyAura.objects[0].list && sudeen.furyAura.objects[0].list[0].texture.key === 'fx:fury_ground');
+  check('6.18 Sudeen under Fury: his ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 8 && sudeen.furyAura.objects[0].list && sudeen.furyAura.objects[0].list[0].texture.key === 'fx:fury_ground');
   const ring = sudeen.furyAura.objects[0].list[0]; const a0 = ring.alpha; await sleep(300);
   check('6.18 the ring glows (it no longer turns, 1 Nov)', Math.abs(ring.alpha - a0) > 0.01 && ring.angle === 0, a0.toFixed(2) + ' -> ' + ring.alpha.toFixed(2));
   reset([[layra, 2, 6], [sudeen, 3, 6]]);

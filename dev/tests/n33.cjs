@@ -101,7 +101,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'fury');
   // (1 Nov, Baiyee: the turning ribbon cutouts became his rising fire, flickering like Swift's swirl)
-  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, his rising fire and sparks', sudeen.furyAura && sudeen.furyAura.objects.length === 4);
+  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 8);
   const rib = sudeen.furyAura.objects[1]; const k0 = rib.texture.key; await sleep(320);
   check('6.13 the fire flickers between his two pictures', /rise_fire/.test(k0) && rib.texture.key !== k0 || /rise_fire/.test(rib.texture.key), k0 + ' -> ' + rib.texture.key);
   sudeen.status.buff.turnsLeft = 1; S.tickBuff(sudeen); b.refreshStatusTags();

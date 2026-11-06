@@ -258,16 +258,26 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
     objects.push(ring);
   }
   if (ribbons) {
-    // his fire rising round the body (the 18:33 fire rows, as Layra uses
-    // them), its two pictures flickering in turn like Swift's swirl. These
-    // replace the turning ribbon cutouts (Baiyee 1 Nov: "a picture rotating on him").
-    if (has(scene, ['rise_fire_0', 'rise_fire_1'])) {
-      const fire = scene.add.image(0, 6, 'fx:rise_fire_0').setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.7);
-      fire.setScale((unit.topY * 0.85) / fire.height).setAlpha(0.6);
-      unit.view.add(fire);
-      let f = 0;
-      tweens.push(scene.tweens.add({ targets: fire, alpha: 0.85, duration: 140, yoyo: true, repeat: -1, onRepeat: () => fire.active && fire.setTexture('fx:rise_fire_' + (++f % 2)) }));
-      objects.push(fire);
+    // A unit without painted Fury pictures (roadmap 1.25): no picture over the
+    // body. Instead its figure pulses a soft red-orange, and a few embers rise.
+    const pulse = { t: 0 };
+    const lo = Phaser.Display.Color.ValueToColor(0xffffff), hi = Phaser.Display.Color.ValueToColor(0xff9a70);
+    tweens.push(scene.tweens.add({
+      targets: pulse, t: 1, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      onUpdate: () => {
+        const sp = unit.sprite;
+        if (!sp || !sp.active || sp.tintFill || unit.hidden) return; // leave the hit flash and the hidden glow alone
+        const c = Phaser.Display.Color.Interpolate.ColorWithColor(lo, hi, 100, Math.round(pulse.t * 100));
+        sp.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+      },
+    }));
+    // a stand-in object so the cleanup (keepAura) also removes the tint
+    objects.push({ destroy: () => { if (unit.sprite && unit.sprite.active && !unit.sprite.tintFill && !unit.hidden) unit.sprite.clearTint(); } });
+    for (let i = 0; i < 4; i++) {
+      const e = scene.add.circle(((i % 2) ? 1 : -1) * (6 + i * 3), -unit.centerY + 8, 2.5, i % 2 ? 0xff7a2e : 0xffb347, 0.85).setBlendMode(Phaser.BlendModes.ADD);
+      unit.view.add(e);
+      tweens.push(scene.tweens.add({ targets: e, y: -unit.topY + 4, x: e.x + (i % 2 ? 6 : -6), alpha: { from: 0.85, to: 0 }, duration: 1300, delay: i * 330, repeat: -1 }));
+      objects.push(e);
     }
   }
   const sparks = [0, 1].map((i) => {

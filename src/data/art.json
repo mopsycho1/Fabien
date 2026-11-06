@@ -13,7 +13,7 @@
       }
     },
     "battle": {
-      "upRight": {
+      "upLeft": {
         "file": "sudeen_iso_battle_upRight.png",
         "originX": 0.834
       },
@@ -42,7 +42,7 @@
         }
       },
       "ready": {
-        "upRight": {
+        "upLeft": {
           "file": "sudeen_iso_battle_upRight.png",
           "originX": 0.834
         },
