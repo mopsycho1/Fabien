@@ -102,10 +102,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await cast(layra, sudeen, 'fury');
   // (1 Nov, Baiyee: the turning ribbon cutouts became his rising fire, flickering like Swift's swirl)
   check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 8);
-  const rib = sudeen.furyAura.objects[1]; const k0 = rib.texture.key; await sleep(320);
-  check('6.13 the fire flickers between his two pictures', /rise_fire/.test(k0) && rib.texture.key !== k0 || /rise_fire/.test(rib.texture.key), k0 + ' -> ' + rib.texture.key);
+  await sleep(320);
+  check('1.25 the figure pulses a soft red-orange, with no fire picture over it', sudeen.sprite.isTinted && !sudeen.furyAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)));
   sudeen.status.buff.turnsLeft = 1; S.tickBuff(sudeen); b.refreshStatusTags();
-  check('6.13 Fury fades: its look goes and its pictures are destroyed', !sudeen.furyAura && !rib.active);
+  check('6.13 Fury fades: its look goes and its pictures are destroyed', !sudeen.furyAura && !sudeen.sprite.isTinted);
 
   // ---------- 6.9 cards in a clash ----------
   reset([[gaha, 3, 3], [bull, 3, 4]]);

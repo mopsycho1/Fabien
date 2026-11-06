@@ -104,12 +104,12 @@ export function hitSpark(scene, x, y, color = 0xffe08a, count = 9) {
 // four frames played in turn while the ring spreads and fades. Only for Tayo
 // charging Element Blast (13.4): normal dust is the drawn puff below (his 6 Nov
 // 15:21 note). If the pictures are missing, the drawn puff is used instead.
-export function dustRing(scene, x, y) {
+export function dustRing(scene, x, y, size = 96) {
   const keys = [0, 1, 2, 3].map((i) => 'fx:dust_ring_' + i);
   if (!keys.every((k) => scene.textures.exists(k))) return dustPuffDrawn(scene, x, y);
 
   const ring = scene.add.image(x, y + 6, keys[0]).setDepth(EFFECT_DEPTH);
-  const full = 96 / ring.width; // the ring is about one tile wide at its biggest
+  const full = size / ring.width; // the ring is about one tile wide at its biggest (size 96)
   ring.setScale(full * 0.5).setAlpha(0.9);
   scene.tweens.add({ targets: ring, scale: full * 1.2, y: y + 2, alpha: 0, duration: 480, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
   // swap the frames so the ring turns (4 frames, about 120 ms each)

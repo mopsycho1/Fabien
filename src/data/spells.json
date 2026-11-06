@@ -389,5 +389,22 @@
     "use": "enemy",
     "note": "Roadmap 4.2 (proposal built as proposed): half damage, push 1, the spike lasts 2 of Tayo's turns.",
     "text": "Tayo drives his fist into the ground and a spike of rock bursts up under the foe in front of him: half damage, and it is thrown back a tile (into a wall or a unit: a slam). The spike stays as a wall for 2 of his turns: nobody walks through it and it stops arrows and thrown weapons. Ready again after 3 turns."
+  },
+  "elementBlast": {
+    "name": "Element Blast",
+    "button": "Element Blast",
+    "short": "BLAST",
+    "kind": "elementBlast",
+    "color": "#ff8a3c",
+    "range": 3,
+    "damageShare": 1,
+    "burn": 2,
+    "turns": 3,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "needsElement": true,
+    "note": "Roadmap 13.4 (Suleiman's 6 Nov art, 13.17): only while an element is on him. Enchanted = fire (sets Burn, burn and turns as Wildfire), Drenched = water (leaves the target Drenched, puts out a burn). Spends the element. A straight line, range 3, full damage, a block in the way stops it like an arrow.",
+    "text": "Tayo gathers the element on him into one fist and fires it down a straight line, up to 3 tiles (a higher block in the way stops it). Full damage. Enchanted: a fire blast that sets the target Burning. Drenched: a water blast that leaves the target Drenched. It spends the element (the Enchant ends, or he dries off), so it only works while one is on him. Ready again after 3 turns."
   }
 }

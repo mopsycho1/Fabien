@@ -394,6 +394,13 @@ export function dryOff(unit) {
   if (d.turnsLeft <= 0) statusOf(unit).drenched = null;
 }
 
+// Tayo's Element Blast spends the element on him: the Enchant ends (fire) or he
+// dries off (water). Roadmap 13.4.
+export function spendElement(unit, fire) {
+  if (fire) statusOf(unit).enchant = null;
+  else statusOf(unit).drenched = null;
+}
+
 // What a unit's attack is made of right now: its Verse-changed attack's
 // element (Wildfire: fire, Thunderclap: lightning), else its own (Layra's
 // Lightning), else nothing in particular.

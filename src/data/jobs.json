@@ -67,7 +67,7 @@
     "contest": { "style": "overpower", "power": 7, "guard": 6, "agility": 3 },
     "stances": { "press": "strong", "guard": "average", "slip": "weak", "break": "weak" },
     "signature": { "id": "counter", "stance": "press", "name": "Counter-Press" },
-    "spells": ["earthDrive"]
+    "spells": ["earthDrive", "elementBlast"]
   },
   "warden": {
     "name": "Warden",

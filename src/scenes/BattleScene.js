@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -30,7 +30,7 @@ import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
-import { slashArc, hitSpark, dustPuff, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
+import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
 import {
   isMelee,
   canBeCaught,
@@ -63,7 +63,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -3515,6 +3515,18 @@ export default class BattleScene extends Phaser.Scene {
     // It plans with what it can see: a hidden caster's decoy instead of her.
     // Her real tile still blocks the way, even if they do not know why.
     const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r);
+    // Tayo with an element on him fires it down a line at once, without walking up first (roadmap 13.4)
+    const mark = this.blastTarget(unit);
+    if (mark && distance(unit, mark) >= 2) {
+      this.busy = true;
+      startCooldown(unit, 'elementBlast');
+      unit.hasActed = true;
+      this.castElementBlast(unit, mark, spells.elementBlast, () => {
+        this.busy = false;
+        this.time.delayedCall(300, () => this.endTurn());
+      });
+      return;
+    }
     const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
@@ -3544,6 +3556,15 @@ export default class BattleScene extends Phaser.Scene {
         this.castEnchant(unit, ally, spells.enchant, finish);
         return;
       }
+    }
+    // Tayo with an element on him fires it at a foe in a line (roadmap 13.4), full damage, before the spike
+    const blastAt = this.blastTarget(unit);
+    if (blastAt) {
+      this.busy = true;
+      startCooldown(unit, 'elementBlast');
+      unit.hasActed = true;
+      this.castElementBlast(unit, blastAt, spells.elementBlast, finish);
+      return;
     }
     // Tayo drives a spike up under a foe right next to him: a caster first,
     // then the weakest (roadmap 4.2)
@@ -4314,6 +4335,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
+    if (spell.kind === 'elementBlast') return this.castElementBlast(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
     if (spell.kind === 'javelin') return this.castSonicJavelin(caster, target, spell, onDone);
     if (spell.kind === 'dive') return this.castFuryDive(caster, target, spell, onDone);
@@ -4552,6 +4574,98 @@ export default class BattleScene extends Phaser.Scene {
       }
     });
     this.time.delayedCall(frameMs * 2 + 1250, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // The foe Tayo's Element Blast should hit, or null: he needs an element on him
+  // (Enchanted or Drenched), the skill ready, and a foe in a straight line 1 to 3
+  // tiles away with a clear shot. A caster first, then the weakest.
+  blastTarget(unit) {
+    if (!unit.spells || !unit.spells.includes('elementBlast') || !canAfford(unit, 'elementBlast')) return null;
+    if (!isEnchanted(unit) && !isDrenched(unit)) return null;
+    const reach = spells.elementBlast.range;
+    const marks = this.enemyEyes()
+      .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && (t.col === unit.col || t.row === unit.row) && distance(unit, t) <= reach && hasClearShot(unit, t))
+      .sort((a, b) => isCaster(b) - isCaster(a) || a.hp - b.hp);
+    return marks[0] || null;
+  }
+
+  // Tayo's Element Blast (roadmap 13.4, his 6 Nov art): the element on him
+  // gathers in his fist, dust rings spin up round his feet, then he punches
+  // and the orb flies down the line. Enchanted: fire, sets Burn. Drenched:
+  // water (the orb is blue), leaves the target Drenched. It spends the element.
+  castElementBlast(user, target, spell = spells.elementBlast, onDone) {
+    const fire = isEnchanted(user);
+    const dx = target.view.x - user.view.x;
+    this.faceToward(user, dx, target.view.y - user.view.y);
+    // the numbers first, like Earth Drive; the picture catches up
+    const landed = this.landHit(target, this.skillHit(user, target, spell));
+    target.hp = Math.max(0, target.hp - landed.damage);
+    if (target.hp === 0) this.defeat(target);
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+
+    this.floatText(user, fire ? 'Fire Blast' : 'Water Blast', fire ? '#ff8a3c' : '#7fd0ff', { rise: 40 });
+    // wind-up, then arms open while the dust rings spin and the orb grows in his hand
+    this.showPose(user, 'blastWind', dx);
+    const base = tileToScreen(user.col, user.row);
+    const hand = () => ({ x: user.view.x + Math.sign(dx || 1) * 34, y: user.view.y - user.centerY * 1.05 });
+    let grow = null;
+    this.time.delayedCall(240, () => {
+      if (!user.alive) return;
+      this.showPose(user, 'blastCharge', dx);
+      play('whoosh');
+      [0, 170, 340].forEach((t) => this.time.delayedCall(t, () => dustRing(this, base.x, base.y, 190)));
+      const h = hand();
+      grow = elementOrb(this, h.x, h.y, { water: !fire, scale: 0.08 });
+      if (grow) this.tweens.add({ targets: grow, scale: 0.34, duration: 520, ease: 'Quad.easeOut' });
+    });
+    // the punch: the orb leaves his fist and flies to the target
+    this.time.delayedCall(800, () => {
+      if (user.alive) this.showPose(user, 'blastPunch', dx);
+      play('whoosh');
+      screenShake(this, 0.004, 120);
+      // the element is spent the moment it is fired
+      spendElement(user, fire);
+      this.refreshStatusTags();
+      const a = grow ? { x: grow.x, y: grow.y } : hand();
+      const b = this.centerOf(target);
+      const orb = grow || elementOrb(this, a.x, a.y, { water: !fire, scale: 0.34 });
+      const land = () => {
+        if (orb && orb.active) orb.destroy();
+        const p = this.centerOf(target);
+        if (fire) flameBurst(this, target.view.x, target.view.y); else splash(this, p.x, p.y);
+        play('crash');
+        screenShake(this, 0.007, 180);
+        this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
+        if (target.alive) {
+          if (fire && !isDrenched(target)) {
+            applyBurn(target, 'elementBlast'); // burns like Wildfire (not a Drenched unit: the fire hisses out)
+            this.time.delayedCall(300, () => { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
+          } else if (fire) {
+            this.time.delayedCall(300, () => this.floatText(target, 'Too wet to burn', '#bfe8ff', { rise: 46 }));
+          } else {
+            if (isBurning(target)) cureBurn(target); // water puts a burn out
+            applyDrenched(target, terrain.water.drenchedTurns);
+            this.time.delayedCall(300, () => { this.floatText(target, 'Drenched', '#7fd0ff', { rise: 46 }); this.refreshStatusTags(); });
+          }
+        }
+      };
+      if (!orb) { land(); return; }
+      this.tweens.add({ targets: orb, x: b.x, y: b.y, scale: 0.4, duration: 130 + 90 * distance(user, target), ease: 'Quad.easeIn', onComplete: land });
+    });
+    this.time.delayedCall(1500, () => {
+      if (user.alive) {
+        this.faceNearestOpponent(user);
+        this.showStanding(user);
+      }
+    });
+    this.time.delayedCall(2300, () => {
       if (outcome) {
         this.busy = false;
         this.showResult(outcome);

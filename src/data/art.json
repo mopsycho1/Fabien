@@ -1867,6 +1867,60 @@
           "file": "tayo_n6b_victory_f4.png",
           "originX": 0.29
         }
+      },
+      "blastWind": {
+        "upLeft": {
+          "file": "tayo_n6d_blastWind_f1.png",
+          "originX": 0.224
+        },
+        "upRight": {
+          "file": "tayo_n6d_blastWind_f2.png",
+          "originX": 0.744
+        },
+        "downLeft": {
+          "file": "tayo_n6d_blastWind_f3.png",
+          "originX": 0.099
+        },
+        "downRight": {
+          "file": "tayo_n6d_blastWind_f4.png",
+          "originX": 0.309
+        }
+      },
+      "blastCharge": {
+        "upLeft": {
+          "file": "tayo_n6d_blastCharge_f1.png",
+          "originX": 0.178
+        },
+        "upRight": {
+          "file": "tayo_n6d_blastCharge_f2.png",
+          "originX": 0.64
+        },
+        "downLeft": {
+          "file": "tayo_n6d_blastCharge_f3.png",
+          "originX": 0.148
+        },
+        "downRight": {
+          "file": "tayo_n6d_blastCharge_f4.png",
+          "originX": 0.222
+        }
+      },
+      "blastPunch": {
+        "upLeft": {
+          "file": "tayo_n6d_blastPunch_f1.png",
+          "originX": 0.171
+        },
+        "upRight": {
+          "file": "tayo_n6d_blastPunch_f2.png",
+          "originX": 0.632
+        },
+        "downLeft": {
+          "file": "tayo_n6d_blastPunch_f3.png",
+          "originX": 0.085
+        },
+        "downRight": {
+          "file": "tayo_n6d_blastPunch_f4.png",
+          "originX": 0.23
+        }
       }
     },
     "portrait": "tayo_face.png",
@@ -2053,7 +2107,8 @@
         "x": 0.5396,
         "y": 0.0267
       }
-    }
+    },
+    "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",

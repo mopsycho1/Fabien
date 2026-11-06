@@ -41,6 +41,8 @@ const FILES = [
   'spike_0', 'spike_1', 'spike_2', 'spike_3', 'spike_4',
   // the dust rings from his 6 Nov 04:48 sheet (roadmap 13.18): used by dustPuff in effects.js
   'dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3',
+  // the fireball orbs of Tayo's Element Blast (13.4, his 6 Nov 04:40 sheet): light, drawn added
+  'blast_orb_0', 'blast_orb_1', 'blast_orb_2', 'blast_orb_3',
 ];
 const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_|dust_ring_)/.test(key);
 
@@ -642,4 +644,43 @@ export function crumbleSpike(scene, img) {
     scene.tweens.add({ targets: r, y: img.y + 4, alpha: 0, duration: 380 + Math.random() * 200, ease: 'Quad.easeIn', onComplete: () => r.destroy() });
   }
   scene.tweens.add({ targets: img, scaleY: 0, alpha: 0.4, duration: 380, ease: 'Quad.easeIn', onComplete: () => img.destroy() });
+}
+
+// ---------- Tayo's Element Blast (roadmap 13.4) ----------
+
+// The water orbs: his fireball orbs with red and blue swapped, so the flame turns
+// to cold blue light. Made once, the first time one is needed.
+function waterOrbKeys(scene) {
+  const keys = [0, 1, 2, 3].map((i) => 'fx:blast_orb_water_' + i);
+  keys.forEach((key, i) => {
+    const src = scene.textures.get('fx:blast_orb_' + i);
+    if (scene.textures.exists(key) || !src || src.key === '__MISSING') return;
+    const img = src.getSourceImage();
+    const canvas = scene.textures.createCanvas(key, img.width, img.height);
+    const ctx = canvas.getContext();
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, img.width, img.height);
+    for (let p = 0; p < data.data.length; p += 4) {
+      const r = data.data[p];
+      data.data[p] = data.data[p + 2] * 0.55 + 20;
+      data.data[p + 2] = Math.min(255, r + 20);
+      data.data[p + 1] = Math.min(255, data.data[p + 1] * 0.9 + 40);
+    }
+    ctx.putImageData(data, 0, 0);
+    canvas.refresh();
+  });
+  return keys;
+}
+
+// The orb of Element Blast: its four swirling pictures in turn, as light.
+// Returns { orb, stop } at (x, y); the caller moves it and calls stop() to end it.
+// water = true: the blue version.
+export function elementOrb(scene, x, y, { water = false, scale = 0.4 } = {}) {
+  if (!has(scene, ['blast_orb_0', 'blast_orb_1', 'blast_orb_2', 'blast_orb_3'])) return null;
+  const keys = water ? waterOrbKeys(scene) : [0, 1, 2, 3].map((i) => 'fx:blast_orb_' + i);
+  const orb = scene.add.image(x, y, keys[0]).setScale(scale).setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
+  let f = 0;
+  const spin = scene.time.addEvent({ delay: 70, loop: true, callback: () => orb.active && orb.setTexture(keys[++f % 4]) });
+  orb.once('destroy', () => spin.remove());
+  return orb;
 }
