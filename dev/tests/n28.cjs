@@ -20,7 +20,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // line-up
   check('Rabdul takes the E1 slot; Tayo sits on the bench', rabdul && rabdul.name === 'Rabdul' && !b.units.some((u) => u.name === 'Tayo'), b.units.map((u) => u.name).join());
-  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 23); /* 6.1: three hurt, four fall, one hurt face */
+  check('Rabdul\'s pictures loaded', game.textures.getTextureKeys().filter((k) => k.startsWith('e4:rabdul_')).length === 32); /* 6 Nov Nov set: stand, battle, hurt, fall, weakened, defeated, victory, double-hit frames */
   park(); rabdul.facing = 'upLeft'; b.showStanding(rabdul);
   check('Rabdul facing up-left shows his labeled north-west view', /rabdul_iso_stand_upLeft/.test(key(rabdul)), key(rabdul));
   put(rabdul, 3, 5); put(gaha, 3, 6); rabdul.facing = 'downLeft'; b.faceNearestOpponent(rabdul);
@@ -64,17 +64,27 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   St.tickBuff(bull); St.tickBuff(bull); b.refreshStatusTags();
   check('when Slow wears off the aura goes', !bull.slowAura);
 
-  // Double Hit
-  park(); put(rabdul, 3, 4); put(gaha, 3, 5);
-  w.Math.random = () => (/castDoubleHit/.test(new Error().stack) ? 0.01 : real());
-  const ghp = gaha.hp; b.activeUnit = rabdul; rabdul.hasActed = false; rabdul.hasMoved = false; rabdul.stepsUsed = 0;
-  b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b);
-  const mv = rabdul.move; rabdul.move = 0; rabdul.status.cooldowns = {};
-  b.runEnemyTurn(); await sleep(400); await idle(); await sleep(1600);
-  b.runEnemyTurn = () => {}; rabdul.move = mv; w.Math.random = real;
-  const each = Math.max(1, Math.round(combat.getDamage(rabdul, gaha) * 0.6));
-  check('the enemy Rabdul uses Double Hit: two strikes', ghp - gaha.hp === each * 2, ghp + ' -> ' + gaha.hp + ' (each ' + each + ')');
-  check('Double Hit then waits 2 turns', St.cooldownOf(rabdul, 'doubleHit') === 2);
+  // Double Hit (4.6): a 35% chance on his normal attack, two frames, two damage numbers
+  const dhRun = async (roll) => {
+    park(); put(rabdul, 3, 4); put(gaha, 3, 5);
+    w.Math.random = () => (/enemyAttack|castDoubleHit|performAttack/.test(new Error().stack) ? roll : real()); /* below 0.35 triggers it; the hit roll also lands */
+    const seen = []; const sf = b.showFrame.bind(b);
+    b.showFrame = (u, f) => { if (u === rabdul) seen.push(f && (f.key || f.texture || f)); return sf(u, f); };
+    const floats = []; const ft = b.floatText.bind(b); b.floatText = (u, t, ...r) => { floats.push(String(t)); return ft(u, t, ...r); };
+    const ghp = gaha.hp; b.activeUnit = rabdul; rabdul.hasActed = false; rabdul.hasMoved = false; rabdul.stepsUsed = 0;
+    b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b);
+    const mv = rabdul.move; rabdul.move = 0; rabdul.status.cooldowns = {};
+    b.runEnemyTurn(); await sleep(400); await idle(); await sleep(1600);
+    b.runEnemyTurn = () => {}; rabdul.move = mv; w.Math.random = real; b.showFrame = sf; b.floatText = ft;
+    return { lost: ghp - gaha.hp, seen, floats };
+  };
+  const dh = await dhRun(0.01);
+  check('Rabdul\'s double hit triggers: the Double Hit name floats and Gaha is hurt', dh.floats.includes('Double Hit') && dh.lost > 0, dh.floats.join() + ' lost ' + dh.lost);
+  check('and he plays two different frames, one per hit', dh.seen.length >= 2 && dh.seen[0] !== dh.seen[1], dh.seen.length + ' frames');
+  check('Double Hit has no cooldown (it is a chance, not a skill to wait for)', St.cooldownOf(rabdul, 'doubleHit') === 0);
+  const nh = await dhRun(0.99);
+  await idle(); await sleep(800); b.battleOver = false; for (const u of b.units) if (!u.alive) u.alive = true;
+  check('when the chance does not trigger he makes a normal attack: no Double Hit', !nh.floats.includes('Double Hit'), nh.floats.join());
 
   // living clashes
   park(); put(gaha, 3, 5); put(rabdul, 3, 4); E.startDuel(gaha, rabdul); b.refreshEngagementMarks();
