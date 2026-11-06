@@ -100,8 +100,25 @@ export function hitSpark(scene, x, y, color = 0xffe08a, count = 9) {
   });
 }
 
-// A puff of dust rolling out along the ground.
+// A puff of dust rolling out along the ground (roadmap 13.18, 1.17).
+// Uses Suleiman's 6 Nov dust rings: four frames of a swirling ring on the
+// ground, played in turn while it spreads and fades. If the pictures are
+// missing, the old drawn puff is used instead.
 export function dustPuff(scene, x, y) {
+  const keys = [0, 1, 2, 3].map((i) => 'fx:dust_ring_' + i);
+  if (!keys.every((k) => scene.textures.exists(k))) return dustPuffDrawn(scene, x, y);
+
+  const ring = scene.add.image(x, y + 6, keys[0]).setDepth(EFFECT_DEPTH);
+  const full = 96 / ring.width; // the ring is about one tile wide at its biggest
+  ring.setScale(full * 0.5).setAlpha(0.9);
+  scene.tweens.add({ targets: ring, scale: full * 1.2, y: y + 2, alpha: 0, duration: 480, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+  // swap the frames so the ring turns (4 frames, about 120 ms each)
+  let f = 0;
+  scene.time.addEvent({ delay: 120, repeat: 3, callback: () => ring.active && ring.setTexture(keys[++f]) });
+}
+
+// The old drawn dust puff, used only when the dust pictures are missing.
+function dustPuffDrawn(scene, x, y) {
   makeBigger(x, y, 1.25);
   const puffs = [-26, -12, 0, 12, 26].map((dx) => ({ dx, size: 6 + Math.random() * 5 }));
   play(scene, 420, (g, t) => {

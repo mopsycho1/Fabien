@@ -45,4 +45,5 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 
 ## Suleiman's files (inbox)
 - Originals go in Baiyee's "Fabien Blueprint" folder. New WhatsApp batches: export the chat with media into Fabien Blueprint/INBOX/<date>/.
-- To process an inbox: unzip, read only the chat lines after the last date logged in the roadmap, rename media by send time, build one contact sheet to view pictures, transcribe voice notes locally if a transcriber is installed (whisper), then log everything in the roadmap and number new requests.
+- To process an inbox: unzip, read only the chat lines after the last date logged in the roadmap, rename media by send time, build one contact sheet to view pictures, transcribe voice notes locally (see Voice-note transcriber below), then log everything in the roadmap and number new requests.
+- Voice-note transcriber: faster-whisper 1.2.1 in a venv (Python 3.9) at `~/.fabien-tools/venv`. Don't reinstall it: run `~/.fabien-tools/venv/bin/python` with a short script that loads `WhisperModel("small", compute_type="int8")` and calls `transcribe(file, language="en")` on each .opus file. Model files are cached in `~/.cache/huggingface/hub`. If the venv is ever gone, make a new one with `/usr/bin/python3 -m venv ~/.fabien-tools/venv` and `pip install faster-whisper==1.2.1`.

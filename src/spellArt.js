@@ -39,8 +39,10 @@ const FILES = [
   'enchant_sigil_0', 'enchant_sigil_1', 'enchant_sigil_2', 'enchant_sigil_3',
   'enchant_comet_0', 'enchant_comet_1', 'enchant_comet_2', 'enchant_comet_3',
   'spike_0', 'spike_1', 'spike_2', 'spike_3', 'spike_4',
+  // the dust rings from his 6 Nov 04:48 sheet (roadmap 13.18): used by dustPuff in effects.js
+  'dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3',
 ];
-const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_)/.test(key);
+const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_|dust_ring_)/.test(key);
 
 // Status icons (public/art/icons), shown over a unit instead of a word.
 // A status with an "icon" in spells.json uses the picture of that name.
