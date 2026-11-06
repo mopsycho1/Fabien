@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -4986,7 +4986,12 @@ export default class BattleScene extends Phaser.Scene {
         play('whoosh');
         screenShake(this, 0.004, 120);
         const angle = Math.atan2(end.y - a.y, end.x - a.x);
-        if (art) sonicSpear(this, a.x, a.y, end.x, end.y, scale, flight, () => sonicImpact(this, endP.x, endP.y, scale, end.x < a.x));
+        // his 5 Nov release picture (6.28): the arm is thrown out as the spear leaves
+        if (this.hasPose(user, 'sonicRelease')) this.showPose(user, 'sonicRelease', dx);
+        if (art) {
+          sonicSpear(this, a.x, a.y, end.x, end.y, scale, flight, () => sonicImpact(this, endP.x, endP.y, scale, end.x < a.x));
+          sonicTrail(this, a.x, a.y, end.x, end.y, scale, flight);
+        }
         else arrowShot(this, a.x, a.y, end.x, end.y, () => {});
         // each enemy in the line is hit as the javelin passes it
         const total = Math.hypot(end.x - a.x, end.y - a.y) || 1;
@@ -4999,8 +5004,8 @@ export default class BattleScene extends Phaser.Scene {
           });
         }
       };
-      // his 1 Nov wind-up (roadmap 9.16): the spear drawn back, then it flies.
-      // (His release picture is being redone, so he holds the wind-up as it goes.)
+      // his wind-up (9.16): the spear drawn back, then at release his throw picture
+      // (5 Nov 15:38, 6.28) takes over while the spear flies.
       if (this.hasPose(user, 'sonicWindup')) {
         this.showPose(user, 'sonicWindup', dx);
         this.time.delayedCall(300, release);

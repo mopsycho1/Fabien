@@ -18,6 +18,7 @@ const FILES = [
   'rise_earth_0', 'rise_earth_1', 'rise_earth_2', 'rise_hex_0', 'rise_hex_1', 'rise_hex_2',
   'rise_wind_0', 'rise_wind_1', 'rise_wind_2', 'rise_fire_0', 'rise_fire_1', 'fire_beam',
   'sonic_spear', 'sonic_impact',
+  'sonic_trail_0', 'sonic_trail_1', 'sonic_trail_2', 'sonic_trail_3', // his 5 Nov fire trail of the flying javelin (6.28)
   'herb_pouch', // Sudeen's herb pouch, thrown to an ally (his 31 Oct 11:51 sheet, roadmap 1.12)
   'slow_ring', 'slow_pull', 'slow_spiral', 'slow_waves', 'slow_motes',
   // Gaha's Sonic Javelin (roadmap 3.11) and the Swift looks (3.10). These are
@@ -369,6 +370,26 @@ export function sonicSpear(scene, x0, y0, x1, y1, scale, duration, onArrive) {
     },
   });
   return spear;
+}
+
+// The fire trail the javelin leaves (his 5 Nov 15:41 sheet, roadmap 6.28): four
+// stages of a streak, played one after another where the spear has just been,
+// once about every 70 px of its flight. Same direction and flip as the spear.
+export function sonicTrail(scene, x0, y0, x1, y1, scale, duration) {
+  const keys = [0, 1, 2, 3].map((i) => 'sonic_trail_' + i);
+  if (!has(scene, keys)) return;
+  const len = Math.hypot(x1 - x0, y1 - y0);
+  const puffs = Math.max(1, Math.floor(len / 70));
+  const angle = Math.atan2(y1 - y0, x1 - x0);
+  for (let i = 0; i < puffs; i++) {
+    const t = i / puffs;
+    scene.time.delayedCall(duration * t, () => {
+      const img = scene.add.image(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, 'fx:' + keys[0]).setOrigin(0.9, 0.5).setScale(scale * 1.1).setDepth(79).setRotation(angle);
+      if (x1 < x0) img.setFlipY(true);
+      keys.forEach((k, j) => scene.time.delayedCall(j * 70, () => img.active && img.setTexture('fx:' + k)));
+      scene.tweens.add({ targets: img, alpha: 0, delay: 280, duration: 160, onComplete: () => img.destroy() });
+    });
+  }
 }
 
 // The javelin bursts through a unit: a ring of sound at that point.

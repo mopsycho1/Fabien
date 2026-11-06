@@ -86,6 +86,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await new Promise((res) => { b.activeUnit = gaha; gaha.hasActed = false; b.castSpell(gaha, rabdul, 'sonicJavelin', res); setTimeout(res, 5000); });
   check('9.16 thrown: his wind-up', shown(gaha).some((k) => /gaha_n6_sonicPrep/.test(k)), shown(gaha).slice(0, 4).join(','));
   check('9.16 his flying spear and the impact', fxSeen.has('fx:sonic_spear') && fxSeen.has('fx:sonic_impact'), [...fxSeen].filter((k) => /sonic|sj/.test(k)).join(','));
+  check('6.28 his throw picture and fire trail', shown(gaha).some((k) => /gaha_n6_sonicThrow/.test(k)) && fxSeen.has('fx:sonic_trail_0'), shown(gaha).join(',').slice(0, 200));
   seen.clear(); reset([[gaha, 3, 5], [rabdul, 3, 3]]);
   S.applyBuff(gaha, 'swiftness');
   await new Promise((res) => { b.activeUnit = gaha; gaha.hasActed = false; b.castSpell(gaha, rabdul, 'sonicJavelin', res); setTimeout(res, 5000); });

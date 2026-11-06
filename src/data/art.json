@@ -528,6 +528,24 @@
           "file": "gaha_n6_sonicClose_downRight.png",
           "originX": 0.691
         }
+      },
+      "sonicRelease": {
+        "upLeft": {
+          "file": "gaha_n6_sonicThrow_upLeft.png",
+          "originX": 0.858
+        },
+        "upRight": {
+          "file": "gaha_n6_sonicThrow_upRight.png",
+          "originX": 0.146
+        },
+        "downLeft": {
+          "file": "gaha_n6_sonicThrow_downLeft.png",
+          "originX": 0.508
+        },
+        "downRight": {
+          "file": "gaha_n6_sonicThrow_downRight.png",
+          "originX": 0.797
+        }
       }
     },
     "portrait": "gaha_face.png",
@@ -874,7 +892,8 @@
         }
       }
     },
-    "note_nov6": "Nov set (roadmap 6.28, 1.14): weakened, defeated, victory, Stone/Fury/Swift stances and their own attack, guard and dodge pictures (buffPoses), the dodge, Fury Dive, Sonic Javelin close range and wind-up. Facings are true views."
+    "note_nov6": "Nov set (roadmap 6.28, 1.14): weakened, defeated, victory, Stone/Fury/Swift stances and their own attack, guard and dodge pictures (buffPoses), the dodge, Fury Dive, Sonic Javelin close range and wind-up. Facings are true views.",
+    "note_sonic": "Sonic Javelin throw (roadmap 6.28, 9.16): his 5 Nov 15:38 release pictures in four facings; the spear has left his hand (the flying spear and the 15:41 fire trail are effects)."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
