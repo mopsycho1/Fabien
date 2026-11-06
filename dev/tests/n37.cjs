@@ -44,7 +44,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('9.11 each character is drawn the same size as before', same && fs > 0.8 && fs <= 1, [shown(sudeen), shown(gaha), shown(layra), shown(rabdul), shown(bull)].join(',') + ' x' + fs.toFixed(2));
   // an old picture a character keeps (the bull's victory) is still drawn at its old size
   b.showPose(bull, 'victory', -1);
-  check('9.11 old pictures kept are rescaled to stay the same size (bull victory about 112 tall)', bull.sprite.texture.key.includes('bull_victory') && Math.abs(bull.sprite.displayHeight - 112 * fs) < 12, Math.round(bull.sprite.displayHeight));
+  check('9.11 old pictures kept are rescaled to stay the same size (bull victory about 112 tall)', bull.sprite.texture.key.includes('bull_n6b_victory') && Math.abs(bull.sprite.displayHeight - 112 * fs) < 12, Math.round(bull.sprite.displayHeight));
 
   // the poses
   const poses = { sudeen: ['ready', 'guard', 'attack', 'hurt', 'heal'], gaha: ['ready', 'guard', 'attack', 'hurt'], layra: ['ready', 'cast', 'chant', 'meditate', 'hurt'], rabdul: ['ready', 'attack', 'dodge', 'hurt'], bull: ['ready', 'guard', 'attack', 'hurt'] };

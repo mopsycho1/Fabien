@@ -63,7 +63,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('4.1 and strikes with the flaming mace', /bull_ench_attack_/.test(key(bull)), key(bull));
   check('4.1 Shango\'s symbol glows at his feet', !!bull.enchantAura && bull.enchantAura.objects.length > 0);
   S.applyEnchant(tayo, 'enchant'); b.refreshStatusTags();
-  check('4.1 Tayo (no flaming pictures yet): fire licks up round him', !!tayo.enchantAura && tayo.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)) && !bull.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)));
+  /* Tayo has his own flaming pictures since 6 Nov (6.30), so neither he nor the bull gets the drawn fire */ check('4.1 Tayo and the bull wear their painted flames, no drawn fire', !(tayo.enchantAura && tayo.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))) && !(bull.enchantAura && bull.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))));
   tayo.status = null; b.refreshStatusTags();
   S.applyBuff(sudeen, 'fury'); b.refreshStatusTags();
   check('Fury on Sudeen: his fire rising round him, no turning cutouts', !!sudeen.furyAura && sudeen.furyAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)) && !sudeen.furyAura.objects.some((o) => o.texture && /fury_ribbons/.test(o.texture.key)));

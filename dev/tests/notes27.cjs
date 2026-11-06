@@ -29,7 +29,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park();
   // archer aims in four facings
   put(archer, 4, 3); put(gaha, 2, 3); /* two columns back is up-left */ archer.facing = 'downLeft'; b.faceToward(archer, gaha.view.x - archer.view.x, gaha.view.y - archer.view.y); b.showPose(archer, 'attack', gaha.view.x - archer.view.x);
-  check('the archer aims up-left with her up-left picture', /archer_aim_upLeft/.test(key(archer)), key(archer));
+  check('the archer aims up-left with her up-left picture', /archer_n6b_fire2_f1/.test(key(archer)), key(archer));
   // weakened
   park(); gaha.hp = Math.floor(gaha.maxHp * 0.3); gaha.facing = 'downLeft'; b.showStanding(gaha);
   check('badly hurt Gaha stands bloodied', /gaha_n6_weak_downLeft/.test(key(gaha)), key(gaha));

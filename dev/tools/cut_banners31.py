@@ -22,6 +22,9 @@ SOURCES = {
     'gadara': (ISO + '122232.jpg', None),
     'alagara': (ISO + '122433.jpg', None),
 }
+# CLASH_SRC="rabdul=/path/a.jpg;tayo=/path/b.jpg" cuts only those (Nov batch: Rabdul 1023, Tayo 1051)
+if os.environ.get('CLASH_SRC'):
+    SOURCES = {k: (v, None) for k, v in (kv.split('=', 1) for kv in os.environ['CLASH_SRC'].split(';'))}
 HEIGHT = 400  # the banner's full height (900 on his sheet) in the game's picture
 
 def cream(a):

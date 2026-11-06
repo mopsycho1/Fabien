@@ -18,7 +18,7 @@ if ! bash bundle.sh >/dev/null 2>&1; then
 fi
 
 # The tests that are not n*.cjs (the same list CLAUDE.md used to give).
-EXTRA="notes27 notes27b poison echo signatures gaha three archer sage-l approach speed duel-rules duel-scene terrain engage-scene tap-behind tap-circles tap-acted story-smoke rotate"
+EXTRA="nov6b notes27 notes27b poison echo signatures gaha three archer sage-l approach speed duel-rules duel-scene terrain engage-scene tap-behind tap-circles tap-acted story-smoke rotate"
 
 pass=0
 fail=0

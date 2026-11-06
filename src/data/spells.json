@@ -225,10 +225,11 @@
     "range": 1,
     "hits": 2,
     "damageShare": 0.6,
-    "cooldown": 2,
+    "chance": 0.35,
+    "cooldown": 0,
     "mp": 0,
     "use": "enemy",
-    "text": "Strike with both heads of the spear: two quick hits on an enemy next to you, each 60% of a normal hit, each rolled on its own. Ready again after 2 turns."
+    "text": "Strike with both heads of the spear: two quick hits on an enemy next to you, each 60% of a normal hit, each rolled on its own. When Rabdul attacks, there is a 35% chance he strikes this way."
   },
   "shieldRam": {
     "name": "Shield Ram",

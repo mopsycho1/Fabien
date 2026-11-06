@@ -1141,20 +1141,58 @@
         "originX": 0.489
       },
       "down": {
-        "file": "bull_down.png",
-        "originX": 0.516
+        "upLeft": {
+          "file": "bull_n6b_down_f1.png",
+          "originX": 0.547
+        },
+        "downLeft": {
+          "file": "bull_n6b_down_f3.png",
+          "originX": 0.496
+        }
       },
       "victory": {
-        "file": "bull_victory.png",
-        "originX": 0.547
+        "upLeft": {
+          "file": "bull_n6b_victory_f1.png",
+          "originX": 0.489
+        },
+        "downLeft": {
+          "file": "bull_n6b_victory_f3.png",
+          "originX": 0.49
+        }
+      },
+      "throw": {
+        "upLeft": {
+          "file": "bull_n6b_throw1_f1.png",
+          "originX": 0.372
+        },
+        "downLeft": {
+          "file": "bull_n6b_throw1_f3.png",
+          "originX": 0.118
+        }
+      },
+      "throwRelease": {
+        "upLeft": {
+          "file": "bull_n6b_throw2_f3.png",
+          "originX": 0.897
+        },
+        "downLeft": {
+          "file": "bull_n6b_throw2_f1.png",
+          "originX": 0.144
+        }
       }
     },
     "portrait": "bull_face.png",
     "portraitHurt": "bull_face_hurt.png",
     "shout": "bull_face.png",
     "weak": {
-      "file": "bull_weak.png",
-      "originX": 0.534
+      "upLeft": {
+        "file": "bull_n6b_weak_f1.png",
+        "originX": 0.48
+      },
+      "downLeft": {
+        "file": "bull_n6b_weak_f3.png",
+        "originX": 0.488
+      }
     },
     "note_facing": "Down-left and down-right were swapped in his standing and battle pictures (he looked right, away from the heroes, at the start of a battle). Fixed 29 Oct: in a down view his face should point the way he faces.",
     "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and guard: \"guarding\" (11:20).",
@@ -1217,108 +1255,259 @@
           }
         }
       }
-    }
+    },
+    "moves": {
+      "shieldFlight": {
+        "note": "The shield in flight (3 Nov 15:57), spun through its four pictures.",
+        "frameMs": 70,
+        "frames": [
+          {
+            "file": "bull_n6b_shield_f1.png",
+            "originX": 0.337
+          },
+          {
+            "file": "bull_n6b_shield_f2.png",
+            "originX": 0.746
+          },
+          {
+            "file": "bull_n6b_shield_f3.png",
+            "originX": 0.626
+          },
+          {
+            "file": "bull_n6b_shield_f4.png",
+            "originX": 0.364
+          }
+        ]
+      }
+    },
+    "buffed": {
+      "bloodied": {
+        "upLeft": {
+          "file": "bull_n6b_bl3_f1.png",
+          "originX": 0.175
+        },
+        "downLeft": {
+          "file": "bull_n6b_bl3_f3.png",
+          "originX": 0.222
+        }
+      }
+    },
+    "buffPoses": {
+      "bloodied": {
+        "ready": {
+          "upLeft": {
+            "file": "bull_n6b_bl3_f1.png",
+            "originX": 0.175
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl3_f3.png",
+            "originX": 0.222
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "bull_n6b_bl3_f1.png",
+            "originX": 0.175
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl3_f3.png",
+            "originX": 0.222
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "bull_n6b_bl4_f1.png",
+            "originX": 0.214
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl4_f3.png",
+            "originX": 0.117
+          }
+        },
+        "attack": {
+          "upLeft": {
+            "file": "bull_n6b_bl5_f3.png",
+            "originX": 0.452
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl5_f1.png",
+            "originX": 0.432
+          }
+        },
+        "throw": {
+          "upLeft": {
+            "file": "bull_n6b_bl1_f1.png",
+            "originX": 0.232
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl1_f3.png",
+            "originX": 0.225
+          }
+        },
+        "throwRelease": {
+          "upLeft": {
+            "file": "bull_n6b_bl6_f3.png",
+            "originX": 0.136
+          },
+          "downLeft": {
+            "file": "bull_n6b_bl6_f1.png",
+            "originX": 0.719
+          }
+        }
+      }
+    },
+    "note_nov6b": "Nov set (roadmap 6.33): victory, weakened, defeated, shield throw and shield in flight, and the Bloodied Press look (stance, wind-up, strike, throw) that shows while he has Bloodied stacks."
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",
     "height": 100,
     "standing": {
-      "downLeft": {
-        "file": "archer_stand_downLeft.png",
-        "originX": 0.465
-      },
-      "downRight": {
-        "file": "archer_stand_downRight.png",
-        "originX": 0.429
-      },
       "upLeft": {
-        "file": "archer_stand_upLeft.png",
-        "originX": 0.505
+        "file": "archer_n6b_stand_f1.png",
+        "originX": 0.481
       },
       "upRight": {
-        "file": "archer_stand_upRight.png",
-        "originX": 0.514
+        "file": "archer_n6b_stand_f2.png",
+        "originX": 0.505
+      },
+      "downLeft": {
+        "file": "archer_n6b_stand_f3.png",
+        "originX": 0.328
+      },
+      "downRight": {
+        "file": "archer_n6b_stand_f4.png",
+        "originX": 0.492
       }
     },
     "battle": {
-      "downRight": {
-        "file": "archer_ready.png",
-        "originX": 0.557
-      },
-      "downLeft": {
-        "file": "archer_stance_downLeft.png",
-        "originX": 0.448
-      },
       "upLeft": {
-        "file": "archer_stance_upLeft.png",
-        "originX": 0.553
+        "file": "archer_n6b_battle_f1.png",
+        "originX": 0.318
       },
       "upRight": {
-        "file": "archer_stance_upRight.png",
-        "originX": 0.432
+        "file": "archer_n6b_battle_f2.png",
+        "originX": 0.626
+      },
+      "downLeft": {
+        "file": "archer_n6b_battle_f3.png",
+        "originX": 0.132
+      },
+      "downRight": {
+        "file": "archer_n6b_battle_f4.png",
+        "originX": 0.708
       }
     },
     "poses": {
       "attack": {
-        "downRight": {
-          "file": "archer_attack.png",
-          "originX": 0.431
-        },
-        "downLeft": {
-          "file": "archer_aim_downLeft.png",
-          "originX": 0.565
-        },
         "upLeft": {
-          "file": "archer_aim_upLeft.png",
-          "originX": 0.554
+          "file": "archer_n6b_fire2_f1.png",
+          "originX": 0.417
         },
         "upRight": {
-          "file": "archer_aim_upRight.png",
-          "originX": 0.389
+          "file": "archer_n6b_fire2_f2.png",
+          "originX": 0.718
+        },
+        "downLeft": {
+          "file": "archer_n6b_fire2_f3.png",
+          "originX": 0.503
+        },
+        "downRight": {
+          "file": "archer_n6b_fire2_f4.png",
+          "originX": 0.507
         }
       },
       "windup": {
-        "file": "archer_windup.png",
-        "originX": 0.397
-      },
-      "ready": {
-        "downRight": {
-          "file": "archer_ready.png",
-          "originX": 0.557
-        },
-        "downLeft": {
-          "file": "archer_stance_downLeft.png",
-          "originX": 0.448
-        },
         "upLeft": {
-          "file": "archer_stance_upLeft.png",
-          "originX": 0.553
+          "file": "archer_n6b_primed_f1.png",
+          "originX": 0.423
         },
         "upRight": {
-          "file": "archer_stance_upRight.png",
-          "originX": 0.432
+          "file": "archer_n6b_primed_f2.png",
+          "originX": 0.579
+        },
+        "downLeft": {
+          "file": "archer_n6b_primed_f3.png",
+          "originX": 0.247
+        },
+        "downRight": {
+          "file": "archer_n6b_primed_f4.png",
+          "originX": 0.437
+        }
+      },
+      "ready": {
+        "upLeft": {
+          "file": "archer_n6b_battle_f1.png",
+          "originX": 0.318
+        },
+        "upRight": {
+          "file": "archer_n6b_battle_f2.png",
+          "originX": 0.626
+        },
+        "downLeft": {
+          "file": "archer_n6b_battle_f3.png",
+          "originX": 0.132
+        },
+        "downRight": {
+          "file": "archer_n6b_battle_f4.png",
+          "originX": 0.708
         }
       },
       "guard": {
-        "file": "archer_guard.png",
-        "originX": 0.436
+        "upLeft": {
+          "file": "archer_n6b_dagger_f1.png",
+          "originX": 0.159
+        },
+        "upRight": {
+          "file": "archer_n6b_dagger_f2.png",
+          "originX": 0.787
+        },
+        "downLeft": {
+          "file": "archer_n6b_dagger_f3.png",
+          "originX": 0.106
+        },
+        "downRight": {
+          "file": "archer_n6b_dagger_f4.png",
+          "originX": 0.874
+        }
       },
       "dodge": {
         "file": "archer_dodge.png",
         "originX": 0.412
       },
       "dagger": {
-        "file": "archer_dagger.png",
-        "originX": 0.493
+        "upLeft": {
+          "file": "archer_n6b_dagger_f1.png",
+          "originX": 0.159
+        },
+        "upRight": {
+          "file": "archer_n6b_dagger_f2.png",
+          "originX": 0.787
+        },
+        "downLeft": {
+          "file": "archer_n6b_dagger_f3.png",
+          "originX": 0.106
+        },
+        "downRight": {
+          "file": "archer_n6b_dagger_f4.png",
+          "originX": 0.874
+        }
       },
       "hurt": {
-        "downLeft": {
-          "file": "archer_fall_0.png",
-          "originX": 0.452
-        },
         "upLeft": {
-          "file": "archer_fall_0.png",
-          "originX": 0.452
+          "file": "archer_n6b_hit_f1.png",
+          "originX": 0.527
+        },
+        "upRight": {
+          "file": "archer_n6b_hit_f2.png",
+          "originX": 0.53
+        },
+        "downLeft": {
+          "file": "archer_n6b_hit_f3.png",
+          "originX": 0.234
+        },
+        "downRight": {
+          "file": "archer_n6b_hit_f4.png",
+          "originX": 0.806
         }
       },
       "knocked": {
@@ -1332,13 +1521,21 @@
         }
       },
       "down": {
-        "downLeft": {
-          "file": "archer_fall_5.png",
-          "originX": 0.461
-        },
         "upLeft": {
-          "file": "archer_fall_5.png",
-          "originX": 0.461
+          "file": "archer_n6b_down_f1.png",
+          "originX": 0.676
+        },
+        "upRight": {
+          "file": "archer_n6b_down_f2.png",
+          "originX": 0.272
+        },
+        "downLeft": {
+          "file": "archer_n6b_down_f3.png",
+          "originX": 0.772
+        },
+        "downRight": {
+          "file": "archer_n6b_down_f4.png",
+          "originX": 0.401
         }
       },
       "poison": {
@@ -1350,13 +1547,21 @@
         "originX": 0.477
       },
       "kneel": {
-        "downLeft": {
-          "file": "archer_fall_2.png",
-          "originX": 0.513
-        },
         "upLeft": {
-          "file": "archer_fall_2.png",
-          "originX": 0.513
+          "file": "archer_n6b_wound2_f1.png",
+          "originX": 0.524
+        },
+        "upRight": {
+          "file": "archer_n6b_wound2_f2.png",
+          "originX": 0.547
+        },
+        "downLeft": {
+          "file": "archer_n6b_wound2_f3.png",
+          "originX": 0.643
+        },
+        "downRight": {
+          "file": "archer_n6b_wound2_f4.png",
+          "originX": 0.362
         }
       },
       "crumple": {
@@ -1368,14 +1573,46 @@
           "file": "archer_fall_4.png",
           "originX": 0.423
         }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "archer_n6b_victory_f1.png",
+          "originX": 0.394
+        },
+        "upRight": {
+          "file": "archer_n6b_victory_f2.png",
+          "originX": 0.651
+        },
+        "downLeft": {
+          "file": "archer_n6b_victory_f3.png",
+          "originX": 0.304
+        },
+        "downRight": {
+          "file": "archer_n6b_victory_f4.png",
+          "originX": 0.467
+        }
       }
     },
     "portrait": "archer_face.png",
     "portraitHurt": "archer_face_fall1.png",
     "shout": "archer_face.png",
     "weak": {
-      "file": "archer_weak.png",
-      "originX": 0.449
+      "upLeft": {
+        "file": "archer_n6b_wound1_f1.png",
+        "originX": 0.636
+      },
+      "upRight": {
+        "file": "archer_n6b_wound1_f2.png",
+        "originX": 0.357
+      },
+      "downLeft": {
+        "file": "archer_n6b_wound1_f3.png",
+        "originX": 0.45
+      },
+      "downRight": {
+        "file": "archer_n6b_wound1_f4.png",
+        "originX": 0.472
+      }
     },
     "enchanted": {
       "note": "Under Rabdul's Enchant (roadmap 4.1): his 29 Oct sheet 'Archer imbued with rabdul's enchantment', her flaming bow drawn in four facings.",
@@ -1460,65 +1697,164 @@
       "archer_face_fall2.png",
       "archer_face_fall3.png"
     ],
-    "note_fall": "Her fall from 'Archer fully defeated' (6.2): the old hurt, knocked and down pictures are replaced."
+    "note_fall": "Her fall from 'Archer fully defeated' (6.2): the old hurt, knocked and down pictures are replaced.",
+    "note_nov6b": "Nov set (roadmap 6.32): standing, battle, bow primed, arrow released, dagger, hit, wounded, defeated, victory in four facings. The poison-aim crouches (1077, 1078) are cut but not used yet."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",
     "height": 104,
     "standing": {
-      "downLeft": {
-        "file": "tayo_stand_downLeft.png",
-        "originX": 0.535
-      },
-      "downRight": {
-        "file": "tayo_stand_downRight.png",
-        "originX": 0.517
-      },
       "upLeft": {
-        "file": "tayo_stand_upLeft.png",
-        "originX": 0.529
+        "file": "tayo_n6b_stand_f1.png",
+        "originX": 0.355
       },
       "upRight": {
-        "file": "tayo_stand_upRight.png",
-        "originX": 0.483
+        "file": "tayo_n6b_stand_f2.png",
+        "originX": 0.604
+      },
+      "downLeft": {
+        "file": "tayo_n6b_stand_f3.png",
+        "originX": 0.473
+      },
+      "downRight": {
+        "file": "tayo_n6b_stand_f4.png",
+        "originX": 0.492
       }
     },
     "poses": {
       "windup": {
-        "file": "tayo_windup.png",
-        "originX": 0.438
+        "upLeft": {
+          "file": "tayo_n6b_battle_f1.png",
+          "originX": 0.173
+        },
+        "upRight": {
+          "file": "tayo_n6b_battle_f2.png",
+          "originX": 0.822
+        },
+        "downLeft": {
+          "file": "tayo_n6b_battle_f3.png",
+          "originX": 0.102
+        },
+        "downRight": {
+          "file": "tayo_n6b_battle_f4.png",
+          "originX": 0.774
+        }
       },
       "attack": {
-        "file": "tayo_attack.png",
-        "originX": 0.494
+        "upLeft": {
+          "file": "tayo_n6b_punch_f1.png",
+          "originX": 0.481
+        },
+        "upRight": {
+          "file": "tayo_n6b_punch_f2.png",
+          "originX": 0.155
+        },
+        "downLeft": {
+          "file": "tayo_n6b_punch_f3.png",
+          "originX": 0.821
+        },
+        "downRight": {
+          "file": "tayo_n6b_punch_f4.png",
+          "originX": 0.488
+        }
       },
       "ready": {
-        "file": "tayo_ready.png",
-        "originX": 0.463
+        "upLeft": {
+          "file": "tayo_n6b_battle_f1.png",
+          "originX": 0.173
+        },
+        "upRight": {
+          "file": "tayo_n6b_battle_f2.png",
+          "originX": 0.822
+        },
+        "downLeft": {
+          "file": "tayo_n6b_battle_f3.png",
+          "originX": 0.102
+        },
+        "downRight": {
+          "file": "tayo_n6b_battle_f4.png",
+          "originX": 0.774
+        }
       },
       "guard": {
-        "file": "tayo_guard.png",
-        "originX": 0.515
+        "upLeft": {
+          "file": "tayo_n6b_guard_f1.png",
+          "originX": 0.484
+        },
+        "upRight": {
+          "file": "tayo_n6b_guard_f2.png",
+          "originX": 0.091
+        },
+        "downLeft": {
+          "file": "tayo_n6b_guard_f3.png",
+          "originX": 0.864
+        },
+        "downRight": {
+          "file": "tayo_n6b_guard_f4.png",
+          "originX": 0.892
+        }
       },
       "dodge": {
         "file": "tayo_dodge.png",
         "originX": 0.506
       },
       "hurt": {
-        "file": "tayo_hurt.png",
-        "originX": 0.496
+        "upLeft": {
+          "file": "tayo_n6b_hurt_f1.png",
+          "originX": 0.259
+        },
+        "upRight": {
+          "file": "tayo_n6b_hurt_f2.png",
+          "originX": 0.182
+        },
+        "downLeft": {
+          "file": "tayo_n6b_hurt_f3.png",
+          "originX": 0.113
+        },
+        "downRight": {
+          "file": "tayo_n6b_hurt_f4.png",
+          "originX": 0.891
+        }
       },
       "knocked": {
         "file": "tayo_knocked.png",
         "originX": 0.48
       },
       "down": {
-        "file": "tayo_down.png",
-        "originX": 0.494
+        "upLeft": {
+          "file": "tayo_n6b_down_f1.png",
+          "originX": 0.607
+        },
+        "upRight": {
+          "file": "tayo_n6b_down_f2.png",
+          "originX": 0.404
+        },
+        "downLeft": {
+          "file": "tayo_n6b_down_f3.png",
+          "originX": 0.44
+        },
+        "downRight": {
+          "file": "tayo_n6b_down_f4.png",
+          "originX": 0.448
+        }
       },
       "victory": {
-        "file": "tayo_victory.png",
-        "originX": 0.464
+        "upLeft": {
+          "file": "tayo_n6b_victory_f1.png",
+          "originX": 0.402
+        },
+        "upRight": {
+          "file": "tayo_n6b_victory_f2.png",
+          "originX": 0.625
+        },
+        "downLeft": {
+          "file": "tayo_n6b_victory_f3.png",
+          "originX": 0.362
+        },
+        "downRight": {
+          "file": "tayo_n6b_victory_f4.png",
+          "originX": 0.29
+        }
       }
     },
     "portrait": "tayo_face.png",
@@ -1545,6 +1881,165 @@
             "originX": 0.565
           }
         ]
+      }
+    },
+    "battle": {
+      "upLeft": {
+        "file": "tayo_n6b_battle_f1.png",
+        "originX": 0.173
+      },
+      "upRight": {
+        "file": "tayo_n6b_battle_f2.png",
+        "originX": 0.822
+      },
+      "downLeft": {
+        "file": "tayo_n6b_battle_f3.png",
+        "originX": 0.102
+      },
+      "downRight": {
+        "file": "tayo_n6b_battle_f4.png",
+        "originX": 0.774
+      }
+    },
+    "weak": {
+      "upLeft": {
+        "file": "tayo_n6b_weak_f1.png",
+        "originX": 0.365
+      },
+      "upRight": {
+        "file": "tayo_n6b_weak_f2.png",
+        "originX": 0.739
+      },
+      "downLeft": {
+        "file": "tayo_n6b_weak_f3.png",
+        "originX": 0.162
+      },
+      "downRight": {
+        "file": "tayo_n6b_weak_f4.png",
+        "originX": 0.346
+      }
+    },
+    "enchanted": {
+      "note": "Under Rabdul's Enchant (roadmap 6.30): flame gauntlets. His 3 Nov 03:47 to 12:12 sheets.",
+      "standing": {
+        "upLeft": {
+          "file": "tayo_n6b_standFire_f1.png",
+          "originX": 0.346
+        },
+        "upRight": {
+          "file": "tayo_n6b_standFire_f2.png",
+          "originX": 0.586
+        },
+        "downLeft": {
+          "file": "tayo_n6b_standFire_f3.png",
+          "originX": 0.541
+        },
+        "downRight": {
+          "file": "tayo_n6b_standFire_f4.png",
+          "originX": 0.451
+        }
+      },
+      "battle": {
+        "upLeft": {
+          "file": "tayo_n6b_battleFire_f1.png",
+          "originX": 0.189
+        },
+        "upRight": {
+          "file": "tayo_n6b_battleFire_f2.png",
+          "originX": 0.822
+        },
+        "downLeft": {
+          "file": "tayo_n6b_battleFire_f3.png",
+          "originX": 0.098
+        },
+        "downRight": {
+          "file": "tayo_n6b_battleFire_f4.png",
+          "originX": 0.763
+        }
+      },
+      "poses": {
+        "attack": {
+          "upLeft": {
+            "file": "tayo_n6b_punchFire_f1.png",
+            "originX": 0.487
+          },
+          "upRight": {
+            "file": "tayo_n6b_punchFire_f2.png",
+            "originX": 0.151
+          },
+          "downLeft": {
+            "file": "tayo_n6b_punchFire_f3.png",
+            "originX": 0.83
+          },
+          "downRight": {
+            "file": "tayo_n6b_punchFire_f4.png",
+            "originX": 0.529
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "tayo_n6b_block_f1.png",
+            "originX": 0.528
+          },
+          "upRight": {
+            "file": "tayo_n6b_block_f2.png",
+            "originX": 0.082
+          },
+          "downLeft": {
+            "file": "tayo_n6b_block_f3.png",
+            "originX": 0.867
+          },
+          "downRight": {
+            "file": "tayo_n6b_block_f4.png",
+            "originX": 0.888
+          }
+        },
+        "ready": {
+          "upLeft": {
+            "file": "tayo_n6b_battleFire_f1.png",
+            "originX": 0.189
+          },
+          "upRight": {
+            "file": "tayo_n6b_battleFire_f2.png",
+            "originX": 0.822
+          },
+          "downLeft": {
+            "file": "tayo_n6b_battleFire_f3.png",
+            "originX": 0.098
+          },
+          "downRight": {
+            "file": "tayo_n6b_battleFire_f4.png",
+            "originX": 0.763
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "tayo_n6b_battleFire_f1.png",
+            "originX": 0.189
+          },
+          "upRight": {
+            "file": "tayo_n6b_battleFire_f2.png",
+            "originX": 0.822
+          },
+          "downLeft": {
+            "file": "tayo_n6b_battleFire_f3.png",
+            "originX": 0.098
+          },
+          "downRight": {
+            "file": "tayo_n6b_battleFire_f4.png",
+            "originX": 0.763
+          }
+        }
+      }
+    },
+    "note_nov6b": "Nov set (roadmap 6.30): neutral, battle, punch, guard, damage, weakened, defeated (does not fully collapse), victory, and the flame-imbued set. Replaces the stand-in art. Earth Drive pictures stay as they were.",
+    "clash": {
+      "file": "clash/tayo_clash.webp",
+      "tip": 0.882,
+      "name": {
+        "file": "clash/tayo_clash_name.webp",
+        "x": 0.5396,
+        "y": 0.0267
       }
     }
   },
@@ -1697,13 +2192,23 @@
         }
       },
       "down": {
-        "downLeft": {
-          "file": "rabdul_fall_3.png",
-          "originX": 0.478
-        },
         "upLeft": {
-          "file": "rabdul_fall_3.png",
-          "originX": 0.478
+          "file": "rabdul_n6b_down_f1.png",
+          "originX": 0.81
+        },
+        "downLeft": {
+          "file": "rabdul_n6b_down_f3.png",
+          "originX": 0.267
+        }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "rabdul_n6b_victory_f1.png",
+          "originX": 0.447
+        },
+        "downLeft": {
+          "file": "rabdul_n6b_victory_f3.png",
+          "originX": 0.512
         }
       }
     },
@@ -1724,6 +2229,22 @@
             "originX": 0.315
           }
         }
+      },
+      "moves": {
+        "doubleHit": {
+          "note": "Same under his Enchant: the flame spear (3 Nov 12:07).",
+          "frameMs": 420,
+          "frames": [
+            {
+              "file": "rabdul_n6b_multiFire_f2.png",
+              "originX": 0.401
+            },
+            {
+              "file": "rabdul_n6b_multiFire_f3.png",
+              "originX": 0.212
+            }
+          ]
+        }
       }
     },
     "portraitHurt": "rabdul_face_hurt1.png",
@@ -1733,6 +2254,42 @@
       "rabdul_face_hurt2.png",
       "rabdul_face_hurt3.png"
     ],
-    "note_hurt": "Hurt in three facings (the others are mirrored), the fall in four pictures (knocked, kneel, crumple, down), and a hurt face; from 'Rabdul defeated 1' and 'Rabdul defeated4' (6.1)."
+    "note_hurt": "Hurt in three facings (the others are mirrored), the fall in four pictures (knocked, kneel, crumple, down), and a hurt face; from 'Rabdul defeated 1' and 'Rabdul defeated4' (6.1).",
+    "weak": {
+      "upLeft": {
+        "file": "rabdul_n6b_weak_f1.png",
+        "originX": 0.466
+      },
+      "downLeft": {
+        "file": "rabdul_n6b_weak_f3.png",
+        "originX": 0.457
+      }
+    },
+    "moves": {
+      "doubleHit": {
+        "note": "Rabdul's double hit (roadmap 4.6): one head strikes, then the other. His 3 Nov 12:05 sheet, figures 2 and 3; flat frames, flipped to face the target.",
+        "frameMs": 420,
+        "frames": [
+          {
+            "file": "rabdul_n6b_multi_f2.png",
+            "originX": 0.319
+          },
+          {
+            "file": "rabdul_n6b_multi_f3.png",
+            "originX": 0.189
+          }
+        ]
+      }
+    },
+    "note_nov6b": "Nov set (roadmap 6.27): weakened, defeated, victory, the two-headed double hit (plain and flame).",
+    "clash": {
+      "file": "clash/rabdul_clash.webp",
+      "tip": 0.894,
+      "name": {
+        "file": "clash/rabdul_clash_name.webp",
+        "x": 0.5394,
+        "y": 0.0266
+      }
+    }
   }
 }

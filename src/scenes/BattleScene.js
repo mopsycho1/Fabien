@@ -149,7 +149,7 @@ export default class BattleScene extends Phaser.Scene {
     setBuffLookup((id) => {
       const u = this.units && this.units.find((x) => x.id === id);
       const b = u && u.alive ? buffOf(u) : null;
-      return b ? b.id : null;
+      return b ? b.id : (u && u.alive && u.fury > 0 ? 'bloodied' : null); // Bloodied Press stacks have their own look
     });
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
@@ -3015,7 +3015,7 @@ export default class BattleScene extends Phaser.Scene {
     const buff = buffOf(unit);
     const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;
     // Gaha standing his ground under Earth's Bulwark shows his rooted guard (roadmap 6.17)
-    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : null, weak, isRooted(unit)));
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : (unit.fury > 0 ? 'bloodied' : null), weak, isRooted(unit)));
   }
 
   // True when an enemy (as this unit sees it) is close enough to fight:
@@ -3616,9 +3616,8 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(300, () => this.endTurn());
     };
     if (targets[0].isDecoy) this.strikeDecoy(unit, targets[0].decoy, done); // fooled by Husk
-    else if (unit.spells.includes('doubleHit') && canAfford(unit, 'doubleHit') && distance(unit, targets[0]) <= spells.doubleHit.range) {
-      spendMp(unit, 'doubleHit');
-      startCooldown(unit, 'doubleHit');
+    else if (unit.spells.includes('doubleHit') && distance(unit, targets[0]) <= spells.doubleHit.range && Math.random() < (spells.doubleHit.chance || 0)) {
+      // the double hit is a chance on his normal attack (roadmap 4.6)
       unit.hasActed = true;
       this.castDoubleHit(unit, targets[0], spells.doubleHit, done);
     } else this.performAttack(unit, targets[0], done);
@@ -4578,17 +4577,27 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshButtons();
     const dx = target.view.x - thrower.view.x;
     this.faceToward(thrower, dx, target.view.y - thrower.view.y);
-    this.showPose(thrower, 'windup', dx);
+    this.showPose(thrower, poseFrame(thrower.id, 'throw', 'right') ? 'throw' : 'windup', dx);
     this.time.delayedCall(260, () => {
-      this.showPose(thrower, 'attack', dx);
+      this.showPose(thrower, this.releasePose(thrower), dx);
       play('whoosh');
       const a = this.centerOf(thrower);
       const b = this.centerOf(target);
-      const shield = this.add.graphics().setDepth(79).setPosition(a.x, a.y);
-      shield.fillStyle(0x8a6a3c, 1).fillCircle(0, 0, 13);
-      shield.lineStyle(3, 0xd9b77a, 1).strokeCircle(0, 0, 13);
-      shield.fillStyle(0xd9b77a, 1).fillCircle(0, 0, 4);
-      this.tweens.add({ targets: shield, angle: 720, duration: 560 });
+      // his painted shield in flight (6.33), else the plain drawn one
+      const flight = moveFrames(thrower.id, 'shieldFlight', dx >= 0 ? 'right' : 'left');
+      let shield;
+      if (flight) {
+        shield = this.add.image(a.x, a.y, flight.frames[0].key).setDepth(79).setScale(thrower.artScale || 0.5);
+        let n = 0;
+        const spin = this.time.addEvent({ delay: flight.frameMs, loop: true, callback: () => { n++; const f = flight.frames[n % flight.frames.length]; shield.setTexture(f.key).setFlipX(f.flip); } });
+        shield.once('destroy', () => spin.remove());
+      } else {
+        shield = this.add.graphics().setDepth(79).setPosition(a.x, a.y);
+        shield.fillStyle(0x8a6a3c, 1).fillCircle(0, 0, 13);
+        shield.lineStyle(3, 0xd9b77a, 1).strokeCircle(0, 0, 13);
+        shield.fillStyle(0xd9b77a, 1).fillCircle(0, 0, 4);
+        this.tweens.add({ targets: shield, angle: 720, duration: 560 });
+      }
       this.tweens.add({
         targets: shield,
         x: b.x,
@@ -5133,7 +5142,8 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(i * 420, () => {
         if (!user.view || !user.view.active) return;
         play('whoosh');
-        this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
+        const dh = moveFrames(user.id, 'doubleHit', dx >= 0 ? 'right' : 'left'); // one head, then the other (4.6)
+        if (!(dh && dh.frames[i] && this.showFrame(user, dh.frames[i]))) this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
         this.afterimage(user);
         const home = { x: user.view.x, y: user.view.y };
         this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });

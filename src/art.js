@@ -89,6 +89,8 @@ function allFiles(entry) {
   const files = new Set();
   const buffed = [...Object.values(entry.buffed || {}), ...(entry.rooted ? [entry.rooted] : [])];
   if (entry.enchanted && entry.enchanted.battle) buffed.push(entry.enchanted.battle);
+  if (entry.enchanted && entry.enchanted.standing) buffed.push(entry.enchanted.standing); // his neutral flame-imbued stance
+  if (entry.enchanted && entry.enchanted.moves) for (const move of Object.values(entry.enchanted.moves)) for (const f of move.frames) files.add(fileOf(f));
   const directional = [...Object.values(entry.poses || {}), ...Object.values(entry.buffPoses || {}).flatMap((b) => Object.values(b)), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const list of Object.values(entry.walk || {})) if (Array.isArray(list)) for (const f of list) files.add(fileOf(f));
@@ -195,7 +197,8 @@ export function standingFrame(id, facing, alert = false, buff = null, weak = fal
   if (weak && entry.weak) standing = isFacingSet(entry.weak) ? entry.weak : { downRight: entry.weak };
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
   const look = lookEntry(id);
-  if (look && look.battle) standing = look.battle; // enchanted: the flaming weapon
+  const lookSet = look && ((!alert && look.standing) || look.battle); // enchanted: the flaming weapon (neutral or battle)
+  if (lookSet) standing = lookSet;
   if (rooted && entry.rooted) standing = entry.rooted;
   return pickFacing(id, standing, facing);
 }
@@ -272,7 +275,8 @@ export function walkFrames(id, facing) {
 // "right": { frames: [frame, ...], frameMs }, or null if the unit doesn't have it.
 export function moveFrames(id, move, side) {
   const entry = art[id];
-  const m = entry && entry.moves && entry.moves[move];
+  const look = lookEntry(id); // a flame version of the move, while enchanted
+  const m = (look && look.moves && look.moves[move]) || (entry && entry.moves && entry.moves[move]);
   if (!m) return null;
   return { frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60 };
 }
