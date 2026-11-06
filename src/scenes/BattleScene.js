@@ -3005,6 +3005,9 @@ export default class BattleScene extends Phaser.Scene {
   showStanding(unit) {
     if (unit.meditating && this.showFrame(unit, poseFrame(unit.id, 'meditate', 'right', unit.facing))) return;
     if (unit.aiming && this.showFrame(unit, poseFrame(unit.id, 'poison', unit.aiming.target.view.x >= unit.view.x ? 'right' : 'left'))) return;
+    // an archer with a foe next to her holds her dagger, in her stance and in a clash too
+    const adjacent = this.adjacentFoe(unit);
+    if (adjacent && this.showFrame(unit, this.daggerStance(unit, adjacent))) return;
     if (unit.engagedWith && unit.engagedWith.view) {
       const foe = unit.engagedWith.view;
       const dy = foe.y - unit.view.y;
@@ -3016,6 +3019,19 @@ export default class BattleScene extends Phaser.Scene {
     const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;
     // Gaha standing his ground under Earth's Bulwark shows his rooted guard (roadmap 6.17)
     this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : (unit.fury > 0 ? 'bloodied' : null), weak, isRooted(unit)));
+  }
+
+  // The foe standing next to a unit that has a close weapon (the archer's dagger), or null.
+  adjacentFoe(unit) {
+    if (!unit.closeWeapon || !this.units) return null;
+    return this.units.find((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy && usesCloseWeapon(unit, o)) || null;
+  }
+
+  // The dagger picture facing a foe (the unit's own up or down, the foe's left or right).
+  daggerStance(unit, foe) {
+    const right = foe.view.x >= unit.view.x;
+    const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
+    return poseFrame(unit.id, unit.closeWeapon.pose, right ? 'right' : 'left', facing);
   }
 
   // True when an enemy (as this unit sees it) is close enough to fight:
@@ -6168,7 +6184,8 @@ export default class BattleScene extends Phaser.Scene {
         if (Math.random() < 0.4) return;
         // Only units already in battle stance glance about. A relaxed unit flicking
         // into the ready pose looked like a random stance switch (roadmap 1.13).
-        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit && this.isAlert(u));
+        // a unit under a blessing (or Bloodied) stays in its blessed look: it has no blessed "ready" picture to glance with
+        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit && !buffOf(u) && !(u.fury > 0) && this.isAlert(u));
         if (calm.length === 0) return;
         const u = calm[Math.floor(Math.random() * calm.length)];
         const foes = this.units.filter((f) => f.alive && f.side !== u.side);

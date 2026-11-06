@@ -100,11 +100,11 @@ export function hitSpark(scene, x, y, color = 0xffe08a, count = 9) {
   });
 }
 
-// A puff of dust rolling out along the ground (roadmap 13.18, 1.17).
-// Uses Suleiman's 6 Nov dust rings: four frames of a swirling ring on the
-// ground, played in turn while it spreads and fades. If the pictures are
-// missing, the old drawn puff is used instead.
-export function dustPuff(scene, x, y) {
+// A swirling ring of dust on the ground (roadmap 13.18). Suleiman's 6 Nov rings:
+// four frames played in turn while the ring spreads and fades. Only for Tayo
+// charging Element Blast (13.4): normal dust is the drawn puff below (his 6 Nov
+// 15:21 note). If the pictures are missing, the drawn puff is used instead.
+export function dustRing(scene, x, y) {
   const keys = [0, 1, 2, 3].map((i) => 'fx:dust_ring_' + i);
   if (!keys.every((k) => scene.textures.exists(k))) return dustPuffDrawn(scene, x, y);
 
@@ -117,7 +117,12 @@ export function dustPuff(scene, x, y) {
   scene.time.addEvent({ delay: 120, repeat: 3, callback: () => ring.active && ring.setTexture(keys[++f]) });
 }
 
-// The old drawn dust puff, used only when the dust pictures are missing.
+// The everyday puff of dust rolling out along the ground (roadmap 1.17, 13.18):
+// the old drawn one is the default again.
+export function dustPuff(scene, x, y) {
+  dustPuffDrawn(scene, x, y);
+}
+
 function dustPuffDrawn(scene, x, y) {
   makeBigger(x, y, 1.25);
   const puffs = [-26, -12, 0, 12, 26].map((dx) => ({ dx, size: 6 + Math.random() * 5 }));

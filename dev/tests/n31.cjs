@@ -25,11 +25,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.runEnemyTurn = () => {}; b.endTurn = () => {};
   put(gaha, 0, 7); put(sudeen, 1, 7); put(layra, 2, 7); put(archer, 7, 0); put(bull, 6, 0); put(rabdul, 5, 0);
   b.faceNearestOpponent(archer);
-  check('1.7 no hero within her reach: she stands relaxed', /archer_stand_/.test(key(archer)), key(archer));
+  check('1.7 no hero within her reach: she stands relaxed', /archer(_n6b)?_stand_/.test(key(archer)), key(archer));
   put(archer, 2, 2); b.faceNearestOpponent(archer); // Layra is 5 tiles away
-  check('1.7 a hero 5 tiles away, within her bow\'s reach: her combat-ready stance', /archer_(stance|ready)/.test(key(archer)), key(archer) + ' ' + archer.facing);
+  check('1.7 a hero 5 tiles away, within her bow\'s reach: her combat-ready stance', /archer(_n6b)?_(stance|ready|battle)/.test(key(archer)), key(archer) + ' ' + archer.facing);
   put(archer, 3, 1); b.faceNearestOpponent(archer); // 6 or more away from everyone
-  check('1.7 further than her reach: relaxed again', /archer_stand_/.test(key(archer)), key(archer));
+  check('1.7 further than her reach: relaxed again', /archer(_n6b)?_stand_/.test(key(archer)), key(archer));
   check('1.7 melee units still switch at 3 tiles, not further', (() => { put(gaha, 3, 4); put(bull, 3, 0); b.faceNearestOpponent(bull); const far = /bull_iso_stand/.test(key(bull)); put(bull, 3, 1); b.faceNearestOpponent(bull); return far && /bull_iso_battle/.test(key(bull)); })(), key(bull));
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);

@@ -136,9 +136,21 @@
         }
       },
       "slipStrike": {
+        "upLeft": {
+          "file": "sudeen_n6_bash_upLeft.png",
+          "originX": 0.397
+        },
+        "upRight": {
+          "file": "sudeen_n6_bash_upRight.png",
+          "originX": 0.932
+        },
         "downLeft": {
-          "file": "sudeen_cu_slipStrike_downLeft.png",
-          "originX": 0.579
+          "file": "sudeen_n6_bash_downLeft.png",
+          "originX": 0.936
+        },
+        "downRight": {
+          "file": "sudeen_n6_bash_downRight.png",
+          "originX": 0.421
         }
       }
     },
@@ -1920,23 +1932,23 @@
       }
     },
     "enchanted": {
-      "note": "Under Rabdul's Enchant (roadmap 6.30): flame gauntlets. His 3 Nov 03:47 to 12:12 sheets.",
+      "note": "Under Rabdul's Enchant (roadmap 6.30): flame gauntlets. His 3 Nov 03:47 to 12:12 sheets. Neutral look = his flaming-gauntlet picture (13.3, 6 Nov 15:21), cut by dev/tools/make_gauntlet.py.",
       "standing": {
         "upLeft": {
-          "file": "tayo_n6b_standFire_f1.png",
+          "file": "tayo_n6c_gauntlet_f1.png",
           "originX": 0.346
         },
         "upRight": {
-          "file": "tayo_n6b_standFire_f2.png",
+          "file": "tayo_n6c_gauntlet_f2.png",
           "originX": 0.586
         },
         "downLeft": {
-          "file": "tayo_n6b_standFire_f3.png",
+          "file": "tayo_n6c_gauntlet_f3.png",
           "originX": 0.541
         },
         "downRight": {
-          "file": "tayo_n6b_standFire_f4.png",
-          "originX": 0.451
+          "file": "tayo_n6c_gauntlet_f4.png",
+          "originX": 0.45
         }
       },
       "battle": {
