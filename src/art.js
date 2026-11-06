@@ -17,6 +17,10 @@ import art from './data/art.json';
 //   "buffed": { "stone": { ...four facings... }, "swiftness": { ... } }
 // While that Verse is on the unit, those pictures replace its standing ones.
 //
+// "buffPoses" (optional) are action pictures for one Verse, like
+//   "buffPoses": { "stone": { "attack": { ...four facings... } } }
+// While that Verse is on the unit they replace the same pose in "poses".
+//
 // "rooted" (optional) is four facings for a unit standing its ground under
 // Earth's Bulwark (Gaha's low guard in a dome of crystals, roadmap 6.17).
 // It wins over every other standing set while the unit is ROOTED.
@@ -62,6 +66,12 @@ export function setLookLookup(fn) {
 export function artHasLook(id, look) {
   return !!(art[id] && art[id][look] && art[id][look].battle);
 }
+// Which Verse (buff id) is on a unit right now, or null. A unit can have its own action
+// pictures for a Verse ("buffPoses" in art.json: Gaha's stone attack, his fury attack).
+let buffIdOf = () => null;
+export function setBuffLookup(fn) {
+  buffIdOf = fn;
+}
 function lookEntry(id) {
   const look = lookOf(id);
   return (look && art[id] && art[id][look]) || null;
@@ -79,7 +89,7 @@ function allFiles(entry) {
   const files = new Set();
   const buffed = [...Object.values(entry.buffed || {}), ...(entry.rooted ? [entry.rooted] : [])];
   if (entry.enchanted && entry.enchanted.battle) buffed.push(entry.enchanted.battle);
-  const directional = [...Object.values(entry.poses || {}), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
+  const directional = [...Object.values(entry.poses || {}), ...Object.values(entry.buffPoses || {}).flatMap((b) => Object.values(b)), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const list of Object.values(entry.walk || {})) if (Array.isArray(list)) for (const f of list) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
@@ -222,7 +232,9 @@ export function poseFrame(id, pose, side, facing = null) {
   const entry = art[id];
   if (!entry) return null;
   const look = lookEntry(id);
-  const value = (look && look.poses && look.poses[pose]) || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
+  const bid = buffIdOf(id);
+  const buffPose = bid && entry.buffPoses && entry.buffPoses[bid] && entry.buffPoses[bid][pose];
+  const value = (look && look.poses && look.poses[pose]) || buffPose || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
   if (!value) return null;
   if (isFacingSet(value)) return pickFacing(id, value, facing || (side === 'left' ? 'downLeft' : 'downRight'));
   return makeFrame(id, value, side === 'left');

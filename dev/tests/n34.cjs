@@ -44,7 +44,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 6.14 Gaha under Fury ----------
   const look = {};
   for (const f of ['downLeft', 'downRight', 'upLeft', 'upRight']) { gaha.facing = f; b.showStanding(gaha); look[f] = gaha.sprite.texture.key.replace('h2:', '') + (gaha.sprite.flipX ? '(m)' : ''); }
-  check('6.14 Gaha under Fury: his own pictures in all four facings', /gaha_fury_downLeft/.test(look.downLeft) && /gaha_fury_downLeft.*\(m\)/.test(look.downRight) && /gaha_fury_upRight/.test(look.upRight) && /gaha_fury_upRight.*\(m\)/.test(look.upLeft), JSON.stringify(look));
+  check('6.14 Gaha under Fury: his own pictures in all four facings', ['downLeft', 'downRight', 'upLeft', 'upRight'].every((f) => look[f] && look[f].includes('gaha_n6_furyStand_' + f)), JSON.stringify(look));
   check('6.14 his look has the fire painted on, so the aura adds only the ring and sparks', gaha.furyAura && gaha.furyAura.objects.length === 3, gaha.furyAura && gaha.furyAura.objects.length);
   reset([[layra, 2, 6], [sudeen, 3, 6]]);
   layra.mp = layra.maxMp;

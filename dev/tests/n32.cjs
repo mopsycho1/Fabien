@@ -97,7 +97,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   S.applyBuff(gaha, 'swiftness');
   const plan = b.javelinForm(gaha, archer, require(path.join(__dirname, '../../src/data/spells.json')).sonicJavelin);
   check('3.11 3 tiles away: the throw form', plan.form === 'throw', plan.form);
-  let sawThrow = false; const watch = setInterval(() => { if (/gaha_sj_throw|gaha_cu_sonicWindup/.test(gaha.sprite.texture.key)) sawThrow = true; /* (his 1 Nov wind-up since the clean-up batch) */ }, 20);
+  let sawThrow = false; const watch = setInterval(() => { if (/gaha_sj_throw|gaha_cu_sonicWindup|gaha_n6_sonicPrep/.test(gaha.sprite.texture.key)) sawThrow = true; /* (his 1 Nov wind-up since the clean-up batch) */ }, 20);
   const pA = archer.hp, pB = bull.hp;
   await cast(gaha, archer, 'sonicJavelin'); await sleep(300); clearInterval(watch);
   check('3.6 the throw hits every enemy in its line, never missing', archer.hp < pA && bull.hp < pB, (pA - archer.hp) + ' ' + (pB - bull.hp));

@@ -49,14 +49,14 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the poses
   const poses = { sudeen: ['ready', 'guard', 'attack', 'hurt', 'heal'], gaha: ['ready', 'guard', 'attack', 'hurt'], layra: ['ready', 'cast', 'chant', 'meditate', 'hurt'], rabdul: ['ready', 'attack', 'dodge', 'hurt'], bull: ['ready', 'guard', 'attack', 'hurt'] };
   for (const [u, name] of [[sudeen, 'sudeen'], [gaha, 'gaha'], [layra, 'layra'], [rabdul, 'rabdul'], [bull, 'bull']]) {
-    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') || /rabdul_hurt_/.test(key(u)) ? 'new' : key(u)); });
+    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') || key(u).includes('_n6_') || /rabdul_hurt_/.test(key(u)) ? 'new' : key(u)); });
     check('9.11 ' + name + "'s poses are his new pictures", got.every((g) => g.endsWith('=new')), got.join(' '));
   }
   // Verse looks
   S.applyBuff(gaha, 'swiftness'); gaha.facing = 'upRight'; b.showStanding(gaha);
-  check('9.11 Gaha under Swift: his new Swift look', /gaha_iso_swift_/.test(key(gaha)), key(gaha));
+  check('9.11 Gaha under Swift: his new Swift look', /gaha_n6_swiftStand_/.test(key(gaha)), key(gaha));
   gaha.status = null; S.applyBuff(gaha, 'stone'); b.showStanding(gaha);
-  check("9.11 Gaha under Earth's Bulwark: his new look", /gaha_iso_stone_/.test(key(gaha)), key(gaha));
+  check("9.11 Gaha under Earth's Bulwark: his new look", /gaha_n6_stoneGuard_/.test(key(gaha)), key(gaha));
   for (const v of ['swiftness', 'fury', 'stone']) {
     layra.status = null; S.applyBuff(layra, v); b.showStanding(layra);
     check('9.3 Layra under ' + v + ': her blessing stance', /layra_iso_blessed_/.test(key(layra)), key(layra));

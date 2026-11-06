@@ -24,13 +24,21 @@
     },
     "poses": {
       "windup": {
+        "upLeft": {
+          "file": "sudeen_n6_bash2_upLeft.png",
+          "originX": 0.123
+        },
         "upRight": {
-          "file": "sudeen_iso_battle_upRight.png",
-          "originX": 0.834
+          "file": "sudeen_n6_bash2_upRight.png",
+          "originX": 0.466
+        },
+        "downLeft": {
+          "file": "sudeen_n6_bash2_downLeft.png",
+          "originX": 0.442
         },
         "downRight": {
-          "file": "sudeen_iso_battle_downRight.png",
-          "originX": 0.178
+          "file": "sudeen_n6_bash2_downRight.png",
+          "originX": 0.107
         }
       },
       "ready": {
@@ -44,13 +52,21 @@
         }
       },
       "attack": {
+        "upLeft": {
+          "file": "sudeen_n6_bash_upLeft.png",
+          "originX": 0.397
+        },
         "upRight": {
-          "file": "sudeen_iso_attack_upRight.png",
-          "originX": 0.639
+          "file": "sudeen_n6_bash_upRight.png",
+          "originX": 0.932
+        },
+        "downLeft": {
+          "file": "sudeen_n6_bash_downLeft.png",
+          "originX": 0.936
         },
         "downRight": {
-          "file": "sudeen_iso_attack_downRight.png",
-          "originX": 0.084
+          "file": "sudeen_n6_bash_downRight.png",
+          "originX": 0.421
         }
       },
       "cast": {
@@ -82,12 +98,12 @@
         "originX": 0.606
       },
       "down": {
-        "file": "sudeen_down.png",
-        "originX": 0.564
+        "file": "sudeen_n6_down_single.png",
+        "originX": 0.639
       },
       "victory": {
-        "file": "sudeen_victory.png",
-        "originX": 0.475
+        "file": "sudeen_n6_victory_single.png",
+        "originX": 0.536
       },
       "heal": {
         "upRight": {
@@ -130,13 +146,21 @@
     "shout": "sudeen_head_6.png",
     "buffed": {
       "stone": {
-        "downLeft": {
-          "file": "sudeen_stone_downLeft.png",
-          "originX": 0.543
-        },
         "upLeft": {
-          "file": "sudeen_stone_upLeft.png",
-          "originX": 0.456
+          "file": "sudeen_n6_stone_upLeft.png",
+          "originX": 0.427
+        },
+        "upRight": {
+          "file": "sudeen_n6_stone_upRight.png",
+          "originX": 0.516
+        },
+        "downLeft": {
+          "file": "sudeen_n6_stone_downLeft.png",
+          "originX": 0.25
+        },
+        "downRight": {
+          "file": "sudeen_n6_stone_downRight.png",
+          "originX": 0.231
         }
       },
       "fury": {
@@ -150,13 +174,21 @@
         }
       },
       "swiftness": {
-        "downLeft": {
-          "file": "sudeen_swift_downLeft.png",
-          "originX": 0.555
-        },
         "upLeft": {
-          "file": "sudeen_swift_upLeft.png",
-          "originX": 0.392
+          "file": "sudeen_n6_swift_upLeft.png",
+          "originX": 0.225
+        },
+        "upRight": {
+          "file": "sudeen_n6_swift_upRight.png",
+          "originX": 0.726
+        },
+        "downLeft": {
+          "file": "sudeen_n6_swift_downLeft.png",
+          "originX": 0.287
+        },
+        "downRight": {
+          "file": "sudeen_n6_swift_downRight.png",
+          "originX": 0.274
         }
       }
     },
@@ -242,7 +274,26 @@
       "sudeen_head_4.png",
       "sudeen_head_5.png",
       "sudeen_head_6.png"
-    ]
+    ],
+    "weak": {
+      "upLeft": {
+        "file": "sudeen_n6_weak_upLeft.png",
+        "originX": 0.313
+      },
+      "upRight": {
+        "file": "sudeen_n6_weak_upRight.png",
+        "originX": 0.748
+      },
+      "downLeft": {
+        "file": "sudeen_n6_weak_downLeft.png",
+        "originX": 0.245
+      },
+      "downRight": {
+        "file": "sudeen_n6_weak_downRight.png",
+        "originX": 0.267
+      }
+    },
+    "note_nov6": "Nov set (roadmap 6.26, 1.17), true views in all four facings: Stone, Swift and weakened stances; the Shield Bash lunge is his attack for every shield strike (the aura shows the kind) and the second bash picture is the wind-up; defeated and victory."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -270,32 +321,56 @@
     "buffed": {
       "stone": {
         "upLeft": {
-          "file": "gaha_iso_stone_upLeft.png",
-          "originX": 0.605
+          "file": "gaha_n6_stoneGuard_upLeft.png",
+          "originX": 0.487
+        },
+        "upRight": {
+          "file": "gaha_n6_stoneGuard_upRight.png",
+          "originX": 0.504
+        },
+        "downLeft": {
+          "file": "gaha_n6_stoneGuard_downLeft.png",
+          "originX": 0.504
         },
         "downRight": {
-          "file": "gaha_iso_stone_downRight.png",
-          "originX": 0.579
+          "file": "gaha_n6_stoneGuard_downRight.png",
+          "originX": 0.496
         }
       },
       "fury": {
-        "downLeft": {
-          "file": "gaha_fury_downLeft.png",
-          "originX": 0.482
+        "upLeft": {
+          "file": "gaha_n6_furyStand_upLeft.png",
+          "originX": 0.26
         },
         "upRight": {
-          "file": "gaha_fury_upRight.png",
-          "originX": 0.51
+          "file": "gaha_n6_furyStand_upRight.png",
+          "originX": 0.754
+        },
+        "downLeft": {
+          "file": "gaha_n6_furyStand_downLeft.png",
+          "originX": 0.176
+        },
+        "downRight": {
+          "file": "gaha_n6_furyStand_downRight.png",
+          "originX": 0.648
         }
       },
       "swiftness": {
+        "upLeft": {
+          "file": "gaha_n6_swiftStand_upLeft.png",
+          "originX": 0.176
+        },
         "upRight": {
-          "file": "gaha_iso_swift_upRight.png",
-          "originX": 0.753
+          "file": "gaha_n6_swiftStand_upRight.png",
+          "originX": 0.693
+        },
+        "downLeft": {
+          "file": "gaha_n6_swiftStand_downLeft.png",
+          "originX": 0.541
         },
         "downRight": {
-          "file": "gaha_iso_swift_downRight.png",
-          "originX": 0.805
+          "file": "gaha_n6_swiftStand_downRight.png",
+          "originX": 0.797
         }
       }
     },
@@ -341,13 +416,21 @@
         }
       },
       "dodge": {
+        "upLeft": {
+          "file": "gaha_n6_dodge_upLeft.png",
+          "originX": 0.319
+        },
         "upRight": {
-          "file": "gaha_cu_clashSlip_upRight.png",
-          "originX": 0.578
+          "file": "gaha_n6_dodge_upRight.png",
+          "originX": 0.495
+        },
+        "downLeft": {
+          "file": "gaha_n6_dodge_downLeft.png",
+          "originX": 0.483
         },
         "downRight": {
-          "file": "gaha_cu_clashSlip_downRight.png",
-          "originX": 0.607
+          "file": "gaha_n6_dodge_downRight.png",
+          "originX": 0.42
         }
       },
       "throw": {
@@ -369,12 +452,12 @@
         "originX": 0.429
       },
       "down": {
-        "file": "gaha_down.png",
-        "originX": 0.514
+        "file": "gaha_n6_down_single.png",
+        "originX": 0.651
       },
       "victory": {
-        "file": "gaha_victory.png",
-        "originX": 0.506
+        "file": "gaha_n6_victory_single.png",
+        "originX": 0.538
       },
       "throwRelease": {
         "file": "gaha_iso_release_downRight.png",
@@ -411,15 +494,39 @@
         }
       },
       "sonicWindup": {
+        "upLeft": {
+          "file": "gaha_n6_sonicPrep_upLeft.png",
+          "originX": 0.345
+        },
+        "upRight": {
+          "file": "gaha_n6_sonicPrep_upRight.png",
+          "originX": 0.152
+        },
+        "downLeft": {
+          "file": "gaha_n6_sonicPrep_downLeft.png",
+          "originX": 0.621
+        },
         "downRight": {
-          "file": "gaha_cu_sonicWindup.png",
-          "originX": 0.281
+          "file": "gaha_n6_sonicPrep_downRight.png",
+          "originX": 0.812
         }
       },
       "sonicClose": {
+        "upLeft": {
+          "file": "gaha_n6_sonicClose_upLeft.png",
+          "originX": 0.897
+        },
+        "upRight": {
+          "file": "gaha_n6_sonicClose_upRight.png",
+          "originX": 0.066
+        },
+        "downLeft": {
+          "file": "gaha_n6_sonicClose_downLeft.png",
+          "originX": 0.338
+        },
         "downRight": {
-          "file": "gaha_cu_sonicClose.png",
-          "originX": 0.154
+          "file": "gaha_n6_sonicClose_downRight.png",
+          "originX": 0.691
         }
       }
     },
@@ -427,21 +534,21 @@
     "portraitHurt": "gaha_face_hurt.png",
     "shout": "gaha_shout.png",
     "weak": {
-      "downLeft": {
-        "file": "gaha_weak_downLeft.png",
-        "originX": 0.499
-      },
-      "downRight": {
-        "file": "gaha_weak_downRight.png",
-        "originX": 0.469
-      },
       "upLeft": {
-        "file": "gaha_weak_upLeft.png",
-        "originX": 0.56
+        "file": "gaha_n6_weak_upLeft.png",
+        "originX": 0.546
       },
       "upRight": {
-        "file": "gaha_weak_upRight.png",
-        "originX": 0.456
+        "file": "gaha_n6_weak_upRight.png",
+        "originX": 0.486
+      },
+      "downLeft": {
+        "file": "gaha_n6_weak_downLeft.png",
+        "originX": 0.625
+      },
+      "downRight": {
+        "file": "gaha_n6_weak_downRight.png",
+        "originX": 0.499
       }
     },
     "note_facing": "Up-right and up-left were swapped in the standing, weak and stone pictures (his face pointed the wrong way, so he looked away from the enemy at the start of a battle). Fixed 29 Oct: in each up view his face should point the way he faces.",
@@ -523,28 +630,28 @@
         ]
       },
       "furyDive": {
-        "note": "Fury Dive (roadmap 3.14), from his 30 Oct Gaha-under-Fury sheet: wind-up, leap, dive, slam, landing.",
+        "note": "Fury Dive (roadmap 3.14), isometric (his 2 Nov 22:17 sequence): wind-up, leap, dive, landing crouch.",
         "frameMs": 120,
         "frames": [
           {
-            "file": "gaha_dive_0.png",
-            "originX": 0.445
+            "file": "gaha_n6_furyDive_f0.png",
+            "originX": 0.671
           },
           {
-            "file": "gaha_dive_1.png",
-            "originX": 0.563
+            "file": "gaha_n6_furyDive_f1.png",
+            "originX": 0.181
           },
           {
-            "file": "gaha_dive_2.png",
-            "originX": 0.286
+            "file": "gaha_n6_furyDive_f2.png",
+            "originX": 0.942
           },
           {
-            "file": "gaha_dive_3.png",
-            "originX": 0.512
+            "file": "gaha_n6_furyDive_f3.png",
+            "originX": 0.425
           },
           {
-            "file": "gaha_dive_4.png",
-            "originX": 0.537
+            "file": "gaha_n6_furyDive_f3.png",
+            "originX": 0.425
           }
         ]
       },
@@ -650,7 +757,124 @@
       }
     },
     "note_clash": "His own clash banner (roadmap 8.15): drawn on the left of a clash as it is; on the right it is flipped and the small name picture goes over its plate so the name still reads the right way. Loaded in the background once a battle starts (dev/tools/cut_banners31.py). Gadara's and Alagara's are cut too (public/art/clash) for Phase 10.",
-    "note_clash_poses": "Clash close-ups (roadmap 9.9): Press, Guard and Slip from his 30 Oct 21:14, 20:15 and 21:03 sheets, shown when the camera zooms on a clash. Sonic Javelin (9.16): his 1 Nov wind-up (08:32) and close-range strike (08:22). Cut by dev/tools/make_cleanup.py."
+    "note_clash_poses": "Clash close-ups (roadmap 9.9): Press, Guard and Slip from his 30 Oct 21:14, 20:15 and 21:03 sheets, shown when the camera zooms on a clash. Sonic Javelin (9.16): his 1 Nov wind-up (08:32) and close-range strike (08:22). Cut by dev/tools/make_cleanup.py.",
+    "buffPoses": {
+      "stone": {
+        "attack": {
+          "upLeft": {
+            "file": "gaha_n6_stoneAttack_upLeft.png",
+            "originX": 0.276
+          },
+          "upRight": {
+            "file": "gaha_n6_stoneAttack_upRight.png",
+            "originX": 0.216
+          },
+          "downLeft": {
+            "file": "gaha_n6_stoneAttack_downLeft.png",
+            "originX": 0.255
+          },
+          "downRight": {
+            "file": "gaha_n6_stoneAttack_downRight.png",
+            "originX": 0.73
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "gaha_n6_stoneGuard_upLeft.png",
+            "originX": 0.487
+          },
+          "upRight": {
+            "file": "gaha_n6_stoneGuard_upRight.png",
+            "originX": 0.504
+          },
+          "downLeft": {
+            "file": "gaha_n6_stoneGuard_downLeft.png",
+            "originX": 0.504
+          },
+          "downRight": {
+            "file": "gaha_n6_stoneGuard_downRight.png",
+            "originX": 0.496
+          }
+        }
+      },
+      "fury": {
+        "attack": {
+          "upLeft": {
+            "file": "gaha_n6_furyAttack_upLeft.png",
+            "originX": 0.917
+          },
+          "upRight": {
+            "file": "gaha_n6_furyAttack_upRight.png",
+            "originX": 0.083
+          },
+          "downLeft": {
+            "file": "gaha_n6_furyAttack_downLeft.png",
+            "originX": 0.275
+          },
+          "downRight": {
+            "file": "gaha_n6_furyAttack_downRight.png",
+            "originX": 0.726
+          }
+        }
+      },
+      "swiftness": {
+        "attack": {
+          "upLeft": {
+            "file": "gaha_n6_swiftAttack_upLeft.png",
+            "originX": 0.871
+          },
+          "upRight": {
+            "file": "gaha_n6_swiftAttack_upRight.png",
+            "originX": 0.179
+          },
+          "downLeft": {
+            "file": "gaha_n6_swiftAttack_downLeft.png",
+            "originX": 0.361
+          },
+          "downRight": {
+            "file": "gaha_n6_swiftAttack_downRight.png",
+            "originX": 0.551
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "gaha_n6_swiftGuard_upLeft.png",
+            "originX": 0.132
+          },
+          "upRight": {
+            "file": "gaha_n6_swiftGuard_upRight.png",
+            "originX": 0.19
+          },
+          "downLeft": {
+            "file": "gaha_n6_swiftGuard_downLeft.png",
+            "originX": 0.229
+          },
+          "downRight": {
+            "file": "gaha_n6_swiftGuard_downRight.png",
+            "originX": 0.472
+          }
+        },
+        "dodge": {
+          "upLeft": {
+            "file": "gaha_n6_swiftDodge_upLeft.png",
+            "originX": 0.415
+          },
+          "upRight": {
+            "file": "gaha_n6_swiftDodge_upRight.png",
+            "originX": 0.364
+          },
+          "downLeft": {
+            "file": "gaha_n6_swiftDodge_downLeft.png",
+            "originX": 0.441
+          },
+          "downRight": {
+            "file": "gaha_n6_swiftDodge_downRight.png",
+            "originX": 0.499
+          }
+        }
+      }
+    },
+    "note_nov6": "Nov set (roadmap 6.28, 1.14): weakened, defeated, victory, Stone/Fury/Swift stances and their own attack, guard and dodge pictures (buffPoses), the dodge, Fury Dive, Sonic Javelin close range and wind-up. Facings are true views."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -721,8 +945,8 @@
         "originX": 0.502
       },
       "down": {
-        "file": "layra_down.png",
-        "originX": 0.491
+        "file": "layra_n6_down_single.png",
+        "originX": 0.309
       },
       "ready": {
         "upRight": {
@@ -743,14 +967,32 @@
           "file": "layra_iso_guard_downRight.png",
           "originX": 0.763
         }
+      },
+      "victory": {
+        "file": "layra_n6_victory_single.png",
+        "originX": 0.53
       }
     },
     "portrait": "layra_face.png",
     "portraitHurt": "layra_face_hurt.png",
     "shout": "layra_face.png",
     "weak": {
-      "file": "layra_weak.png",
-      "originX": 0.599
+      "upLeft": {
+        "file": "layra_n6_hurt_upLeft.png",
+        "originX": 0.493
+      },
+      "upRight": {
+        "file": "layra_n6_hurt_upRight.png",
+        "originX": 0.504
+      },
+      "downLeft": {
+        "file": "layra_n6_hurt_downLeft.png",
+        "originX": 0.509
+      },
+      "downRight": {
+        "file": "layra_n6_hurt_downRight.png",
+        "originX": 0.523
+      }
     },
     "battle": {
       "upRight": {
@@ -794,7 +1036,8 @@
         }
       }
     },
-    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and staff strike: \"defending herself\" (12:59). Casting is two steps: concentrating (12:36), then casting (12:41). Under any Verse: his blessing stance (12:53)."
+    "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and staff strike: \"defending herself\" (12:59). Casting is two steps: concentrating (12:36), then casting (12:41). Under any Verse: his blessing stance (12:53).",
+    "note_nov6": "Nov set (roadmap 6.29): damaged (weak) in four facings, defeated (his picture 4 of 3 and 4), victory."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",

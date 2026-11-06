@@ -48,7 +48,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('3.14 he lands on the free tile next to the foe, nearest him', gaha.col === 3 && gaha.row === 3, gaha.col + ',' + gaha.row);
   check('3.14 it never misses: damage dealt', rabdul.hp < hp0, (hp0 - rabdul.hp));
   check('3.14 the foe and the enemy next to the landing are Off-Balance', S.isOffBalance(rabdul) && S.isOffBalance(bull) && !S.isOffBalance(archer));
-  check('3.14 his dive frames played (wind-up, leap, dive, slam, landing)', ['gaha_dive_0', 'gaha_dive_1', 'gaha_dive_2', 'gaha_dive_3', 'gaha_dive_4'].every((f) => [...seen].some((k) => k.includes(f))), [...seen].filter((k) => /dive/.test(k)).join(','));
+  check('3.14 his dive frames played (wind-up, leap, dive, slam, landing)', ['furyDive_f0', 'furyDive_f1', 'furyDive_f2', 'furyDive_f3'].every((f) => [...seen].some((k) => k.includes(f))), [...seen].filter((k) => /dive/.test(k)).join(','));
   check('3.14 the Verse MP is spent', S.mpShown(gaha) === null || S.mpShown(gaha).mp === 0, JSON.stringify(S.mpShown(gaha)));
   await sleep(400);
 

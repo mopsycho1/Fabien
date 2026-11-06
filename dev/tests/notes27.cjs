@@ -32,9 +32,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the archer aims up-left with her up-left picture', /archer_aim_upLeft/.test(key(archer)), key(archer));
   // weakened
   park(); gaha.hp = Math.floor(gaha.maxHp * 0.3); gaha.facing = 'downLeft'; b.showStanding(gaha);
-  check('badly hurt Gaha stands bloodied', /gaha_weak_downLeft/.test(key(gaha)), key(gaha));
+  check('badly hurt Gaha stands bloodied', /gaha_n6_weak_downLeft/.test(key(gaha)), key(gaha));
   layra.hp = 5; b.showStanding(layra);
-  check('badly hurt Layra leans on her staff', /layra_weak/.test(key(layra)), key(layra));
+  check('badly hurt Layra leans on her staff', /layra_n6_hurt/.test(key(layra)), key(layra));
   layra.hp = layra.maxHp; gaha.hp = gaha.maxHp; b.showStanding(layra); b.showStanding(gaha);
   // Layra's size
   const shown = (u) => Math.max(...['downLeft', 'downRight', 'upLeft', 'upRight'].map((f) => { u.facing = f; b.showStanding(u); return u.sprite.displayHeight; }));

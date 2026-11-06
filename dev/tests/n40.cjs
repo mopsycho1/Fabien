@@ -46,10 +46,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const beat = (actor, holder, aS, hS, win, extra = {}) => ({ beat: { actor, holder, actorStance: aS, holderStance: hS, winner: win, loser: win === actor ? holder : win ? actor : null, kind: 'stance', actorScore: 5, holderScore: 3, decisive: false, empowered: false, ...extra }, response: null, path: [], ended: false, strike: null, escape: null });
   seen.clear();
   await new Promise((res) => b.playBeat(beat(gaha, bull, 'press', 'guard', gaha), false, res));
-  check('9.9 Gaha Pressing: his close-up Press', shown(gaha).some((k) => /gaha_cu_clashPress_/.test(k)), shown(gaha).join(','));
+  check('9.9 Gaha Pressing: his close-up Press', shown(gaha).some((k) => /gaha_iso_attack_/.test(k)), shown(gaha).join(','));
   seen.clear(); reset([[gaha, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(bull, gaha, 'press', 'guard', null), false, res));
-  check('9.9 Gaha Guarding: his close-up Guard, held as the blades meet', shown(gaha).filter((k) => /gaha_cu_clashGuard_/.test(k)).length >= 2);
+  check('9.9 Gaha Guarding: his close-up Guard, held as the blades meet', shown(gaha).filter((k) => /gaha_iso_guard_/.test(k)).length >= 2);
   seen.clear(); reset([[gaha, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(bull, gaha, 'press', 'slip', gaha), false, res));
   check('9.9 Gaha Slipping: his close-up dodge', shown(gaha).some((k) => /gaha_cu_clashSlip_/.test(k)));
@@ -84,12 +84,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   seen.clear(); fxSeen.clear(); reset([[gaha, 3, 6], [rabdul, 3, 2]]);
   S.applyBuff(gaha, 'swiftness');
   await new Promise((res) => { b.activeUnit = gaha; gaha.hasActed = false; b.castSpell(gaha, rabdul, 'sonicJavelin', res); setTimeout(res, 5000); });
-  check('9.16 thrown: his wind-up', shown(gaha).some((k) => /gaha_cu_sonicWindup/.test(k)), shown(gaha).slice(0, 4).join(','));
+  check('9.16 thrown: his wind-up', shown(gaha).some((k) => /gaha_n6_sonicPrep/.test(k)), shown(gaha).slice(0, 4).join(','));
   check('9.16 his flying spear and the impact', fxSeen.has('fx:sonic_spear') && fxSeen.has('fx:sonic_impact'), [...fxSeen].filter((k) => /sonic|sj/.test(k)).join(','));
   seen.clear(); reset([[gaha, 3, 5], [rabdul, 3, 3]]);
   S.applyBuff(gaha, 'swiftness');
   await new Promise((res) => { b.activeUnit = gaha; gaha.hasActed = false; b.castSpell(gaha, rabdul, 'sonicJavelin', res); setTimeout(res, 5000); });
-  check('9.16 close range: his close-range strike', shown(gaha).some((k) => /gaha_cu_sonicClose/.test(k)), shown(gaha).slice(-4).join(','));
+  check('9.16 close range: his close-range strike', shown(gaha).some((k) => /gaha_n6_sonicClose/.test(k)), shown(gaha).slice(-4).join(','));
 
   // ---------- 9.17 Layra injured ----------
   b.showPose(layra, 'hurt', 1);

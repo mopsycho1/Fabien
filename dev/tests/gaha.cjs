@@ -14,7 +14,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);
   const keys = game.textures.getTextureKeys().filter((k) => k.startsWith('h2:gaha_'));
-  check('all 69 of his pictures (6.3: and the 12 thrust frames) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 69, keys.length);
+  check('all 104 of his pictures (6.3: and the 12 thrust frames) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 104, keys.length);
   for (const u of b.units) put(u, 7, 7);
   put(U('H1'), 0, 7); put(U('H3'), 1, 7); put(U('E1'), 7, 0); put(U('E2'), 6, 0); put(U('E3'), 5, 0); put(gaha, 3, 6);
   b.faceNearestOpponent(gaha);
@@ -22,15 +22,18 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   put(U('E2'), 3, 4); b.faceNearestOpponent(gaha);
   check('an enemy 2 tiles away: battle stance', /gaha_iso_battle_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   St.applyBuff(gaha, 'stone'); b.showStanding(gaha);
-  check('under Verse of Stone: the stone picture', /gaha_iso_stone_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
+  check('under Verse of Stone: the stone picture', /gaha_n6_stoneGuard_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   St.applyBuff(gaha, 'swiftness'); b.showStanding(gaha);
-  check('under Verse of Swiftness: the swift picture', /gaha_iso_swift_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
+  check('under Verse of Swiftness: the swift picture', /gaha_n6_swiftStand_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
+  /* under Stone his attack is the stone attack picture (6.28) */
+  St.applyBuff(gaha, 'stone'); b.showPose(gaha, 'attack', 1);
+  check('under Verse of Stone: the stone attack picture', /gaha_n6_stoneAttack_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   gaha.status.buff = null; b.showStanding(gaha);
   check('Verse gone: back to normal', /gaha_iso_battle_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   for (const pose of ['windup', 'attack', 'ready', 'guard', 'dodge', 'hurt', 'knocked', 'down', 'victory']) {
     b.showPose(gaha, pose, 1);
     const isoName = { windup: 'battle', ready: 'battle' }[pose] || pose;
-    if (!gaha.sprite.texture.key.endsWith('gaha_' + pose + '.png') && !new RegExp('gaha_iso_' + isoName + '_').test(gaha.sprite.texture.key) && !(pose === 'dodge' && /gaha_cu_clashSlip_/.test(gaha.sprite.texture.key))) check('pose ' + pose, false, gaha.sprite.texture.key);
+    if (!gaha.sprite.texture.key.endsWith('gaha_' + pose + '.png') && !new RegExp('gaha_(iso|n6)_' + isoName + '_').test(gaha.sprite.texture.key) && !(pose === 'dodge' && /gaha_cu_clashSlip_/.test(gaha.sprite.texture.key))) check('pose ' + pose, false, gaha.sprite.texture.key);
   }
   check('every action pose shows', true);
   b.showStanding(gaha);

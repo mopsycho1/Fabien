@@ -23,7 +23,7 @@ import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura,
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, artHasLook } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, artHasLook } from '../art.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -144,6 +144,12 @@ export default class BattleScene extends Phaser.Scene {
     setLookLookup((id) => {
       const u = this.units && this.units.find((x) => x.id === id);
       return u && u.alive && isEnchanted(u) ? 'enchanted' : null;
+    });
+    // a unit under a Verse can have its own attack, guard and dodge pictures (art.json "buffPoses")
+    setBuffLookup((id) => {
+      const u = this.units && this.units.find((x) => x.id === id);
+      const b = u && u.alive ? buffOf(u) : null;
+      return b ? b.id : null;
     });
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
