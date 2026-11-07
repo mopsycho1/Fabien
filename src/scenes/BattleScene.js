@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb } from '../spellArt.js';
+import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -2031,6 +2031,7 @@ export default class BattleScene extends Phaser.Scene {
   spellBack() {
     if (this.mode === 'spellTarget' || this.mode === 'huskTile' || this.selectedSpell) {
       play('cancel');
+      this.releaseCharge();
       this.clearHighlights();
       this.pendingTarget = null;
       this.pendingTile = null;
@@ -2080,6 +2081,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     play('select');
+    this.releaseCharge();
     this.clearHighlights();
     this.pendingTarget = null;
     this.pendingTile = null;
@@ -2116,7 +2118,7 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin', 'dive'].includes(spell.kind);
+    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
@@ -2140,6 +2142,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'double', 'javelin', 'dive'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
+    this.holdCharge(unit, id);
     this.refreshOutlines();
     this.refreshStatus();
   }
@@ -2703,6 +2706,7 @@ export default class BattleScene extends Phaser.Scene {
   previewAttack(target) {
     play('select');
     this.pendingTarget = target;
+    this.aimCharge(target); // the held charge pose turns toward the pick
     this.refreshOutlines();
     this.refreshStatus();
   }
@@ -3003,6 +3007,8 @@ export default class BattleScene extends Phaser.Scene {
   // Badly hurt units stand weakened (if they have the pictures); a Sage in
   // meditation stays kneeling in it.
   showStanding(unit) {
+    // choosing a target for a skill: the unit holds its charge pose (roadmap 13.12)
+    if (unit.charging && this.showFrame(unit, poseFrame(unit.id, unit.charging.pose, unit.charging.dx >= 0 ? 'right' : 'left', unit.facing))) return;
     if (unit.meditating && this.showFrame(unit, poseFrame(unit.id, 'meditate', 'right', unit.facing))) return;
     if (unit.aiming && this.showFrame(unit, poseFrame(unit.id, 'poison', unit.aiming.target.view.x >= unit.view.x ? 'right' : 'left'))) return;
     // an archer with a foe next to her holds her dagger, in her stance and in a clash too
@@ -6362,7 +6368,62 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Cancels whatever the player was choosing and refreshes the screen.
+  // The pose a skill is held in while its target is being chosen (roadmap 13.12):
+  // Gaha draws the javelin back, Layra gathers with her element rising, Tayo
+  // gathers the orb. Skills without a charge picture stay standing.
+  chargePoseFor(unit, spell) {
+    const has = (p) => this.hasPose(unit, p);
+    if (spell.kind === 'javelin') return has('sonicWindup') ? 'sonicWindup' : null;
+    if (spell.kind === 'throw' || spell.kind === 'toss') return has('throw') ? 'throw' : null;
+    if (spell.kind === 'elementBlast') return has('blastCharge') ? 'blastCharge' : null;
+    if (['buff', 'hex', 'enchant'].includes(spell.kind)) return has('chant') ? 'chant' : null;
+    return null;
+  }
+
+  // Start the hold. dx says which way he faces (toward the picked target once there is one).
+  holdCharge(unit, id) {
+    this.releaseCharge();
+    const spell = spells[id];
+    const pose = spell && this.chargePoseFor(unit, spell);
+    if (!pose) return;
+    const dx = unit.facing && unit.facing.endsWith('Left') ? -1 : 1;
+    unit.charging = { pose, dx };
+    this.showStanding(unit);
+    const stops = [];
+    if (pose === 'chant') {
+      const stop = elementHold(this, unit, id);
+      if (stop) stops.push(stop);
+    } else if (pose === 'blastCharge') {
+      const fire = isEnchanted(unit); // as in the cast: Enchanted gives fire, else water
+      const orb = elementOrb(this, unit.view.x + 34, unit.view.y - unit.centerY * 1.05, { water: !fire, scale: 0.22 });
+      if (orb) { stops.push(() => orb.destroy()); unit.charging.orb = orb; }
+    }
+    this.chargeFx = { unit, stops };
+  }
+
+  // The player picked a target: turn toward it, keep the pose.
+  aimCharge(target) {
+    const unit = this.chargeFx && this.chargeFx.unit;
+    if (!unit || !unit.charging || !target || !target.view) return;
+    const dx = target.view.x - unit.view.x;
+    unit.charging.dx = dx >= 0 ? 1 : -1;
+    this.faceToward(unit, dx, target.view.y - unit.view.y);
+    this.showStanding(unit);
+    if (unit.charging.orb && unit.charging.orb.active) unit.charging.orb.x = unit.view.x + Math.sign(dx || 1) * 34;
+  }
+
+  // Confirmed or cancelled: the pose and its effect end (a cast then plays its own).
+  releaseCharge() {
+    const fx = this.chargeFx;
+    if (!fx) return;
+    this.chargeFx = null;
+    fx.stops.forEach((s) => s());
+    fx.unit.charging = null;
+    if (fx.unit.alive) this.showStanding(fx.unit);
+  }
+
   cancelMode() {
+    this.releaseCharge();
     if (this.mode !== 'idle' && this.activeUnit && this.activeUnit.side === 'hero') play('cancel');
     this.mode = 'idle';
     this.selectedSpell = null;

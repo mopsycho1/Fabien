@@ -535,6 +535,18 @@ export function elementRise(scene, unit, spellId, ms) {
   return true;
 }
 
+// The same swirl, held while the player picks a target (roadmap 13.12): it loops
+// at the caster's feet until the returned stop() is called. Null if no art.
+export function elementHold(scene, unit, spellId) {
+  const el = ELEMENT_OF[spellId];
+  if (!el || !has(scene, ['rise_' + el + '_0', 'rise_' + el + '_1']) || !unit.view) return null;
+  const img = scene.add.image(unit.view.x, unit.view.y + 6, 'fx:rise_' + el + '_0').setOrigin(0.5, 1).setScale(0.7).setDepth(unit.view.depth + 0.4).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+  scene.tweens.add({ targets: img, alpha: 0.85, duration: 200 });
+  let f = 0;
+  const flip = scene.time.addEvent({ delay: 260, loop: true, callback: () => img.active && img.setTexture('fx:rise_' + el + '_' + (++f % 2)) });
+  return () => { flip.remove(); if (img.active) scene.tweens.add({ targets: img, alpha: 0, duration: 150, onComplete: () => img.destroy() }); };
+}
+
 // ---------- Phase 4: the enemy skills (1 Nov) ----------
 
 const ENCHANT_RING = range('enchant_ring', 4);
