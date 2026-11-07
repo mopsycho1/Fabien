@@ -864,6 +864,12 @@ export default class BattleScene extends Phaser.Scene {
     if (this.statusText && this.statusText.text !== this.infoText) this.fitStatus();
     this.placeMenu();
     const u = this.activeUnit;
+    // breathing rests during actions (moves, attacks, cinematics) and resumes after
+    const still = !!(this.busy || this.inCinematic || this.battleOver);
+    if (still !== this.breathPaused) {
+      this.breathPaused = still;
+      for (const v of this.units) if (v.alive && v.idleTween && v.idleTween.isPlaying !== undefined) still ? v.idleTween.pause() : v.idleTween.resume();
+    }
     if (this.activeMarker) {
       const on = u && u.alive && u.view && u.view.active && !this.inCinematic && !this.battleOver;
       this.activeMarker.setVisible(!!on);
@@ -2654,7 +2660,8 @@ export default class BattleScene extends Phaser.Scene {
     // while he is between tiles, two pictures a step; standing again when he stops
     const WALK_ORDER = [0, 1, 2, 1];
     let stride = 0;
-    const steps = path.map((tile) => {
+    const STEP_MS = 190; // one tile; Linear so the figure glides through tile joins without stopping
+    const steps = path.map((tile, i) => {
       const p = tileToScreen(tile.col, tile.row);
       const fromTile = prevTile;
       const fromPoint = prev;
@@ -2663,25 +2670,28 @@ export default class BattleScene extends Phaser.Scene {
       return {
         x: p.x,
         y: p.y,
-        duration: 150,
-        ease: 'Sine.easeInOut',
+        duration: STEP_MS,
+        ease: 'Linear',
         onStart: () => {
           this.faceToward(unit, p.x - fromPoint.x, p.y - fromPoint.y);
           const fromDepth = fromTile ? depthFor(fromTile.col, fromTile.row) : unit.view.depth - 1;
           unit.view.setDepth(Math.max(fromDepth, depthFor(tile.col, tile.row)) + 1);
-          // a little hop each step; a big leap when Layra hops up to a high spot under Swiftness
+          // a big leap when Layra hops up to a high spot under Swiftness; otherwise a glide
           const climb = fromTile ? getHeight(tile.col, tile.row) - getHeight(fromTile.col, fromTile.row) : 0;
           const leap = climb > terrain.climbLimit;
           const walk = !leap && !buffOf(unit) && walkFrames(unit.id, unit.facing);
           if (walk) {
-            // real steps instead of a hop: a small bob as the feet pass
-            for (let k = 0; k < 2; k++) {
+            // walk frames play through the whole step (units without them keep their stance)
+            const n = Math.max(2, Math.round(STEP_MS / walk.frameMs));
+            for (let k = 0; k < n; k++) {
               const frame = walk.frames[WALK_ORDER[(stride + k) % 4]];
               this.time.delayedCall(k * walk.frameMs, () => unit.alive && this.showFrame(unit, frame));
             }
-            stride += 2;
-            this.tweens.add({ targets: unit.idleTargets, y: '-=3', duration: 75, yoyo: true, ease: 'Sine.easeOut' });
-          } else this.tweens.add({ targets: unit.idleTargets, y: leap ? '-=38' : '-=9', duration: leap ? 120 : 75, yoyo: true, ease: 'Sine.easeOut' });
+            stride += n;
+          }
+          // small step bob: one rise and fall per tile, tiny so it reads as a gait not a hop
+          if (leap) this.tweens.add({ targets: unit.idleTargets, y: '-=38', duration: 120, yoyo: true, ease: 'Sine.easeOut' });
+          else this.tweens.add({ targets: unit.idleTargets, y: walk ? '-=3' : '-=4', duration: STEP_MS / 2, yoyo: true, ease: 'Sine.easeOut' });
           const buff = buffOf(unit);
           // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
           if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
@@ -3346,6 +3356,7 @@ export default class BattleScene extends Phaser.Scene {
       x: from.x - (dx / dist) * 8, // draw back a little first
       y: from.y - (dy / dist) * 4,
       duration: 150,
+      hold: 70, // anticipation: freeze at the top of the wind-up before the strike
       ease: 'Quad.easeOut',
       onComplete: () => {
         play('whoosh');
@@ -3439,7 +3450,7 @@ export default class BattleScene extends Phaser.Scene {
     const power = Math.min(2, 0.8 + result.damage / 8) * (lethal ? 1.3 : 1);
     const color = style === 'spark' ? 0x9fd4ff : 0xffd27a;
 
-    this.hitStop(lethal ? 150 : result.damage >= 8 ? 95 : 65);
+    this.hitStop(lethal ? 80 : result.damage >= 8 ? 72 : 60);
     play(style === 'bash' ? 'bash' : 'impact');
 
     if (style === 'slash') heavySlash(this, spot.x, spot.y, dir, color);
@@ -3458,13 +3469,14 @@ export default class BattleScene extends Phaser.Scene {
     this.cameraPunch(power);
 
     // Big hits and finishing blows shake the screen
-    if (result.damage >= 9 || target.hp === 0) screenShake(this, 0.005 * power, 160);
+    // light shake on every hit, growing with the damage (finishing blows get the most)
+    screenShake(this, Math.min(0.008, 0.0015 + 0.0004 * result.damage) * (lethal ? 1.3 : 1), 90 + Math.min(80, result.damage * 8));
 
     if (target.hp === 0) {
       this.playDefeat(target, dx);
     } else {
       this.showPose(target, 'hurt', -dx); // flinch, facing the attacker
-      this.knockback(target, dx, power);
+      this.knockback(target, dx, power * 0.7); // small recoil, bigger for bigger blows
       this.time.delayedCall(420, () => {
         if (target.alive) this.showStanding(target);
       });
@@ -4418,10 +4430,10 @@ export default class BattleScene extends Phaser.Scene {
   slideAlong(unit, path) {
     const tweens = path.map((tile) => {
       const { x, y } = tileToScreen(tile.col, tile.row);
-      return { x, y, duration: 170, ease: 'Quad.easeOut', onStart: () => unit.view.setDepth(depthFor(tile.col, tile.row) + 1) };
+      return { x, y, duration: 170, ease: 'Linear', onStart: () => unit.view.setDepth(depthFor(tile.col, tile.row) + 1) };
     });
     this.tweens.chain({ targets: unit.view, tweens, onComplete: () => this.refreshWater() });
-    this.tweens.add({ targets: unit.idleTargets, y: '-=8', duration: 85, yoyo: true, repeat: path.length - 1 });
+    this.tweens.add({ targets: unit.idleTargets, y: '-=4', duration: 85, yoyo: true, repeat: path.length - 1 });
   }
 
   // ---------- Water (the Hidden Cavern, roadmap 11.4) ----------
