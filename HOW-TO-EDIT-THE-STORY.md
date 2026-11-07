@@ -464,3 +464,8 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Who fights on the Hidden Cavern** (Suleiman's plan, 3 against 3): Tayo in for the bull. Tayo is benched in `units.json`, the cavern brings him in (`"alsoFighting"` in `maps/cavern.json`) and benches the bull (`"sittingOut"`). For all four enemies, empty `"sittingOut"`; four were tried and the heroes lost every test battle.
 - **Calmer lights**: the cavern's flames breathe slowly, sparks are rare, the glowing dust is gone, and the water glints and waterfall spray are softer (`boardArt.js`, `atmosphere.js`).
 - Cut by `dev/tools/make_phase4.py` from his 29 Oct sheets in `CHARACTER UPDATES`, and wired into `art.json` by `dev/tools/wire_phase4.py`.
+
+## Phase 5: items
+- src/data/items.json: "items" (name, what it does, colour), and "start" (what each class carries). A unit in units.json can have its own "bag": { "sheaBalm": 2 }.
+- Buried things: "digsites" in src/data/maps/cavern.json (col, row, prop pots or bones, item).
+- Using an item or digging takes the unit's action.

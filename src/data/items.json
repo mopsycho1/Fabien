@@ -1,0 +1,18 @@
+{
+  "_note": "Items (roadmap Phase 5). Using one takes the unit's action: on itself, or on an ally standing next to it. heal = health back, mp = magic back (only units with MP), poise = 'full' fills Poise, cure = true cures poison and burn. 'start' is what each class carries into a battle (units.json can override with a 'bag' of its own). 'digs' are the spots on the map where something is buried; a unit next to one digs it up as its action (maps/*.json 'digsites' says where and what).",
+  "items": {
+    "sheaBalm": { "name": "Shea balm", "heal": 10, "color": "#9fdc8a", "text": "Heals 10 health." },
+    "kolaNut": { "name": "Kola nut", "poise": "full", "color": "#ffd27a", "text": "Fills Poise to full." },
+    "spiritWater": { "name": "Spirit water", "mp": 6, "color": "#7fb8ff", "text": "Gives back 6 MP (units with magic only)." },
+    "bitterLeaf": { "name": "Bitter leaf", "cure": true, "color": "#9fdc6a", "text": "Cures poison and puts out a burn." }
+  },
+  "start": {
+    "guardian": { "sheaBalm": 1, "kolaNut": 1 },
+    "spearman": { "sheaBalm": 1, "bitterLeaf": 1 },
+    "sage": { "spiritWater": 1, "bitterLeaf": 1 },
+    "twinSpear": { "kolaNut": 1 },
+    "bruiser": { "sheaBalm": 1 },
+    "warlord": { "sheaBalm": 1, "kolaNut": 1 },
+    "ranger": { "bitterLeaf": 1 }
+  }
+}

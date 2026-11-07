@@ -30,12 +30,12 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   // the rest of this test was written for a Scout in the H2 slot: give it back the Scout's numbers
   Object.assign(U('H2'), { contest: { style: 'evasion', power: 4, guard: 3, agility: 8 }, stances: { press: 'weak', guard: 'weak', slip: 'strong', break: 'strong' }, spells: [], attackName: 'Attack', speed: 12 });
   b.cancelMode();
-  check('buttons: Move | Attack | Engage (dim, nobody next to it) | End turn', labels() === 'Move | Attack | Engage(dim) | Items(dim)/End turn', labels());
+  check('buttons: Move | Attack | Engage (dim, nobody next to it) | End turn', labels() === 'Move | Attack | Engage(dim) | Items/End turn', labels());
 
   // ---- engage: decisive Advantage for the scout pushes the warlord away and breaks contact
   const h2 = U('H2'), e2 = U('E2'), h1 = U('H1'), e1 = U('E1'), h3 = U('H3'), e3 = U('E3');
   put(h2, 3, 4); put(e2, 3, 3); b.cancelMode();
-  check('with the Warlord next to it, Engage lights up', labels() === 'Move | Attack | Engage | Items(dim)/End turn', labels());
+  check('with the Warlord next to it, Engage lights up', labels() === 'Move | Attack | Engage | Items/End turn', labels());
   b.onEngageButton();
   check('engage mode shows an orange tile on the Warlord only', b.mode === 'engage' && b.targetsInRange.length === 1 && b.targetsInRange[0] === e2);
   b.handleTap(3, 3);
@@ -112,7 +112,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
 
   // ---- spells
   b.activeUnit = h3; h3.hasActed = false; b.cancelMode();
-  check('the Sage has Move | Lightning | Verses/Meditate | End turn (8.10, 8.11)', labels() === 'Move | Lightning | - | Items(dim)/End turn' && b.halves[0].label.text === 'Verses' && b.halves[1].label.text === 'Meditate', labels() + ' / ' + b.halves.map((h) => h.label.text).join('/'));
+  check('the Sage has Move | Lightning | Verses/Meditate | End turn (8.10, 8.11)', labels() === 'Move | Lightning | - | Items/End turn' && b.halves[0].label.text === 'Verses' && b.halves[1].label.text === 'Meditate', labels() + ' / ' + b.halves.map((h) => h.label.text).join('/'));
   b.onSpellButton();
   check('Verses shows Blessings, Hexes, Husk and Back', labels() === 'Blessings  > | Hexes  > | Husk  5 MP | Back', labels());
   b.chooseSpell('stone');

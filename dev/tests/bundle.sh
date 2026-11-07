@@ -13,7 +13,8 @@ import * as engagement from './src/engagement.js';
 import * as status from './src/status.js';
 import * as grid from './src/grid.js';
 import * as combat from './src/combat.js';
-window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__grid = grid; window.__combat = combat;
+import * as items from './src/items.js';
+window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__grid = grid; window.__combat = combat; window.__items = items;
 window.__game = new Phaser.Game({ type: Phaser.CANVAS, parent: 'game', width: 720, height: 1280, backgroundColor: '#1a1410', banner: false, audio: { noAudio: true }, loader: { imageLoadType: 'HTMLImageElement' }, scene: [StartScene, DialogueScene, BattleScene, EndScene, EffectsLab] });
 EOT
 node_modules/.bin/esbuild harness-entry.js --bundle --format=iife --platform=browser --outfile=$OUT_DIR/bundle.js --log-level=error

@@ -79,5 +79,12 @@
       {"prop": "stalagmiteTall", "at": [-1, 8]}
     ]
   },
-  "surroundNote": "The cavern round the board, as the camera sees it (so it stays behind the board when the camera turns): a ledge one tile deep at ledgeHeight with his props on it, then rock walls wallHeight levels high. at = [view column, view row]; -1 is the ledge. Props: stalagmiteTall, stalagmiteShort, rockPile, pillar, pots, brazier (lit), bones, rockPool."
+  "surroundNote": "The cavern round the board, as the camera sees it (so it stays behind the board when the camera turns): a ledge one tile deep at ledgeHeight with his props on it, then rock walls wallHeight levels high. at = [view column, view row]; -1 is the ledge. Props: stalagmiteTall, stalagmiteShort, rockPile, pillar, pots, brazier (lit), bones, rockPool.",
+  "digsites": [
+    { "col": 1, "row": 3, "prop": "pots", "item": "sheaBalm" },
+    { "col": 7, "row": 5, "prop": "bones", "item": "bitterLeaf" },
+    { "col": 7, "row": 3, "prop": "pots", "item": "spiritWater" },
+    { "col": 1, "row": 5, "prop": "bones", "item": "kolaNut" }
+  ],
+  "digsitesNote": "Things buried on the board (roadmap 5.3). A unit next to one (or on a dropped satchel) digs it up as its action and gets the item. A pot or bone pile blocks its tile until dug. prop: pots or bones; item: an id from items.json."
 }

@@ -1192,6 +1192,39 @@ export function drawCavern(scene, map) {
   drawSurround(scene, map.surround || {});
   for (const w of map.waterfalls || []) drawWaterfall(scene, w);
   for (const [c, r] of map.lamps || []) drawLamp(scene, c, r, map.sigilCircle || [4, 4]);
+  drawSites(scene);
+}
+
+// Things lying on the board that a unit can dig up (roadmap 5.3): the pots and
+// bone piles of the map's "digsites", and the satchel a fallen unit leaves.
+// scene.sites holds them; a dug one is not drawn. Each keeps its picture in
+// site.sprite so the dig can fade it out.
+function drawSites(scene) {
+  for (const site of scene.sites || []) drawSite(scene, site);
+}
+
+export function drawSite(scene, site) {
+  {
+    site.sprite = null;
+    if (site.dug) return;
+    const { x, y } = tileToScreen(site.col, site.row);
+    const v = toView(site.col, site.row);
+    const depth = depthFor(site.col, site.row) + 0.4;
+    const spec = CAVE_PROPS[site.prop];
+    if (spec && scene.textures.exists('terrain:' + site.prop)) {
+      const img = scene.add.image(x, y + TILE_HEIGHT * 0.1, 'terrain:' + site.prop).setOrigin(spec.originX, 1);
+      img.setScale((spec.width * 0.8 * (TILE_WIDTH / 112)) / img.width).setDepth(depth).setTint(fireTint(lightAt(v.vc, v.vr) * 0.95));
+      site.sprite = img;
+    } else {
+      // a small satchel on the floor, drawn round its own point
+      const g = scene.add.graphics({ x, y }).setDepth(depth);
+      g.fillStyle(0x000000, 0.35).fillEllipse(0, 2, 26, 9);
+      g.fillStyle(0x7a4f2a, 1).fillEllipse(0, -5, 22, 14);
+      g.fillStyle(0xb98a52, 1).fillEllipse(0, -8, 14, 7);
+      g.fillStyle(0xffe08a, 1).fillCircle(0, -9, 1.6);
+      site.sprite = g;
+    }
+  }
 }
 
 // A block of rock seen from the camera at a place in the VIEW (it stays

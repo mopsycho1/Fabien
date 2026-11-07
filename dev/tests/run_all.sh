@@ -46,6 +46,7 @@ for f in n*.cjs; do
     n41) run_test n41 FABIEN_MAP=cavern FABIEN_BENCH= ;;
     n42) run_test n42 FABIEN_MAP=cavern FABIEN_BENCH= ;;
     n43) run_test n43 FABIEN_MAP=cavern FABIEN_BENCH= ;;
+    n44) run_test n44 FABIEN_MAP=cavern FABIEN_BENCH= ;;
     *)   run_test "$name" ;;
   esac
 done

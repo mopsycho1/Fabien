@@ -1,3 +1,4 @@
+import { startBag } from './items.js';
 // Jobs: a job is a bundle of battle numbers (health, attack, speed, and so on).
 // Instead of typing every number for every unit, a unit in units.json just
 // says which job it has. The numbers for each job live in src/data/jobs.json.
@@ -57,6 +58,7 @@ export function buildUnit(entry, jobs) {
     contest: job && job.contest ? { ...job.contest } : null, // engagement style and numbers (melee jobs only)
     stances: job && job.stances ? { ...job.stances } : null, // which clash stances this job is strong or weak in
     stance: null, // the stance it last fought with in a clash
+    bag: startBag(entry), // items carried: { sheaBalm: 1 } (items.json, roadmap Phase 5)
     spells: job && job.spells ? [...job.spells] : [], // spells and skills this job can use
     signature: job && job.signature ? { ...job.signature } : null, // its signature stance in a clash, if any
     melee: !!(job && job.melee), // a close fighter even with a range above 1 (a spear's reach)

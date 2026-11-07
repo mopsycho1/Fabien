@@ -29,7 +29,7 @@ import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
-import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
+import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
 import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
 import {
   isMelee,
@@ -63,6 +63,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
+import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice } from '../items.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
@@ -88,7 +89,7 @@ const GOLD = 0xffe08a;
 const SPIKE_LEVELS = 3;  // an Earth Drive spike counts as a block this many levels tall, for arrows (roadmap 4.2)
 // The modes in which the player is picking a target on the board: the
 // command menu gets out of the way then (roadmap 8.9).
-const TARGET_MODES = ['attack', 'engage', 'spellTarget', 'huskTile', 'approach'];
+const TARGET_MODES = ['attack', 'engage', 'spellTarget', 'huskTile', 'approach', 'itemTarget'];
 
 const BAR_WIDTH = 48;    // width of a unit's health bar, in pixels
 const UNIT_RADIUS = 22;  // size of a unit's circle
@@ -166,6 +167,9 @@ export default class BattleScene extends Phaser.Scene {
     this.goHome();             // the board camera fits the board into the free space
     setRotation(0);            // a new battle starts with the camera on its first side
     this.rotating = false;
+    // Things to dig up (roadmap 5.3): the map's buried pots and bones, plus the
+    // satchels fallen units leave. boardArt draws them; a pot blocks its tile until dug.
+    this.sites = (mapData.digsites || []).map((d) => ({ col: d.col, row: d.row, prop: d.prop, items: [d.item], blocking: true, dug: false, sprite: null }));
     this.buildBoard();         // the tiles, the floor around them and the scenery
 
     // Things the scene remembers between taps
@@ -691,7 +695,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     const pad = Math.round(6 * s);
     const caster = this.activeUnit && this.activeUnit.maxMp > 0 && !isMelee(this.activeUnit);
-    const header = this.mode === 'spell' || this.spellGroup ? this.spellGroup || (caster ? 'Verses' : 'Skills') : '';
+    const header = this.mode === 'item' || this.mode === 'itemTarget' ? 'Items' : this.mode === 'spell' || this.spellGroup ? this.spellGroup || (caster ? 'Verses' : 'Skills') : '';
     const headH = header ? Math.round(24 * s) : 0;
     const gripH = Math.round(14 * s);
     rows.forEach((r, i) => r.place(pad, pad + gripH + headH + i * rowH, menuW - 2 * pad, rowH, s));
@@ -1107,7 +1111,7 @@ export default class BattleScene extends Phaser.Scene {
     const seen = this.figureAt(x, y) || bodies.slice().sort((a, b) => b.view.depth - a.view.depth)[0];
     const active = this.activeUnit;
 
-    if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach')) {
+    if (this.targetsInRange.length > 0 && (this.mode === 'attack' || this.mode === 'engage' || this.mode === 'spellTarget' || this.mode === 'approach' || this.mode === 'itemTarget')) {
       // The tile of a target behind, covered only by the edge of the figure in
       // front (a shield, a mace, a spear, not its body): the target on the tile
       // (the tile it stands on: the diamond round its feet)
@@ -1636,6 +1640,14 @@ export default class BattleScene extends Phaser.Scene {
         'You ' + mine + ' vs them ' + theirs + ', plus dice. Tap again.';
     } else if (this.mode === 'engage') {
       text = 'Tap an orange tile to engage';
+    } else if (this.mode === 'item') {
+      text = 'Choose an item (it takes your action)' + (this.sitesNear(unit).length ? '\nSomething is buried or dropped close by: tap Dig up.' : '');
+    } else if (this.mode === 'itemTarget' && this.pendingTarget) {
+      const it = ITEMS[this.selectedItem];
+      text = it.name + (this.pendingTarget === unit ? ' on yourself' : ' on ' + this.pendingTarget.name) + ': ' + it.text + ' Tap again.';
+    } else if (this.mode === 'itemTarget') {
+      const it = ITEMS[this.selectedItem];
+      text = it.name + ': ' + it.text + '\nTap a green tile (yours or an ally next to you), or tap ' + it.name + ' again for yourself.';
     } else if ((this.mode === 'spell' || this.mode === 'rest') && this.selectedSpell) {
       const spell = spells[this.selectedSpell];
       text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
@@ -1777,6 +1789,23 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // Choosing an item (or Dig up): the bag, three buttons at a time, and Back
+    if (isHero && (this.mode === 'item' || this.mode === 'itemTarget')) {
+      const entries = this.itemMenu(unit);
+      const paged = entries.length > 3;
+      const shown = paged ? entries.slice(this.itemPage * 2, this.itemPage * 2 + 2) : entries;
+      [a, b].forEach((slot, i) => {
+        const e = shown[i];
+        if (e) slot.set(e.label, 'bag', e.enabled, e.onTap, { selected: e.selected, accent: e.accent });
+        else slot.set(null);
+      });
+      if (paged) c.set('More  >', 'gem', true, () => { this.itemPage = (this.itemPage + 1) % Math.ceil(entries.length / 2); this.refreshStatus(); });
+      else if (shown[2]) c.set(shown[2].label, 'bag', shown[2].enabled, shown[2].onTap, { selected: shown[2].selected, accent: shown[2].accent });
+      else c.set(null);
+      d.set('Back', 'back', true, () => this.itemBack());
+      return;
+    }
+
     // Choosing a spell: the spells (or groups of spells, like Verse) and Back
     if (isHero && (this.mode === 'spell' || this.mode === 'spellTarget' || this.mode === 'huskTile')) {
       const entries = this.spellMenu(unit);
@@ -1873,10 +1902,10 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       c.set(null);
     }
-    // Row 4: Items | End turn. Items stay greyed until Phase 5 of the roadmap
-    // (digging through the map's props).
+    // Row 4: Items | End turn. Items needs something in the bag or something to dig up nearby.
     d.set(null);
-    this.lowHalves[0].set('Items', 'bag', false, null);
+    const hasItems = heldItems(unit).length > 0 || this.sitesNear(unit).length > 0;
+    this.lowHalves[0].set('Items', 'bag', free && hasItems, () => this.onItemsButton(), { accent: GOLD });
     this.lowHalves[1].set('End turn', 'hourglass', isHero, () => this.onEndButton());
   }
 
@@ -1978,6 +2007,153 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.mode = 'spell';
     this.refreshStatus();
+  }
+
+  // ---------- Items (roadmap Phase 5) ----------
+
+  onItemsButton() {
+    const unit = this.activeUnit;
+    if (unit.side !== 'hero' || this.busy || this.battleOver || unit.hasActed) return;
+    this.cancelMode();
+    this.mode = 'item';
+    this.refreshStatus();
+  }
+
+  // The buttons in the Items menu: each kind in the bag, then Dig up when
+  // something is buried or dropped within reach.
+  itemMenu(unit) {
+    const list = heldItems(unit).map((id) => ({
+      label: ITEMS[id].name + '  x' + unit.bag[id],
+      enabled: !this.busy && this.itemTargets(unit, id).length > 0,
+      onTap: () => this.chooseItem(id),
+      selected: this.selectedItem === id,
+      accent: Phaser.Display.Color.HexStringToColor(ITEMS[id].color).color,
+    }));
+    if (this.sitesNear(unit).length > 0) {
+      list.push({ label: 'Dig up', enabled: !this.busy, onTap: () => this.digHere(), selected: false, accent: 0xe4c27c });
+    }
+    return list;
+  }
+
+  // Who an item could go to: the unit itself or an ally next to it, if it would help them.
+  itemTargets(unit, id) {
+    return this.units.filter((u) => u.alive && u.side === unit.side && distance(unit, u) <= 1 && itemHelps(u, id));
+  }
+
+  chooseItem(id) {
+    const unit = this.activeUnit;
+    if (this.selectedItem === id && this.mode === 'itemTarget' && this.targetsInRange.includes(unit)) {
+      // tapped a second time: use it on yourself
+      this.pendingTarget = unit;
+      this.confirmItem();
+      return;
+    }
+    const targets = this.itemTargets(unit, id);
+    if (targets.length === 0) {
+      this.showMessage(ITEMS[id].name + ' would do nothing for anyone next to you');
+      return;
+    }
+    play('select');
+    this.clearHighlights();
+    this.pendingTarget = null;
+    this.selectedItem = id;
+    this.mode = 'itemTarget';
+    this.targetsInRange = targets;
+    this.showHighlights(targets.map((t) => ({ col: t.col, row: t.row })), 0x9fdc8a);
+    this.refreshOutlines();
+    this.refreshStatus();
+  }
+
+  itemBack() {
+    if (this.mode === 'itemTarget') {
+      play('cancel');
+      this.clearHighlights();
+      this.pendingTarget = null;
+      this.selectedItem = null;
+      this.targetsInRange = [];
+      this.mode = 'item';
+      this.refreshOutlines();
+      this.refreshStatus();
+      return;
+    }
+    this.cancelMode();
+  }
+
+  confirmItem() {
+    const user = this.activeUnit;
+    const target = this.pendingTarget || user;
+    const id = this.selectedItem;
+    this.cancelMode();
+    this.busy = true;
+    this.useItem(user, target, id, () => {
+      this.busy = false;
+      this.refreshStatus();
+    });
+  }
+
+  // Uses one item: it takes the user's action. Works for heroes and enemies.
+  useItem(user, target, id, onDone) {
+    const it = ITEMS[id];
+    user.hasActed = true;
+    const out = applyItem(target, id, user);
+    if (target !== user) this.faceToward(user, target.view.x - user.view.x, target.view.y - user.view.y);
+    play('spell');
+    buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(it.color).color);
+    const say = (text, delay = 0) => this.time.delayedCall(delay, () => this.floatText(target, text, it.color, { pop: true }));
+    this.floatText(user, it.name, '#f1e6c8', { rise: 30 });
+    if (out.heal) say('+' + out.heal, 250);
+    if (out.mp) say('+' + out.mp + ' MP', 250);
+    if (out.poise) say('Poise full', 250);
+    if (out.cured) say('Cured', 450);
+    this.updateHpBar(target);
+    this.refreshStatusTags();
+    this.refreshButtons();
+    if (target.lowGlow && target.hp / target.maxHp > 0.3) {
+      target.lowGlow.destroy();
+      target.lowGlow = null;
+    }
+    this.time.delayedCall(1000, onDone);
+  }
+
+  // Dig up what is buried or dropped within reach (the nearest first). Takes the action.
+  digHere() {
+    const unit = this.activeUnit;
+    const sites = this.sitesNear(unit).sort((a, b) => distance(unit, a) - distance(unit, b));
+    if (sites.length === 0 || this.busy) return;
+    this.cancelMode();
+    this.busy = true;
+    this.digUp(unit, sites[0], () => {
+      this.busy = false;
+      this.refreshStatus();
+    });
+  }
+
+  digUp(unit, site, onDone) {
+    unit.hasActed = true;
+    site.dug = true;
+    for (const id of site.items) giveItem(unit, id);
+    const at = tileToScreen(site.col, site.row);
+    if (site.col !== unit.col || site.row !== unit.row) this.faceToward(unit, at.x - unit.view.x, at.y - unit.view.y);
+    play('select');
+    if (site.sprite) this.tweens.add({ targets: site.sprite, alpha: 0, y: '-=14', duration: 500, onComplete: () => site.sprite && site.sprite.destroy() });
+    this.floatText(unit, 'Found ' + site.items.map((id) => ITEMS[id].name).join(', '), '#ffe08a', { rise: 40 });
+    this.refreshButtons();
+    this.time.delayedCall(900, onDone);
+  }
+
+  // A fallen unit leaves what it carried in a satchel on its tile.
+  dropBag(unit) {
+    const items = [];
+    for (const id of Object.keys(unit.bag || {})) for (let i = 0; i < unit.bag[id]; i++) items.push(id);
+    if (items.length === 0) return;
+    unit.bag = {};
+    const site = { col: unit.col, row: unit.row, prop: 'bag', items, blocking: false, dug: false, sprite: null };
+    this.sites.push(site);
+    this.time.delayedCall(700, () => {
+      if (site.dug) return;
+      drawSite(this, site);
+      if (site.sprite) this.boardObjects.push(site.sprite);
+    });
   }
 
   // The buttons in the spell menu. Spells that share a "group" in spells.json
@@ -2312,6 +2488,22 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // Choosing who gets an item: first tap explains it, second tap uses it
+    if (this.mode === 'itemTarget') {
+      const target = this.getUnitAt(col, row);
+      if (target && this.targetsInRange.includes(target)) {
+        if (target === this.pendingTarget) this.confirmItem();
+        else this.previewAttack(target);
+        return;
+      }
+      this.cancelMode();
+      return;
+    }
+    if (this.mode === 'item') {
+      this.cancelMode();
+      return;
+    }
+
     // Choosing who gets a spell: first tap explains it, second tap casts it
     if (this.mode === 'spellTarget') {
       const target = this.getUnitAt(col, row);
@@ -2392,7 +2584,17 @@ export default class BattleScene extends Phaser.Scene {
 
   // True if a living unit is standing on the tile.
   isBlocked(col, row) {
-    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row) || !!this.spikeAt(col, row);
+    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row) || !!this.spikeAt(col, row) || !!this.potAt(col, row);
+  }
+
+  // An undug pot or bone pile standing on a tile (it blocks the tile), or undefined.
+  potAt(col, row) {
+    return (this.sites || []).find((st) => st.blocking && !st.dug && st.col === col && st.row === row);
+  }
+
+  // The things to dig that this unit can reach: next to it, or under its feet.
+  sitesNear(unit) {
+    return (this.sites || []).filter((st) => !st.dug && distance(unit, st) <= 1);
   }
 
   // The Earth Drive spike standing on a tile, or undefined (roadmap 4.2).
@@ -2924,6 +3126,7 @@ export default class BattleScene extends Phaser.Scene {
   // numbers. The fall is drawn by playDefeat, when the blow lands.)
   defeat(unit) {
     unit.alive = false;
+    this.dropBag(unit); // what it carried waits in a satchel (roadmap 5.3)
     // his spikes fall with him (roadmap 4.2)
     for (const sp of this.spikes.filter((x) => x.owner === unit)) this.time.delayedCall(700, () => this.removeSpike(sp));
     if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
@@ -3518,9 +3721,20 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // It looks after itself first: a healing item when hurt, a cure when poisoned (roadmap 5.4)
+    const itemId = enemyItemChoice(unit);
+    if (itemId) {
+      this.busy = true;
+      this.useItem(unit, unit, itemId, () => {
+        this.busy = false;
+        this.time.delayedCall(300, () => this.endTurn());
+      });
+      return;
+    }
+
     // It plans with what it can see: a hidden caster's decoy instead of her.
     // Her real tile still blocks the way, even if they do not know why.
-    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r);
+    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r);
     // Tayo with an element on him fires it down a line at once, without walking up first (roadmap 13.4)
     const mark = this.blastTarget(unit);
     if (mark && distance(unit, mark) >= 2) {
@@ -6427,6 +6641,8 @@ export default class BattleScene extends Phaser.Scene {
     if (this.mode !== 'idle' && this.activeUnit && this.activeUnit.side === 'hero') play('cancel');
     this.mode = 'idle';
     this.selectedSpell = null;
+    this.selectedItem = null;
+    this.itemPage = 0;
     this.spellGroup = null;
     this.pendingTarget = null;
     this.pendingTile = null;
