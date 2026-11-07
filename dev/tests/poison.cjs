@@ -52,6 +52,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   sure(); b.runEnemyTurn(); await sleep(700); await idle(); await sleep(1400); w.Math.random = real;
   check('an enemy archer next to a foe steps away before shooting', Math.abs(archer.col - gaha.col) + Math.abs(archer.row - gaha.row) >= 2, archer.col + ',' + archer.row);
 
+  // Husk breaks Marked (roadmap 1.26): Layra hides, so the archer's aim is lost
+  park(); put(archer, 3, 2); put(layra, 3, 6); put(gaha, 0, 3); put(sudeen, 0, 6);
+  archer.aiming = { target: layra, spellId: 'poisonArrow' }; layra.markedBy = archer;
+  layra.mp = 12; layra.hasActed = false; layra.hasMoved = false; layra.stepsUsed = 0;
+  b.activeUnit = layra; layra.hasActed = false; layra.hasMoved = false; layra.stepsUsed = 0; b.cancelMode(); b.onSpellButton(); b.chooseSpell('husk'); b.handleTap(5, 6); b.handleTap(5, 6); await idle();
+  check('1.26 Husk clears her Marked mark', layra.markedBy === null, String(layra.markedBy && layra.markedBy.label));
+  check('1.26 Husk breaks the archer\'s aim at her', archer.aiming === null, String(archer.aiming && archer.aiming.spellId));
+  b.removeDecoys(layra);
+
   // Herbs cures
   park(); put(sudeen, 2, 6); put(gaha, 2, 5); St.applyPoison(gaha, 'poisonArrow');
   b.activeUnit = sudeen; sudeen.hasActed = false; sudeen.hasMoved = false; sudeen.stepsUsed = 0; b.cancelMode();

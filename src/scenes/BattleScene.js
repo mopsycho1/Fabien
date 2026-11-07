@@ -5449,6 +5449,14 @@ export default class BattleScene extends Phaser.Scene {
   // It always breaks free of a clash.
   castHusk(caster, tile, onDone) {
     this.removeDecoys(caster); // one decoy at a time
+    // Marked (roadmap 1.26): an archer aiming at her loses her, as if she had been hit:
+    // her aim breaks and the mark on Layra goes, so the arrow has nothing to fly at
+    if (caster.markedBy) {
+      const archer = caster.markedBy;
+      caster.markedBy = null;
+      if (archer.aiming && archer.aiming.target === caster) this.interrupt(archer);
+      this.refreshStatusTags();
+    }
     if (caster.engagedWith) {
       endDuel(caster);
       this.refreshEngagementMarks();
