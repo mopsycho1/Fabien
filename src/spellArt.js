@@ -42,6 +42,10 @@ const FILES = [
   'enchant_sigil_0', 'enchant_sigil_1', 'enchant_sigil_2', 'enchant_sigil_3',
   'enchant_comet_0', 'enchant_comet_1', 'enchant_comet_2', 'enchant_comet_3',
   'spike_0', 'spike_1', 'spike_2', 'spike_3', 'spike_4',
+  // the Blender animation of the Earth Drive wall (roadmap 1.37): erupt 8 frames, stand 1, crumble 6, 448 x 280
+  'spike_erupt_0', 'spike_erupt_1', 'spike_erupt_2', 'spike_erupt_3', 'spike_erupt_4', 'spike_erupt_5', 'spike_erupt_6', 'spike_erupt_7',
+  'spike_stand',
+  'spike_crumble_0', 'spike_crumble_1', 'spike_crumble_2', 'spike_crumble_3', 'spike_crumble_4', 'spike_crumble_5',
   // the dust rings from his 6 Nov 04:48 sheet (roadmap 13.18): used by dustPuff in effects.js
   'dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3',
   // the fireball orbs of Tayo's Element Blast (13.4, his 6 Nov 04:40 sheet): light, drawn added
@@ -1050,6 +1054,31 @@ export function hitEffect(scene, kinds, x, y, gx, gy, dir, depth) {
 // ground at (x, y), his rock from the "tayo's attack emerging" sheet. Returns
 // the picture: it stays as a wall until the battle breaks it (crumbleSpike).
 export function raiseSpike(scene, x, y, depth, width) {
+  const erupt = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => 'spike_erupt_' + i);
+  if (has(scene, [...erupt, 'spike_stand', ...CRUMBLE])) return raiseBlenderSpike(scene, erupt, x, y, depth);
+  return raiseOldSpike(scene, x, y, depth, width); // the Blender frames are missing: the old drawing
+}
+
+const CRUMBLE = [0, 1, 2, 3, 4, 5].map((i) => 'spike_crumble_' + i);
+// The Blender frames are 448 x 280 with the rock filling the height. This scale makes the rock
+// as tall as the old spike was on the board (the old picture, 141 tall, drawn 90 wide on an
+// 86 wide tile: about 79 tall). The base sits at the bottom of the frame, a little right of centre.
+const SPIKE_SHOWN_HEIGHT = 79;
+const SPIKE_ORIGIN = { x: 0.545, y: 0.93 };
+const SPIKE_ERUPT_MS = 50;
+
+// Plays the 8 erupt frames, then holds the stand frame while the wall stays (1.37).
+function raiseBlenderSpike(scene, erupt, x, y, depth) {
+  const img = scene.add.image(x, y, 'fx:' + erupt[0]).setOrigin(SPIKE_ORIGIN.x, SPIKE_ORIGIN.y).setDepth(depth);
+  img.setScale(SPIKE_SHOWN_HEIGHT / 280);
+  img.setData('blender', true);
+  const timers = erupt.map((k, i) => scene.time.delayedCall(i * SPIKE_ERUPT_MS, () => img.active && img.setTexture('fx:' + k)));
+  timers.push(scene.time.delayedCall(erupt.length * SPIKE_ERUPT_MS, () => img.active && img.setTexture('fx:spike_stand')));
+  img.setData('timers', timers);
+  return img;
+}
+
+function raiseOldSpike(scene, x, y, depth, width) {
   if (!has(scene, ['spike_2'])) return null;
   // a shade darker than his drawing, so the rock stands out on the sandstone floor
   // the origin is the rock's real bottom (the bottom edge of spike_2, which is solid across its base), so it stands on the tile's middle like a unit (1.35)
@@ -1069,6 +1098,13 @@ export function raiseSpike(scene, x, y, depth, width) {
 // The spike breaks apart and sinks back into the ground.
 export function crumbleSpike(scene, img) {
   if (!img || !img.active) return;
+  if (img.getData('blender')) {
+    // stop an eruption still running, then play the 6 crumble frames and remove it
+    (img.getData('timers') || []).forEach((t) => t.remove(false));
+    CRUMBLE.forEach((k, i) => scene.time.delayedCall(i * SPIKE_ERUPT_MS * 1.3, () => img.active && img.setTexture('fx:' + k)));
+    scene.time.delayedCall(CRUMBLE.length * SPIKE_ERUPT_MS * 1.3 + 120, () => img.active && scene.tweens.add({ targets: img, alpha: 0, duration: 160, onComplete: () => img.destroy() }));
+    return;
+  }
   for (let i = 0; i < 6; i++) {
     const r = scene.add.circle(img.x + (Math.random() - 0.5) * 40, img.y - 20 - Math.random() * 40, 2 + Math.random() * 3, 0x8a5a33, 1).setDepth(img.depth + 0.1);
     scene.tweens.add({ targets: r, y: img.y + 4, alpha: 0, duration: 380 + Math.random() * 200, ease: 'Quad.easeIn', onComplete: () => r.destroy() });

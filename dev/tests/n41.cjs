@@ -111,7 +111,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('4.2 his Earth Drive frames play', shown(tayo).filter((k) => /tayo_drive_/.test(k)).length >= 4, shown(tayo).join(','));
   check('4.2 half damage', hp0 - gaha.hp === Math.max(1, Math.round(full * 0.5)), (hp0 - gaha.hp) + ' of ' + full);
   check('4.2 thrown back a tile', gaha.col === 5 && gaha.row === 7, gaha.col + ',' + gaha.row);
-  check('4.2 the spike stands where he was', !!b.spikeAt(4, 7) && b.spikeAt(4, 7).view && b.spikeAt(4, 7).view.texture.key === 'fx:spike_2');
+  check('4.2 the spike stands where he was', !!b.spikeAt(4, 7) && b.spikeAt(4, 7).view && b.spikeAt(4, 7).view.texture.key.indexOf('fx:spike') === 0);
   check('4.2 nobody can walk through it', b.isBlocked(4, 7));
   check('4.2 it stops arrows', !C.hasClearShot({ col: 2, row: 7 }, { col: 6, row: 7 }));
   b.tickSpikes(tayo);
