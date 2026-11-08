@@ -407,5 +407,17 @@
     "needsElement": true,
     "note": "Roadmap 13.4 (Suleiman's 6 Nov art, 13.17): only while an element is on him. Enchanted = fire (sets Burn, burn and turns as Wildfire), Drenched = water (leaves the target Drenched, puts out a burn). Spends the element. A straight line, range 3, full damage, a block in the way stops it like an arrow.",
     "text": "Tayo gathers the element on him into one fist and fires it down a straight line, up to 3 tiles (a higher block in the way stops it). Full damage. Enchanted: a fire blast that sets the target Burning. Drenched: a water blast that leaves the target Drenched. It spends the element (the Enchant ends, or he dries off), so it only works while one is on him. Ready again after 3 turns."
+  },
+  "smokeBomb": {
+    "name": "Smoke Bomb",
+    "button": "Smoke Bomb",
+    "short": "SMOKE",
+    "kind": "smoke",
+    "color": "#c9c0b4",
+    "range": 2,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "battlefield",
+    "text": "Throw a smoke bomb at your own feet. Enemies next to you are Blinded for 1 turn (their attacks mostly miss, and they cannot start a clash or take aim). Then slip up to 2 tiles away for free: you are Hidden for 1 turn, so enemies cannot target you. The cloud stays until your next turn. Ready again after 3 turns. Not during a clash."
   }
 }

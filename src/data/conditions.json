@@ -12,5 +12,10 @@
     "defense": 2,
     "evade": 10,
     "magicDamage": 3
+  },
+  "blinded": {
+    "note": "Blinded (the archer's Smoke Bomb, roadmap 13.26): a unit next to the cloud cannot see. Until the end of its next turn every attack it makes has missPenalty less chance to hit (never below 5), and it cannot start a clash or take aim (Poison Arrow).",
+    "missPenalty": 45,
+    "turns": 1
   }
 }

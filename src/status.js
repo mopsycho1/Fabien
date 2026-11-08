@@ -298,6 +298,17 @@ export function applyDisoriented(unit, ownTurn = false) {
   statusOf(unit).disoriented = { turnsLeft: ownTurn ? 2 : 1 };
 }
 
+// ---------- Blinded (the archer's Smoke Bomb, roadmap 13.26) ----------
+// Until the end of its next turn the unit's attacks miss far more often (conditions.json), and it
+// cannot start a clash or take aim.
+export function applyBlinded(unit, ownTurn = false) {
+  statusOf(unit).blinded = { turnsLeft: ownTurn ? conditions.blinded.turns + 1 : conditions.blinded.turns };
+}
+
+export function isBlinded(unit) {
+  return !!(unit && unit.status && unit.status.blinded);
+}
+
 export function isDisoriented(unit) {
   return !!(unit && unit.status && unit.status.disoriented);
 }
@@ -464,6 +475,10 @@ export function tickBuff(unit) {
     status.disoriented.turnsLeft -= 1;
     if (status.disoriented.turnsLeft <= 0) status.disoriented = null;
   }
+  if (status.blinded) {
+    status.blinded.turnsLeft -= 1;
+    if (status.blinded.turnsLeft <= 0) status.blinded = null;
+  }
   for (const id of Object.keys(status.cooldowns)) {
     status.cooldowns[id] -= 1;
     if (status.cooldowns[id] <= 0) delete status.cooldowns[id];
@@ -499,6 +514,7 @@ export function statusTags(unit) {
   if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
   if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall
+  if (statusOf(unit).blinded) tags.push({ text: 'BLINDED', color: '#c9c0b4', icon: 'blinded' }); // the archer's Smoke Bomb
   if (statusOf(unit).drenched) tags.push({ text: 'DRENCHED', color: '#7fd0ff', icon: 'drenched' }); // waded through the cavern's water
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)

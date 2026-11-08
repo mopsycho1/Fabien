@@ -110,8 +110,8 @@
     "contest": { "style": "evasion", "power": 2, "guard": 3, "agility": 5 },
     "stances": { "press": "weak", "guard": "weak", "slip": "average", "break": "average" },
     "closeWeapon": { "name": "Dagger", "attack": -2, "pose": "dagger" },
-    "spells": ["poisonArrow"],
+    "spells": ["poisonArrow", "smokeBomb"],
     "stats": { "hp": 24, "attack": 7, "defense": 1, "magicAttack": 1, "magicDefense": 3, "accuracy": 90, "evade": 15, "speed": 11, "move": 3, "range": 5 },
-    "note": "Range 5 (Suleiman, 29 Oct: at least double Gaha's reach, \"if not a little extra\"). Her AI keeps its distance; the dagger is for anyone who reaches her."
+    "note": "Range 5 (Suleiman, 29 Oct: at least double Gaha's reach, \"if not a little extra\"). Her AI keeps its distance. 8 Nov (13.29): she chooses her weapon (Switch weapon, free once a turn): the bow reaches 2 to 5 tiles (no room to draw it next to a foe), the dagger only the tile next to her."
   }
 }

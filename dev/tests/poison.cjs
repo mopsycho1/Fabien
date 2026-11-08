@@ -16,9 +16,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const park = () => { for (const u of b.units) { u.engagedWith = null; u.hp = u.maxHp; u.status.cooldowns = {}; u.status.poison = null; u.status.buff = null; } b.refreshEngagementMarks(); put(sudeen, 0, 7); put(gaha, 1, 7); put(layra, 3, 7); put(tayo, 7, 0); put(bull, 6, 0); put(archer, 5, 0); };
   const real = w.Math.random; const sure = () => { w.Math.random = () => (/rollAttack|shootPoisonArrow/.test(new Error().stack) ? 0.01 : real()); };
 
-  check('all 51 of her pictures loaded (with her 4 enchanted ones, Phase 4; her fall from 6.2)', game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length === 51, game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length);
+  check('all 58 of her pictures loaded (with her 4 enchanted ones, Phase 4; her fall from 6.2; 8 Nov: poison crouch in 4 views, 4 smoke-throw frames)', game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length === 58, game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length);
   // dagger
   park(); put(archer, 3, 3); put(gaha, 3, 4); put(layra, 3, 5);
+  archer.weapon = 'dagger'; // she chooses the dagger now (Switch weapon, 13.29): it is no longer swapped in for her
   const bowAt2 = combat.getDamage(archer, layra), daggerAt1 = combat.getDamage(archer, gaha);
   const bowSameFoe = combat.getDamage({ ...archer, closeWeapon: null }, gaha);
   check('right next to a foe she uses the dagger: 2 less damage than her bow', daggerAt1 === bowSameFoe - 2, daggerAt1 + ' vs ' + bowSameFoe + ' (bow at 2 tiles on Layra ' + bowAt2 + ')');
@@ -26,7 +27,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const origPose = b.showPose.bind(b); b.showPose = (u, pose, dx) => { if (u === archer) poses.push(pose); return origPose(u, pose, dx); };
   sure(); b.activeUnit = archer; archer.hasActed = false; b.performAttack(archer, gaha, () => {}); await idle(); await sleep(900); w.Math.random = real;
   check('and strikes with the dagger pose, not the bow', poses.includes('dagger') && !poses.includes('attack'), poses.join(','));
-  poses = []; b.showPose = origPose;
+  poses = []; b.showPose = origPose; archer.weapon = 'bow';
 
   // Poison Arrow, by the enemy AI
   park(); put(archer, 3, 2); put(gaha, 3, 4); put(sudeen, 5, 2); gaha.hp = 20; // both 2 tiles away

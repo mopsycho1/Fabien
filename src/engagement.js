@@ -1,7 +1,7 @@
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
 import { distance } from './combat.js';
-import { isOffBalance, buffOf } from './status.js';
+import { isOffBalance, buffOf, isBlinded } from './status.js';
 
 // Skirmish / Distraction: the engagement rules from the combat design notes.
 //
@@ -60,6 +60,8 @@ export function canEngage(attacker, target) {
     target.alive &&
     attacker.side !== target.side &&
     !attacker.hasActed &&
+    !isBlinded(attacker) && // it cannot see to grab anyone (Smoke Bomb)
+    (!target.hidden || target.isDecoy) && // a hidden unit cannot be grabbed (a decoy can)
     isMelee(attacker) &&
     canBeCaught(target) &&
     !attacker.engagedWith &&

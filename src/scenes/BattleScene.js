@@ -15,11 +15,12 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, holdsDagger, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
+import { smokeCloud } from '../smokeArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -64,7 +65,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -196,6 +197,7 @@ export default class BattleScene extends Phaser.Scene {
     this.stanceMenu = 'main';       // in a clash: 'main' (Press, Guard, Slip, More) or 'more'
     this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
     this.decoys = [];
+    this.smokes = [];               // Smoke Bomb clouds standing on tiles until their thrower's next turn (13.26)
     this.spikes = [];               // Tayo's Earth Drive spikes standing as walls (see castEarthDrive)               // Husk decoys (see addDecoy)
     // clash stances: 'auto' (the default, from engagement.json) or 'manual', remembered on this device
     let savedChoice = null;
@@ -1389,6 +1391,8 @@ export default class BattleScene extends Phaser.Scene {
     this.stanceMenu = 'main';
     this.empower = false;
     this.wakeDecoy(this.activeUnit); // a decoy nobody struck is ready to echo her next spell
+    this.wakeSmoke(this.activeUnit); // her Smoke Bomb clears and she shows herself (13.26)
+    this.activeUnit.weaponSwitched = false; // one free weapon switch a turn (13.29)
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     for (const unit of this.units) this.faceNearestOpponent(unit);
     this.refreshStatusTags();
@@ -1910,6 +1914,11 @@ export default class BattleScene extends Phaser.Scene {
         this.halves[0].set(word, 'star', free, () => this.onSpellButton(), { accent: GOLD });
         const r = spells[rest];
         this.halves[1].set(r.button, 'hourglass', free && canAfford(unit, rest), () => this.chooseSpell(rest), { selected: this.selectedSpell === rest, accent: Phaser.Display.Color.HexStringToColor(r.color).color });
+      } else if (unit.closeWeapon) {
+        // an archer: Skills and Switch weapon share the row (roadmap 13.29)
+        c.set(null);
+        this.halves[0].set(word, 'star', free, () => this.onSpellButton(), { accent: GOLD });
+        this.halves[1].set(holdsDagger(unit) ? 'To bow' : 'To dagger', 'sword', isHero && !this.busy && !unit.engagedWith && !unit.weaponSwitched, () => this.onSwitchWeaponButton(), { accent: 0xd9b77a });
       } else {
         c.set(word, 'star', free, () => this.onSpellButton(), { accent: GOLD }); // no MP pool: skills, not spells
       }
@@ -2007,7 +2016,7 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.targetsInRange = engageTargets(unit, this.units);
     if (this.targetsInRange.length === 0) {
-      this.showMessage('No enemy fighter next to you');
+      this.showMessage(isBlinded(unit) ? 'Blinded: you cannot see to grab anyone' : 'No enemy fighter next to you');
       return;
     }
     this.mode = 'engage';
@@ -2259,6 +2268,17 @@ export default class BattleScene extends Phaser.Scene {
       this.showMessage(cooldownOf(unit, id) ? spell.button + ' is ready again in ' + cooldownOf(unit, id) + ' turns' : 'Not enough MP');
       return;
     }
+    // Poison Arrow: a blinded archer cannot take aim, and it needs the bow in hand (Smoke Bomb, 13.26; Switch weapon, 13.29)
+    if (spell.kind === 'poison') {
+      if (isBlinded(unit)) {
+        this.showMessage('Blinded: you cannot take aim');
+        return;
+      }
+      if (holdsDagger(unit) && !this.switchWeapon(unit, 'bow')) {
+        this.showMessage('Take the bow first (one switch a turn)');
+        return;
+      }
+    }
     // Herbs tapped a second time: use it on yourself (tap an ally's tile to heal them instead)
     if (spell.kind === 'heal' && this.selectedSpell === id && this.mode === 'spellTarget') {
       if (unit.hp < unit.maxHp || isPoisoned(unit) || isBurning(unit)) {
@@ -2297,13 +2317,18 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.selectedSpell = id;
-    if (spell.kind === 'escape') {
+    if (spell.kind === 'escape' || spell.kind === 'smoke') {
       this.mode = 'huskTile';
-      const tiles = [];
-      for (let col = 0; col < GRID_SIZE; col++) {
-        for (let row = 0; row < GRID_SIZE; row++) {
-          const d = distance(unit, { col, row });
-          if (d > 0 && d <= spell.range && !this.isBlocked(col, row)) tiles.push({ col, row });
+      let tiles = [];
+      if (spell.kind === 'smoke') {
+        // Smoke Bomb: she slips out of the cloud on foot, up to 2 tiles (or stays in it)
+        tiles = [{ col: unit.col, row: unit.row }, ...getReachableTiles(unit.col, unit.row, spell.range, (c, r) => this.isBlocked(c, r), moveRules(unit))];
+      } else {
+        for (let col = 0; col < GRID_SIZE; col++) {
+          for (let row = 0; row < GRID_SIZE; row++) {
+            const d = distance(unit, { col, row });
+            if (d > 0 && d <= spell.range && !this.isBlocked(col, row)) tiles.push({ col, row });
+          }
         }
       }
       this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
@@ -2317,7 +2342,7 @@ export default class BattleScene extends Phaser.Scene {
     const friendsOnly = spell.kind === 'heal';
     this.targetsInRange = this.units.filter(
       (u) =>
-        u.alive && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
+        u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
@@ -2904,7 +2929,7 @@ export default class BattleScene extends Phaser.Scene {
   startAttack() {
     const unit = this.activeUnit;
     if (unit.engagedWith) return; // locked units cannot make ordinary attacks
-    this.targetsInRange = getTargetsInRange(unit, this.units);
+    this.targetsInRange = getTargetsInRange(unit, this.units.filter((u) => this.canSee(unit, u)));
 
     if (this.targetsInRange.length === 0) {
       this.showMessage('No enemy in range');
@@ -3155,6 +3180,7 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
     unit.aiming = null;
     unit.meditating = null;
+    this.wakeSmoke(unit); // her cloud blows away with her
     if (unit.status) unit.status.stunned = false;
     if (unit.engagedWith) {
       endDuel(unit); // a fallen unit cannot stay locked in a fight
@@ -3236,10 +3262,14 @@ export default class BattleScene extends Phaser.Scene {
     // choosing a target for a skill: the unit holds its charge pose (roadmap 13.12)
     if (unit.charging && this.showFrame(unit, poseFrame(unit.id, unit.charging.pose, unit.charging.dx >= 0 ? 'right' : 'left', unit.facing))) return;
     if (unit.meditating && this.showFrame(unit, poseFrame(unit.id, 'meditate', 'right', unit.facing))) return;
-    if (unit.aiming && this.showFrame(unit, poseFrame(unit.id, 'poison', unit.aiming.target.view.x >= unit.view.x ? 'right' : 'left'))) return;
-    // an archer with a foe next to her holds her dagger, in her stance and in a clash too
-    const adjacent = this.adjacentFoe(unit);
-    if (adjacent && this.showFrame(unit, this.daggerStance(unit, adjacent))) return;
+    if (unit.aiming) {
+      // her kneeling Poison Arrow: four views (13.29), her up or down and the target's left or right
+      const right = unit.aiming.target.view.x >= unit.view.x;
+      const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
+      if (this.showFrame(unit, poseFrame(unit.id, 'poison', right ? 'right' : 'left', facing))) return;
+    }
+    // an archer holds her dagger when she has chosen it (Switch weapon), and in a clash
+    if ((holdsDagger(unit) || (unit.closeWeapon && unit.engagedWith)) && this.showFrame(unit, this.daggerStance(unit, this.adjacentFoe(unit) || this.nearestFoe(unit)))) return;
     if (unit.engagedWith && unit.engagedWith.view) {
       const foe = unit.engagedWith.view;
       const dy = foe.y - unit.view.y;
@@ -3256,12 +3286,19 @@ export default class BattleScene extends Phaser.Scene {
   // The foe standing next to a unit that has a close weapon (the archer's dagger), or null.
   adjacentFoe(unit) {
     if (!unit.closeWeapon || !this.units) return null;
-    return this.units.find((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy && usesCloseWeapon(unit, o)) || null;
+    return this.units.find((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy && distance(unit, o) <= 1) || null;
+  }
+
+  // The nearest foe on the other side (or null), for turning a held weapon toward it.
+  nearestFoe(unit) {
+    const foes = (this.units || []).filter((o) => o.alive && o.side !== unit.side && o.view);
+    foes.sort((a, b) => distance(unit, a) - distance(unit, b));
+    return foes[0] || null;
   }
 
   // The dagger picture facing a foe (the unit's own up or down, the foe's left or right).
   daggerStance(unit, foe) {
-    const right = foe.view.x >= unit.view.x;
+    const right = foe ? foe.view.x >= unit.view.x : unit.facing && unit.facing.endsWith('Right');
     const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
     return poseFrame(unit.id, unit.closeWeapon.pose, right ? 'right' : 'left', facing);
   }
@@ -3550,68 +3587,127 @@ export default class BattleScene extends Phaser.Scene {
     });
   }
 
-  // The fall. The fighter is thrown back away from the blow, crashes down
-  // with dust and a shockwave, lies still for a moment, then burns away into
-  // rising embers. dx is the direction the blow came from (as in showImpact).
-  playDefeat(unit, dx = 0) {
+  // The fall (roadmap 16.2, reworked 8 Nov): ONE continuous motion. The fighter is knocked back,
+  // tilting as it flies, lands with a squash and a puff of dust and slides on a little; the
+  // pictures of the fall melt into each other while it is still moving (no hard swap), and
+  // the figure then dissolves in gold (goldDissolve).
+  //   dx   : the direction the blow came from (as in showImpact)
+  //   slam : a push that killed it against a wall (showFall's "fall" with slam.toward): it flies
+  //          into the wall, squashes against it and slumps down it instead
+  playDefeat(unit, dx = 0, slam = null) {
     if (!unit.view || !unit.view.active) return;
     if (unit.idleTween) unit.idleTween.stop();
-    const away = dx >= 0 ? 1 : -1;
     const view = unit.view;
-
+    const sprite = unit.sprite;
     // the health bar, badge and tags go at once; only the figure is left
     for (const piece of view.list) if (!unit.idleTargets.includes(piece)) piece.setVisible(false);
 
-    const hasDown = !!poseFrame(unit.id, 'down', 'right');
-    // some fighters have two more pictures for the fall: on one knee, then crumpling (6.1, 6.2)
-    const hasKneel = !!poseFrame(unit.id, 'kneel', 'right');
-    const hasCrumple = !!poseFrame(unit.id, 'crumple', 'right');
-    let stage = 0; // 0 knocked, 1 kneel
-    this.showPose(unit, 'knocked', -dx);
+    // which way it goes: away from the blow, or into the wall (screen direction toward it)
+    let away = dx >= 0 ? 1 : -1;
+    let wall = null;
+    if (slam && slam.toward) {
+      const len = Math.hypot(slam.toward.x, slam.toward.y) || 1;
+      wall = { x: slam.toward.x / len, y: slam.toward.y / len };
+      away = wall.x === 0 ? away : -Math.sign(wall.x); // it ends lying away from the wall
+    }
+    const lean = wall ? Math.sign(wall.x) || 1 : -away;   // which side the head goes to while it flies
+
+    // the pictures of the fall, in order; each one fades into the next
+    const hasDown = this.hasPose(unit, 'down');
+    const names = ['knocked', 'kneel', 'crumple', 'down'].filter((n) => this.hasPose(unit, n));
+    const frameOf = (name) => {
+      const right = -dx >= 0;
+      const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
+      return poseFrame(unit.id, name, right ? 'right' : 'left', facing);
+    };
+    const ghosts = [];
+    const fadeTo = (name) => {
+      const frame = frameOf(name);
+      if (!sprite || !sprite.active || !frame || !this.textures.exists(frame.key)) return;
+      // the old picture stays under the new one as a ghost and fades out
+      const ghost = this.add.image(sprite.x, sprite.y, sprite.texture.key).setOrigin(sprite.originX, sprite.originY).setFlipX(sprite.flipX);
+      view.addAt(ghost, view.getIndex(sprite));
+      ghosts.push(ghost);
+      this.showFrame(unit, frame);
+      sprite.setAlpha(0);
+      this.tweens.add({ targets: sprite, alpha: 1, duration: 200 });
+      this.tweens.add({ targets: ghost, alpha: 0, duration: 200, onComplete: () => { ghosts.splice(ghosts.indexOf(ghost), 1); ghost.destroy(); } });
+    };
+    // the hit picture melts out of whatever it was showing (a flinch, a stance) instead of snapping
+    if (names.includes('knocked')) fadeTo('knocked'); else this.showPose(unit, 'knocked', -dx);
+    // when each fade starts, as a share of the whole fall
+    const starts = names.slice(1).map((n, i) => (wall ? 0.4 : 0.25) + (wall ? 0.4 : 0.45) * ((i + 0.5) / (names.length - 1)));
+    let nextFade = 0;
+
+    const base = sprite ? { sx: sprite.scaleX, sy: sprite.scaleY } : null;
     const x0 = view.x;
     const y0 = view.y;
+    const land = wall ? 0.3 : 0.45;   // the share of the fall at which it hits the ground or the wall
+    let landed = false;
+    const ease = (u) => 1 - (1 - u) * (1 - u);
     const flight = { p: 0 };
     this.tweens.add({
       targets: flight,
       p: 1,
-      duration: 380,
-      ease: 'Quad.easeOut',
+      duration: wall ? 780 : 760,
+      ease: 'Linear',
       onUpdate: () => {
-        view.x = x0 + away * 36 * flight.p;
-        view.y = y0 - Math.sin(flight.p * Math.PI) * 28;
-        if (!hasDown) view.angle = away * 85 * flight.p; // no lying-down picture: topple over
-        if (hasKneel && stage === 0 && flight.p > 0.55) {
-          stage = 1;
-          this.showPose(unit, 'kneel', -dx);
+        if (!view.active) return;
+        const p = flight.p;
+        if (!wall) {
+          if (p < land) {
+            const u = p / land;
+            view.x = x0 + away * 30 * ease(u);
+            view.y = y0 - Math.sin(u * Math.PI) * 30;
+            if (sprite) sprite.angle = lean * 26 * ease(u);   // the head goes back as it is knocked
+          } else {
+            const u = (p - land) / (1 - land);
+            view.x = x0 + away * (30 + 16 * ease(u));
+            view.y = y0 - Math.sin(Math.min(1, u * 2.2) * Math.PI) * 7;   // one small bounce
+            // lying down (a picture of it) or toppling over (no picture of it)
+            if (sprite) sprite.angle = hasDown ? lean * 26 * (1 - ease(u)) : lean * (26 + 59 * u * u * (3 - 2 * u));
+          }
+        } else if (p < land) {
+          // flying into the wall: leaning into it
+          const u = p / land;
+          view.x = x0 + wall.x * 16 * u * u;
+          view.y = y0 + wall.y * 8 * u * u;
+          if (sprite) sprite.angle = -lean * 10 * u;
+        } else {
+          // slumping down the wall: slides down a little and ends up lying away from it
+          const u = (p - land) / (1 - land);
+          view.x = x0 + wall.x * 16 * (1 - ease(Math.min(1, u * 3))) - wall.x * 10 * ease(u) + away * 8 * ease(u);
+          view.y = y0 + wall.y * 8 * (1 - ease(Math.min(1, u * 3))) + 14 * u * u;
+          if (sprite) sprite.angle = hasDown ? -lean * 10 * (1 - ease(u)) : away * 85 * u * u * (3 - 2 * u);
+        }
+        // the picture swaps are fades, started on the way
+        while (nextFade < starts.length && p >= starts[nextFade]) fadeTo(names[++nextFade]);
+        for (const g of ghosts) g.setAngle(sprite.angle).setScale(sprite.scaleX, sprite.scaleY);
+        // the hit: a squash and the dust, once
+        if (!landed && p >= land) {
+          landed = true;
+          if (wall) play('bash'); else play('crash');
+          if (sprite && base) {
+            const wide = wall ? Math.abs(wall.x) > Math.abs(wall.y) : false;
+            // squashed flat on the ground, or flat against a wall left or right of it
+            const sq = wall && wide ? { x: base.sx * 0.72, y: base.sy * 1.1 } : { x: base.sx * 1.16, y: base.sy * 0.8 };
+            this.tweens.add({ targets: sprite, scaleX: sq.x, scaleY: sq.y, duration: 80, yoyo: true, ease: 'Quad.easeOut', onComplete: () => sprite.active && sprite.setScale(base.sx, base.sy) });
+          }
+          const px = view.x + (wall ? wall.x * 10 : 0);
+          dustPuff(this, px, view.y);
+          if (!wall) groundRing(this, view.x, view.y, 0xe8c08a, 1.2);
+          else this.time.delayedCall(180, () => view.active && dustPuff(this, view.x, view.y + 6)); // and a second puff as it slides down
+          screenShake(this, wall ? 0.005 : 0.006, 170);
         }
       },
       onComplete: () => {
-        // the crash
-        play('crash');
-        if (hasCrumple) {
-          this.showPose(unit, 'crumple', -dx);
-          if (hasDown) this.time.delayedCall(240, () => unit.view && unit.view.active && this.showPose(unit, 'down', -dx));
-        } else if (hasDown) this.showPose(unit, 'down', -dx);
-        dustPuff(this, view.x, view.y);
-        groundRing(this, view.x, view.y, 0xe8c08a, 1.2);
-        screenShake(this, 0.006, 170);
-        this.tweens.add({ targets: view, y: view.y - 6, duration: 80, yoyo: true });
-
-        // a moment later, it dissolves in his Sigil Dissolve (roadmap 6.11):
-        // the figure fades as the sigils rise round it
-        this.time.delayedCall(520, () => {
+        if (!view.active) return;
+        for (const g of ghosts) g.destroy();
+        if (sprite && sprite.active) { sprite.setAlpha(1); if (base) sprite.setScale(base.sx, base.sy); }
+        // it lies still for a moment, then the dissolve (goldDissolve in spellArt.js)
+        this.time.delayedCall(420, () => {
           if (!view.active) return;
-          const ms = sigilDissolve(this, view.x, view.y);
-          if (ms) {
-            this.tweens.add({ targets: view, alpha: 0.25, duration: 60, yoyo: true, repeat: 1 });
-            this.tweens.add({ targets: view, alpha: 0, delay: 240, duration: ms * 0.5, onComplete: () => view.destroy() });
-            return;
-          }
-          const embers = unit.side === 'enemy' ? [0xff7a2e, 0xffb04a, 0xffd27a] : [0x9fd4ff, 0xffffff, 0x7fd6cf];
-          emberBurst(this, view.x, view.y, embers, 46, unit.sprite ? 50 : 40);
-          lightColumn(this, view.x, view.y, unit.side === 'enemy' ? 0xff9a4a : 0x9fd4ff);
-          this.tweens.add({ targets: view, alpha: 0.25, duration: 60, yoyo: true, repeat: 2 });
-          this.tweens.add({ targets: view, alpha: 0, delay: 360, duration: 520, onComplete: () => view.destroy() });
+          goldDissolve(this, unit);
         });
       },
     });
@@ -3774,6 +3870,19 @@ export default class BattleScene extends Phaser.Scene {
       });
       return;
     }
+    // The archer throws a Smoke Bomb when a foe is next to her and she is hurt or cornered (13.26)
+    const smokeTile = this.smokeChoice(unit);
+    if (smokeTile) {
+      this.busy = true;
+      spendMp(unit, 'smokeBomb');
+      startCooldown(unit, 'smokeBomb');
+      unit.hasActed = true;
+      this.castSmokeBomb(unit, smokeTile, () => {
+        this.busy = false;
+        this.time.delayedCall(300, () => this.endTurn());
+      });
+      return;
+    }
     const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
@@ -3783,8 +3892,26 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  // Where an enemy with a Smoke Bomb would slip to, or null if it should not throw one now:
+  // only with a foe next to it, and only when it is hurt (60% health or less) or cornered (no
+  // tile it can walk to is out of every foe's reach). It picks the tile furthest from the foes.
+  smokeChoice(unit) {
+    if (!unit.spells.includes('smokeBomb') || !canAfford(unit, 'smokeBomb') || unit.engagedWith) return null;
+    const foes = this.enemyEyes().filter((o) => o.alive && o.side !== unit.side && !o.isDecoy);
+    if (!foes.some((f) => distance(unit, f) === 1)) return null;
+    const blocked = (c, r) => this.isBlocked(c, r);
+    const walk = getReachableTiles(unit.col, unit.row, moveOf(unit), blocked, moveRules(unit));
+    const cornered = !walk.some((t) => foes.every((f) => distance(t, f) >= 2));
+    if (unit.hp / unit.maxHp > 0.6 && !cornered) return null;
+    const out = [{ col: unit.col, row: unit.row }, ...getReachableTiles(unit.col, unit.row, spells.smokeBomb.range, blocked, moveRules(unit))];
+    const room = (t) => Math.min(4, ...foes.map((f) => distance(t, f)));
+    out.sort((a, b) => room(b) - room(a) || distance(unit, a) - distance(unit, b));
+    return out[0];
+  }
+
   // Attacks the weakest hero in range, if any, then ends the turn.
   enemyAttack(unit) {
+    this.aiPickWeapon(unit); // her one free weapon switch: dagger next to a foe, bow otherwise (13.29)
     const finish = () => {
       this.busy = false;
       this.time.delayedCall(300, () => this.endTurn());
@@ -3879,7 +4006,7 @@ export default class BattleScene extends Phaser.Scene {
     const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
     targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
     // An archer with Poison Arrow ready poisons the healthiest foe in reach that is not poisoned yet
-    if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow')) {
+    if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow') && !isBlinded(unit)) {
       const reach = spells.poisonArrow.range;
       const marks = targets.filter((t) => !t.isDecoy && !isPoisoned(t) && distance(unit, t) <= reach).sort((a, b) => b.hp - a.hp);
       if (marks.length > 0) {
@@ -4012,10 +4139,12 @@ export default class BattleScene extends Phaser.Scene {
       const delay = fall.levels > 0 ? 380 : 0;
       this.time.delayedCall(delay, () => {
         if (!unit.view || !unit.view.active) return;
-        play('bash');
-        this.tweens.add({ targets: unit.sprite, x: jx, y: jy, duration: 70, yoyo: true, ease: 'Quad.easeOut', onComplete: () => unit.sprite && (unit.sprite.y = 0) });
-        dustPuff(this, unit.view.x + jx * 1.6, unit.view.y + jy * 1.6);
-        screenShake(this, 0.005, 140);
+        if (unit.hp > 0) { // (a lethal slam is drawn by playDefeat: fly in, squash, slump)
+          play('bash');
+          this.tweens.add({ targets: unit.sprite, x: jx, y: jy, duration: 70, yoyo: true, ease: 'Quad.easeOut', onComplete: () => unit.sprite && (unit.sprite.y = 0) });
+          dustPuff(this, unit.view.x + jx * 1.6, unit.view.y + jy * 1.6);
+          screenShake(this, 0.005, 140);
+        }
         this.updateHpBar(unit);
         this.flashUnit(unit);
         this.floatText(unit, 'Slammed! -' + fall.slam, '#ff9a5a', { pop: true });
@@ -4023,7 +4152,7 @@ export default class BattleScene extends Phaser.Scene {
         this.refreshStatusTags();
       });
     }
-    if (unit.hp === 0) this.playDefeat(unit, awayX);
+    if (unit.hp === 0) this.time.delayedCall(fall.levels > 0 && fall.slam ? 380 : 0, () => this.playDefeat(unit, awayX, fall.slam ? fall : null)); // a lethal slam is the death itself
   }
 
   // One beat of a stance duel: work it out, then show it.
@@ -4589,6 +4718,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'double') return this.castDoubleHit(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
+    if (spell.kind === 'smoke') return this.castSmokeBomb(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
 
     // Husk echo: the decoy nobody struck casts it too, so it works twice as well
@@ -5693,6 +5823,121 @@ export default class BattleScene extends Phaser.Scene {
       flight += 140;
     } else land();
     this.time.delayedCall(900 + flight, onDone);
+  }
+
+  // ---------- Switch weapon (roadmap 13.29) ----------
+
+  // True if "viewer" can pick "other" as a target: a hidden unit (Husk, Smoke Bomb) can only be
+  // seen by its own side.
+  canSee(viewer, other) {
+    return other.side === viewer.side || !other.hidden;
+  }
+
+  // An archer changes between her bow (2 to 5 tiles) and her dagger (the next tile). Free,
+  // but once a turn, and not in a clash. "to" names the weapon; without it she swaps.
+  // Returns true if she is now holding it.
+  switchWeapon(unit, to) {
+    if (!unit.closeWeapon) return false;
+    const want = to || (holdsDagger(unit) ? 'bow' : 'dagger');
+    if (unit.weapon === want) return true;
+    if (unit.weaponSwitched || unit.engagedWith) return false;
+    unit.weapon = want;
+    unit.weaponSwitched = true;
+    play('select');
+    this.floatText(unit, want === 'dagger' ? 'Dagger' : 'Bow', '#e8d5a8');
+    this.showStanding(unit);
+    this.refreshButtons();
+    return true;
+  }
+
+  onSwitchWeaponButton() {
+    const unit = this.activeUnit;
+    if (unit.side !== 'hero' || this.busy || this.battleOver) return;
+    this.cancelMode();
+    this.switchWeapon(unit);
+    this.refreshStatus();
+  }
+
+  // Her turn, before she acts: dagger for a foe next to her, bow otherwise (the one free switch).
+  aiPickWeapon(unit) {
+    if (!unit.closeWeapon || unit.engagedWith) return;
+    const near = this.enemyEyes().some((o) => o.alive && o.side !== unit.side && !o.isDecoy && distance(unit, o) === 1);
+    this.switchWeapon(unit, near ? 'dagger' : 'bow');
+  }
+
+  // ---------- Smoke Bomb (roadmap 13.26) ----------
+
+  // She throws it at her feet. Enemies next to her are Blinded for 1 turn. Then she slips up to
+  // 2 tiles away for free (none of her steps are used) and is Hidden for 1 turn: enemies cannot
+  // target her. The cloud stays on the tile until her next turn, then blows away (wakeSmoke).
+  // "tile" is where she slips to (her own tile to stay in the cloud).
+  castSmokeBomb(caster, tile, onDone) {
+    const spell = spells.smokeBomb;
+    const from = { col: caster.col, row: caster.row };
+    const at = tileToScreen(from.col, from.row);
+    const foes = this.units.filter((u) => u.alive && u.side !== caster.side && !u.hidden && distance(u, from) === 1);
+    const look = foes[0] || this.nearestFoe(caster);
+    const dx = look ? look.view.x - caster.view.x : caster.facing.endsWith('Right') ? 1 : -1;
+    // the way out of the cloud
+    let path = [];
+    if (tile && (tile.col !== from.col || tile.row !== from.row)) {
+      path = getPath(from.col, from.row, tile.col, tile.row, spell.range, (c, r) => this.isBlocked(c, r), moveRules(caster));
+    }
+    // the bomb goes off at the throw picture
+    const burst = () => {
+      if (!caster.view || !caster.view.active) return;
+      play('crash');
+      dustPuff(this, at.x, at.y);
+      screenShake(this, 0.004, 120);
+      const cloud = smokeCloud(this, at.x, at.y, depthFor(from.col, from.row) + 2);
+      this.smokes.push({ owner: caster, col: from.col, row: from.row, cloud });
+      for (const foe of foes) {
+        applyBlinded(foe, this.activeUnit === foe);
+        this.floatText(foe, 'Blinded', '#e0d8cc', { pop: true });
+        this.interrupt(foe); // it cannot hold an aim it cannot see
+      }
+      this.refreshStatusTags();
+    };
+    this.faceToward(caster, dx, 0);
+    const ms = this.playMove(caster, 'smokeThrow', dx, { at: { 2: burst } });
+    if (!ms) burst();
+    this.time.delayedCall(Math.max(ms, 300) + 350, () => {
+      if (!caster.alive || !caster.view || !caster.view.active) return onDone();
+      // out of the cloud: hidden at once, then gone to her new tile
+      caster.hidden = true;
+      caster.smokeHidden = true;
+      this.hiddenLook(caster, true);
+      this.tweens.add({ targets: caster.view, alpha: HIDDEN_ALPHA, duration: 220 });
+      this.floatText(caster, 'Hidden', spell.color, { rise: 30 });
+      if (path.length) {
+        caster.col = path[path.length - 1].col;
+        caster.row = path[path.length - 1].row;
+        const last = tileToScreen(caster.col, caster.row);
+        this.faceToward(caster, last.x - caster.view.x, last.y - caster.view.y);
+        this.slideAlong(caster, path);
+        this.time.delayedCall(path.length * 170 + 60, () => {
+          caster.view.setDepth(depthFor(caster.col, caster.row) + 1);
+          this.faceNearestOpponent(caster);
+          this.keepInView(caster);
+        });
+      } else this.faceNearestOpponent(caster);
+      this.refreshStatusTags();
+      this.refreshButtons();
+      this.time.delayedCall(path.length * 170 + 350, onDone);
+    });
+  }
+
+  // Her next turn begins (or she falls): the cloud blows away and she shows herself again.
+  wakeSmoke(unit) {
+    const mine = this.smokes.filter((s) => s.owner === unit);
+    for (const s of mine) if (s.cloud) s.cloud.clear();
+    this.smokes = this.smokes.filter((s) => s.owner !== unit);
+    if (!unit.smokeHidden) return;
+    unit.smokeHidden = false;
+    unit.hidden = false;
+    this.hiddenLook(unit, false);
+    if (unit.view && unit.view.active && unit.alive) this.tweens.add({ targets: unit.view, alpha: 1, duration: 300 });
+    this.refreshStatusTags();
   }
 
   // Husk: the caster leaves a decoy that looks exactly like her and slips away

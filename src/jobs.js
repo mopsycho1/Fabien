@@ -64,6 +64,7 @@ export function buildUnit(entry, jobs) {
     melee: !!(job && job.melee), // a close fighter even with a range above 1 (a spear's reach)
     lineReach: !!(job && job.lineReach), // past 1 tile it only reaches in a straight line
     closeWeapon: job && job.closeWeapon ? { ...job.closeWeapon } : null, // what an archer fights with right next to a foe (a dagger)
+    weapon: job && job.closeWeapon ? 'bow' : null, // which one she holds: 'bow' or 'dagger' (Switch weapon, roadmap 13.29)
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
     element: job && job.element ? job.element : null, // what its attack is made of (Layra's: lightning), for Drenched (roadmap 11.4)
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy

@@ -1606,8 +1606,22 @@
         }
       },
       "poison": {
-        "file": "archer_poison.png",
-        "originX": 0.461
+        "upLeft": {
+          "file": "archer_poison_f1.png",
+          "originX": 0.631
+        },
+        "upRight": {
+          "file": "archer_poison_f2.png",
+          "originX": 0.296
+        },
+        "downLeft": {
+          "file": "archer_poison_f3.png",
+          "originX": 0.46
+        },
+        "downRight": {
+          "file": "archer_poison_f4.png",
+          "originX": 0.543
+        }
       },
       "poisonShot": {
         "file": "archer_poisonShot.png",
@@ -1769,7 +1783,35 @@
     "clash": {
       "file": "clash/archer_clash.webp",
       "tip": 0.969
-    }
+    },
+    "moves": {
+      "smokeThrow": {
+        "frameMs": 110,
+        "frames": [
+          {
+            "file": "archer_smoke_throw_f1.png",
+            "originX": 0.214,
+            "flip": true
+          },
+          {
+            "file": "archer_smoke_throw_f2.png",
+            "originX": 0.166,
+            "flip": true
+          },
+          {
+            "file": "archer_smoke_throw_f3.png",
+            "originX": 0.224,
+            "flip": true
+          },
+          {
+            "file": "archer_smoke_throw_f4.png",
+            "originX": 0.222,
+            "flip": true
+          }
+        ]
+      }
+    },
+    "note_nov8": "Poison Arrow crouch redrawn in four views and the Smoke Bomb throw (his 8 Nov sheets, roadmap 13.26, 13.29)."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",

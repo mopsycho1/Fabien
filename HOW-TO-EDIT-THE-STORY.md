@@ -476,3 +476,13 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - A clash banner (`"clash"` in `art.json`) may leave out `"name"`: the archer has no name plate.
 - The sand impact (`public/art/fx/sand_impact_ne.png`, `_nw.png`) plays for a hit of 9 or more damage on sand, floor, rubble or rock (`SANDY` in `BattleScene.js`).
 - Cut by `dev/tools/make_nov9.py`, `cut_banners31.py` and `make_sand_impact.py`; wired by `dev/tools/wire_nov9.py`.
+
+## 8 Nov batch 2: the archer's Smoke Bomb, Switch weapon, the Blinded status, the new deaths (roadmap 13.26, 13.29, 13.30, 16.2)
+- Smoke Bomb is `"smokeBomb"` in `spells.json` (`"range"`: how far she slips after the throw, `"cooldown"`). She has it through `"spells"` of the Ranger in `jobs.json`.
+- Blinded is `"blinded"` in `conditions.json`: `"missPenalty"` is how much less often its attacks hit, `"turns"` how long it lasts (1 = until the end of its next turn). A blinded unit also cannot start a clash or take aim.
+- The smoke pictures are `public/art/fx/smoke_cloud_0` to `5` (the cloud growing) and `smoke_clear_0` to `3` (blowing away). `src/data/smoke.json` says where the middle of each picture's floor tile is. The throw is the move `"smokeThrow"` of the archer in `art.json`.
+- Her AI throws it when a foe is next to her and she is at 60% health or less, or cornered (the numbers are in `smokeChoice` in `BattleScene.js`).
+- Switch weapon: the Ranger's `"closeWeapon"` in `jobs.json` is the dagger (`"attack": -2` is how much weaker it hits). The bow reaches 2 to 5 tiles, the dagger the next tile only. The switch is free once a turn.
+- Her Poison Arrow crouch is `"poses"` `"poison"` in `art.json`: four facings now.
+- Cut by `dev/tools/make_smoke.py` (needs the Mac tool `sips` for the HEIC files), wired by `dev/tools/wire_smoke.py`; the Blinded icon by `make_blinded_icon.py`.
+- Deaths (16.2): `playDefeat` in `BattleScene.js` is one continuous fall; a lethal push into a wall flies into it and slumps; `goldDissolve` in `src/spellArt.js` is the gold wipe, with the ground sigil `fx/death_sigil.png` (cut from `death_0` by `make_death_sigil.py`).

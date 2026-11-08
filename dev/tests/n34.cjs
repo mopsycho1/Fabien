@@ -30,8 +30,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const mpWord = cardTexts().find((t) => t.text === 'MP');
   check('1.9 the MP numbers sit at the end of the MP bar (Phase 8 card)', mpText && mpWord && Math.abs(mpText.y - mpWord.y) < 1 && mpText.originX === 1 && mpText.x > mpWord.x + 150, mpText && mpText.x + ',' + mpText.y);
   check('1.9 and not twice (no MP in the SPD line)', !cardTexts().some((t) => /SPD.*MP/.test(t.text)));
-  const aim = game.textures.get('e3:archer_poison.png').getSourceImage();
-  check('1.10 the archer\'s aiming picture is drawn at her size (about 3/4 of before)', aim.height <= 80, aim.width + 'x' + aim.height);
+  const aim = game.textures.get('e3:archer_poison_f3.png').getSourceImage();
+  check('1.10 the archer\'s aiming picture (the 4-view crouch) is drawn at her size, no taller than her standing picture', aim.height <= 120, aim.width + 'x' + aim.height);
   b.activeUnit = sudeen; S.applyBuff(sudeen, 'fury');
   check('1.11 Fury Charge is now Furious Charge', b.spellMenu(sudeen).some((e) => /Furious Charge/.test(e.label)), b.spellMenu(sudeen).map((e) => e.label).join(' | '));
 
@@ -79,9 +79,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 6.11 the Sigil Dissolve ----------
   reset([[gaha, 3, 4], [bull, 4, 4]]);
   bull.hp = 0; b.defeat(bull); b.playDefeat(bull, 1);
-  await sleep(380 + 520 + 300);
-  check('6.11 a defeated unit dissolves in his Sigil Dissolve', fxShown(/^fx:death_/));
-  await sleep(2600);
+  await sleep(760 + 420 + 500);
+  // 8 Nov rework: the figure itself dissolves in gold with the sigil flat under it; no rune frames pasted over it
+  check('6.11 a defeated unit dissolves: the sigil glows on the ground under it', fxShown(/^fx:death_sigil/));
+  check('6.11 and no rune frames are pasted over the body', !fxShown(/^fx:death_[0-7]$/));
+  await sleep(2800);
   check('6.11 then it is gone', !bull.view.active && !fxShown(/^fx:death_/));
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.slice(0, 3).join(' | '));

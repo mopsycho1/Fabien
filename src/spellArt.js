@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { TILE_WIDTH } from './config.js';
+import { preloadSmokeArt } from './smokeArt.js';
 
 // Spell pictures from Suleiman's effect sheets (public/art/fx). They are
 // drawn with "ADD" blending, so their black background disappears and only
@@ -30,6 +31,7 @@ const FILES = [
   // his 30 Oct sheets (roadmap 6.11 and 6.18): the Sigil Dissolve, Fury and Earth's Bulwark landing,
   // the turning Fury ring and the Earth's Bulwark crystals
   'death_0', 'death_1', 'death_2', 'death_3', 'death_4', 'death_5', 'death_6', 'death_7',
+  'death_sigil', // the flat ring of the dissolve, cut from death_0 by dev/tools/make_death_sigil.py
   'fury_cast_0', 'fury_cast_1', 'fury_cast_2', 'fury_cast_3', 'fury_cast_4', 'fury_cast_5', 'fury_cast_6', 'fury_ground',
   'earth_cast_0', 'earth_cast_1', 'earth_cast_2', 'earth_cast_3',
   'earth_crystal_0', 'earth_crystal_1', 'earth_crystal_2', 'earth_crystal_3',
@@ -56,7 +58,7 @@ const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_gr
 // Earth's Bulwark cards. Enchanted waits for Rabdul's Enchant (roadmap 4.1).
 const ICONS = ['drenched', 'slow', 'poison', 'stunned', 'offbalance', 'exposed', 'hidden', 'echo', 'meditating',
   'aiming', 'marked', 'burn', 'disoriented', 'enchanted', 'bloodied', 'charge', 'bulwark',
-  'swiftness', 'fury', 'stone'];
+  'swiftness', 'fury', 'stone', 'blinded'];
 
 // His status cards (public/art/cards, roadmap 6.9): a small one pops up on the
 // character when the status lands, then shrinks into its icon.
@@ -67,6 +69,7 @@ export function preloadSpellArt(scene) {
   scene.load.image('fx:empower_aura', './art/fx/empower_aura.jpg'); // drawn on black: it glows (added light)
   for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
   for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
+  preloadSmokeArt(scene); // the archer's Smoke Bomb cloud (13.26)
 }
 
 // Slow lands: a gravity ring drops onto the target, light pulls down on it,
@@ -135,19 +138,119 @@ function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, orig
 }
 
 const range = (name, n) => Array.from({ length: n }, (_, i) => name + '_' + i);
-const DEATH = range('death', 8);
 const FURY_CAST = range('fury_cast', 7);
 const EARTH_CAST = range('earth_cast', 4);
 const EARTH_CRYSTALS = range('earth_crystal', 4);
 
-// A defeated unit dissolves (roadmap 6.11, his "Sigil Dissolve"): a ring of
-// sigils opens under it, light and sigils rise and scatter, and a faint ring
-// is left that fades. Returns how long it takes (ms), or 0 if the pictures are missing.
-export function sigilDissolve(scene, x, y) {
-  if (!has(scene, DEATH)) return 0;
-  const frameMs = 120;
-  flipbook(scene, DEATH, x, y + 14, { frameMs, scale: 0.62, depth: 79, hold: 260, fade: 500 });
-  return DEATH.length * frameMs;
+// A defeated unit dissolves (roadmap 6.11, reworked 8 Nov). No picture is pasted over the body any more:
+// the figure itself brightens to gold and wipes away from the feet up (a Phaser glow and a crop;
+// a simple fade where WebGL is not there), gold sparks and feathers rise from it, and the sigil
+// glows flat on the ground under it, then fades. Returns how long it takes (ms).
+// The unit's own container (unit.view) is destroyed at the end.
+export function goldDissolve(scene, unit, { ms = 1100, onDone } = {}) {
+  const view = unit.view;
+  const sp = unit.sprite;
+  if (!view || !view.active) { if (onDone) onDone(); return 0; }
+  const GOLD = 0xffd27a;
+  const gl = !!(scene.sys.game.renderer && scene.sys.game.renderer.type === Phaser.WEBGL);
+  const wipe = gl && sp && sp.active && !unit.wading && !!sp.frame;   // the crop: from the feet up
+  const x = view.x;
+  const y = view.y;
+  const size = TILE_WIDTH * 1.15;
+
+  // 1. the sigil, flat on the ground under the body, glowing, then fading
+  if (scene.textures.exists('fx:death_sigil')) {
+    const sigil = scene.add.image(x, y + 4, 'fx:death_sigil').setDepth(view.depth - 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+    sigil.setScale((size / sigil.width) * 0.7);
+    scene.tweens.add({ targets: sigil, alpha: 0.95, scale: size / sigil.width, duration: 320, ease: 'Quad.easeOut' });
+    scene.tweens.add({ targets: sigil, alpha: 0, delay: ms * 0.7, duration: ms * 0.6 + 400, ease: 'Sine.easeIn', onComplete: () => sigil.destroy() });
+  }
+
+  // 2. the figure: a gold copy lights it up (added light), a glow round it in WebGL
+  let gold = null;
+  const haloes = [];
+  if (sp && sp.active) {
+    gold = scene.add.image(sp.x, sp.y, sp.texture.key, sp.frame.name).setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX)
+      .setScale(sp.scaleX, sp.scaleY).setAngle(sp.angle).setTintFill(GOLD).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+    view.add(gold);
+    scene.tweens.add({ targets: gold, alpha: 0.85, duration: ms * 0.3, ease: 'Sine.easeIn' });
+    // a glow round the figure: Phaser's preFX glow crashes on a picture inside a container (checked in
+    // WebGL), so two bigger, fainter gold copies stand in for it
+    if (gl) {
+      for (const [grow, a] of [[1.1, 0.3], [1.2, 0.16]]) {
+        const halo = scene.add.image(sp.x, sp.y, sp.texture.key, sp.frame.name).setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX)
+          .setScale(sp.scaleX * grow, sp.scaleY * grow).setAngle(sp.angle).setTintFill(GOLD).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+        view.addAt(halo, view.getIndex(sp));
+        scene.tweens.add({ targets: halo, alpha: a, duration: ms * 0.3 });
+        haloes.push(halo);
+      }
+    }
+  }
+  const frameH = wipe ? sp.frame.height : 0;
+  const frameW = wipe ? sp.frame.width : 0;
+  const shown = { t: 0 };   // 0 = whole, 1 = gone
+  const figureH = sp && sp.active ? Math.max(30, sp.frame.height * sp.scaleY) : 60;
+
+  // 3. sparks and feathers rise from the part that is still there
+  const rise = (texture, config) => {
+    if (!scene.textures.exists(texture)) return null;
+    const em = scene.add.particles(0, 0, texture, {
+      x: { onEmit: () => x + (Math.random() - 0.5) * 50 },
+      y: { onEmit: () => y - 4 - Math.random() * figureH * (1 - shown.t * 0.9) },
+      blendMode: 'ADD',
+      duration: ms,
+      ...config,
+    });
+    em.setDepth(91);
+    scene.time.delayedCall(ms + 2200, () => em.active && em.destroy());
+    return em;
+  };
+  rise('fx-dot', { frequency: 22, speedY: { min: -130, max: -50 }, speedX: { min: -24, max: 24 }, scale: { start: 0.5, end: 0 }, alpha: { start: 1, end: 0 }, tint: [GOLD, 0xffe9a8, 0xffb04a], lifespan: { min: 600, max: 1200 }, maxAliveParticles: 40 });
+  makeFeather(scene);
+  rise('fx-feather', { frequency: 90, speedY: { min: -70, max: -30 }, speedX: { min: -28, max: 28 }, scale: { start: 0.9, end: 0.5 }, alpha: { start: 0.95, end: 0 }, rotate: { start: -30, end: 200 }, tint: [0xfff1c9, GOLD, 0xffffff], lifespan: { min: 1100, max: 1800 }, maxAliveParticles: 14 });
+
+  // 4. the wipe: the feet go first
+  scene.tweens.add({
+    targets: shown,
+    t: 1,
+    delay: ms * 0.28,
+    duration: ms * 0.72,
+    ease: 'Sine.easeInOut',
+    onUpdate: () => {
+      if (!view.active) return;
+      if (wipe) {
+        const h = Math.max(0.5, frameH * (1 - shown.t));
+        sp.setCrop(0, 0, frameW, h);
+        if (gold && gold.active) gold.setCrop(0, 0, frameW, h);
+        for (const hl of haloes) if (hl.active) hl.setCrop(0, 0, frameW, h);
+      } else view.setAlpha(1 - shown.t);   // no WebGL: a simple fade
+    },
+    onComplete: () => {
+      if (view.active) view.destroy();
+      if (onDone) onDone();
+    },
+  });
+  return ms;
+}
+
+// A small pale feather (made once, with the canvas) for the dissolve to scatter.
+function makeFeather(scene) {
+  if (scene.textures.exists('fx-feather')) return;
+  const tex = scene.textures.createCanvas('fx-feather', 12, 30);
+  const c = tex.getContext();
+  c.translate(6, 15);
+  c.fillStyle = 'rgba(255,255,255,0.95)';
+  c.beginPath();
+  c.moveTo(0, -14);
+  c.quadraticCurveTo(7, -2, 0, 14);
+  c.quadraticCurveTo(-7, -2, 0, -14);
+  c.fill();
+  c.strokeStyle = 'rgba(255,255,255,1)';
+  c.beginPath();
+  c.moveTo(0, -14);
+  c.lineTo(0, 14);
+  c.stroke();
+  tex.refresh();
 }
 
 // A ground picture that grows and fades, lying flat on the tile.

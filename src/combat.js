@@ -1,4 +1,4 @@
-import { statMod, isStunned, isDisoriented, isDrenched, attackElement, enchantBonus, isEnchanted } from './status.js';
+import { statMod, isStunned, isDisoriented, isDrenched, isBlinded, attackElement, enchantBonus, isEnchanted } from './status.js';
 import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
@@ -76,6 +76,7 @@ export function getHitChance(attacker, defender) {
   if (isDistracted(defender, attacker)) chance += rules.distractedHitBonus;
   if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
   chance += heightAccuracy(attacker, defender); // shooting from high ground, or uphill
+  if (isBlinded(attacker)) chance -= conditions.blinded.missPenalty; // it cannot see (Smoke Bomb)
   return Math.min(95, Math.max(5, chance));
 }
 
@@ -122,7 +123,13 @@ export function drenchedEffect(attacker, defender) {
 // True when an archer is right next to its target: it fights with its close
 // weapon (a dagger, weaker than the bow), not its bow. See closeWeapon in jobs.json.
 export function usesCloseWeapon(attacker, defender) {
-  return !!attacker.closeWeapon && distance(attacker, defender) <= 1;
+  return holdsDagger(attacker) && distance(attacker, defender) <= 1;
+}
+
+// True when the unit has a close weapon and is holding it now (roadmap 13.29: the archer chooses
+// with Switch weapon; it is no longer swapped for her when a foe comes near).
+export function holdsDagger(unit) {
+  return !!unit.closeWeapon && unit.weapon === 'dagger';
 }
 
 // Lightning jumps: the enemy nearest to the one just struck (within the
@@ -156,6 +163,10 @@ export function getTargetsInRange(attacker, units) {
 export function inReach(attacker, spot) {
   const d = distance(attacker, spot);
   if (d < 1 || d > attacker.range) return false;
+  // an archer with a dagger in hand reaches only the next tile; with the bow there is no room to draw it there
+  if (attacker.closeWeapon && attacker.weapon) {
+    if (holdsDagger(attacker) ? d > 1 : d < 2) return false;
+  }
   if (attacker.lineReach && d > 1) return attacker.col === spot.col || attacker.row === spot.row;
   if (shootsProjectiles(attacker) && !hasClearShot(attacker, spot)) return false;
   return true;
