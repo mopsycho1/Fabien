@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('http://localhost:4173/', { waitUntil: 'load' });
+  await page.goto('http://localhost:' + (process.env.PORT || 4173) + '/', { waitUntil: 'load' });
   await page.waitForTimeout(3000);
   const box = await page.locator('canvas').boundingBox();
   for (let i = 0; i < 40; i++) {

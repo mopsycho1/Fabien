@@ -20,7 +20,7 @@ import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pu
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -4296,6 +4296,10 @@ export default class BattleScene extends Phaser.Scene {
       }
     });
 
+    // 16.1 step 10: a flat gold ring under the two fighters, one pulse per beat (not on a break attempt)
+    let ring = null;
+    if (beat.kind !== 'break') at(120, () => { ring = clashRing(this, a, b); });
+
     if (beat.kind === 'break') {
       at(380, () => {
         play(beat.success ? 'miss' : 'bash');
@@ -4323,8 +4327,11 @@ export default class BattleScene extends Phaser.Scene {
       });
       at(490, () => {
         clashFlash(this, mid.x, mid.y);
+        clashSparks(this, mid.x, mid.y); // 16.1 step 8: flash card, strike flipbook, gold sparks
         screenShake(this, 0.004, 120);
         play('clash');
+        if (ring) ring.pulse(beat.winner, beat.decisive); // 16.1 step 10
+        this.clashPunch(opening || beat.decisive); // 16.1 step 9: zoom punch, plus slow-mo on big beats
         this.refreshEngagementMarks(); // the momentum bar moves
       });
       at(700, () => {
@@ -4349,6 +4356,7 @@ export default class BattleScene extends Phaser.Scene {
         if (beat.decisive) {
           title = 'DECISIVE!';
           color = '#ffe08a';
+          this.decisiveFinish(beat); // 16.1 step 11: a bigger burst on the loser
         }
         this.banner(mid.x, headY - 70, title, color, a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
         this.duelFacesMood(beat);
@@ -4398,6 +4406,7 @@ export default class BattleScene extends Phaser.Scene {
 
     const last = beat.decisive ? 2300 : beat.kind === 'break' ? 1100 : 1300;
     at(last - 380, () => {
+      if (ring) ring.destroy();
       this.resetCamera(300);
       this.hideDuelFaces();
     });
@@ -6433,6 +6442,34 @@ export default class BattleScene extends Phaser.Scene {
     if (!this.inCinematic || this.skipped) return;
     this.skipped = true;
     this.setSpeed('skip', 5);
+  }
+
+  // A clash contact (16.1 step 9): the camera pushes in 6% and eases back. The opening and decisive
+  // beats also slow the world to 0.4 for about 180 ms (real time). Both go through setSpeed and the
+  // camera only, so skipping a cut-in still works (endCinematic clears slowMo).
+  clashPunch(big) {
+    const cam = this.cameras.main;
+    const z = cam.zoom;
+    cam.zoomTo(z * 1.06, 70, 'Sine.easeOut', true);
+    setTimeout(() => { if (this.scene.isActive()) cam.zoomTo(z, 170, 'Sine.easeInOut', true); }, 90);
+    if (!big) return;
+    this.setSpeed('slowMo', 0.4);
+    setTimeout(() => { if (this.scene.isActive()) this.setSpeed('slowMo', 1); }, 180);
+  }
+
+  // The decisive beat's burst on the loser (16.1 step 11): sj_burst, big dust ring, double sparks, a
+  // short shake, and the winner's own Verse hit effect layered on top if it has one.
+  decisiveFinish(beat) {
+    const loser = beat.loser, winner = beat.winner;
+    if (!loser || !winner) return;
+    const depth = depthFor(loser.col, loser.row) + 2;
+    decisiveBurst(this, loser.view.x, loser.view.y, depth);
+    screenShake(this, 0.007, 200);
+    const kinds = verseKinds(winner);
+    if (kinds.length) {
+      const dir = loser.view.x >= winner.view.x ? 1 : -1;
+      hitEffect(this, kinds, loser.view.x, loser.view.y - loser.centerY, loser.view.x, loser.view.y, dir, depth);
+    }
   }
 
   // How fast the battle runs. Several things change the speed, sometimes at

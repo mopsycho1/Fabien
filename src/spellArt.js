@@ -93,14 +93,14 @@ export function slowCast(scene, x, y) {
 export function slowAura(scene, unit) {
   if (!has(scene, ['slow_ring', 'slow_motes'])) return null;
   const top = -unit.topY + 4;
-  const ring = scene.add.image(0, top, 'fx:slow_ring').setScale(0.32, 0.26).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.75);
-  scene.tweens.add({ targets: ring, y: top + 8, alpha: 0.45, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  const ring = scene.add.image(0, top, 'fx:slow_ring').setScale(0.4, 0.32).setBlendMode(Phaser.BlendModes.ADD).setAlpha(1);
+  scene.tweens.add({ targets: ring, y: top + 8, alpha: 0.7, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   unit.view.add(ring);
   const out = [ring];
   // a faint slow turn at the feet (flat, like fury_ground)
   if (has(scene, ['slow_spiral'])) {
     const flat = scene.add.container(0, 6).setScale(1, 0.36);
-    const spiral = scene.add.image(0, 0, 'fx:slow_spiral').setScale(0.6).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD);
+    const spiral = scene.add.image(0, 0, 'fx:slow_spiral').setScale(0.75).setAlpha(0.52).setBlendMode(Phaser.BlendModes.ADD);
     flat.add(spiral);
     behind(unit, flat);
     scene.tweens.add({ targets: spiral, angle: 360, duration: 9000, repeat: -1 });
@@ -108,15 +108,15 @@ export function slowAura(scene, unit) {
   }
   // purple motes that sink slowly round the body (16.1 step 3: replaces the one tweened picture)
   const motes = fxEmitter(scene, unit, {
-    frequency: 260,
-    maxParticles: 14,
+    frequency: 175, // 1.5 times as many motes (phone boost 8 Nov)
+    maxParticles: 20,
     config: {
       x: { min: -26, max: 26 },
       y: { min: -unit.topY, max: -unit.centerY },
       speedY: { min: 6, max: 16 },
       speedX: { min: -4, max: 4 },
-      scale: { start: 0.34, end: 0.05 },
-      alpha: { start: 0.5, end: 0 },
+      scale: { start: 0.51, end: 0.08 },
+      alpha: { start: 0.75, end: 0 },
       tint: [0xb48cff, 0x8a5fe0, 0xd2b3ff],
       lifespan: { min: 1400, max: 2200 },
     },
@@ -323,21 +323,21 @@ export function swiftAura(scene, unit) {
   if (!scene.anims.exists('swiftSwirl')) {
     scene.anims.create({ key: 'swiftSwirl', frames: SWIRL.map((k) => ({ key: 'fx:' + k })), frameRate: 11, repeat: -1 });
   }
-  const swirl = scene.add.sprite(0, 10, 'fx:' + SWIRL[0]).setOrigin(0.5, 1).setScale(0.9).setAlpha(0.8);
+  const swirl = scene.add.sprite(0, 10, 'fx:' + SWIRL[0]).setOrigin(0.5, 1).setScale(1.1).setAlpha(1);
   swirl.play('swiftSwirl');
   unit.view.add(swirl);
   // a few light wind streaks drifting sideways (16.1 step 5)
   const wind = fxEmitter(scene, unit, {
-    frequency: 320,
-    maxParticles: 12,
+    frequency: 215, // 1.5 times as many streaks (phone boost 8 Nov)
+    maxParticles: 18,
     config: {
       x: { min: -30, max: 30 },
       y: { min: -unit.topY * 0.8, max: -8 },
       speedX: { min: 40, max: 70 },
       speedY: { min: -6, max: 6 },
-      scaleX: { start: 1.1, end: 0.4 },
-      scaleY: { start: 0.18, end: 0.1 },
-      alpha: { start: 0.45, end: 0 },
+      scaleX: { start: 1.65, end: 0.6 },
+      scaleY: { start: 0.27, end: 0.15 },
+      alpha: { start: 0.68, end: 0 },
       tint: [0xdff6ff, 0xbfe9ff],
       lifespan: { min: 600, max: 900 },
     },
@@ -479,10 +479,10 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
   if (has(scene, ['fury_ground'])) {
     // his ring of fire seen from above, laid flat at the feet and turning
     const flat = scene.add.container(0, 6).setScale(1, 0.36);
-    const ring = scene.add.image(0, 0, 'fx:fury_ground').setScale(0.95).setAlpha(0.9);
+    const ring = scene.add.image(0, 0, 'fx:fury_ground').setScale(1.2).setAlpha(1);
     flat.add(ring);
     behind(unit, flat);
-    tweens.push(scene.tweens.add({ targets: ring, alpha: 0.6, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })); // it glows; it no longer turns
+    tweens.push(scene.tweens.add({ targets: ring, alpha: 0.75, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })); // it glows; it no longer turns
     objects.push(flat);
   } else {
     const ring = add('fury_ring', 4, 0.55).setScale(0.42, 0.3);
@@ -494,7 +494,7 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
     // A unit without painted Fury pictures (roadmap 1.25): no picture over the
     // body. Instead its figure pulses a soft red-orange, and a few embers rise.
     const pulse = { t: 0 };
-    const lo = Phaser.Display.Color.ValueToColor(0xffffff), hi = Phaser.Display.Color.ValueToColor(0xff9a70);
+    const lo = Phaser.Display.Color.ValueToColor(0xffffff), hi = Phaser.Display.Color.ValueToColor(0xff6a45);
     tweens.push(scene.tweens.add({
       targets: pulse, t: 1, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
       onUpdate: () => {
@@ -509,16 +509,16 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
   }
   // one ember emitter replaces the hand-tweened circles and sparks: embers rise from the feet to above the head
   const embers = fxEmitter(scene, unit, {
-    frequency: 150,
-    maxParticles: 18,
+    frequency: 100, // 1.5 times as many embers (phone boost 8 Nov)
+    maxParticles: 20,
     behindFigure: false, // embers may drift in front of the body, but stay small and faint
     config: {
-      x: { min: -18, max: 18 },
+      x: { min: -22, max: 22 },
       y: { min: -6, max: 4 },
       speedY: { min: -(unit.topY + 10) / 1.3, max: -(unit.topY - 10) / 1.3 },
       speedX: { min: -8, max: 8 },
-      scale: { start: 0.38, end: 0 },
-      alpha: { start: 0.55, end: 0 },
+      scale: { start: 0.57, end: 0 },
+      alpha: { start: 0.82, end: 0 },
       tint: [0xff7a2e, 0xffb347],
       lifespan: 1300,
     },
@@ -526,9 +526,9 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
   if (embers) objects.push(embers);
   // heat shimmer: a faint wavy band above the unit (no shader, so it works on every phone)
   if (has(scene, ['fury_column'])) {
-    const shimmer = scene.add.image(0, -unit.centerY - 10, 'fx:fury_column').setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.16).setScale(0.5, 0.7);
+    const shimmer = scene.add.image(0, -unit.centerY - 10, 'fx:fury_column').setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.4).setScale(0.7, 0.95);
     behind(unit, shimmer);
-    tweens.push(scene.tweens.add({ targets: shimmer, x: 4, scaleX: 0.56, scaleY: 0.78, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
+    tweens.push(scene.tweens.add({ targets: shimmer, x: 4, scaleX: 0.7, scaleY: 0.95, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
     objects.push(shimmer);
   }
   return { objects, tweens };
@@ -544,7 +544,7 @@ export function bulwarkAura(scene, unit) {
   let ring;
   if (has(scene, ['earth_cast_0'])) {
     // the first stage of his Earth's Bulwark sheet: a ring with small crystals and light
-    ring = scene.add.image(0, 10, 'fx:earth_cast_0').setOrigin(0.5, 1).setScale(0.62).setAlpha(0.55);
+    ring = scene.add.image(0, 10, 'fx:earth_cast_0').setOrigin(0.5, 1).setScale(0.7).setAlpha(0.8);
   } else {
     ring = scene.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     ring.lineStyle(3, 0xd9b77a, 0.7);
@@ -552,7 +552,7 @@ export function bulwarkAura(scene, unit) {
     ring.setAlpha(0.5);
   }
   behind(unit, ring);
-  const tweens = [scene.tweens.add({ targets: ring, alpha: 0.9, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
+  const tweens = [scene.tweens.add({ targets: ring, alpha: 1, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' })];
   const crystals = keys.map((k) => {
     const c = scene.add.image(0, 0, 'fx:' + k).setScale(0.6);
     if (!his) c.setBlendMode(Phaser.BlendModes.ADD);
@@ -580,7 +580,7 @@ export function bulwarkAura(scene, unit) {
   // (stone_burst_0 to 2, added light, kept small and faint so the figure stays clear)
   const shardKeys = ['stone_burst_0', 'stone_burst_1', 'stone_burst_2'].filter((k) => has(scene, [k]));
   const shards = shardKeys.map((k) => {
-    const c = scene.add.image(0, 0, 'fx:' + k).setScale(0.16).setBlendMode(Phaser.BlendModes.ADD);
+    const c = scene.add.image(0, 0, 'fx:' + k).setScale(0.24).setBlendMode(Phaser.BlendModes.ADD);
     unit.view.add(c);
     return c;
   });
@@ -591,7 +591,7 @@ export function bulwarkAura(scene, unit) {
       const a = -clock.t * 1.6 + (i * Math.PI * 2) / shards.length;
       const front = Math.sin(a) > 0;
       c.setPosition(Math.cos(a) * r2, -unit.centerY * 0.35 + Math.sin(a) * r2 * 0.3);
-      c.setAlpha(front ? 0.55 : 0.3).setAngle(clock.t * 120 + i * 90);
+      c.setAlpha(front ? 0.82 : 0.45).setAngle(clock.t * 120 + i * 90);
       if (unit.sprite && unit.view.exists(c)) {
         const above = unit.view.getIndex(c) > unit.view.getIndex(unit.sprite);
         if (front && !above) unit.view.moveAbove(c, unit.sprite);
@@ -991,17 +991,17 @@ export function stepEffect(scene, kinds, x, y, dx, depth) {
     if (kind === 'stone') {
       // a puff of dust: the flat dust ring, and a few brown grains
       const rings = ['dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3'].filter((k) => has(scene, [k]));
-      if (rings.length) flipbook(scene, rings, x, y + 6, { frameMs: 70, scale: 0.4, depth: d, originY: 0.5, fade: 160 }).setScale(0.4, 0.22).setAlpha(0.7);
-      fxBurst(scene, x, y, d, 5, { speedX: { min: -34, max: 34 }, speedY: { min: -34, max: -10 }, gravityY: 90, scale: { start: 0.3, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0x8a6a48, 0xa3825c, 0x6f553a], lifespan: { min: 320, max: 480 }, blendMode: 'NORMAL' });
+      if (rings.length) flipbook(scene, rings, x, y + 6, { frameMs: 70, scale: 0.4, depth: d, originY: 0.5, fade: 160 }).setScale(0.6, 0.33).setAlpha(1);
+      fxBurst(scene, x, y, d, 8, { speedX: { min: -34, max: 34 }, speedY: { min: -34, max: -10 }, gravityY: 90, scale: { start: 0.45, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0x8a6a48, 0xa3825c, 0x6f553a], lifespan: { min: 320, max: 480 }, blendMode: 'NORMAL' });
     } else if (kind === 'swift') {
       // wind streaks thrown back along the way it came
-      fxBurst(scene, x, y - 26, d + 1, 6, { speedX: { min: -dir * 90, max: -dir * 50 }, speedY: { min: -8, max: 8 }, x: { min: -8, max: 8 }, y: { min: -20, max: 14 }, scaleX: { start: 1.2, end: 0.4 }, scaleY: { start: 0.16, end: 0.08 }, alpha: { start: 0.5, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 280, max: 420 } });
+      fxBurst(scene, x, y - 26, d + 1, 9, { speedX: { min: -dir * 90, max: -dir * 50 }, speedY: { min: -8, max: 8 }, x: { min: -8, max: 8 }, y: { min: -20, max: 14 }, scaleX: { start: 1.8, end: 0.6 }, scaleY: { start: 0.24, end: 0.12 }, alpha: { start: 0.75, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 280, max: 420 } });
     } else if (kind === 'fury') {
       // a few embers left on the tile, fading in about half a second
-      fxBurst(scene, x, y + 2, d, 5, { x: { min: -14, max: 14 }, y: { min: -4, max: 4 }, speedX: { min: -6, max: 6 }, speedY: { min: -22, max: -8 }, scale: { start: 0.34, end: 0 }, alpha: { start: 0.7, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 450, max: 600 } });
+      fxBurst(scene, x, y + 2, d, 8, { x: { min: -14, max: 14 }, y: { min: -4, max: 4 }, speedX: { min: -6, max: 6 }, speedY: { min: -22, max: -8 }, scale: { start: 0.51, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 450, max: 600 } });
     } else if (kind === 'slow') {
       // a ripple on the tile it leaves
-      groundWave(scene, 'slow_waves', x, y + 2, d, { from: 0.22, to: 0.55, squash: 0.55, ms: 700, alpha: 0.6 });
+      groundWave(scene, 'slow_waves', x, y + 2, d, { from: 0.3, to: 0.8, squash: 0.55, ms: 700, alpha: 0.9 });
     }
   }
 }
@@ -1014,31 +1014,31 @@ export function hitEffect(scene, kinds, x, y, gx, gy, dir, depth) {
   for (const kind of new Set(kinds)) {
     if (kind === 'stone') {
       // a crack ring on the ground, a quick crackle, and shards thrown up that fall back
-      groundWave(scene, 'earth_cast_0', gx, gy + 2, d - 0.6, { from: 0.25, to: 0.7, squash: 0.42, ms: 380, alpha: 0.8 });
+      groundWave(scene, 'earth_cast_0', gx, gy + 2, d - 0.6, { from: 0.35, to: 1, squash: 0.42, ms: 380, alpha: 1 });
       const ks = ['crackle_0', 'crackle_1', 'crackle_2', 'crackle_3', 'crackle_4'].filter((k) => has(scene, [k]));
-      if (ks.length) flipbook(scene, ks, gx, gy + 6, { frameMs: 40, scale: 0.55, depth: d, originY: 0.7, fade: 120 });
-      fxBurst(scene, gx, gy - 4, d, 7, { speedX: { min: -50, max: 50 }, speedY: { min: -120, max: -60 }, gravityY: 320, scale: { start: 0.42, end: 0.12 }, alpha: { start: 0.9, end: 0 }, tint: [0xb59a78, 0x8a7358, 0xd2b88c], lifespan: { min: 380, max: 520 }, blendMode: 'NORMAL' });
+      if (ks.length) flipbook(scene, ks, gx, gy + 6, { frameMs: 40, scale: 0.8, depth: d, originY: 0.7, fade: 120 });
+      fxBurst(scene, gx, gy - 4, d, 11, { speedX: { min: -50, max: 50 }, speedY: { min: -120, max: -60 }, gravityY: 320, scale: { start: 0.63, end: 0.18 }, alpha: { start: 1, end: 0 }, tint: [0xb59a78, 0x8a7358, 0xd2b88c], lifespan: { min: 380, max: 520 }, blendMode: 'NORMAL' });
     } else if (kind === 'swift') {
       // a small ring flash and streaks flung the way the blow goes
-      const ring = has(scene, ['swift_ring']) && scene.add.image(x, y, 'fx:swift_ring').setDepth(d).setScale(0.28).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
-      if (ring) scene.tweens.add({ targets: ring, scale: 0.5, alpha: 0, duration: 240, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
-      fxBurst(scene, x, y, d, 8, { speedX: { min: dir * 80, max: dir * 190 }, speedY: { min: -30, max: 30 }, scaleX: { start: 1.3, end: 0.5 }, scaleY: { start: 0.18, end: 0.08 }, alpha: { start: 0.6, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 260, max: 380 } });
+      const ring = has(scene, ['swift_ring']) && scene.add.image(x, y, 'fx:swift_ring').setDepth(d).setScale(0.4).setAlpha(1).setBlendMode(Phaser.BlendModes.ADD);
+      if (ring) scene.tweens.add({ targets: ring, scale: 0.75, alpha: 0, duration: 240, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+      fxBurst(scene, x, y, d, 12, { speedX: { min: dir * 80, max: dir * 190 }, speedY: { min: -30, max: 30 }, scaleX: { start: 1.95, end: 0.75 }, scaleY: { start: 0.27, end: 0.12 }, alpha: { start: 0.9, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 260, max: 380 } });
     } else if (kind === 'fury') {
       // a short flame flare, a ring flash and a burst of embers
       const ks = ['fury_cast_4', 'fury_cast_5', 'fury_cast_6'].filter((k) => has(scene, [k]));
-      if (ks.length) flipbook(scene, ks, x, y + 14, { frameMs: 55, scale: 0.55, depth: d, originY: 0.8, fade: 140 });
-      const ring = has(scene, ['fury_ring']) && scene.add.image(x, y, 'fx:fury_ring').setDepth(d).setScale(0.3).setAlpha(0.7).setBlendMode(Phaser.BlendModes.ADD);
-      if (ring) scene.tweens.add({ targets: ring, scale: 0.6, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
-      fxBurst(scene, x, y, d, 10, { speed: { min: 40, max: 120 }, angle: { min: 0, max: 360 }, scale: { start: 0.4, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 320, max: 520 } });
+      if (ks.length) flipbook(scene, ks, x, y + 14, { frameMs: 55, scale: 0.8, depth: d, originY: 0.8, fade: 140 });
+      const ring = has(scene, ['fury_ring']) && scene.add.image(x, y, 'fx:fury_ring').setDepth(d).setScale(0.45).setAlpha(1).setBlendMode(Phaser.BlendModes.ADD);
+      if (ring) scene.tweens.add({ targets: ring, scale: 0.9, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+      fxBurst(scene, x, y, d, 15, { speed: { min: 40, max: 120 }, angle: { min: 0, max: 360 }, scale: { start: 0.6, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 320, max: 520 } });
     } else if (kind === 'slow') {
       // the pull flashes inward and motes are drawn toward the target
-      const pull = has(scene, ['slow_pull']) && scene.add.image(x, y - 6, 'fx:slow_pull').setDepth(d).setScale(0.75).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
+      const pull = has(scene, ['slow_pull']) && scene.add.image(x, y - 6, 'fx:slow_pull').setDepth(d).setScale(1.05).setAlpha(1).setBlendMode(Phaser.BlendModes.ADD);
       if (pull) scene.tweens.add({ targets: pull, scale: 0.3, alpha: 0, duration: 300, ease: 'Quad.easeIn', onComplete: () => pull.destroy() });
       if (scene.textures.exists('fx-dot')) {
-        const n = fxState.mode === 'light' ? 3 : 6;
+        const n = fxState.mode === 'light' ? 5 : 9;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
-          const mote = scene.add.image(x + Math.cos(a) * 36, y + Math.sin(a) * 26, 'fx-dot').setDepth(d).setScale(0.4).setAlpha(0.8).setTint(0xb48cff).setBlendMode(Phaser.BlendModes.ADD);
+          const mote = scene.add.image(x + Math.cos(a) * 36, y + Math.sin(a) * 26, 'fx-dot').setDepth(d).setScale(0.6).setAlpha(1).setTint(0xb48cff).setBlendMode(Phaser.BlendModes.ADD);
           scene.tweens.add({ targets: mote, x, y, alpha: 0, scale: 0.1, duration: 320, delay: i * 18, ease: 'Quad.easeIn', onComplete: () => mote.destroy() });
         }
       }
@@ -1130,4 +1130,69 @@ export function sandImpact(scene, x, y, dir) {
   scene.tweens.add({ targets: img, alpha: 0.95, scale, duration: 120, ease: 'Quad.easeOut' });
   scene.tweens.add({ targets: img, alpha: 0, y: y - 6, delay: 260, duration: 380, ease: 'Quad.easeIn', onComplete: () => img.destroy() });
   return true;
+}
+
+// ---------- Clash effects (roadmap 16.1 steps 8, 10 and 11) ----------
+// Where two blades meet: a white flash card for 2 frames, the strike flipbook tinted gold, and 30 gold
+// sparks flung both ways (15 each side, with gravity). Light halves the sparks (fxBurst).
+export function clashSparks(scene, x, y, depth = 80) {
+  const ks = range('strike', 7).filter((k) => has(scene, [k]));
+  if (ks.length) flipbook(scene, ks, x, y, { frameMs: 28, scale: 0.5, depth, originY: 0.5, fade: 90 }).setTint(0xffd27a);
+  if (scene.textures.exists('fx-dot')) {
+    // the flash card: one big soft white dot for about 2 frames
+    const card = scene.add.image(x, y, 'fx-dot').setDepth(depth + 1).setScale(5).setAlpha(0.7).setBlendMode(Phaser.BlendModes.ADD);
+    scene.time.delayedCall(34, () => card.destroy());
+  }
+  const gold = [0xffe08a, 0xffc24a, 0xffffff];
+  for (const side of [-1, 1]) {
+    const lo = side === 1 ? -35 : 145, hi = side === 1 ? 35 : 215; // degrees: right side or left side
+    fxBurst(scene, x, y, depth, 15, { speed: { min: 110, max: 260 }, angle: { min: lo, max: hi }, gravityY: 420, scale: { start: 0.38, end: 0 }, alpha: { start: 1, end: 0 }, tint: gold, lifespan: { min: 220, max: 420 } });
+  }
+}
+
+// The pulsing ground ring under two fighters in a clash. It is a flat gold ring (laid flat at 0.36
+// height); pulse(winner) swells it once and lights the half toward the side with the momentum.
+// The sprite-free drawing means no new art. Returns { pulse, destroy }.
+export function clashRing(scene, a, b) {
+  const gfx = scene.add.graphics();
+  const cx = (a.view.x + b.view.x) / 2, cy = (a.view.y + b.view.y) / 2 + 4;
+  const half = Math.hypot(b.view.x - a.view.x, (b.view.y - a.view.y) / 0.36) / 2 + 52;
+  gfx.setPosition(cx, cy).setScale(1, 0.36).setDepth(Math.min(a.view.depth, b.view.depth) - 0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+  const draw = (leanX) => {
+    gfx.clear();
+    gfx.lineStyle(5, 0xffd27a, 0.55);
+    gfx.strokeCircle(0, 0, half);
+    gfx.lineStyle(9, 0xffe9a8, 0.95); // the brighter half faces the side that is winning
+    if (leanX) {
+      const mid = leanX > 0 ? 0 : Math.PI;
+      gfx.beginPath();
+      gfx.arc(0, 0, half, mid - Math.PI / 2, mid + Math.PI / 2);
+      gfx.strokePath();
+    }
+  };
+  draw(0);
+  scene.tweens.add({ targets: gfx, alpha: 0.5, duration: 160 }); // it fades in as the stances appear
+  const out = {
+    pulse(winner, strong = false) {
+      if (!gfx.active) return;
+      const lean = winner ? Math.sign(winner.view.x - cx) : 0;
+      draw(lean);
+      scene.tweens.add({ targets: gfx, scaleX: strong ? 1.3 : 1.15, scaleY: (strong ? 1.3 : 1.15) * 0.36, alpha: 1, duration: 110, yoyo: true, ease: 'Quad.easeOut' });
+    },
+    destroy() {
+      if (!gfx.active) return;
+      scene.tweens.add({ targets: gfx, alpha: 0, duration: 220, onComplete: () => gfx.destroy() });
+    },
+  };
+  return out;
+}
+
+// The decisive beat's finishing burst on the loser: sj_burst, a big dust ring (1.5 times the step
+// puff) and double the sparks. The scene adds the shake and the winner's Verse hit effect.
+export function decisiveBurst(scene, x, y, depth = 82) {
+  const bursts = ['sj_burst_0', 'sj_burst_1'].filter((k) => has(scene, [k]));
+  if (bursts.length) flipbook(scene, bursts, x, y + 8, { frameMs: 80, scale: 0.6, depth, originY: 0.9, fade: 200 });
+  const rings = range('dust_ring', 4).filter((k) => has(scene, [k]));
+  if (rings.length) flipbook(scene, rings, x, y + 6, { frameMs: 70, scale: 0.6, depth: depth - 1, originY: 0.5, fade: 200 }).setScale(0.6, 0.33);
+  fxBurst(scene, x, y - 20, depth + 1, 30, { speed: { min: 80, max: 280 }, angle: { min: 0, max: 360 }, gravityY: 380, scale: { start: 0.45, end: 0 }, alpha: { start: 1, end: 0 }, tint: [0xffe08a, 0xffc24a, 0xffffff], lifespan: { min: 300, max: 560 } });
 }

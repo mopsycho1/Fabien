@@ -25,7 +25,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await sleep(2500);
   const alive = em[0].emitter.getAliveParticleCount();
   check('Fury: embers are alive and under the cap (20)', alive > 0 && alive <= 20, alive);
-  check('Fury: loop sits behind or inside the unit container, faint', em[0].emitter.parentContainer === sudeen.view && em[0].emitter.ops.alpha.start <= 0.6, em[0].emitter.ops.alpha.start);
+  check('Fury: loop sits behind or inside the unit container, faint', em[0].emitter.parentContainer === sudeen.view && em[0].emitter.ops.alpha.start <= 0.85, em[0].emitter.ops.alpha.start);
 
   // ---------- Slow ----------
   setSlow(gaha, true); b.refreshStatusTags();
@@ -54,8 +54,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const base = { };
   check('Caps: 5 loops running, the 4th and 5th run at half strength', all.length === 5 && all.filter((e) => e.emitting).length === 5);
   const freqs = all.map((e) => e.frequency).sort((a, b) => a - b).join(',');
-  // base frequencies: fury 150, slow 260, swift 320; two of the five are doubled
-  const baseSum = 150 * 2 + 260 + 320 * 2;
+  // base frequencies (phone boost 8 Nov): fury 100, slow 175, swift 215; two of the five are doubled
+  const baseSum = 100 * 2 + 175 + 215 * 2;
   const sum = all.reduce((s, e) => s + e.frequency, 0);
   check('Caps: exactly 2 loops were slowed to half', sum > baseSum && all.length === 5, freqs + ' sum ' + sum + ' base ' + baseSum);
 
