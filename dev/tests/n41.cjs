@@ -65,6 +65,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   S.applyEnchant(tayo, 'enchant'); b.refreshStatusTags();
   /* Tayo has his own flaming pictures since 6 Nov (6.30), so neither he nor the bull gets the drawn fire */ check('4.1 Tayo and the bull wear their painted flames, no drawn fire', !(tayo.enchantAura && tayo.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))) && !(bull.enchantAura && bull.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))));
   tayo.status = null; b.refreshStatusTags();
+  S.applyEnchant(rabdul, 'enchant'); b.refreshStatusTags(); for (let k = 0; k < 20 && !rabdul.sprite.isTinted; k++) await new Promise((r) => setTimeout(r, 50)); /* the flicker dips to white now and then */
+  /* 4.4 (8 Nov): a unit without painted flames gets embers from the weapon hand and an orange flicker, no picture over the body */
+  check('4.4 Rabdul (no painted flames): no fire picture over the body, an ember emitter, a flicker tint', !!rabdul.enchantAura && !rabdul.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)) && rabdul.enchantAura.objects.some((o) => o.emitter) && rabdul.sprite.isTinted, JSON.stringify([!!rabdul.enchantAura, rabdul.hasEnchantedArt, rabdul.enchantAura && rabdul.enchantAura.objects.length, rabdul.sprite.isTinted, rabdul.hidden]));
+  rabdul.status = null; b.refreshStatusTags();
+  check('4.4 the flicker tint and the embers go when Enchant ends', !rabdul.enchantAura && !rabdul.sprite.isTinted);
   S.applyBuff(sudeen, 'fury'); b.refreshStatusTags();
   check('Fury on Sudeen: no fire picture over his body, no turning cutouts (1.25)', !!sudeen.furyAura && !sudeen.furyAura.objects.some((o) => o.texture && /rise_fire|fury_ribbons/.test(o.texture.key)));
   sudeen.status = null; b.refreshStatusTags();

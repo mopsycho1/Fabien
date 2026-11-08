@@ -889,23 +889,161 @@ export function enchantAura(scene, unit) {
     scene.tweens.add({ targets: mark, angle: 360, duration: 9000, repeat: -1 }),
     scene.tweens.add({ targets: mark, alpha: 0.3, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }),
   ];
-  const embers = [0, 1].map((i) => {
+  // (units with painted flames keep the two drifting sparks; the others get the hand embers below)
+  const embers = (unit.hasEnchantedArt ? [0, 1] : []).map((i) => {
     const e = scene.add.circle((i ? 10 : -12), -unit.centerY + 6, 3, 0xff8a3c, 0.8).setBlendMode(Phaser.BlendModes.ADD);
     unit.view.add(e);
     tweens.push(scene.tweens.add({ targets: e, y: -unit.topY, alpha: { from: 0.8, to: 0 }, duration: 1400, delay: i * 700, repeat: -1 }));
     return e;
   });
-  // no flaming pictures of its own (art.json "enchanted"): his fire licks up
-  // round its body instead, so it still looks enchanted (Tayo, the heroes)
-  if (!unit.hasEnchantedArt && has(scene, ['rise_fire_0', 'rise_fire_1'])) {
-    const fire = scene.add.image(0, 4, 'fx:rise_fire_1').setOrigin(0.5, 1).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55);
-    fire.setScale((unit.topY * 0.8) / fire.height);
-    unit.view.add(fire);
-    let f = 0;
-    tweens.push(scene.tweens.add({ targets: fire, alpha: 0.75, duration: 150, yoyo: true, repeat: -1, onRepeat: () => fire.active && fire.setTexture('fx:rise_fire_' + (++f % 2)) }));
-    embers.push(fire);
+  // A unit with no flaming pictures of its own (art.json "enchanted": Rabdul and others, roadmap 4.4,
+  // redone like Fury in 1.25): no picture over the body. Embers rise from the weapon hand and the
+  // figure flickers a faint orange. (Units with flaming pictures keep those.)
+  const extra = [];
+  if (!unit.hasEnchantedArt) {
+    const hand = fxEmitter(scene, unit, {
+      frequency: 190,
+      maxParticles: 10,
+      behindFigure: false,
+      config: {
+        x: { min: -3, max: 3 },
+        y: { min: -3, max: 3 },
+        speedY: { min: -46, max: -26 },
+        speedX: { min: -6, max: 6 },
+        scale: { start: 0.5, end: 0 },
+        alpha: { start: 0.8, end: 0 },
+        tint: [0xff7a2e, 0xffb347],
+        lifespan: 1100,
+      },
+    });
+    if (hand) {
+      // the weapon hand is on the side the unit faces; follow it as it turns
+      tweens.push(scene.tweens.add({
+        targets: hand.emitter, duration: 200, repeat: -1,
+        x: 0, // a dummy property so the tween ticks; the real move is in onUpdate
+        onUpdate: () => {
+          if (!hand.emitter.scene) return;
+          hand.emitter.setPosition((unit.facing || '').endsWith('Right') ? 15 : -15, -unit.centerY + 4);
+        },
+      }));
+      extra.push(hand);
+    }
+    // a faint orange flicker on the figure (random small flickers, not a smooth pulse)
+    const lo = Phaser.Display.Color.ValueToColor(0xffffff), hi = Phaser.Display.Color.ValueToColor(0xffb98a);
+    const flick = { t: 0 };
+    tweens.push(scene.tweens.add({
+      targets: flick, t: 1, duration: 170, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+      onYoyo: () => { flick.max = 0.45 + Math.random() * 0.55; },
+      onUpdate: () => {
+        const sp = unit.sprite;
+        if (!sp || !sp.active || sp.tintFill || unit.hidden) return; // leave the hit flash and the hidden glow alone
+        const c = Phaser.Display.Color.Interpolate.ColorWithColor(lo, hi, 100, Math.round(flick.t * (flick.max || 0.7) * 100));
+        sp.setTint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+      },
+    }));
+    // a stand-in object so the cleanup (keepAura) also removes the tint
+    extra.push({ destroy: () => { if (unit.sprite && unit.sprite.active && !unit.sprite.tintFill && !unit.hidden) unit.sprite.clearTint(); } });
   }
-  return { objects: [flat, ...embers], tweens };
+  return { objects: [flat, ...embers, ...extra], tweens };
+}
+
+// ---------- Step and hit effects for the four Verses (roadmap 16.1 steps 6 and 7) ----------
+// Stone, Swift, Fury and Slow each leave a mark where a unit steps and flare where it lands or
+// takes a blow. Short and small (Clarity: the board must stay readable on a phone). The bursts
+// are one-offs with a hard cap of 30 particles, halved when the Effects switch is on Light.
+
+// Which Verses a unit carries: its buff (swiftness, fury, stone) and, apart, being slowed.
+export function verseKinds(unit) {
+  const st = unit && unit.status;
+  const kinds = [];
+  if (st && st.buff && ['swiftness', 'fury', 'stone'].includes(st.buff.id)) kinds.push(st.buff.id === 'swiftness' ? 'swift' : st.buff.id);
+  if (st && st.hex && st.hex.id === 'slow') kinds.push('slow');
+  return kinds;
+}
+
+// A one-off puff of particles at (x, y). count is capped at 30 and halved in Light.
+function fxBurst(scene, x, y, depth, count, config) {
+  if (!scene.textures.exists('fx-dot')) return null;
+  const n = Math.min(30, fxState.mode === 'light' ? Math.ceil(count / 2) : count);
+  const life = config.lifespan && config.lifespan.max ? config.lifespan.max : (config.lifespan || 600);
+  const emitter = scene.add.particles(x, y, 'fx-dot', { emitting: false, blendMode: 'ADD', ...config }).setDepth(depth);
+  emitter.explode(n);
+  scene.time.delayedCall(life + 100, () => emitter.scene && emitter.destroy());
+  return emitter;
+}
+
+// A flat ring or wave laid on the ground (squashed to the tile's slope), growing and fading.
+function groundWave(scene, key, x, y, depth, { from = 0.3, to = 0.7, squash = 0.5, ms = 420, alpha = 0.7, tint } = {}) {
+  if (!has(scene, [key])) return null;
+  const img = scene.add.image(x, y, 'fx:' + key).setDepth(depth).setScale(from, from * squash).setAlpha(alpha);
+  if (!PAINTED(key)) img.setBlendMode(Phaser.BlendModes.ADD);
+  if (tint) img.setTint(tint);
+  scene.tweens.add({ targets: img, scaleX: to, scaleY: to * squash, alpha: 0, duration: ms, ease: 'Quad.easeOut', onComplete: () => img.destroy() });
+  return img;
+}
+
+// A unit leaves the tile at (x, y) (screen), heading dx sideways. depth = that tile's drawing depth.
+// "kinds" are the Verses it carries. Swift's gust at the start of the move stays as it was.
+export function stepEffect(scene, kinds, x, y, dx, depth) {
+  const d = depth + 0.5; // just above the tile, below the figures
+  const dir = dx >= 0 ? 1 : -1;
+  for (const kind of kinds) {
+    if (kind === 'stone') {
+      // a puff of dust: the flat dust ring, and a few brown grains
+      const rings = ['dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3'].filter((k) => has(scene, [k]));
+      if (rings.length) flipbook(scene, rings, x, y + 6, { frameMs: 70, scale: 0.4, depth: d, originY: 0.5, fade: 160 }).setScale(0.4, 0.22).setAlpha(0.7);
+      fxBurst(scene, x, y, d, 5, { speedX: { min: -34, max: 34 }, speedY: { min: -34, max: -10 }, gravityY: 90, scale: { start: 0.3, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0x8a6a48, 0xa3825c, 0x6f553a], lifespan: { min: 320, max: 480 }, blendMode: 'NORMAL' });
+    } else if (kind === 'swift') {
+      // wind streaks thrown back along the way it came
+      fxBurst(scene, x, y - 26, d + 1, 6, { speedX: { min: -dir * 90, max: -dir * 50 }, speedY: { min: -8, max: 8 }, x: { min: -8, max: 8 }, y: { min: -20, max: 14 }, scaleX: { start: 1.2, end: 0.4 }, scaleY: { start: 0.16, end: 0.08 }, alpha: { start: 0.5, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 280, max: 420 } });
+    } else if (kind === 'fury') {
+      // a few embers left on the tile, fading in about half a second
+      fxBurst(scene, x, y + 2, d, 5, { x: { min: -14, max: 14 }, y: { min: -4, max: 4 }, speedX: { min: -6, max: 6 }, speedY: { min: -22, max: -8 }, scale: { start: 0.34, end: 0 }, alpha: { start: 0.7, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 450, max: 600 } });
+    } else if (kind === 'slow') {
+      // a ripple on the tile it leaves
+      groundWave(scene, 'slow_waves', x, y + 2, d, { from: 0.22, to: 0.55, squash: 0.55, ms: 700, alpha: 0.6 });
+    }
+  }
+}
+
+// A blow lands: attacker and target are the units; (x, y) is the target's middle and (gx, gy) the
+// ground under it; dir is 1 or minus 1 (the way the blow travels). Each Verse either of them carries
+// plays its flare once.
+export function hitEffect(scene, kinds, x, y, gx, gy, dir, depth) {
+  const d = depth + 1;
+  for (const kind of new Set(kinds)) {
+    if (kind === 'stone') {
+      // a crack ring on the ground, a quick crackle, and shards thrown up that fall back
+      groundWave(scene, 'earth_cast_0', gx, gy + 2, d - 0.6, { from: 0.25, to: 0.7, squash: 0.42, ms: 380, alpha: 0.8 });
+      const ks = ['crackle_0', 'crackle_1', 'crackle_2', 'crackle_3', 'crackle_4'].filter((k) => has(scene, [k]));
+      if (ks.length) flipbook(scene, ks, gx, gy + 6, { frameMs: 40, scale: 0.55, depth: d, originY: 0.7, fade: 120 });
+      fxBurst(scene, gx, gy - 4, d, 7, { speedX: { min: -50, max: 50 }, speedY: { min: -120, max: -60 }, gravityY: 320, scale: { start: 0.42, end: 0.12 }, alpha: { start: 0.9, end: 0 }, tint: [0xb59a78, 0x8a7358, 0xd2b88c], lifespan: { min: 380, max: 520 }, blendMode: 'NORMAL' });
+    } else if (kind === 'swift') {
+      // a small ring flash and streaks flung the way the blow goes
+      const ring = has(scene, ['swift_ring']) && scene.add.image(x, y, 'fx:swift_ring').setDepth(d).setScale(0.28).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
+      if (ring) scene.tweens.add({ targets: ring, scale: 0.5, alpha: 0, duration: 240, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+      fxBurst(scene, x, y, d, 8, { speedX: { min: dir * 80, max: dir * 190 }, speedY: { min: -30, max: 30 }, scaleX: { start: 1.3, end: 0.5 }, scaleY: { start: 0.18, end: 0.08 }, alpha: { start: 0.6, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: { min: 260, max: 380 } });
+    } else if (kind === 'fury') {
+      // a short flame flare, a ring flash and a burst of embers
+      const ks = ['fury_cast_4', 'fury_cast_5', 'fury_cast_6'].filter((k) => has(scene, [k]));
+      if (ks.length) flipbook(scene, ks, x, y + 14, { frameMs: 55, scale: 0.55, depth: d, originY: 0.8, fade: 140 });
+      const ring = has(scene, ['fury_ring']) && scene.add.image(x, y, 'fx:fury_ring').setDepth(d).setScale(0.3).setAlpha(0.7).setBlendMode(Phaser.BlendModes.ADD);
+      if (ring) scene.tweens.add({ targets: ring, scale: 0.6, alpha: 0, duration: 260, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+      fxBurst(scene, x, y, d, 10, { speed: { min: 40, max: 120 }, angle: { min: 0, max: 360 }, scale: { start: 0.4, end: 0 }, alpha: { start: 0.8, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: { min: 320, max: 520 } });
+    } else if (kind === 'slow') {
+      // the pull flashes inward and motes are drawn toward the target
+      const pull = has(scene, ['slow_pull']) && scene.add.image(x, y - 6, 'fx:slow_pull').setDepth(d).setScale(0.75).setAlpha(0.8).setBlendMode(Phaser.BlendModes.ADD);
+      if (pull) scene.tweens.add({ targets: pull, scale: 0.3, alpha: 0, duration: 300, ease: 'Quad.easeIn', onComplete: () => pull.destroy() });
+      if (scene.textures.exists('fx-dot')) {
+        const n = fxState.mode === 'light' ? 3 : 6;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+          const mote = scene.add.image(x + Math.cos(a) * 36, y + Math.sin(a) * 26, 'fx-dot').setDepth(d).setScale(0.4).setAlpha(0.8).setTint(0xb48cff).setBlendMode(Phaser.BlendModes.ADD);
+          scene.tweens.add({ targets: mote, x, y, alpha: 0, scale: 0.1, duration: 320, delay: i * 18, ease: 'Quad.easeIn', onComplete: () => mote.destroy() });
+        }
+      }
+    }
+  }
 }
 
 // Tayo's Earth Drive (roadmap 4.2): a spike of rock bursts up out of the

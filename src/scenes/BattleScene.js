@@ -20,7 +20,7 @@ import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pu
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -2687,6 +2687,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // Undo move goes back to where it stood at the start of the turn
     if (!unit.moveFrom) unit.moveFrom = { col: unit.col, row: unit.row, facing: unit.facing };
+    const startTile = { col: unit.col, row: unit.row }; // where the walk begins (the first tile it leaves)
     unit.col = col;
     unit.row = row;
     unit.hasMoved = true;
@@ -2733,6 +2734,9 @@ export default class BattleScene extends Phaser.Scene {
           const buff = buffOf(unit);
           // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
           if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
+          // the Verses leave a mark on the tile it leaves (16.1 step 6)
+          const kinds = verseKinds(unit);
+          if (kinds.length) { const left = fromTile || startTile; stepEffect(this, kinds, fromPoint.x, fromPoint.y, p.x - fromPoint.x, depthFor(left.col, left.row)); }
           play('step');
         },
       };
@@ -3516,6 +3520,9 @@ export default class BattleScene extends Phaser.Scene {
     }
     impactBurst(this, spot.x, spot.y, dir, color, power);
     groundRing(this, target.view.x, target.view.y, color, 0.6 + 0.3 * power);
+    // a Verse on either of them flares at the target (16.1 step 7)
+    const verses = [...verseKinds(attacker), ...verseKinds(target)];
+    if (verses.length) hitEffect(this, verses, spot.x, spot.y, target.view.x, target.view.y, dir, depthFor(target.col, target.row));
     // a heavy hit on sand or floor throws the sand up (6.37)
     if ((lethal || result.damage >= 9) && SANDY.has(terrainAt(mapData, target.col, target.row))) sandImpact(this, target.view.x, target.view.y + 4, dir);
 

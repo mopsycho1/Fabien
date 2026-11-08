@@ -1,25 +1,77 @@
 {
+ "cloud": [
+  {
+   "file": "smoke_cloud_0.png",
+   "ax": 0.655,
+   "ay": 0.836,
+   "w": 63,
+   "h": 33
+  },
+  {
+   "file": "smoke_cloud_1.png",
+   "ax": 0.445,
+   "ay": 0.812,
+   "w": 83,
+   "h": 63
+  },
+  {
+   "file": "smoke_cloud_2.png",
+   "ax": 0.478,
+   "ay": 0.878,
+   "w": 133,
+   "h": 95
+  },
+  {
+   "file": "smoke_cloud_3.png",
+   "ax": 0.488,
+   "ay": 0.918,
+   "w": 193,
+   "h": 144
+  },
+  {
+   "file": "smoke_cloud_4.png",
+   "ax": 0.489,
+   "ay": 0.913,
+   "w": 180,
+   "h": 132
+  },
+  {
+   "file": "smoke_cloud_5.png",
+   "ax": 0.473,
+   "ay": 0.907,
+   "w": 188,
+   "h": 131
+  }
+ ],
  "clear": [
   {
    "file": "smoke_clear_0.png",
-   "ax": 0.296,
-   "ay": 0.968
+   "ax": 0.576,
+   "ay": 0.759,
+   "w": 97,
+   "h": 58
   },
   {
    "file": "smoke_clear_1.png",
-   "ax": 0.394,
-   "ay": 0.955
+   "ax": 0.553,
+   "ay": 0.819,
+   "w": 150,
+   "h": 88
   },
   {
    "file": "smoke_clear_2.png",
-   "ax": 0.41,
-   "ay": 0.926
+   "ax": 0.468,
+   "ay": 0.839,
+   "w": 180,
+   "h": 113
   },
   {
    "file": "smoke_clear_3.png",
-   "ax": 0.276,
-   "ay": 0.968
+   "ax": 0.639,
+   "ay": 0.735,
+   "w": 131,
+   "h": 52
   }
  ],
- "note": "Smoke Bomb pictures (his 8 Nov sheets, roadmap 13.26), cut see-through by dev/tools/make_smoke.py, then tinted by dev/tools/make_nov13_smoke.py (1.34). The growing cloud is particles now (src/smokeArt.js); \"clear\" is the 4 frames of it blowing away. ax and ay say where the middle of the tile is in each picture (0 to 1), so it stands on a board tile."
+ "note": "Anchors are where the tile's middle sits in each picture (0 to 1). Pictures are cut at a 172 px tile (2 x 86). Made by dev/tools/make_smoke_rembg.py (rembg)."
 }
