@@ -1069,7 +1069,7 @@ export default class BattleScene extends Phaser.Scene {
     for (const sp of this.spikes) {
       if (!sp.view || !sp.view.active) continue;
       const p = tileToScreen(sp.col, sp.row);
-      sp.view.setPosition(p.x, p.y + 6).setDepth(depthFor(sp.col, sp.row) + 1);
+      sp.view.setPosition(p.x, p.y).setDepth(depthFor(sp.col, sp.row) + 1); // its base is the tile's middle, like a unit's feet (1.35)
     }
     for (const u of this.units) if (u.alive) this.faceNearestOpponent(u);
     this.refreshEngagementMarks();
@@ -3275,7 +3275,13 @@ export default class BattleScene extends Phaser.Scene {
       const dy = foe.y - unit.view.y;
       const up = Math.abs(dy) < 2 ? unit.facing.startsWith('up') : dy < 0;
       const facing = (up ? 'up' : 'down') + (foe.x >= unit.view.x ? 'Right' : 'Left');
-      if (this.showFrame(unit, poseFrame(unit.id, 'ready', facing.endsWith('Right') ? 'right' : 'left', facing))) return;
+      const side = facing.endsWith('Right') ? 'right' : 'left';
+      // hurt units keep their weak look while in a clash (1.32): a weakReady pose if the art has one,
+      // else their weak picture turned to face the foe. The ready pose has no weak version.
+      if (unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT) {
+        if (this.showFrame(unit, poseFrame(unit.id, 'weakReady', side, facing))) return;
+        if (this.showFrame(unit, standingFrame(unit.id, facing, true, null, true, isRooted(unit)))) return;
+      } else if (this.showFrame(unit, poseFrame(unit.id, 'ready', side, facing))) return;
     }
     const buff = buffOf(unit);
     const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;

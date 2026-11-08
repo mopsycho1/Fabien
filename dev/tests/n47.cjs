@@ -27,7 +27,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const keys = game.textures.getTextureKeys();
   check('her new Poison Arrow crouch is in 4 views and the old single picture is gone', [1, 2, 3, 4].every((i) => keys.includes('e3:archer_poison_f' + i + '.png')) && !keys.includes('e3:archer_poison.png'));
   check('the 4-frame smoke throw is loaded', [1, 2, 3, 4].every((i) => keys.includes('e3:archer_smoke_throw_f' + i + '.png')));
-  check('the 6 cloud stages and the 4 dissipating frames are loaded', [0, 1, 2, 3, 4, 5].every((i) => keys.includes('smoke:cloud' + i)) && [0, 1, 2, 3].every((i) => keys.includes('smoke:clear' + i)));
+  check('the 4 dissipating frames are loaded (1.34: the growing cloud is particles now)', [0, 1, 2, 3].every((i) => keys.includes('smoke:clear' + i)));
   check('the Blinded icon is loaded', keys.includes('icon:blinded'));
   park(); put(archer, 3, 3); put(gaha, 5, 3);
   archer.facing = 'upRight'; archer.aiming = { target: gaha, spellId: 'poisonArrow' }; b.showStanding(archer);
@@ -94,19 +94,19 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('she slipped 2 tiles away for free (no steps used)', archer.col === 3 && archer.row === 1 && !archer.hasMoved && (archer.stepsUsed || 0) === 0, archer.col + ',' + archer.row);
   check('the cloud stands on the tile she threw it on', b.smokes.length === 1 && b.smokes[0].col === 3 && b.smokes[0].row === 3 && b.smokes[0].cloud && b.smokes[0].cloud.img.active);
   const at = G.tileToScreen(3, 3);
-  check('and the cloud is a see-through picture on that tile', Math.abs(b.smokes[0].cloud.img.x - at.x) < 1 && /^smoke:cloud/.test(b.smokes[0].cloud.img.texture.key), b.smokes[0].cloud.img.texture.key);
+  check('and the cloud is a puff cloud on that tile (1.34: a container of particles; it drifts up to 3 px)', Math.abs(b.smokes[0].cloud.img.x - at.x) < 4 && b.smokes[0].cloud.img.list.length >= 1, b.smokes[0].cloud.img.list.length);
   check('Smoke Bomb waits 3 turns', St.cooldownOf(archer, 'smokeBomb') === 3);
   check('HIDDEN shows over her', St.statusTags(archer).some((t) => t.text === 'HIDDEN'));
   check('a hero cannot attack or engage her while hidden', (b.activeUnit = gaha, put(gaha, 3, 2), b.cancelMode(), b.startAttack(), !b.targetsInRange.includes(archer)) && !E.canEngage(sudeen, archer));
   b.cancelMode();
   // the grown cloud, then her next turn
   await sleep(500);
-  check('the cloud has grown to its last stage', b.smokes[0].cloud.img.texture.key === 'smoke:cloud5', b.smokes[0].cloud.img.texture.key);
+  check('the cloud is still there and rolling (its puffs keep going)', b.smokes[0].cloud.img.active && b.smokes[0].cloud.img.list[0].emitting !== undefined);
   const cloud = b.smokes[0].cloud.img;
   b.wakeSmoke(archer);
   await sleep(150);
   check('her next turn: she shows herself again', !archer.hidden && !archer.smokeHidden && b.smokes.length === 0);
-  check('and the cloud plays the dissipating pictures', /^smoke:clear/.test(cloud.texture.key), cloud.texture.key);
+  check('and the cloud plays the dissipating pictures', cloud.clearImg && /^smoke:clear/.test(cloud.clearImg.texture.key), cloud.clearImg && cloud.clearImg.texture.key);
   await sleep(1100);
   check('then the cloud is gone', !cloud.active);
 

@@ -914,7 +914,8 @@ export function enchantAura(scene, unit) {
 export function raiseSpike(scene, x, y, depth, width) {
   if (!has(scene, ['spike_2'])) return null;
   // a shade darker than his drawing, so the rock stands out on the sandstone floor
-  const img = scene.add.image(x, y + 6, 'fx:spike_2').setOrigin(0.5, 0.92).setDepth(depth).setTint(0xb89a80);
+  // the origin is the rock's real bottom (the bottom edge of spike_2, which is solid across its base), so it stands on the tile's middle like a unit (1.35)
+  const img = scene.add.image(x, y, 'fx:spike_2').setOrigin(0.5, 1).setDepth(depth).setTint(0xb89a80);
   const s = width / img.width;
   img.setScale(s, s * 0.08);
   scene.tweens.add({ targets: img, scaleY: s, duration: 240, ease: 'Back.easeOut' });

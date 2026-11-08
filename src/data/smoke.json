@@ -1,36 +1,4 @@
 {
- "cloud": [
-  {
-   "file": "smoke_cloud_0.png",
-   "ax": 0.473,
-   "ay": 0.872
-  },
-  {
-   "file": "smoke_cloud_1.png",
-   "ax": 0.449,
-   "ay": 0.808
-  },
-  {
-   "file": "smoke_cloud_2.png",
-   "ax": 0.492,
-   "ay": 0.869
-  },
-  {
-   "file": "smoke_cloud_3.png",
-   "ax": 0.487,
-   "ay": 0.905
-  },
-  {
-   "file": "smoke_cloud_4.png",
-   "ax": 0.505,
-   "ay": 0.895
-  },
-  {
-   "file": "smoke_cloud_5.png",
-   "ax": 0.474,
-   "ay": 0.901
-  }
- ],
  "clear": [
   {
    "file": "smoke_clear_0.png",
@@ -53,5 +21,5 @@
    "ay": 0.968
   }
  ],
- "note": "Smoke Bomb pictures (his 8 Nov sheets, roadmap 13.26), cut see-through by dev/tools/make_smoke.py. \"cloud\" is the 6 stages of the cloud growing, \"clear\" the 4 frames of it blowing away. ax and ay say where the middle of the tile is in each picture (0 to 1), so it stands on a board tile."
+ "note": "Smoke Bomb pictures (his 8 Nov sheets, roadmap 13.26), cut see-through by dev/tools/make_smoke.py, then tinted by dev/tools/make_nov13_smoke.py (1.34). The growing cloud is particles now (src/smokeArt.js); \"clear\" is the 4 frames of it blowing away. ax and ay say where the middle of the tile is in each picture (0 to 1), so it stands on a board tile."
 }

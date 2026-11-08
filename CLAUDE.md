@@ -38,6 +38,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - HOW-TO-EDIT-THE-STORY.md: plain guide to the data files, one section per batch.
 
 ## Gotchas
+- Background removal for new cuts: try rembg first (dev/tools/bgremove.py, installed in ~/.fabien-tools/venv; roadmap 1.36). It is clearly better on smoke and effect pictures on a plain background. Keep the colour-threshold cutters where a floor tile is in the picture (rembg keeps the tile): the sand impact cut. Check any cut on a contact sheet, old next to new.
 - Never put `//` comments inside a one-line sed edit to test files: it swallows the rest of the line. Use `/* */`.
 - When adding pictures to a character, tests that count its pictures (poison.cjs, echo.cjs, gaha.cjs) need the new count.
 - Phaser Graphics scale from their own x,y: draw shapes at (0,0) and place the Graphics, or they slide when tweened.
