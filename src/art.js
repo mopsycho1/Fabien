@@ -255,7 +255,9 @@ export function attackFrame(id, side) {
 export function clashArt(id) {
   const c = art[id] && art[id].clash;
   if (!c) return null;
-  return { key: textureKey(id, c.file), file: c.file, tip: c.tip, nameKey: textureKey(id, c.name.file), nameFile: c.name.file, nameX: c.name.x, nameY: c.name.y };
+  // a banner may have no name plate of its own (the archer's); then nameKey is null
+  const n = c.name;
+  return { key: textureKey(id, c.file), file: c.file, tip: c.tip, nameKey: n ? textureKey(id, n.file) : null, nameFile: n ? n.file : null, nameX: n ? n.x : 0, nameY: n ? n.y : 0 };
 }
 
 // His walking frames for a facing ("walk" in art.json): a list of frames, or
@@ -278,5 +280,6 @@ export function moveFrames(id, move, side) {
   const look = lookEntry(id); // a flame version of the move, while enchanted
   const m = (look && look.moves && look.moves[move]) || (entry && entry.moves && entry.moves[move]);
   if (!m) return null;
-  return { frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60 };
+  // chargeFrames: the frames shown in turn while he runs; strikeFrom to strikeTo: the frames of the hit before the shield push (Furious Charge and Shield Ram)
+  return { frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60, chargeFrames: m.chargeFrames || [1, 2], strikeFrom: m.strikeFrom == null ? 3 : m.strikeFrom, strikeTo: m.strikeTo == null ? 4 : m.strikeTo };
 }

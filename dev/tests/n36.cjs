@@ -53,7 +53,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await sleep(400);
 
   // ---------- 6.15 Furious Charge and 6.16 Shield Ram ----------
-  for (const [verse, id, move, label] of [['fury', 'furyCharge', 'sudeen_fc', '6.15 Furious Charge'], ['stone', 'shieldRam', 'sudeen_ram', '6.16 Shield Ram']]) {
+  for (const [verse, id, move, label] of [['fury', 'furyCharge', 'sudeen_n9_fc', '6.15 Furious Charge'], ['stone', 'shieldRam', 'sudeen_ram', '6.16 Shield Ram']]) {
     reset([[sudeen, 1, 7], [archer, 5, 7]]);
     S.applyBuff(sudeen, verse);
     const got = new Set();

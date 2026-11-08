@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TILE_WIDTH } from './config.js';
 
 // Spell pictures from Suleiman's effect sheets (public/art/fx). They are
 // drawn with "ADD" blending, so their black background disappears and only
@@ -43,8 +44,10 @@ const FILES = [
   'dust_ring_0', 'dust_ring_1', 'dust_ring_2', 'dust_ring_3',
   // the fireball orbs of Tayo's Element Blast (13.4, his 6 Nov 04:40 sheet): light, drawn added
   'blast_orb_0', 'blast_orb_1', 'blast_orb_2', 'blast_orb_3',
+  // the sand thrown up where a heavy hit lands (6.37, his 7 Nov 07:51 sheet; the north-east and north-west views)
+  'sand_impact_ne', 'sand_impact_nw',
 ];
-const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_|dust_ring_)/.test(key);
+const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_ground|earth_cast|earth_crystal|spike_|dust_ring_|sand_impact)/.test(key);
 
 // Status icons (public/art/icons), shown over a unit instead of a word.
 // A status with an "icon" in spells.json uses the picture of that name.
@@ -695,4 +698,21 @@ export function elementOrb(scene, x, y, { water = false, scale = 0.4 } = {}) {
   const spin = scene.time.addEvent({ delay: 70, loop: true, callback: () => orb.active && orb.setTexture(keys[++f % 4]) });
   orb.once('destroy', () => spin.remove());
   return orb;
+}
+
+// Sand and rocks thrown up from the tile where a heavy hit lands (roadmap 6.37, his 7 Nov
+// sheet). dir is 1 when the blow came from the left (the swirl flies up and right, his
+// north-east view) and -1 when it came from the right (north-west). The sheet's other two
+// views (south-east, south-west) are not used: the tile he drew under them hides part of
+// the swirl, so only the two clean views play. Returns false if the pictures aren't loaded.
+const SAND_VIEWS = { 1: ['sand_impact_ne', 0.384, 0.653], '-1': ['sand_impact_nw', 0.597, 0.627] }; // key, tile centre across, down
+export function sandImpact(scene, x, y, dir) {
+  const [key, ox, oy] = SAND_VIEWS[dir >= 0 ? 1 : -1];
+  if (!has(scene, [key])) return false;
+  // his tile is 205 px wide in the picture (it was cut at half size); the swirl is a little bigger than a tile
+  const scale = (TILE_WIDTH * 1.3) / 205;
+  const img = scene.add.image(x, y, 'fx:' + key).setOrigin(ox, oy).setScale(scale * 0.8).setDepth(80).setAlpha(0);
+  scene.tweens.add({ targets: img, alpha: 0.95, scale, duration: 120, ease: 'Quad.easeOut' });
+  scene.tweens.add({ targets: img, alpha: 0, y: y - 6, delay: 260, duration: 380, ease: 'Quad.easeIn', onComplete: () => img.destroy() });
+  return true;
 }

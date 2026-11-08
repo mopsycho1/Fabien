@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -86,6 +86,7 @@ function useText(spell) {
 // One color for each side
 const SIDE_COLORS = { hero: 0x3fa7a0, enemy: 0xb5523b };
 const GOLD = 0xffe08a;
+const SANDY = new Set(['sand', 'dust', 'cracked', 'caveSand', 'floor', 'rubble', 'rock']); // ground a heavy hit throws sand up from (6.37)
 const SPIKE_LEVELS = 3;  // an Earth Drive spike counts as a block this many levels tall, for arrows (roadmap 4.2)
 // The modes in which the player is picking a target on the board: the
 // command menu gets out of the way then (roadmap 8.9).
@@ -3465,6 +3466,8 @@ export default class BattleScene extends Phaser.Scene {
     }
     impactBurst(this, spot.x, spot.y, dir, color, power);
     groundRing(this, target.view.x, target.view.y, color, 0.6 + 0.3 * power);
+    // a heavy hit on sand or floor throws the sand up (6.37)
+    if ((lethal || result.damage >= 9) && SANDY.has(terrainAt(mapData, target.col, target.row))) sandImpact(this, target.view.x, target.view.y + 4, dir);
 
     this.flashUnit(target);
     this.updateHpBar(target);
@@ -5052,7 +5055,7 @@ export default class BattleScene extends Phaser.Scene {
           charger.view.setDepth(depthFor(tile.col, tile.row) + 1);
           this.afterimage(charger);
           this.faceToward(charger, target.view.x - p.x, target.view.y - p.y);
-          if (run) this.showFrame(charger, run.frames[1 + (i % 2)]);
+          if (run) this.showFrame(charger, run.frames[run.chargeFrames[i % run.chargeFrames.length]]);
           else this.showPose(charger, 'guard', target.view.x - p.x);
         },
       };
@@ -5063,10 +5066,10 @@ export default class BattleScene extends Phaser.Scene {
       // the strike: his shield-push pictures (roadmap 1.27) belong to Intercept and its variants; else the move's own frames
       // (the move's impact frame first, then the push; its old push and brace frames are not isometric)
       if (this.hasPose(charger, 'push')) {
-        const hit = run ? this.playMove(charger, frameMove, dx, { from: 3, to: 4 }) : 0;
+        const hit = run ? this.playMove(charger, frameMove, dx, { from: run.strikeFrom, to: run.strikeTo }) : 0;
         if (hit) this.time.delayedCall(hit, () => charger.alive && !charger.engagedWith && this.showPose(charger, 'push', dx));
         else this.showPose(charger, 'push', dx);
-      } else if (!(run && this.playMove(charger, frameMove, dx, { from: 3 }))) this.showPose(charger, 'attack', dx);
+      } else if (!(run && this.playMove(charger, frameMove, dx, { from: run.strikeFrom }))) this.showPose(charger, 'attack', dx);
       screenShake(this, effect === 'strike' ? 0.009 : 0.006, 160);
       if (effect === 'strike') this.cameraPunch(2);
       this.showImpact(charger, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
@@ -6228,7 +6231,7 @@ export default class BattleScene extends Phaser.Scene {
     // both fighters have their own banner (8.15), loaded: his banners face to face
     const ha = clashArt(hero.id);
     const fa = clashArt(foe.id);
-    if (ha && fa && [ha.key, fa.key, fa.nameKey].every((k) => this.textures.exists(k))) return this.bannerClash(hero, foe, ha, fa, onDone);
+    if (ha && fa && [ha.key, fa.key, fa.nameKey].filter(Boolean).every((k) => this.textures.exists(k))) return this.bannerClash(hero, foe, ha, fa, onDone);
     if (!this.textures.exists('ui:clash_frame')) return this.cutIn(a, 'ENGAGE!', onDone);
     play('cutin');
     const { W, H, s } = this.lay;
@@ -6329,7 +6332,7 @@ export default class BattleScene extends Phaser.Scene {
       const left = flip ? cx - overlap - (1 - art.tip) * w : cx + overlap - art.tip * w;
       const top = cy - h / 2 + (flip ? 0.07 : -0.07) * h;
       let name = null;
-      if (flip) name = this.ui(this.add.image(0, 0, art.nameKey).setOrigin(0, 0).setScale(k).setDepth(253 + i * 2));
+      if (flip && art.nameKey) name = this.ui(this.add.image(0, 0, art.nameKey).setOrigin(0, 0).setScale(k).setDepth(253 + i * 2));
       const place = (dx) => {
         img.setPosition(left + dx, top);
         if (name) name.setPosition(left + dx + art.nameX * w, top + art.nameY * h);
@@ -6366,7 +6369,7 @@ export default class BattleScene extends Phaser.Scene {
       const c = clashArt(u.id);
       if (!c) continue;
       for (const [key, file] of [[c.key, c.file], [c.nameKey, c.nameFile]]) {
-        if (this.textures.exists(key)) continue;
+        if (!key || this.textures.exists(key)) continue;
         this.load.image(key, './art/' + file);
         queued++;
       }

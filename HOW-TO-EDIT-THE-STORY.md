@@ -469,3 +469,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - src/data/items.json: "items" (name, what it does, colour), and "start" (what each class carries). A unit in units.json can have its own "bag": { "sheaBalm": 2 }.
 - Buried things: "digsites" in src/data/maps/cavern.json (col, row, prop pots or bones, item).
 - Using an item or digging takes the unit's action.
+
+## 8 Nov batch: Sudeen's Fury and base sets, two clash banners, the sand impact (roadmap 6.35 to 6.37)
+- Sudeen's pictures for a Verse live under `"buffPoses"` in `art.json` (`"fury"`: `"attack"` and `"windup"`, four facings each) and `"buffed"` (`"fury"`: his Fury stance). His normal attack and wind-up are `"poses"`: two facings drawn, the other two are mirrored by the game.
+- Furious Charge (`"moves"`, `"furiousCharge"`): four frames. `"chargeFrames"` are shown in turn while he runs, `"strikeFrom"` to `"strikeTo"` are the frames of the hit, then his shield push.
+- A clash banner (`"clash"` in `art.json`) may leave out `"name"`: the archer has no name plate.
+- The sand impact (`public/art/fx/sand_impact_ne.png`, `_nw.png`) plays for a hit of 9 or more damage on sand, floor, rubble or rock (`SANDY` in `BattleScene.js`).
+- Cut by `dev/tools/make_nov9.py`, `cut_banners31.py` and `make_sand_impact.py`; wired by `dev/tools/wire_nov9.py`.

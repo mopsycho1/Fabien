@@ -24,13 +24,13 @@
     },
     "poses": {
       "windup": {
-        "upLeft": {
-          "file": "sudeen_iso_battle_upRight.png",
-          "originX": 0.834
+        "downLeft": {
+          "file": "sudeen_n9_windup_downLeft.png",
+          "originX": 0.503
         },
-        "downRight": {
-          "file": "sudeen_iso_battle_downRight.png",
-          "originX": 0.178
+        "upRight": {
+          "file": "sudeen_n9_windup_upRight.png",
+          "originX": 0.385
         }
       },
       "ready": {
@@ -44,21 +44,13 @@
         }
       },
       "attack": {
-        "upLeft": {
-          "file": "sudeen_n6_bash_upLeft.png",
-          "originX": 0.397
+        "downLeft": {
+          "file": "sudeen_n9_attack_downLeft.png",
+          "originX": 0.431
         },
         "upRight": {
-          "file": "sudeen_n6_bash_upRight.png",
-          "originX": 0.932
-        },
-        "downLeft": {
-          "file": "sudeen_n6_bash_downLeft.png",
-          "originX": 0.936
-        },
-        "downRight": {
-          "file": "sudeen_n6_bash_downRight.png",
-          "originX": 0.421
+          "file": "sudeen_n9_attack_upRight.png",
+          "originX": 0.528
         }
       },
       "cast": {
@@ -184,13 +176,21 @@
         }
       },
       "fury": {
-        "downLeft": {
-          "file": "sudeen_fury_downLeft.png",
-          "originX": 0.581
-        },
         "upLeft": {
-          "file": "sudeen_fury_upLeft.png",
-          "originX": 0.494
+          "file": "sudeen_n9_furyStand_upLeft.png",
+          "originX": 0.378
+        },
+        "upRight": {
+          "file": "sudeen_n9_furyStand_upRight.png",
+          "originX": 0.272
+        },
+        "downLeft": {
+          "file": "sudeen_n9_furyStand_downLeft.png",
+          "originX": 0.363
+        },
+        "downRight": {
+          "file": "sudeen_n9_furyStand_downRight.png",
+          "originX": 0.567
         }
       },
       "swiftness": {
@@ -215,34 +215,31 @@
     "moves": {
       "note": "Sudeen's Verse moves, from his 30 Oct sheets. All facing right; left is the mirror image.",
       "furiousCharge": {
-        "note": "Furious Charge (roadmap 6.15): ready, charge, charge, leaping strike, fire explosion, landing.",
-        "frameMs": 90,
+        "note": "Furious Charge (roadmap 6.36), Suleiman's 7 Nov sequence: wind-up, drive forward, shield impact, follow-through. Faces right; left is the mirror image. chargeFrames are shown in turn while he runs; strikeFrom to strikeTo are the frames of the hit (impact, follow-through) before his shield push.",
+        "frameMs": 110,
+        "chargeFrames": [
+          1
+        ],
+        "strikeFrom": 2,
         "frames": [
           {
-            "file": "sudeen_fc_0.png",
-            "originX": 0.585
+            "file": "sudeen_n9_fc_0.png",
+            "originX": 0.723
           },
           {
-            "file": "sudeen_fc_1.png",
-            "originX": 0.436
+            "file": "sudeen_n9_fc_1.png",
+            "originX": 0.636
           },
           {
-            "file": "sudeen_fc_2.png",
-            "originX": 0.443
+            "file": "sudeen_n9_fc_2.png",
+            "originX": 0.778
           },
           {
-            "file": "sudeen_fc_3.png",
-            "originX": 0.19
-          },
-          {
-            "file": "sudeen_fc_4.png",
-            "originX": 0.502
-          },
-          {
-            "file": "sudeen_fc_5.png",
-            "originX": 0.528
+            "file": "sudeen_n9_fc_3.png",
+            "originX": 0.375
           }
-        ]
+        ],
+        "strikeTo": 4
       },
       "shieldRam": {
         "note": "Shield Ram (roadmap 6.16): brace, charge, charge, impact, push, brace.",
@@ -313,7 +310,48 @@
         "originX": 0.267
       }
     },
-    "note_nov6": "Nov set (roadmap 6.26, 1.17), true views in all four facings: Stone, Swift and weakened stances; the Shield Bash lunge is his attack for every shield strike (the aura shows the kind) and the second bash picture is the wind-up; defeated and victory."
+    "note_nov6": "Nov set (roadmap 6.26, 1.17), true views in all four facings: Stone, Swift and weakened stances; the Shield Bash lunge is his attack for every shield strike (the aura shows the kind) and the second bash picture is the wind-up; defeated and victory.",
+    "buffPoses": {
+      "fury": {
+        "attack": {
+          "upLeft": {
+            "file": "sudeen_n9_furyAttack_upLeft.png",
+            "originX": 0.77
+          },
+          "upRight": {
+            "file": "sudeen_n9_furyAttack_upRight.png",
+            "originX": 0.229
+          },
+          "downLeft": {
+            "file": "sudeen_n9_furyAttack_downLeft.png",
+            "originX": 0.475
+          },
+          "downRight": {
+            "file": "sudeen_n9_furyAttack_downRight.png",
+            "originX": 0.524
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "sudeen_n9_furyWindup_upLeft.png",
+            "originX": 0.725
+          },
+          "upRight": {
+            "file": "sudeen_n9_furyWindup_upRight.png",
+            "originX": 0.273
+          },
+          "downLeft": {
+            "file": "sudeen_n9_furyWindup_downLeft.png",
+            "originX": 0.304
+          },
+          "downRight": {
+            "file": "sudeen_n9_furyWindup_downRight.png",
+            "originX": 0.694
+          }
+        }
+      }
+    },
+    "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -1076,7 +1114,16 @@
       }
     },
     "note_iso": "From Suleiman's isometric re-render (31 Oct, roadmap Phase 9): one picture facing up and one facing down per pose, the other two facings mirrored. Battle stance and staff strike: \"defending herself\" (12:59). Casting is two steps: concentrating (12:36), then casting (12:41). Under any Verse: his blessing stance (12:53).",
-    "note_nov6": "Nov set (roadmap 6.29): damaged (weak) in four facings, defeated (his picture 4 of 3 and 4), victory."
+    "note_nov6": "Nov set (roadmap 6.29): damaged (weak) in four facings, defeated (his picture 4 of 3 and 4), victory.",
+    "clash": {
+      "file": "clash/layra_clash.webp",
+      "tip": 0.994,
+      "name": {
+        "file": "clash/layra_clash_name.webp",
+        "x": 0.6864,
+        "y": 0.0266
+      }
+    }
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -1718,7 +1765,11 @@
       "archer_face_fall3.png"
     ],
     "note_fall": "Her fall from 'Archer fully defeated' (6.2): the old hurt, knocked and down pictures are replaced.",
-    "note_nov6b": "Nov set (roadmap 6.32): standing, battle, bow primed, arrow released, dagger, hit, wounded, defeated, victory in four facings. The poison-aim crouches (1077, 1078) are cut but not used yet."
+    "note_nov6b": "Nov set (roadmap 6.32): standing, battle, bow primed, arrow released, dagger, hit, wounded, defeated, victory in four facings. The poison-aim crouches (1077, 1078) are cut but not used yet.",
+    "clash": {
+      "file": "clash/archer_clash.webp",
+      "tip": 0.969
+    }
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",

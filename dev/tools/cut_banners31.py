@@ -25,13 +25,15 @@ SOURCES = {
 # CLASH_SRC="rabdul=/path/a.jpg;tayo=/path/b.jpg" cuts only those (Nov batch: Rabdul 1023, Tayo 1051)
 if os.environ.get('CLASH_SRC'):
     SOURCES = {k: (v, None) for k, v in (kv.split('=', 1) for kv in os.environ['CLASH_SRC'].split(';'))}
+# CREAM_CHROMA: how coloured the paper may be (34 for the 31 Oct sheets; the 6 Nov archer and Layra sheets have warmer paper, 56)
+CHROMA = int(os.environ.get('CREAM_CHROMA', 34))
 HEIGHT = 400  # the banner's full height (900 on his sheet) in the game's picture
 
 def cream(a):
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     lum = a.mean(-1)
     # warm paper: red above blue; his white stripes are neutral and stay
-    return (lum > 205) & (r - b > 7) & (a.max(-1) - a.min(-1) < 34)
+    return (lum > 205) & (r - b > 7) & (a.max(-1) - a.min(-1) < CHROMA)
 
 def load(path, kind):
     im = Image.open(path).convert('RGB')
