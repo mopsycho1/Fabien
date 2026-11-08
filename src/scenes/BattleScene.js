@@ -64,7 +64,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -2171,8 +2171,9 @@ export default class BattleScene extends Phaser.Scene {
       const id = activeMove(unit, baseId);
       const spell = spells[id];
       const wait = spell.verse ? 0 : cooldownOf(unit, id);
+      const left = usesLeft(unit, id); // pouches left this battle (Herbs), or null
       return {
-        label: spell.button + (wait ? '  (' + wait + ')' : spell.mp ? '  ' + spell.mp + ' MP' : ''),
+        label: spell.button + (left !== null ? ' x' + left : '') + (wait ? '  (' + wait + ')' : spell.mp ? '  ' + spell.mp + ' MP' : ''),
         enabled: canAfford(unit, id) && !this.busy,
         onTap: () => this.chooseSpell(id),
         selected: this.selectedSpell === id,
@@ -2243,6 +2244,10 @@ export default class BattleScene extends Phaser.Scene {
     const unit = this.activeUnit;
     const spell = spells[id];
     if (!canAfford(unit, id)) {
+      if (usesLeft(unit, id) === 0) {
+        this.showMessage(spell.button + ': none left this battle');
+        return;
+      }
       this.showMessage(cooldownOf(unit, id) ? spell.button + ' is ready again in ' + cooldownOf(unit, id) + ' turns' : 'Not enough MP');
       return;
     }
@@ -5055,7 +5060,13 @@ export default class BattleScene extends Phaser.Scene {
     const slam = () => {
       const dx = target.view.x - charger.view.x;
       this.faceToward(charger, dx, target.view.y - charger.view.y);
-      if (!(run && this.playMove(charger, frameMove, dx, { from: 3 }))) this.showPose(charger, 'attack', dx);
+      // the strike: his shield-push pictures (roadmap 1.27) belong to Intercept and its variants; else the move's own frames
+      // (the move's impact frame first, then the push; its old push and brace frames are not isometric)
+      if (this.hasPose(charger, 'push')) {
+        const hit = run ? this.playMove(charger, frameMove, dx, { from: 3, to: 4 }) : 0;
+        if (hit) this.time.delayedCall(hit, () => charger.alive && !charger.engagedWith && this.showPose(charger, 'push', dx));
+        else this.showPose(charger, 'push', dx);
+      } else if (!(run && this.playMove(charger, frameMove, dx, { from: 3 }))) this.showPose(charger, 'attack', dx);
       screenShake(this, effect === 'strike' ? 0.009 : 0.006, 160);
       if (effect === 'strike') this.cameraPunch(2);
       this.showImpact(charger, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);

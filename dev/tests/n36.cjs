@@ -61,7 +61,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     await cast(sudeen, archer, id);
     clearInterval(wt);
     const used = [...got].filter((k) => k.includes(move)).map((k) => k.replace(/.*_(\d)\.png/, '$1')).sort().join('');
-    check(label + ': his frames play through the charge and the strike', used.length >= 5, used);
+    check(label + ': his frames play through the charge and the strike', used.length >= 4 && [...got].some((k) => /n6_bash2_/.test(k)), used + ' (frames 0 to 3, then the shield push, 1.27)');
     await sleep(300);
   }
 

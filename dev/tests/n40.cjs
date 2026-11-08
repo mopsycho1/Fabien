@@ -58,8 +58,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   seen.clear(); reset([[sudeen, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(bull, sudeen, 'press', 'slip', sudeen), false, res));
   const sk = shown(sudeen);
-  const iDodge = sk.findIndex((k) => /sudeen_cu_dodge_/.test(k)); const iStrike = sk.findIndex((k) => /sudeen_n6_bash_/.test(k));
-  check('9.8 Sudeen winning with Slip: dodges, then strikes', iDodge >= 0 && iStrike > iDodge, sk.join(','));
+  const iDodge = sk.findIndex((k) => /sudeen_iso_battle_/.test(k)); /* 1.29: the dodge is his isometric ready stance */ const iStrike = sk.findIndex((k) => /sudeen_n6_bash_/.test(k));
+  check('9.8 Sudeen winning with Slip: dodges, then strikes', iDodge >= 0 && iStrike > iDodge && !sk.some((k) => /cu_dodge/.test(k)), sk.join(','));
   seen.clear(); reset([[sudeen, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(sudeen, bull, 'slip', 'press', bull), false, res));
   check('9.8 a Slip that loses: no strike', !shown(sudeen).some((k) => /sudeen_n6_bash_/.test(k)));

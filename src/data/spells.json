@@ -169,7 +169,8 @@
     "range": 2,
     "heal": 10,
     "cooldown": 3,
-    "text": "Throw a pouch of healing herbs to an ally up to 2 tiles away (one tile further for each level you stand above them), or use it yourself: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns.",
+    "uses": 3,
+    "text": "Throw a pouch of healing herbs to an ally up to 2 tiles away (one tile further for each level you stand above them), or use it yourself: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns. Only 3 pouches a battle.",
     "mp": 0,
     "use": "ally",
     "rangePerLevel": 1

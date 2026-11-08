@@ -79,7 +79,16 @@ export function clearExposed(unit) {
 export function canAfford(unit, spellId) {
   const spell = spells[spellId];
   if (spell.verse && !hasOwnMp(unit)) return lentMp(unit) >= (spell.mp || 0);
-  return (unit.mp || 0) >= (spell.mp || 0) && cooldownOf(unit, spellId) === 0;
+  return (unit.mp || 0) >= (spell.mp || 0) && cooldownOf(unit, spellId) === 0 && usesLeft(unit, spellId) !== 0;
+}
+
+// A skill with "uses" in spells.json can be used only that many times a battle
+// (Herbs: 3, roadmap 1.30). Returns how many are left, or null for no limit.
+export function usesLeft(unit, spellId) {
+  const spell = spells[spellId];
+  if (!spell || !spell.uses) return null;
+  const used = (statusOf(unit).used || {})[spellId] || 0;
+  return Math.max(0, spell.uses - used);
 }
 
 export function spendMp(unit, spellId) {
@@ -416,6 +425,11 @@ export function attackElement(unit) {
 // cooldown of the move it replaces (Sonic Javelin: Spear Throw's).
 export function startCooldown(unit, spellId) {
   const id = baseMoveOf(spellId);
+  if (spells[id] && spells[id].uses) {
+    const st = statusOf(unit);
+    st.used = st.used || {};
+    st.used[id] = (st.used[id] || 0) + 1; // one more of its limited uses is gone
+  }
   const turns = (spells[id] && spells[id].cooldown) || 0;
   if (turns > 0) statusOf(unit).cooldowns[id] = turns;
 }

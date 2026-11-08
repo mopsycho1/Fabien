@@ -25,20 +25,12 @@
     "poses": {
       "windup": {
         "upLeft": {
-          "file": "sudeen_n6_bash2_upLeft.png",
-          "originX": 0.123
-        },
-        "upRight": {
-          "file": "sudeen_n6_bash2_upRight.png",
-          "originX": 0.466
-        },
-        "downLeft": {
-          "file": "sudeen_n6_bash2_downLeft.png",
-          "originX": 0.442
+          "file": "sudeen_iso_battle_upRight.png",
+          "originX": 0.834
         },
         "downRight": {
-          "file": "sudeen_n6_bash2_downRight.png",
-          "originX": 0.107
+          "file": "sudeen_iso_battle_downRight.png",
+          "originX": 0.178
         }
       },
       "ready": {
@@ -74,12 +66,20 @@
         "originX": 0.464
       },
       "guard": {
+        "upLeft": {
+          "file": "sudeen_n8_guard_upLeft.png",
+          "originX": 0.161
+        },
         "upRight": {
-          "file": "sudeen_iso_guard_upRight.png",
+          "file": "sudeen_n8_guard_upRight.png",
           "originX": 0.693
         },
+        "downLeft": {
+          "file": "sudeen_n8_guard_downLeft.png",
+          "originX": 0.227
+        },
         "downRight": {
-          "file": "sudeen_iso_guard_downRight.png",
+          "file": "sudeen_n8_guard_downRight.png",
           "originX": 0.25
         }
       },
@@ -115,26 +115,6 @@
           "originX": 0.401
         }
       },
-      "dodge": {
-        "upRight": {
-          "file": "sudeen_cu_dodge_upRight.png",
-          "originX": 0.203
-        },
-        "downLeft": {
-          "file": "sudeen_cu_dodge_downLeft.png",
-          "originX": 0.572
-        }
-      },
-      "clashSlip": {
-        "upRight": {
-          "file": "sudeen_cu_dodge_upRight.png",
-          "originX": 0.203
-        },
-        "downLeft": {
-          "file": "sudeen_cu_dodge_downLeft.png",
-          "originX": 0.572
-        }
-      },
       "slipStrike": {
         "upLeft": {
           "file": "sudeen_n6_bash_upLeft.png",
@@ -151,6 +131,34 @@
         "downRight": {
           "file": "sudeen_n6_bash_downRight.png",
           "originX": 0.421
+        }
+      },
+      "push": {
+        "upLeft": {
+          "file": "sudeen_n6_bash2_upLeft.png",
+          "originX": 0.123
+        },
+        "upRight": {
+          "file": "sudeen_n6_bash2_upRight.png",
+          "originX": 0.466
+        },
+        "downLeft": {
+          "file": "sudeen_n6_bash2_downLeft.png",
+          "originX": 0.442
+        },
+        "downRight": {
+          "file": "sudeen_n6_bash2_downRight.png",
+          "originX": 0.107
+        }
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "sudeen_iso_battle_upRight.png",
+          "originX": 0.834
+        },
+        "downRight": {
+          "file": "sudeen_iso_battle_downRight.png",
+          "originX": 0.178
         }
       }
     },
