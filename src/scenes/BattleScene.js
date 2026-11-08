@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, sigilDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, raiseSpike, crumbleSpike, elementOrb, elementHold } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -598,6 +598,13 @@ export default class BattleScene extends Phaser.Scene {
       if (soundPics[1]) soundPics[1].setVisible(isMuted());
     };
     showSound();
+    // Effects: Full / Light (roadmap 16.1): Light turns the looping looks off. A small pill under the sound button.
+    const fxLabel = keep(this.add.text(muteX + r, iy + r + S(14), '', { fontFamily: 'Georgia, serif', fontSize: S(12) + 'px', fontStyle: 'bold', color: '#e8d5a8', backgroundColor: '#1a1410', padding: { x: 6, y: 3 } }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }));
+    const showFx = () => fxLabel.setText('Effects: ' + (fxMode() === 'light' ? 'Light' : 'Full'));
+    fxLabel.on('pointerdown', () => { setFxMode(fxMode() === 'light' ? 'full' : 'light'); showFx(); play('click'); });
+    this.events.on('fxmode', showFx);
+    showFx();
+    fxWatchFrameRate(this);
     const rx = muteX - r * 2 - S(16);
     if (isPhone(this)) {
       // On a phone the turn buttons sit halfway down the two sides of the
@@ -6022,6 +6029,7 @@ export default class BattleScene extends Phaser.Scene {
         unit.tagRow.add(it.make(x + it.w / 2));
         x += it.w + 4;
       }
+      fxSetActive(this.activeUnit || null); // the active unit's loops get the full-strength places
       // a slowed unit carries the Slow aura until the hex wears off
       const slowed = unit.alive && unit.status && unit.status.hex && unit.status.hex.id === 'slow';
       if (slowed && !unit.slowAura) unit.slowAura = slowAura(this, unit) || [];
@@ -6552,8 +6560,10 @@ export default class BattleScene extends Phaser.Scene {
         if (Math.random() < 0.4) return;
         // Only units already in battle stance glance about. A relaxed unit flicking
         // into the ready pose looked like a random stance switch (roadmap 1.13).
-        // a unit under a blessing (or Bloodied) stays in its blessed look: it has no blessed "ready" picture to glance with
-        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit && !buffOf(u) && !(u.fury > 0) && this.isAlert(u));
+        // a unit under a blessing (or Bloodied) stays in its blessed look: it has no blessed "ready" picture to glance with.
+        // Weak units (roadmap 1.31) and the archer (her stance and standing pictures differ from the plain ready one) never glance:
+        // the glance flickered them between looks. The archer's stance only changes when a foe comes into or leaves her range.
+        const calm = this.units.filter((u) => u.alive && u.sprite && !u.engagedWith && u !== this.activeUnit && !buffOf(u) && !(u.fury > 0) && !(u.hp / u.maxHp <= HURT_FACE_AT) && !u.closeWeapon && this.isAlert(u));
         if (calm.length === 0) return;
         const u = calm[Math.floor(Math.random() * calm.length)];
         const foes = this.units.filter((f) => f.alive && f.side !== u.side);

@@ -179,7 +179,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 3.10 Swift looks ----------
   reset([[gaha, 3, 3]]);
   S.applyBuff(gaha, 'swiftness'); b.refreshStatusTags();
-  check('3.10 under Swiftness, his swirl turns at his feet', gaha.swiftAura && gaha.swiftAura.length === 1 && /fx:swift_swirl_/.test(gaha.swiftAura[0].texture.key));
+  check('3.10 under Swiftness, his swirl turns at his feet', gaha.swiftAura && gaha.swiftAura.length === 2 /* swirl, wind (16.1) */ && /fx:swift_swirl_/.test(gaha.swiftAura[0].texture.key));
   gaha.status.buff = null; b.refreshStatusTags();
   check('3.10 and goes when the Verse does', !gaha.swiftAura);
   check('3.10 the trail pictures are loaded', [0, 1, 2, 3, 4, 5].every((i) => game.textures.exists('fx:swift_trail_' + i)));

@@ -91,11 +91,35 @@ export function slowAura(scene, unit) {
   if (!has(scene, ['slow_ring', 'slow_motes'])) return null;
   const top = -unit.topY + 4;
   const ring = scene.add.image(0, top, 'fx:slow_ring').setScale(0.32, 0.26).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.75);
-  const motes = scene.add.image(0, -unit.centerY, 'fx:slow_motes').setScale(0.5).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5);
   scene.tweens.add({ targets: ring, y: top + 8, alpha: 0.45, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  scene.tweens.add({ targets: motes, y: -unit.centerY + 10, alpha: 0.25, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  unit.view.add([ring, motes]);
-  return [ring, motes];
+  unit.view.add(ring);
+  const out = [ring];
+  // a faint slow turn at the feet (flat, like fury_ground)
+  if (has(scene, ['slow_spiral'])) {
+    const flat = scene.add.container(0, 6).setScale(1, 0.36);
+    const spiral = scene.add.image(0, 0, 'fx:slow_spiral').setScale(0.6).setAlpha(0.35).setBlendMode(Phaser.BlendModes.ADD);
+    flat.add(spiral);
+    behind(unit, flat);
+    scene.tweens.add({ targets: spiral, angle: 360, duration: 9000, repeat: -1 });
+    out.push(flat);
+  }
+  // purple motes that sink slowly round the body (16.1 step 3: replaces the one tweened picture)
+  const motes = fxEmitter(scene, unit, {
+    frequency: 260,
+    maxParticles: 14,
+    config: {
+      x: { min: -26, max: 26 },
+      y: { min: -unit.topY, max: -unit.centerY },
+      speedY: { min: 6, max: 16 },
+      speedX: { min: -4, max: 4 },
+      scale: { start: 0.34, end: 0.05 },
+      alpha: { start: 0.5, end: 0 },
+      tint: [0xb48cff, 0x8a5fe0, 0xd2b3ff],
+      lifespan: { min: 1400, max: 2200 },
+    },
+  });
+  if (motes) out.push(motes);
+  return out;
 }
 
 const has = (scene, keys) => keys.every((k) => scene.textures.exists('fx:' + k));
@@ -199,7 +223,23 @@ export function swiftAura(scene, unit) {
   const swirl = scene.add.sprite(0, 10, 'fx:' + SWIRL[0]).setOrigin(0.5, 1).setScale(0.9).setAlpha(0.8);
   swirl.play('swiftSwirl');
   unit.view.add(swirl);
-  return [swirl];
+  // a few light wind streaks drifting sideways (16.1 step 5)
+  const wind = fxEmitter(scene, unit, {
+    frequency: 320,
+    maxParticles: 12,
+    config: {
+      x: { min: -30, max: 30 },
+      y: { min: -unit.topY * 0.8, max: -8 },
+      speedX: { min: 40, max: 70 },
+      speedY: { min: -6, max: 6 },
+      scaleX: { start: 1.1, end: 0.4 },
+      scaleY: { start: 0.18, end: 0.1 },
+      alpha: { start: 0.45, end: 0 },
+      tint: [0xdff6ff, 0xbfe9ff],
+      lifespan: { min: 600, max: 900 },
+    },
+  });
+  return wind ? [swirl, wind] : [swirl];
 }
 
 // A unit under Swiftness takes a step: a gust of wind and feathers where it was.
@@ -218,6 +258,91 @@ export function swiftTrail(scene, x, y, dx) {
 function behind(unit, obj) {
   const at = unit.sprite ? unit.view.getIndex(unit.sprite) : 1;
   unit.view.addAt(obj, Math.max(0, at));
+}
+
+// ---------- Effects flair helper (roadmap 16.1 step 1) ----------
+// One wrapper for every looping particle look. It keeps the rules:
+// at most 3 loops at full strength (the active unit's first, the rest run at half),
+// a hard cap on live particles, the Full / Light switch (Light = loops off), and
+// a fall back to Light by itself if the frame rate stays under 40 for 3 seconds.
+// The wrapper has destroy(), so keepAura (and the slow / swift cleanup) remove it.
+const FX_KEY = 'fabien.fxMode';
+const FULL_LOOPS = 3;
+const fxState = { mode: 'full', auto: false, loops: new Set(), activeUnit: null, lowSince: 0 };
+try { if (localStorage.getItem(FX_KEY) === 'light') fxState.mode = 'light'; } catch (e) { /* no saved setting */ }
+
+export const fxMode = () => fxState.mode;
+export const fxLoopCount = () => fxState.loops.size;
+export const fxLiveParticles = () => [...fxState.loops].reduce((n, l) => n + l.emitter.getAliveParticleCount(), 0);
+
+// Full strength for the first 3 loops (the active unit's first); the rest half. Light stops all.
+function fxRebalance() {
+  const list = [...fxState.loops].sort((a, b) => (b.unit === fxState.activeUnit) - (a.unit === fxState.activeUnit));
+  list.forEach((l, i) => {
+    if (!l.emitter.scene) return;
+    const half = i >= FULL_LOOPS;
+    if (fxState.mode === 'light') l.emitter.stop();
+    else {
+      l.emitter.setFrequency(l.frequency * (half ? 2 : 1));
+      l.emitter.start();
+    }
+    l.emitter.setVisible(fxState.mode !== 'light');
+  });
+}
+
+export function setFxMode(mode, { auto = false } = {}) {
+  fxState.mode = mode === 'light' ? 'light' : 'full';
+  fxState.auto = auto;
+  fxState.lowSince = 0; // a new choice starts the 3 second frame-rate count again
+  if (!auto) { try { localStorage.setItem(FX_KEY, fxState.mode); } catch (e) { /* fine */ } }
+  fxRebalance();
+}
+
+// Tell the helper whose turn it is, so that unit's loops get the full-strength places.
+export function fxSetActive(unit) {
+  if (fxState.activeUnit === unit) return;
+  fxState.activeUnit = unit;
+  fxRebalance();
+}
+
+// Watches the frame rate: under 40 for 3 seconds in a row turns Light on (not saved).
+export function fxWatchFrameRate(scene) {
+  if (scene.fxWatching) return;
+  scene.fxWatching = true;
+  scene.time.addEvent({
+    delay: 500, loop: true,
+    callback: () => {
+      const fps = scene.game.loop.actualFps;
+      if (document.hidden || !fps || fps >= 40) { fxState.lowSince = 0; return; }
+      fxState.lowSince = fxState.lowSince || scene.time.now;
+      if (scene.time.now - fxState.lowSince >= 3000 && fxState.mode === 'full') setFxMode('light', { auto: true }); scene.events.emit('fxmode');
+    },
+  });
+}
+
+// A looping emitter on a unit. opts: { texture, frequency (ms between puffs), maxParticles (12 to 20),
+// config (Phaser emitter settings, positions relative to the unit's feet), behindFigure }.
+// Returns a wrapper with destroy(), or null if the texture is missing.
+export function fxEmitter(scene, unit, { texture = 'fx-dot', frequency = 200, maxParticles = 16, config = {}, behindFigure = true } = {}) {
+  if (!scene.textures.exists(texture)) return null;
+  const emitter = scene.add.particles(0, 0, texture, {
+    frequency,
+    maxAliveParticles: Math.min(maxParticles, 20), // never more than this many alive at once
+    blendMode: 'ADD',
+    ...config,
+  });
+  if (behindFigure) behind(unit, emitter); else unit.view.add(emitter);
+  const loop = { unit, emitter, frequency };
+  fxState.loops.add(loop);
+  fxRebalance();
+  return {
+    emitter,
+    destroy: () => {
+      fxState.loops.delete(loop);
+      if (emitter.scene) emitter.destroy();
+      fxRebalance();
+    },
+  };
 }
 
 // Turns a picture round and round on its upright axis: its width follows a
@@ -278,20 +403,32 @@ export function furyAura(scene, unit, { ribbons = true } = {}) {
     }));
     // a stand-in object so the cleanup (keepAura) also removes the tint
     objects.push({ destroy: () => { if (unit.sprite && unit.sprite.active && !unit.sprite.tintFill && !unit.hidden) unit.sprite.clearTint(); } });
-    for (let i = 0; i < 4; i++) {
-      const e = scene.add.circle(((i % 2) ? 1 : -1) * (6 + i * 3), -unit.centerY + 8, 2.5, i % 2 ? 0xff7a2e : 0xffb347, 0.85).setBlendMode(Phaser.BlendModes.ADD);
-      unit.view.add(e);
-      tweens.push(scene.tweens.add({ targets: e, y: -unit.topY + 4, x: e.x + (i % 2 ? 6 : -6), alpha: { from: 0.85, to: 0 }, duration: 1300, delay: i * 330, repeat: -1 }));
-      objects.push(e);
-    }
   }
-  const sparks = [0, 1].map((i) => {
-    const s = add('fury_sparks', -unit.centerY, 0).setScale(0.32);
-    unit.view.add(s);
-    tweens.push(scene.tweens.add({ targets: s, y: -unit.topY - 10, alpha: { from: 0.8, to: 0 }, duration: 1100, delay: i * 550, repeat: -1 }));
-    return s;
+  // one ember emitter replaces the hand-tweened circles and sparks: embers rise from the feet to above the head
+  const embers = fxEmitter(scene, unit, {
+    frequency: 150,
+    maxParticles: 18,
+    behindFigure: false, // embers may drift in front of the body, but stay small and faint
+    config: {
+      x: { min: -18, max: 18 },
+      y: { min: -6, max: 4 },
+      speedY: { min: -(unit.topY + 10) / 1.3, max: -(unit.topY - 10) / 1.3 },
+      speedX: { min: -8, max: 8 },
+      scale: { start: 0.38, end: 0 },
+      alpha: { start: 0.55, end: 0 },
+      tint: [0xff7a2e, 0xffb347],
+      lifespan: 1300,
+    },
   });
-  return { objects: [...objects, ...sparks], tweens };
+  if (embers) objects.push(embers);
+  // heat shimmer: a faint wavy band above the unit (no shader, so it works on every phone)
+  if (has(scene, ['fury_column'])) {
+    const shimmer = scene.add.image(0, -unit.centerY - 10, 'fx:fury_column').setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.16).setScale(0.5, 0.7);
+    behind(unit, shimmer);
+    tweens.push(scene.tweens.add({ targets: shimmer, x: 4, scaleX: 0.56, scaleY: 0.78, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' }));
+    objects.push(shimmer);
+  }
+  return { objects, tweens };
 }
 
 // While Earth's Bulwark (the Verse of Stone) is on a unit: three crystals
@@ -336,9 +473,33 @@ export function bulwarkAura(scene, unit) {
       }
     });
   };
+  // 16.1 step 4: 3 small rock shards on a tighter, faster ellipse turning the other way
+  // (stone_burst_0 to 2, added light, kept small and faint so the figure stays clear)
+  const shardKeys = ['stone_burst_0', 'stone_burst_1', 'stone_burst_2'].filter((k) => has(scene, [k]));
+  const shards = shardKeys.map((k) => {
+    const c = scene.add.image(0, 0, 'fx:' + k).setScale(0.16).setBlendMode(Phaser.BlendModes.ADD);
+    unit.view.add(c);
+    return c;
+  });
+  const r2 = R * 0.7;
+  const placeShards = () => {
+    shards.forEach((c, i) => {
+      if (!c.active) return;
+      const a = -clock.t * 1.6 + (i * Math.PI * 2) / shards.length;
+      const front = Math.sin(a) > 0;
+      c.setPosition(Math.cos(a) * r2, -unit.centerY * 0.35 + Math.sin(a) * r2 * 0.3);
+      c.setAlpha(front ? 0.55 : 0.3).setAngle(clock.t * 120 + i * 90);
+      if (unit.sprite && unit.view.exists(c)) {
+        const above = unit.view.getIndex(c) > unit.view.getIndex(unit.sprite);
+        if (front && !above) unit.view.moveAbove(c, unit.sprite);
+        if (!front && above) unit.view.moveBelow(c, unit.sprite);
+      }
+    });
+  };
   place();
-  tweens.push(scene.tweens.add({ targets: clock, t: Math.PI * 2, duration: 4200, repeat: -1, onUpdate: place }));
-  return { objects: [ring, ...crystals], tweens };
+  placeShards();
+  tweens.push(scene.tweens.add({ targets: clock, t: Math.PI * 2, duration: 4200, repeat: -1, onUpdate: () => { place(); placeShards(); } }));
+  return { objects: [ring, ...crystals, ...shards], tweens };
 }
 
 // ---------- Sonic Javelin (roadmap 3.6 and 3.11, his Sonic Javelin sheets) ----------
@@ -526,28 +687,40 @@ export function elementRise(scene, unit, spellId, ms) {
   const x = unit.view.x;
   const y = unit.view.y + 6;
   const depth = unit.view.depth + 0.4;
-  const img = scene.add.image(x, y, 'fx:rise_' + el + '_0').setOrigin(0.5, 1).setScale(0.7).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
+  const img = scene.add.image(x, y, 'fx:rise_' + el + '_0').setOrigin(0.5, 1).setScale(0.35).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0); // half size (Baiyee 8 Nov): it hid Layra
   scene.tweens.add({ targets: img, alpha: 0.95, duration: 120 });
   scene.time.delayedCall(ms * 0.5, () => img.active && img.setTexture('fx:rise_' + el + '_1'));
   scene.time.delayedCall(ms, () => {
     if (!img.active) return;
     const sphere = 'rise_' + el + '_' + (el === 'fire' ? 1 : 2);
     if (has(scene, [sphere])) img.setTexture('fx:' + sphere);
-    scene.tweens.add({ targets: img, alpha: 0, scale: 0.85, duration: 300, onComplete: () => img.destroy() });
+    scene.tweens.add({ targets: img, alpha: 0, scale: 0.42, duration: 300, onComplete: () => img.destroy() });
   });
   return true;
 }
 
-// The same swirl, held while the player picks a target (roadmap 13.12): it loops
-// at the caster's feet until the returned stop() is called. Null if no art.
+// While the player picks a Verse target (roadmap 13.12): a subtle particle loop
+// rising round the caster's feet, smaller than her and under 50% opacity (Baiyee
+// 8 Nov: the big swirl hid her). Embers for Fury, drifting stones for Stone, wind
+// streaks for Swift (and Husk), purple motes for Slow. It goes through fxEmitter,
+// so the caps and the Full / Light switch apply. Returns stop(), or null if no art.
+const HOLD_LOOK = {
+  fury: { frequency: 220, config: { speedY: { min: -50, max: -25 }, speedX: { min: -6, max: 6 }, scale: { start: 0.3, end: 0 }, alpha: { start: 0.45, end: 0 }, tint: [0xff7a2e, 0xffb347], lifespan: 1100 } },
+  stone: { texture: 'fx:stone_burst_0', frequency: 380, config: { speedY: { min: -22, max: -8 }, speedX: { min: -10, max: 10 }, rotate: { min: 0, max: 360 }, scale: { start: 0.09, end: 0.03 }, alpha: { start: 0.45, end: 0 }, lifespan: 1400 } },
+  wind: { frequency: 300, config: { speedX: { min: 40, max: 65 }, speedY: { min: -14, max: -4 }, scaleX: { start: 1, end: 0.4 }, scaleY: { start: 0.16, end: 0.08 }, alpha: { start: 0.4, end: 0 }, tint: [0xdff6ff, 0xbfe9ff], lifespan: 800 } },
+  hex: { frequency: 260, config: { speedY: { min: -28, max: -12 }, speedX: { min: -5, max: 5 }, scale: { start: 0.3, end: 0.05 }, alpha: { start: 0.45, end: 0 }, tint: [0xb48cff, 0x8a5fe0, 0xd2b3ff], lifespan: 1300 } },
+};
 export function elementHold(scene, unit, spellId) {
-  const el = ELEMENT_OF[spellId];
-  if (!el || !has(scene, ['rise_' + el + '_0', 'rise_' + el + '_1']) || !unit.view) return null;
-  const img = scene.add.image(unit.view.x, unit.view.y + 6, 'fx:rise_' + el + '_0').setOrigin(0.5, 1).setScale(0.7).setDepth(unit.view.depth + 0.4).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0);
-  scene.tweens.add({ targets: img, alpha: 0.85, duration: 200 });
-  let f = 0;
-  const flip = scene.time.addEvent({ delay: 260, loop: true, callback: () => img.active && img.setTexture('fx:rise_' + el + '_' + (++f % 2)) });
-  return () => { flip.remove(); if (img.active) scene.tweens.add({ targets: img, alpha: 0, duration: 150, onComplete: () => img.destroy() }); };
+  const look = HOLD_LOOK[ELEMENT_OF[spellId]];
+  if (!look || !unit.view) return null;
+  const loop = fxEmitter(scene, unit, {
+    texture: look.texture || 'fx-dot',
+    frequency: look.frequency,
+    maxParticles: 12,
+    config: { x: { min: -20, max: 20 }, y: { min: -4, max: 6 }, ...look.config },
+  });
+  if (!loop) return null;
+  return () => { loop.emitter.stop(); scene.time.delayedCall(1400, () => loop.destroy()); }; // let the last particles fade out
 }
 
 // ---------- Phase 4: the enemy skills (1 Nov) ----------

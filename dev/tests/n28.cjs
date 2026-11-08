@@ -60,7 +60,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const icons = bull.tagRow.list.filter((o) => o.texture && o.texture.key === 'icon:slow');
   const words = bull.tagRow.list.filter((o) => o.type === 'Text').map((t) => t.text);
   check('over the slowed unit: the Slow icon, not the word', icons.length === 1 && !words.includes('SLOW'), words.join());
-  check('and a faint Slow aura stays on it', bull.slowAura && bull.slowAura.length === 2);
+  check('and a faint Slow aura stays on it', bull.slowAura && bull.slowAura.length === 3 /* ring, spiral, motes (16.1) */);
   St.tickBuff(bull); St.tickBuff(bull); b.refreshStatusTags();
   check('when Slow wears off the aura goes', !bull.slowAura);
 

@@ -84,8 +84,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('6.8 the card line says Earth\'s Bulwark: 2 turns left', /Earth's Bulwark: 2 turns left/.test(cardText()), cardText());
 
   // ---------- 6.13 the looks while active ----------
-  check('6.13 Earth\'s Bulwark: crystals float round the unit (his four crystals since 6.18)', sudeen.bulwarkAura && sudeen.bulwarkAura.objects.length === 5);
-  const crystals = sudeen.bulwarkAura.objects.slice(1);
+  check('6.13 Earth\'s Bulwark: crystals float round the unit (his four crystals since 6.18)', sudeen.bulwarkAura && sudeen.bulwarkAura.objects.length === 8 /* ring, 4 crystals, 3 small shards (16.1) */);
+  const crystals = sudeen.bulwarkAura.objects.slice(1, 5);
   const pos0 = crystals.map((c) => c.x.toFixed(1)).join(',');
   let behindSeen = false, frontSeen = false;
   for (let i = 0; i < 30; i++) {
@@ -101,7 +101,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'fury');
   // (1 Nov, Baiyee: the turning ribbon cutouts became his rising fire, flickering like Swift's swirl)
-  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 8);
+  check('6.13 Fury on Sudeen (no fire painted on his pictures): ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 4);
   await sleep(320);
   check('1.25 the figure pulses a soft red-orange, with no fire picture over it', sudeen.sprite.isTinted && !sudeen.furyAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key)));
   sudeen.status.buff.turnsLeft = 1; S.tickBuff(sudeen); b.refreshStatusTags();
