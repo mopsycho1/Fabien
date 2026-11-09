@@ -20,7 +20,7 @@ import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pu
 import conditions from '../data/conditions.json'; // stun, disoriented
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst } from '../spellArt.js';
+import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -31,7 +31,7 @@ import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
-import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn } from '../effects.js';
+import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn, shockRing } from '../effects.js';
 import {
   isMelee,
   canBeCaught,
@@ -78,7 +78,7 @@ import spells from '../data/spells.json';   // the Sage's spells
 
 // Says when a spell can be used, from its "use" tag in spells.json.
 function useText(spell) {
-  if (spell.use === 'enemy' || spell.use === 'ally') return spell.cooldown ? 'ready again after ' + spell.cooldown + ' turns' : 'a skill';
+  if (spell.use === 'enemy' || spell.use === 'ally' || spell.use === 'area') return spell.cooldown ? 'ready again after ' + spell.cooldown + ' turns' : 'a skill';
   if (spell.use === 'both') return 'works in a clash too';
   if (spell.use === 'engagement') return 'only in a clash';
   return 'not during a clash';
@@ -3953,6 +3953,14 @@ export default class BattleScene extends Phaser.Scene {
       this.castElementBlast(unit, blastAt, spells.elementBlast, finish);
       return;
     }
+    // Tayo claps when 2 or more foes are within 2 tiles (roadmap 13.31): a shockwave that knocks them all back
+    if (unit.spells.includes('clap') && canAfford(unit, 'clap') && this.clapFoes(unit).length >= 2) {
+      this.busy = true;
+      startCooldown(unit, 'clap');
+      unit.hasActed = true;
+      this.castClap(unit, spells.clap, finish);
+      return;
+    }
     // Tayo drives a spike up under a foe right next to him: a caster first,
     // then the weakest (roadmap 4.2)
     if (unit.spells.includes('earthDrive') && canAfford(unit, 'earthDrive')) {
@@ -4973,6 +4981,102 @@ export default class BattleScene extends Phaser.Scene {
       }
     });
     this.time.delayedCall(frameMs * 2 + 1250, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // ---------- Tayo's Clap (roadmap 13.31) ----------
+
+  // Every foe within the clap's reach (2 tiles around him), farthest first, so
+  // the outer ones are knocked back before the inner ones are.
+  clapFoes(user) {
+    return this.enemyEyes()
+      .filter((t) => t.side !== user.side && t.alive && !t.isDecoy && distance(user, t) <= spells.clap.range)
+      .sort((a, b) => distance(user, b) - distance(user, a));
+  }
+
+  // He claps his hands with all his might: a shockwave ring races out and dust
+  // rolls up; every foe within 2 tiles takes a little damage and is knocked
+  // back a tile (the usual push rules: a wall or a unit behind = a slam). The
+  // numbers are worked out first, like Earth Drive; the picture catches up.
+  // Drawn with his attack pictures until Suleiman sends clap art.
+  castClap(user, spell, onDone) {
+    const foes = this.clapFoes(user);
+    const lead = foes[foes.length - 1]; // the nearest foe: he faces it
+    const dx = lead ? lead.view.x - user.view.x : 1;
+    if (lead) this.faceToward(user, dx, lead.view.y - user.view.y);
+    const hits = foes.map((t) => {
+      const landed = this.landHit(t, Math.max(1, Math.round(getDamage(user, t) * spell.damageShare)));
+      t.hp = Math.max(0, t.hp - landed.damage);
+      let pushed = null;
+      if (t.hp === 0) this.defeat(t);
+      else {
+        pushed = this.pushLoser(t, user, spell.push);
+        if (t.engagedWith && distance(t, t.engagedWith) > 1) endDuel(t);
+      }
+      return { t, landed, pushed, away: t.view.x - user.view.x };
+    });
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+
+    this.floatText(user, spell.name, spell.color, { rise: 40 });
+    play('whoosh');
+    this.showPose(user, 'attack', dx); // his attack frames stand in for the clap
+    // the hands meet: the ring and the dust go out together
+    this.time.delayedCall(220, () => {
+      play('crash');
+      screenShake(this, 0.01, 260);
+      const base = tileToScreen(user.col, user.row);
+      shockRing(this, base.x, base.y, TILE_WIDTH * 1.1, TILE_HEIGHT * 1.1);
+      dustRing(this, base.x, base.y, 200);
+      // a burst of sand and dust thrown out along the ground (fxEmitter, so Light mode and the particle cap apply)
+      const dust = fxEmitter(this, user, {
+        texture: 'fx-dot',
+        frequency: 25,
+        maxParticles: 20,
+        behindFigure: false,
+        config: {
+          x: { min: -14, max: 14 },
+          y: { min: -10, max: 2 },
+          speedX: { min: -260, max: 260 },
+          speedY: { min: -70, max: 24 },
+          scale: { start: 1.7, end: 0.3 },
+          alpha: { start: 0.75, end: 0 },
+          tint: [0xcdb48a, 0xe3d2aa, 0xb89c72],
+          blendMode: 'NORMAL',
+          lifespan: { min: 450, max: 750 },
+        },
+      });
+      if (dust) this.time.delayedCall(260, () => dust.emitter.scene && dust.emitter.stop()); // one blast, not a loop
+      if (dust) this.time.delayedCall(1000, () => dust.destroy());
+    });
+    // the wave reaches them: a hit, and each one flies back a tile
+    hits.forEach(({ t, landed, pushed, away }) => {
+      const reach = distance(user, t); // the near ones are hit first
+      this.time.delayedCall(260 + 70 * reach, () => {
+        this.showImpact(user, t, { hit: true, damage: landed.damage, note: landed.note }, away, t.hp === 0);
+        if (pushed && (pushed.path.length || pushed.fall)) {
+          this.time.delayedCall(120, () => {
+            if (pushed.path.length) {
+              this.floatText(t, 'Thrown back!', '#e8c08a', { rise: 46 });
+              this.slideAlong(t, pushed.path);
+            }
+            this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(t, pushed.fall, away));
+          });
+        }
+      });
+    });
+    this.time.delayedCall(1100, () => {
+      if (user.alive) {
+        this.faceNearestOpponent(user);
+        this.showStanding(user);
+      }
+    });
+    this.time.delayedCall(2100, () => {
       if (outcome) {
         this.busy = false;
         this.showResult(outcome);

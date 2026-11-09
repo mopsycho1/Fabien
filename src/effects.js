@@ -434,6 +434,33 @@ export function groundRing(scene, x, y, color = 0xffd08a, size = 1) {
   });
 }
 
+// The shockwave of Tayo's clap (roadmap 13.31): two rings of light race out
+// along the ground to the edge of his reach (rx and ry in pixels), with a
+// bright flash at the middle. Drawn fresh each frame at fixed places.
+export function shockRing(scene, x, y, rx, ry) {
+  const g = scene.add.graphics().setDepth(EFFECT_DEPTH - 1).setBlendMode(Phaser.BlendModes.ADD);
+  const state = { t: 0 };
+  scene.tweens.add({
+    targets: state,
+    t: 1,
+    duration: 520,
+    onUpdate: () => {
+      const t = state.t;
+      const e = 1 - (1 - t) * (1 - t); // fast at first, slowing at the edge
+      g.clear();
+      g.fillStyle(0xfff0c8, 0.5 * (1 - t) * (1 - t));
+      g.fillEllipse(x, y, 70 * (1 - t) + 20, 28 * (1 - t) + 8); // the flash where the hands met
+      g.lineStyle(9 * (1 - t) + 2, 0xffe2a8, 0.85 * (1 - t));
+      g.strokeEllipse(x, y, rx * 2 * e + 10, ry * 2 * e + 4);
+      const t2 = Math.max(0, t - 0.15) / 0.85; // a thinner second ring close behind
+      const e2 = 1 - (1 - t2) * (1 - t2);
+      g.lineStyle(4 * (1 - t2) + 1, 0xffffff, 0.6 * (1 - t2));
+      g.strokeEllipse(x, y, rx * 1.7 * e2 + 6, ry * 1.7 * e2 + 3);
+    },
+    onComplete: () => g.destroy(),
+  });
+}
+
 // A burst of glowing embers from a body, drifting up as it burns away.
 // Uses the soft dot made by atmosphere.js.
 export function emberBurst(scene, x, y, colors, count = 40, height = 80) {
