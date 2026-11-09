@@ -142,8 +142,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('lights: the lamp glows breathe slowly (no fast flicker)', glow.length > 0 && fast.length === 0, glow.length + ' glows, ' + fast.length + ' fast');
   const dots = b.children.list.filter((o) => o.type === 'ParticleEmitter' && o.texture && o.texture.key === 'fx-dot' && o.depth === 71);
   check('lights: no glowing dust drifting over the sealed cavern', dots.length === 0, dots.length);
-  const flames = b.children.list.filter((o) => o.type === 'Graphics' && b.tweens.getTweensOf(o).length > 0);
-  check('lights: every flickering flame sits on its own spot (it scales in place, it does not slide)', flames.length > 0 && flames.every((o) => o.x !== 0 || o.y !== 0), flames.length);
+  // the flames are now Suleiman's looping flame sprites (6.41): each plays the loop on its own spot
+  const flames = b.children.list.filter((o) => o.texture && /^flame:\d$/.test(o.texture.key) && o.anims);
+  check('lights: every flame is the looping flame, playing, on its own spot', flames.length > 0 && flames.every((o) => (o.x !== 0 || o.y !== 0) && o.anims.isPlaying), flames.length);
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

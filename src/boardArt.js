@@ -147,7 +147,15 @@ export function preloadBoardArt(scene) {
   for (const [key, file] of Object.entries(TERRAIN_FILES)) {
     scene.load.image('terrain:' + key, './art/terrain/' + file);
   }
+  // Suleiman's 8 looping flame frames (roadmap 6.41), for every brazier and lamp
+  for (let i = 1; i <= FLAME_FRAMES; i++) scene.load.image('flame:' + i, './art/fx/flame_f' + i + '.png');
 }
+
+const FLAME_FRAMES = 8;
+// the flame frames are 200 by 225 with the base of the fire at about 91% of the height
+const FLAME_ORIGIN_Y = 0.91;
+// size 1 (a brazier) shows the flame about 43 px tall; a lamp passes a smaller size
+const FLAME_SCALE = 0.36;
 
 // The picture behind a terrain key, or null if it did not load.
 function terrainImage(scene, key) {
@@ -1272,7 +1280,7 @@ function drawSurround(scene, surround) {
     const img = scene.add.image(x, y + TILE_HEIGHT * 0.18, 'terrain:' + item.prop).setOrigin(spec.originX, 1);
     img.setScale((spec.width * (TILE_WIDTH / 112)) / img.width).setDepth((vc + vr) * 2 - 0.3).setTint(fireTint(lightAt(vc, vr) * 0.95));
     if (item.flip) img.setFlipX(true);
-    if (item.prop === 'brazier') flame(scene, x + (0.5 - spec.originX) * img.displayWidth, y + TILE_HEIGHT * 0.18 - img.displayHeight * 0.92, (vc + vr) * 2 - 0.2, 1);
+    if (item.prop === 'brazier') flame(scene, x + (0.5 - spec.originX) * img.displayWidth, y + TILE_HEIGHT * 0.18 - img.displayHeight * 0.77, (vc + vr) * 2 - 0.2, 1.15); // base of the fire in the bowl, covering the painted flame
   }
 }
 
@@ -1282,15 +1290,26 @@ function flame(scene, x, y, depth, size) {
   // own point, and drawn at (x, y) inside it the flame slid up and down the
   // screen as it flickered (the lights "moving out of place", Baiyee 1 Nov)
   flamePoints.push({ x, y });
-  const g = scene.add.graphics({ x, y }).setDepth(depth);
-  g.fillStyle(0xffb347, 0.9).fillEllipse(0, -4 * size, 9 * size, 16 * size);
-  g.fillStyle(0xfff1c0, 1).fillEllipse(0, -2 * size, 4 * size, 8 * size);
-  // (Baiyee 1 Nov: the fast flicker and sparks looked like lights bouncing
-  // about, so the flames breathe slowly and only the odd spark drifts up)
-  scene.tweens.add({ targets: g, scaleY: 1.04, alpha: 0.9, duration: 420 + Math.random() * 260, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-  if (scene.textures.exists('fx-glow')) {
-    const glow = scene.add.image(x, y - 4 * size, 'fx-glow').setDepth(depth).setBlendMode('ADD').setScale(0.72 * size).setAlpha(0.7);
-    scene.tweens.add({ targets: glow, alpha: 0.58, scale: 0.69 * size, duration: 900 + Math.random() * 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  if (scene.textures.exists('flame:1')) {
+    // the looping flame: one shared animation, each flame starts on its own frame
+    // and speed so a row of braziers does not flicker in step
+    if (!scene.anims.exists('flame-loop')) {
+      const frames = [];
+      for (let i = 1; i <= FLAME_FRAMES; i++) frames.push({ key: 'flame:' + i });
+      scene.anims.create({ key: 'flame-loop', frames, frameRate: 10, repeat: -1 });
+    }
+    const f = scene.add.sprite(x, y, 'flame:1').setOrigin(0.5, FLAME_ORIGIN_Y).setScale(FLAME_SCALE * size).setDepth(depth);
+    f.play({ key: 'flame-loop', startFrame: Math.floor(Math.random() * FLAME_FRAMES), frameRate: 9 + Math.random() * 3 });
+    // only a soft, low glow close round the fire (no big floating ball of light)
+    if (scene.textures.exists('fx-glow')) {
+      const glow = scene.add.image(x, y - 10 * size, 'fx-glow').setDepth(depth - 0.01).setBlendMode('ADD').setScale(0.4 * size).setAlpha(0.3);
+      scene.tweens.add({ targets: glow, alpha: 0.22, duration: 900 + Math.random() * 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+  } else {
+    // old painted-shape flame, used only if the pictures did not load
+    const g = scene.add.graphics({ x, y }).setDepth(depth);
+    g.fillStyle(0xffb347, 0.9).fillEllipse(0, -4 * size, 9 * size, 16 * size);
+    g.fillStyle(0xfff1c0, 1).fillEllipse(0, -2 * size, 4 * size, 8 * size);
   }
   if (scene.textures.exists('fx-dot')) {
     scene.add.particles(x, y - 8 * size, 'fx-dot', {
@@ -1323,7 +1342,7 @@ function drawLamp(scene, col, row, centre) {
   g.fillStyle(0x000000, 0.35).fillEllipse(cx, cy + 2, 22, 8);
   g.fillStyle(0x3a2a1c, 1).fillEllipse(cx, cy - 3, 18, 9);
   g.fillStyle(0x6a5038, 1).fillEllipse(cx, cy - 6, 16, 6);
-  flame(scene, cx, cy - 7, depth + 0.01, 0.8);
+  flame(scene, cx, cy - 3, depth + 0.01, 0.45); // small flame in the bowl
 }
 
 // Water pouring off a ledge into the water below: [col, row, toCol, toRow].
