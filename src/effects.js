@@ -218,6 +218,7 @@ export function fireBurst(scene, x, y) {
 
 // A jagged bolt from one point to another, flickering for a moment.
 export function lightning(scene, fromX, fromY, toX, toY) {
+  scene.events.emit('bolt', toX, toY); // lets the lighting test flash the board
   const points = [{ x: fromX, y: fromY }];
   const steps = 7;
   for (let i = 1; i < steps; i++) {

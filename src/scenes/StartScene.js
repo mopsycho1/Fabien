@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
 import { startStep } from '../story.js';
 import { preloadArt } from '../art.js';
+import { preloadNormals } from '../lighting.js';
 import { preloadBoardArt } from '../boardArt.js';
 import { preloadSpellArt } from '../spellArt.js';
 import { createHudTextures, preloadUiArt } from '../hud.js';
@@ -21,6 +22,7 @@ export default class StartScene extends Phaser.Scene {
   preload() {
     preloadArt(this);
     preloadBoardArt(this);
+    preloadNormals(this); // bump pictures for the ?light test
     preloadSpellArt(this); // lightning and Verse effects from the effect sheets
     preloadUiArt(this); // Suleiman's battle-screen frames, buttons and icons
   }

@@ -1150,9 +1150,15 @@ function drawTorch(scene, item) {
 // bright as the flames near it make it (the ritual lamps, the braziers on the
 // ledge), warm near them and dark between. Worked out in the camera's view,
 // again each time the board is drawn.
+// (lighting test, roadmap 1.38) every flame's position, for lighting.js; and a switch that turns
+// the old darkening tints off when real lights are on
+export const flamePoints = [];
+let litMode = false;
+export function setLitMode(on) { litMode = on; }
 let lights = [];
 export function prepareLights(map) {
   lights = [];
+  flamePoints.length = 0;
   if (setting !== 'cavern') return;
   for (const [c, r] of map.lamps || []) {
     const v = toView(c, r);
@@ -1165,7 +1171,7 @@ export function prepareLights(map) {
 
 // How lit a spot in the view is: 0.42 in the dark, up to about 1.1 by a fire.
 function lightAt(vc, vr) {
-  if (setting !== 'cavern') return 1;
+  if (setting !== 'cavern' || litMode) return 1;
   let sum = 0;
   for (const l of lights) {
     const d2 = (vc - l.vc) ** 2 + (vr - l.vr) ** 2;
@@ -1176,6 +1182,7 @@ function lightAt(vc, vr) {
 
 // A warm tint for that much light (firelight is orange: less blue than red).
 function fireTint(f) {
+  if (litMode) return 0xffffff;
   const r = Math.min(255, Math.round(255 * f));
   const g = Math.min(255, Math.round(255 * f * 0.92));
   const b = Math.min(255, Math.round(255 * f * 0.8));
@@ -1274,6 +1281,7 @@ function flame(scene, x, y, depth, size) {
   // drawn round its own point and placed at (x, y): a Graphics scales from its
   // own point, and drawn at (x, y) inside it the flame slid up and down the
   // screen as it flickered (the lights "moving out of place", Baiyee 1 Nov)
+  flamePoints.push({ x, y });
   const g = scene.add.graphics({ x, y }).setDepth(depth);
   g.fillStyle(0xffb347, 0.9).fillEllipse(0, -4 * size, 9 * size, 16 * size);
   g.fillStyle(0xfff1c0, 1).fillEllipse(0, -2 * size, 4 * size, 8 * size);

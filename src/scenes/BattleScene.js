@@ -30,6 +30,7 @@ import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
+import { installLighting } from '../lighting.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
 import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn, shockRing } from '../effects.js';
 import {
@@ -233,6 +234,7 @@ export default class BattleScene extends Phaser.Scene {
     const fielded = (entry) => !benched(entry);
     this.units = unitData.filter(fielded).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
 
+    installLighting(this); // only with ?light in the address (roadmap 1.38)
     createHudTextures(this);
     this.buildHud();
     this.loadClashArt(); // his clash banners, in the background (roadmap 8.15)
