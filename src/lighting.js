@@ -50,7 +50,7 @@ export function installLighting(scene) {
   if (!lightingOn()) return;
   setLitMode(true); // the old darkening tints step aside: the lights do that job now
   const lm = scene.lights.enable();
-  lm.setAmbientColor(0x6e6478); // low: the cave stays moody
+  lm.setAmbientColor(0x666e82); // low: the cave stays moody
   scene.lit = { torches: [], auras: new Map(), flashes: [] };
 
   // Gaha's normal maps go onto his textures
@@ -74,14 +74,14 @@ export function installLighting(scene) {
     }
     // the fires: one light per flame
     for (const l of scene.lit.torches) lm.removeLight(l.light);
-    scene.lit.torches = flamePoints.map((p) => ({ p, light: lm.addLight(p.x, p.y - 10, 260, 0xff9a3c, 1.7), seed: Math.random() * 10 }));
+    scene.lit.torches = flamePoints.map((p) => ({ p, light: lm.addLight(p.x, p.y - 10, 210, 0xff9a3c, 1.0), seed: Math.random() * 10 }));
   };
   const origBuild = scene.buildBoard.bind(scene);
   scene.buildBoard = () => { origBuild(); lightBoard(); };
   lightBoard();
 
-  // a dim fill over the board centre so faces never go black
-  lm.addLight(scene.cameras.main.midPoint.x, scene.cameras.main.midPoint.y, 1100, 0xc8b49a, 0.8);
+  // a dim, cool fill over the board centre so faces never go black (cooler so the warm fire light stands out and blues stay blue)
+  lm.addLight(scene.cameras.main.midPoint.x, scene.cameras.main.midPoint.y, 1100, 0x9db4d0, 0.85);
 
   // a bolt of lightning (effects.js and spellArt.js tell us where)
   scene.events.on('bolt', (x, y) => {
@@ -91,19 +91,19 @@ export function installLighting(scene) {
 
   scene.events.on('update', (time) => {
     for (const t of scene.lit.torches) { // a slow, gentle flicker (not the fast jitter Baiyee disliked)
-      t.light.intensity = 1.7 + 0.22 * Math.sin(time / 310 + t.seed) + 0.12 * Math.sin(time / 97 + t.seed * 3);
-      t.light.radius = 260 + 10 * Math.sin(time / 410 + t.seed);
+      t.light.intensity = 1.0 + 0.14 * Math.sin(time / 310 + t.seed) + 0.07 * Math.sin(time / 97 + t.seed * 3);
+      t.light.radius = 210 + 8 * Math.sin(time / 410 + t.seed);
     }
     for (const u of scene.units || []) {
       const s = u.sprite;
       if (s && s.pipeline && s.pipeline.name !== 'Light2D') s.setPipeline('Light2D');
       const burning = u.alive && (u.furyAura || u.enchantAura);
       let a = scene.lit.auras.get(u);
-      if (burning && !a) { a = lm.addLight(0, 0, 150, 0xff7a1e, 1.7); scene.lit.auras.set(u, a); }
+      if (burning && !a) { a = lm.addLight(0, 0, 130, 0xff7a1e, 1.2); scene.lit.auras.set(u, a); }
       if (!burning && a) { lm.removeLight(a); scene.lit.auras.delete(u); a = null; }
       if (a) {
         a.x = u.view.x; a.y = u.view.y - u.centerY;
-        a.intensity = 1.6 + 0.3 * Math.sin(time / 160 + u.col);
+        a.intensity = 1.1 + 0.2 * Math.sin(time / 160 + u.col);
       }
     }
   });
