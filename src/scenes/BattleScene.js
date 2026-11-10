@@ -323,13 +323,15 @@ export default class BattleScene extends Phaser.Scene {
     const portrait = H > W;
     const cardW = Math.round(Math.min(392 * s, portrait ? W * 0.56 : W * 0.36));
     const infoW = Math.round(portrait ? W - cardW - 3 * m : Math.min(470 * s, W - cardW - 3 * m));
-    this.lay = { W, H, s, m, portrait, cardW, infoW, rowH: Math.round(40 * s), menuW: Math.round(212 * s) };
+    this.lay = { W, H, s, m, portrait, cardW, infoW, rowH: Math.round(40 * s), menuW: Math.round(212 * s), top: 0, bottom: H };
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
     const b = this.boardBounds();
     const top = portrait ? m + 104 * s : m;
     const bottom = portrait ? H - 214 * s : H - m;
     const zoom = Math.max(0.7, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
+    this.lay.top = top;       // the board's free space on the screen: under the turn strip...
+    this.lay.bottom = bottom; // ...and above the cards (the follow camera centres in it, roadmap 17.1)
     const freeY = (top + bottom) / 2;
     this.home = { zoom, x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 - (freeY - H / 2) / zoom };
     // The camera that follows (roadmap 11.5, maps with "camera": "follow"):
@@ -337,7 +339,9 @@ export default class BattleScene extends Phaser.Scene {
     // screen, the battle is played zoomed in on the unit whose turn it is.
     // A tile is then at least MIN_TILE real screen pixels wide.
     const shown = this.scale.displaySize.width / W || 1; // real screen pixels per game pixel
-    const MIN_TILE = 70;
+    // On an upright phone the figures were too small to read at 70 (about 45 pixels tall), and a third
+    // of the screen was empty rock, so the view sits closer there (roadmap 17.1). Pinch or the little map still pull back.
+    const MIN_TILE = portrait ? 88 : 70;
     this.follow = mapData.camera === 'follow';
     const want = MIN_TILE / (TILE_WIDTH * shown);
     this.playZoom = this.follow ? Math.min(2.2, Math.max(zoom, want)) : zoom;
@@ -352,10 +356,21 @@ export default class BattleScene extends Phaser.Scene {
   clampView(x, y, zoom) {
     const b = this.boardBounds();
     const pad = 150;
-    const halfW = this.lay.W / (2 * zoom);
-    const halfH = this.lay.H / (2 * zoom);
-    const fit = (v, lo, hi, half) => (hi - lo <= 2 * half ? (lo + hi) / 2 : Math.min(Math.max(v, lo + half), hi - half));
-    return { x: fit(x, b.x0 - pad, b.x1 + pad, halfW), y: fit(y, b.y0 - pad, b.y1 + pad, halfH) };
+    const { W, H, top, bottom } = this.lay;
+    const halfW = W / (2 * zoom);
+    // Up and down, the view that counts is the free space between the turn strip and the cards
+    // (roadmap 17.1): "up" and "down" are how far that space reaches above and below the camera's centre.
+    const up = (H / 2 - top) / zoom;
+    const down = (bottom - H / 2) / zoom;
+    const padY = Math.min(pad, 24 / zoom); // little spare rock above and below: the cards and the strip already frame the board
+    const fit = (v, lo, hi, before, after) => (hi - lo <= before + after ? (lo + hi) / 2 + (before - after) / 2 : Math.min(Math.max(v, lo + before), hi - after));
+    return { x: fit(x, b.x0 - pad, b.x1 + pad, halfW, halfW), y: fit(y, b.y0 - padY, b.y1 + padY, up, down) };
+  }
+
+  // How far the camera's centre sits below a point that should show in the middle of the free
+  // space (the cards take more room at the bottom than the turn strip does at the top).
+  freeShift(zoom) {
+    return (this.lay.H / 2 - (this.lay.top + this.lay.bottom) / 2) / zoom;
   }
 
   // The camera turns to the unit whose turn it is (or a unit that has just
@@ -364,7 +379,7 @@ export default class BattleScene extends Phaser.Scene {
   followUnit(unit, duration = 380, force = false) {
     if (!this.follow || !unit || !unit.view || (this.manualView && !force)) return;
     const zoom = this.rest.zoom;
-    const c = this.clampView(unit.view.x, unit.view.y - unit.centerY * 0.5, zoom);
+    const c = this.clampView(unit.view.x, unit.view.y - unit.centerY * 0.5 + this.freeShift(zoom), zoom);
     this.rest = { zoom, x: c.x, y: c.y };
     if (this.inCinematic) return;
     const cam = this.cameras.main;
@@ -3481,9 +3496,12 @@ export default class BattleScene extends Phaser.Scene {
   cameraPunch(power) {
     if (this.inCinematic) return;
     const cam = this.cameras.main;
-    cam.zoomTo(1 + 0.03 * power, 50, 'Quad.easeOut', true);
+    // The jolt is measured from the view the camera rests at. (It used to go to a zoom of exactly 1,
+    // which threw a zoomed-in phone view back out after every hit: roadmap 17.1.)
+    const base = this.follow && this.rest ? this.rest.zoom : this.home.zoom;
+    cam.zoomTo(base * (1 + 0.03 * power), 50, 'Quad.easeOut', true);
     this.time.delayedCall(70, () => {
-      if (!this.inCinematic) cam.zoomTo(1, 220, 'Quad.easeOut', true);
+      if (!this.inCinematic) cam.zoomTo(base, 220, 'Quad.easeOut', true);
     });
   }
 
