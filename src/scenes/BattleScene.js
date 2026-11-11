@@ -21,6 +21,7 @@ import conditions from '../data/conditions.json'; // stun, disoriented
 import relayRules from '../data/relay.json'; // Relay Strike numbers
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
+import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
 import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
@@ -1508,6 +1509,15 @@ export default class BattleScene extends Phaser.Scene {
   // Finishes the current turn and starts the next one.
   endTurn() {
     if (this.battleOver) return;
+    // a pushed unit is still flying or getting up: the turn ends when it has come to rest
+    const wait = (this.knockUntil || 0) - this.time.now;
+    if (wait > 0) {
+      if (!this.endTurnWaiting) {
+        this.endTurnWaiting = true;
+        this.time.delayedCall(wait + 20, () => { this.endTurnWaiting = false; this.endTurn(); });
+      }
+      return;
+    }
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
     // still in the water: still soaked; out of it: a turn drier (roadmap 11.4)
@@ -3036,11 +3046,7 @@ export default class BattleScene extends Phaser.Scene {
     const playPush = () => {
       if (pushed && (pushed.path.length || pushed.fall)) {
         this.time.delayedCall(420, () => {
-          if (pushed.path.length) {
-            this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
-            this.slideAlong(target, pushed.path);
-          }
-          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, target.view.x - attacker.view.x));
+          this.knockBack(target, pushed, target.view.x - attacker.view.x, { text: 'Knocked back!', color: '#ff9a6a' });
         });
       }
       if (fire && result.hit && target.alive) this.time.delayedCall(520, () => { this.floatText(target, isDrenched(target) ? 'Too wet to burn' : 'Burning!', isDrenched(target) ? '#bfe8ff' : '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
@@ -3282,6 +3288,7 @@ export default class BattleScene extends Phaser.Scene {
   // Badly hurt units stand weakened (if they have the pictures); a Sage in
   // meditation stays kneeling in it.
   showStanding(unit) {
+    if (unit.knock) return; // being knocked back: knockback.js is showing its pictures
     // choosing a target for a skill: the unit holds its charge pose (roadmap 13.12)
     if (unit.charging && this.showFrame(unit, poseFrame(unit.id, unit.charging.pose, unit.charging.dx >= 0 ? 'right' : 'left', unit.facing))) return;
     if (unit.meditating && this.showFrame(unit, poseFrame(unit.id, 'meditate', 'right', unit.facing))) return;
@@ -3559,7 +3566,9 @@ export default class BattleScene extends Phaser.Scene {
     // light shake on every hit, growing with the damage (finishing blows get the most)
     screenShake(this, Math.min(0.008, 0.0015 + 0.0004 * result.damage) * (lethal ? 1.3 : 1), 90 + Math.min(80, result.damage * 8));
 
-    if (target.hp === 0) {
+    if (target.knockPending) {
+      this.showPose(target, 'hurt', -dx); // a push follows: the knockback draws the rest (and the death, if the fall kills)
+    } else if (target.hp === 0) {
       this.playDefeat(target, dx);
     } else {
       this.showPose(target, 'hurt', -dx); // flinch, facing the attacker
@@ -3627,10 +3636,14 @@ export default class BattleScene extends Phaser.Scene {
   // pictures of the fall melt into each other while it is still moving (no hard swap), and
   // the figure then dissolves in gold (goldDissolve).
   //   dx   : the direction the blow came from (as in showImpact)
-  //   slam : a push that killed it against a wall (showFall's "fall" with slam.toward): it flies
+  //   slam : a push that killed it against a wall (pushLoser's "fall" with slam.toward): it flies
   //          into the wall, squashes against it and slumps down it instead
-  playDefeat(unit, dx = 0, slam = null) {
+  //   afterFall : true when it has just dropped off a ledge (knockback.js): no second flight, only a
+  //            small bounce where it landed, then it lies down
+  playDefeat(unit, dx = 0, slam = null, afterFall = false) {
     if (!unit.view || !unit.view.active) return;
+    if (unit.knock) { unit.knock.cancelled = true; unit.knock = null; } // struck down while being pushed: the death takes over
+    const reach = afterFall ? 0.3 : 1; // after a fall it has already flown: it only bounces a little and lies down
     if (unit.idleTween) unit.idleTween.stop();
     const view = unit.view;
     const sprite = unit.sprite;
@@ -3649,7 +3662,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // the pictures of the fall, in order; each one fades into the next
     const hasDown = this.hasPose(unit, 'down');
-    const names = ['knocked', 'kneel', 'crumple', 'down'].filter((n) => this.hasPose(unit, n));
+    const names = (afterFall ? ['kneel', 'crumple', 'down'] : ['knocked', 'kneel', 'crumple', 'down']).filter((n) => this.hasPose(unit, n));
     const frameOf = (name) => {
       const right = -dx >= 0;
       const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
@@ -3669,7 +3682,7 @@ export default class BattleScene extends Phaser.Scene {
       this.tweens.add({ targets: ghost, alpha: 0, duration: 200, onComplete: () => { ghosts.splice(ghosts.indexOf(ghost), 1); ghost.destroy(); } });
     };
     // the hit picture melts out of whatever it was showing (a flinch, a stance) instead of snapping
-    if (names.includes('knocked')) fadeTo('knocked'); else this.showPose(unit, 'knocked', -dx);
+    if (names.length && (afterFall || names[0] === 'knocked')) fadeTo(names[0]); else this.showPose(unit, 'knocked', -dx);
     // when each fade starts, as a share of the whole fall
     const starts = names.slice(1).map((n, i) => (wall ? 0.4 : 0.25) + (wall ? 0.4 : 0.45) * ((i + 0.5) / (names.length - 1)));
     let nextFade = 0;
@@ -3692,12 +3705,12 @@ export default class BattleScene extends Phaser.Scene {
         if (!wall) {
           if (p < land) {
             const u = p / land;
-            view.x = x0 + away * 30 * ease(u);
-            view.y = y0 - Math.sin(u * Math.PI) * 30;
+            view.x = x0 + away * 30 * reach * ease(u);
+            view.y = y0 - Math.sin(u * Math.PI) * 30 * reach;
             if (sprite) sprite.angle = lean * 26 * ease(u);   // the head goes back as it is knocked
           } else {
             const u = (p - land) / (1 - land);
-            view.x = x0 + away * (30 + 16 * ease(u));
+            view.x = x0 + away * reach * (30 + 16 * ease(u));
             view.y = y0 - Math.sin(Math.min(1, u * 2.2) * Math.PI) * 7;   // one small bounce
             // lying down (a picture of it) or toppling over (no picture of it)
             if (sprite) sprite.angle = hasDown ? lean * 26 * (1 - ease(u)) : lean * (26 + 59 * u * u * (3 - 2 * u));
@@ -3721,7 +3734,7 @@ export default class BattleScene extends Phaser.Scene {
         // the hit: a squash and the dust, once
         if (!landed && p >= land) {
           landed = true;
-          if (wall) play('bash'); else play('crash');
+          if (wall) play('bash'); else if (!afterFall) play('crash'); // (after a fall the crash has just been heard)
           if (sprite && base) {
             const wide = wall ? Math.abs(wall.x) > Math.abs(wall.y) : false;
             // squashed flat on the ground, or flat against a wall left or right of it
@@ -4119,7 +4132,8 @@ export default class BattleScene extends Phaser.Scene {
   //   - it cannot be shoved up a step of more than pushClimbLimit levels (a wall)
   //   - a push that goes downhill carries one tile further
   //   - every level it drops on the way costs fallDamagePerLevel health
-  // Changes the loser's tile and health straight away; returns what happened.
+  // Changes the loser's tile and health straight away; returns what happened
+  // ({ from, path, fall }), which knockBack then shows.
   pushLoser(loser, winner, steps) {
     if (isRooted(loser) && steps > 0) {
       // Gaha standing his ground under Stone: nothing moves him
@@ -4130,6 +4144,7 @@ export default class BattleScene extends Phaser.Scene {
     if (steps === 0) return { path: [], fall: null, held: true };
     const isFree = (c, r, fc, fr) =>
       isInsideGrid(c, r) && !this.isBlocked(c, r) && getHeight(c, r) - getHeight(fc, fr) <= terrain.pushClimbLimit;
+    const from = { col: loser.col, row: loser.row }; // where it stood (the knockback starts its flight here)
     let path = displacementPath(loser, winner, steps, isFree);
     if (path.length > 0 && getHeight(path[0].col, path[0].row) < getHeight(loser.col, loser.row)) {
       path = displacementPath(loser, winner, steps + terrain.downhillPushExtra, isFree); // downhill: further
@@ -4161,7 +4176,8 @@ export default class BattleScene extends Phaser.Scene {
       else this.interrupt(loser); // a fall or a slam breaks a trance or an aim too
     }
     if (this.relayQueue && (path.length > 0 || (fall && fall.slam)) && loser.hp > 0) this.relayQueue.push({ unit: loser, by: winner }); // Relay Strike may follow
-    return { path, fall };
+    if (path.length > 0 || fall) loser.knockPending = true; // showImpact leaves the body to the knockback
+    return { from, path, fall };
   }
 
   // ---------- Relay Strike (Suleiman's spec, roadmap 13.40) ----------
@@ -4244,39 +4260,15 @@ export default class BattleScene extends Phaser.Scene {
       } });
   }
 
-  // Shows the end of a push: a fall (a thud, dust, and the damage) and/or a
-  // slam into a wall (a jolt toward it and back, Disoriented).
-  showFall(unit, fall, awayX) {
-    if (!fall || !unit.view || !unit.view.active) return;
-    if (fall.levels > 0) {
-      play('crash');
-      dustPuff(this, unit.view.x, unit.view.y);
-      groundRing(this, unit.view.x, unit.view.y, 0xe8c08a, 1);
-      screenShake(this, 0.006, 160);
-      this.updateHpBar(unit);
-      this.floatText(unit, 'Fall -' + fall.damage, '#ff9a5a', { pop: true, big: fall.damage >= 8 });
-    }
-    if (fall.slam) {
-      const len = Math.hypot(fall.toward.x, fall.toward.y) || 1;
-      const jx = (fall.toward.x / len) * 14;
-      const jy = (fall.toward.y / len) * 14;
-      const delay = fall.levels > 0 ? 380 : 0;
-      this.time.delayedCall(delay, () => {
-        if (!unit.view || !unit.view.active) return;
-        if (unit.hp > 0) { // (a lethal slam is drawn by playDefeat: fly in, squash, slump)
-          play('bash');
-          this.tweens.add({ targets: unit.sprite, x: jx, y: jy, duration: 70, yoyo: true, ease: 'Quad.easeOut', onComplete: () => unit.sprite && (unit.sprite.y = 0) });
-          dustPuff(this, unit.view.x + jx * 1.6, unit.view.y + jy * 1.6);
-          screenShake(this, 0.005, 140);
-        }
-        this.updateHpBar(unit);
-        this.flashUnit(unit);
-        this.floatText(unit, 'Slammed! -' + fall.slam, '#ff9a5a', { pop: true });
-        this.time.delayedCall(420, () => unit.alive && this.floatText(unit, 'Disoriented', '#e3a8ff'));
-        this.refreshStatusTags();
-      });
-    }
-    if (unit.hp === 0) this.time.delayedCall(fall.levels > 0 && fall.slam ? 380 : 0, () => this.playDefeat(unit, awayX, fall.slam ? fall : null)); // a lethal slam is the death itself
+  // Shows a push. Every push in the battle comes through here (roadmap 18.1);
+  // the drawing itself is in src/knockback.js. The next turn waits until the
+  // body has come to rest (see endTurn).
+  //   pushed : what pushLoser returned ({ from, path, fall })
+  //   awayX  : which way it was pushed on the screen (more than 0 = right)
+  //   label  : optional words over its head, { text, color }
+  knockBack(unit, pushed, awayX, label = null) {
+    const ms = playKnockback(this, unit, pushed, awayX, label);
+    this.knockUntil = Math.max(this.knockUntil || 0, this.time.now + ms);
   }
 
   // One beat of a stance duel: work it out, then show it.
@@ -4353,6 +4345,7 @@ export default class BattleScene extends Phaser.Scene {
     if (!out.response.held) {
       const winStance = winner === beat.actor ? beat.actorStance : beat.holderStance;
       const pushed = this.pushLoser(loser, winner, (engagementRules.decisivePush[styleOf(winner)] || 1) + pushExtra(winner, winStance));
+      out.from = pushed.from;
       out.path = pushed.path;
       out.fall = pushed.fall;
       if (!loser.alive) {
@@ -4508,9 +4501,8 @@ export default class BattleScene extends Phaser.Scene {
           if (response.held) this.floatText(loser, 'Held ground!', '#d9b77a', above);
           else if (response.slipped) this.floatText(loser, 'Slipped!', '#9fd4ff', above);
           else if (!this.statusCard(loser, 'offbalance', { label: 'Off-balance!', color: '#ff6b5a', side: away(loser) })) this.floatText(loser, 'Off-balance!', '#ff6b5a', above);
-          if (path.length > 0) this.slideAlong(loser, path);
         }
-        if (outcome.fall) this.time.delayedCall(170 * Math.max(1, path.length) + 40, () => this.showFall(loser, outcome.fall, awayX));
+        if (path.length > 0 || outcome.fall) this.knockBack(loser, { from: outcome.from, path, fall: outcome.fall }, awayX);
       });
       if (ended && loser.alive && !outcome.fall) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
     }
@@ -4595,6 +4587,7 @@ export default class BattleScene extends Phaser.Scene {
     let response = null;
     let path = [];
     let fall = null;
+    let pushedFrom = null; // the tile the loser was pushed from
     let ended = false;
 
     if (result.loser) {
@@ -4605,6 +4598,7 @@ export default class BattleScene extends Phaser.Scene {
         const pushed = this.pushLoser(loser, result.winner, pushDistance(result));
         path = pushed.path;
         fall = pushed.fall;
+        pushedFrom = pushed.from;
       }
       // Pushed out of reach (or fell to its death): the engagement is over
       if (!loser.alive || distance(presser, holder) > 1) {
@@ -4612,14 +4606,14 @@ export default class BattleScene extends Phaser.Scene {
         ended = true;
       }
     }
-    return { result, response, path, ended, fall };
+    return { result, response, path, ended, fall, pushedFrom };
   }
 
   // The engagement animation. It plays out what runContest decided:
   //   wind up, both lunge, the blades meet, the result, then the loser's
   //   reaction and push back. A tap anywhere speeds it up.
   playContest(contest, opening, onDone) {
-    const { result, response, path, ended, fall } = contest;
+    const { result, response, path, ended, fall, pushedFrom } = contest;
     const a = result.presser;
     const b = result.holder;
     const aHome = { x: a.view.x, y: a.view.y };
@@ -4682,9 +4676,8 @@ export default class BattleScene extends Phaser.Scene {
           this.flashUnit(loser);
           if (!this.statusCard(loser, 'offbalance', { label: 'Off-balance!', color: '#ff6b5a', side: awayX >= 0 ? 1 : -1 })) this.floatText(loser, 'Off-balance!', '#ff6b5a');
         }
-        if (path.length > 0) this.slideAlong(loser, path);
+        if (path.length > 0 || fall) this.knockBack(loser, { from: pushedFrom, path, fall }, awayX);
         else if (!response.held) this.recoil(loser, awayX);
-        if (fall) this.time.delayedCall(170 * Math.max(1, path.length) + 40, () => this.showFall(loser, fall, awayX));
       });
       if (ended) at(1650, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
     }
@@ -4939,10 +4932,7 @@ export default class BattleScene extends Phaser.Scene {
       arrowShot(this, a.x, a.y, b.x, b.y, () => {
         this.showImpact(thrower, target, result, dx, target.hp === 0);
         if (pushed && (pushed.path.length || pushed.fall)) {
-          this.time.delayedCall(120, () => {
-            if (pushed.path.length) this.slideAlong(target, pushed.path); // (an empty path: it slammed into a wall where it stood)
-            this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
-          });
+          this.time.delayedCall(120, () => this.knockBack(target, pushed, dx)); // (an empty path: it slammed into a wall where it stood)
         }
       });
     });
@@ -5070,13 +5060,7 @@ export default class BattleScene extends Phaser.Scene {
       else this.time.delayedCall(520, () => crumbleSpike(this, rock)); // it broke against the foe
       this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
       if (pushed && (pushed.path.length || pushed.fall)) {
-        this.time.delayedCall(120, () => {
-          if (pushed.path.length) {
-            this.floatText(target, 'Thrown back!', '#d9a066', { rise: 46 });
-            this.slideAlong(target, pushed.path);
-          }
-          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
-        });
+        this.time.delayedCall(120, () => this.knockBack(target, pushed, dx, { text: 'Thrown back!', color: '#d9a066' }));
       }
     });
     this.time.delayedCall(frameMs * 4 + 380, () => {
@@ -5166,13 +5150,7 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(260 + 70 * reach, () => {
         this.showImpact(user, t, { hit: true, damage: landed.damage, note: landed.note }, away, t.hp === 0);
         if (pushed && (pushed.path.length || pushed.fall)) {
-          this.time.delayedCall(120, () => {
-            if (pushed.path.length) {
-              this.floatText(t, 'Thrown back!', '#e8c08a', { rise: 46 });
-              this.slideAlong(t, pushed.path);
-            }
-            this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(t, pushed.fall, away));
-          });
+          this.time.delayedCall(120, () => this.knockBack(t, pushed, away, { text: 'Thrown back!', color: '#e8c08a' }));
         }
       });
     });
@@ -5460,13 +5438,7 @@ export default class BattleScene extends Phaser.Scene {
         this.refreshStatusTags();
       }
       if (pushed && (pushed.path.length || pushed.fall)) {
-        this.time.delayedCall(140, () => {
-          if (pushed.path.length) {
-            this.floatText(target, 'Knocked back!', '#ff9a6a', { rise: 46 });
-            this.slideAlong(target, pushed.path);
-          }
-          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(target, pushed.fall, dx));
-        });
+        this.time.delayedCall(140, () => this.knockBack(target, pushed, dx, { text: 'Knocked back!', color: '#ff9a6a' }));
       }
       this.time.delayedCall(600, () => {
         charger.view.setDepth(depthFor(charger.col, charger.row) + 1);
@@ -5708,10 +5680,7 @@ export default class BattleScene extends Phaser.Scene {
       this.showImpact(user, r.unit, { hit: true, damage: r.damage, note: r.note }, dx, r.unit.hp === 0);
       const pushed = r.pushed;
       if (pushed && (pushed.path.length || pushed.fall)) {
-        this.time.delayedCall(160, () => {
-          if (pushed.path.length) this.slideAlong(r.unit, pushed.path);
-          this.time.delayedCall(170 * pushed.path.length + 60, () => this.showFall(r.unit, pushed.fall, dx));
-        });
+        this.time.delayedCall(160, () => this.knockBack(r.unit, pushed, dx));
       }
     };
     const finish = (ms) => {
@@ -6375,11 +6344,8 @@ export default class BattleScene extends Phaser.Scene {
     this.floatText({ view: decoy.view, topY: decoy.owner.topY }, 'Gust!', '#9fd4ff', { pop: true, rise: 40 });
     blown.forEach(({ u, pushed }) => {
       const awayX = u.view.x - decoy.view.x;
-      if (pushed.path.length) {
-        this.floatText(u, 'Blown back!', '#9fd4ff', { rise: 46 });
-        this.slideAlong(u, pushed.path);
-      } else if (pushed.held) this.floatText(u, 'Held!', '#d9b77a', { rise: 46 });
-      this.time.delayedCall(170 * Math.max(1, pushed.path.length) + 60, () => this.showFall(u, pushed.fall, awayX));
+      if (pushed.held) this.floatText(u, 'Held!', '#d9b77a', { rise: 46 });
+      this.knockBack(u, pushed, awayX, { text: 'Blown back!', color: '#9fd4ff' });
     });
     this.time.delayedCall(700, () => {
       this.refreshEngagementMarks();

@@ -101,7 +101,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.pushLoser(bull, gaha, 1); // pushed from (2,5) away from Gaha... (3,5) is the platform: blocked, wall slam
   reset([[gaha, 0, 3], [bull, 1, 3]]);
   const pushed = b.pushLoser(bull, gaha, 1);
-  if (pushed.path.length) b.slideAlong(bull, pushed.path);
+  b.knockBack(bull, pushed, 1);
   await sleep(600);
   check('11.4 a unit knocked into the water is Drenched', bull.col === 2 && bull.row === 3 && S.isDrenched(bull), bull.col + ',' + bull.row);
 

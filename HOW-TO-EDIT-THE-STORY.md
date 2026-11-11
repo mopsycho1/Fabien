@@ -486,3 +486,9 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Her Poison Arrow crouch is `"poses"` `"poison"` in `art.json`: four facings now.
 - Cut by `dev/tools/make_smoke.py` (needs the Mac tool `sips` for the HEIC files), wired by `dev/tools/wire_smoke.py`; the Blinded icon by `make_blinded_icon.py`.
 - Deaths (16.2): `playDefeat` in `BattleScene.js` is one continuous fall; a lethal push into a wall flies into it and slumps; `goldDissolve` in `src/spellArt.js` is the gold wipe, with the ground sigil `fx/death_sigil.png` (cut from `death_0` by `make_death_sigil.py`).
+
+## 11 Nov batch: one knockback (roadmap 18.1)
+- Every push in the battle is drawn by one file, `src/knockback.js`. The speeds and sizes are at the top of it, in `KNOCK`: `stepMs` (one tile on level ground), `dropMs` (a one level drop), `lift` (how far the body rises off the edge), `landHold` (how long it stays on hands and knees), `riseMs` (getting up), and the wall slam numbers.
+- Fall pictures go in `src/data/art.json` under the character's `poses`, three names: `fallAir` (thrown back, in the air), `fallLand` (on hands and knees), `fallRise` (pushing up). Draw them facing right; the game mirrors them. Gaha has them. A character without them leans its `hurt` picture back in the air and uses `kneel` or `down` on landing.
+- To cut a new fall sheet like Gaha's (one row: standing ruler, air, landed, rising): copy `dev/tools/make_gaha_fall.py`, change the names and the standing height, and run it with `~/.fabien-tools/venv/bin/python`.
+- To look at falls and slams: `node dev/browser/knock.cjs <out dir>` (add `desktop` for the big screen), then `python3 dev/browser/knock_sheet.py <out dir>`.

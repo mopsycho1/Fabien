@@ -513,6 +513,18 @@
         "file": "gaha_n6_down_single.png",
         "originX": 0.651
       },
+      "fallAir": {
+        "file": "gaha_fall_air.png",
+        "originX": 0.5
+      },
+      "fallLand": {
+        "file": "gaha_fall_land.png",
+        "originX": 0.494
+      },
+      "fallRise": {
+        "file": "gaha_fall_rise.png",
+        "originX": 0.496
+      },
       "victory": {
         "file": "gaha_n6_victory_single.png",
         "originX": 0.538
@@ -951,7 +963,8 @@
       }
     },
     "note_nov6": "Nov set (roadmap 6.28, 1.14): weakened, defeated, victory, Stone/Fury/Swift stances and their own attack, guard and dodge pictures (buffPoses), the dodge, Fury Dive, Sonic Javelin close range and wind-up. Facings are true views.",
-    "note_sonic": "Sonic Javelin throw (roadmap 6.28, 9.16): his 5 Nov 15:38 release pictures in four facings; the spear has left his hand (the flying spear and the 15:41 fire trail are effects)."
+    "note_sonic": "Sonic Javelin throw (roadmap 6.28, 9.16): his 5 Nov 15:38 release pictures in four facings; the spear has left his hand (the flying spear and the 15:41 fire trail are effects).",
+    "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
