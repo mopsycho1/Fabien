@@ -1,0 +1,8 @@
+{
+  "note": "Relay Strike (Suleiman's spec). When a push, pull or shove leaves a foe standing next to one of your units, that unit gets a free hit.",
+  "share": 0.6,
+  "offBalanceShare": 1,
+  "perPush": 2,
+  "secondShare": 0.5,
+  "text": "Relay Strike: when a foe is pushed and stops next to an ally, that ally strikes it for free (60 percent damage, full if the foe is Off-Balance). One per ally per round, two at most per push (the second hits at half strength). Not if the ally is in a clash, stunned or meditating, or cannot reach the foe. Works for both sides."
+}

@@ -18,6 +18,7 @@ import { startNextTurn, previewTurns } from '../turnOrder.js';
 import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, holdsDagger, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
+import relayRules from '../data/relay.json'; // Relay Strike numbers
 import { chooseMoveTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
 import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
@@ -187,6 +188,7 @@ export default class BattleScene extends Phaser.Scene {
     this.busy = false;              // true while something is moving or attacking
     this.battleOver = false;        // true once one side has been wiped out
     this.turnCount = 0;             // how many turns have been played
+    this.relayQueue = null;         // pushes made by the skill being cast, for Relay Strike (see collectRelays)
     this.highlights = [];           // the colored squares currently on screen
     this.reachableKeys = new Set(); // tiles the unit may walk to, written like "3,5"
     this.targetsInRange = [];       // the enemies the active hero can attack
@@ -4158,7 +4160,88 @@ export default class BattleScene extends Phaser.Scene {
       if (loser.hp === 0) this.defeat(loser);
       else this.interrupt(loser); // a fall or a slam breaks a trance or an aim too
     }
+    if (this.relayQueue && (path.length > 0 || (fall && fall.slam)) && loser.hp > 0) this.relayQueue.push({ unit: loser, by: winner }); // Relay Strike may follow
     return { path, fall };
+  }
+
+  // ---------- Relay Strike (Suleiman's spec, roadmap 13.40) ----------
+  // A skill that pushes starts collecting its pushes here; when the skill is
+  // done the wrapped onDone plays the free follow-up strikes, then carries on.
+  collectRelays(onDone) {
+    this.relayQueue = [];
+    return () => {
+      const queue = this.relayQueue || [];
+      this.relayQueue = null;
+      if (queue.length === 0 || this.battleOver) return onDone();
+      this.playRelays(queue, onDone);
+    };
+  }
+
+  // Can this ally relay-strike this foe now? It must be on the pusher's side,
+  // next to the foe, free (not in a clash, stunned or meditating), within reach
+  // of its weapon, and not have relayed already this round (one full cycle of turns).
+  canRelay(ally, foe) {
+    if (!ally.alive || ally.isDecoy || ally.side === foe.side) return false;
+    if (ally.engagedWith || isStunned(ally) || ally.meditating) return false;
+    if (distance(ally, foe) !== 1 || getTargetsInRange(ally, [foe]).length === 0) return false;
+    const cycle = this.units.filter((u) => u.alive).length;
+    return ally.relayTurn === undefined || this.turnCount - ally.relayTurn >= cycle;
+  }
+
+  // Works out who relays for each push, then plays them one after another.
+  playRelays(queue, done) {
+    const steps = []; // { ally, foe, nth }
+    for (const { unit: foe, by } of queue) {
+      if (!foe.alive) continue;
+      let nth = 0;
+      for (const ally of this.units) {
+        if (nth >= relayRules.perPush) break;
+        if (ally === by || ally.side !== by.side || !this.canRelay(ally, foe)) continue;
+        ally.relayTurn = this.turnCount; // used up for this round
+        steps.push({ ally, foe, nth });
+        nth++;
+      }
+    }
+    const next = (i) => {
+      if (i >= steps.length) return done();
+      const { ally, foe, nth } = steps[i];
+      if (!ally.alive || !foe.alive) return next(i + 1);
+      this.relayStrike(ally, foe, nth, (outcome) => (outcome ? this.endBattleFromRelay(outcome) : next(i + 1)));
+    };
+    this.busy = true;
+    next(0);
+  }
+
+  endBattleFromRelay(outcome) {
+    this.battleOver = true;
+    this.busy = false;
+    this.showResult(outcome);
+  }
+
+  // One free strike: a "Relay!" callout, a short dash at the foe, the hit, back to place.
+  relayStrike(ally, foe, nth, onDone) {
+    const share = (isOffBalance(foe) ? relayRules.offBalanceShare : relayRules.share) * (nth > 0 ? relayRules.secondShare : 1);
+    const landed = this.landHit(foe, Math.max(1, Math.round(getDamage(ally, foe) * share)));
+    foe.hp = Math.max(0, foe.hp - landed.damage);
+    if (foe.hp === 0) this.defeat(foe);
+    const outcome = this.checkBattleEnd();
+    this.refreshButtons();
+    const dx = foe.view.x - ally.view.x;
+    const dy = foe.view.y - ally.view.y;
+    this.faceToward(ally, dx, dy);
+    this.floatText(ally, 'Relay!', '#ffd27a', { rise: 44, pop: true });
+    play('whoosh');
+    this.showPose(ally, 'attack', dx);
+    const home = { x: ally.view.x, y: ally.view.y };
+    this.tweens.add({ targets: ally.view, x: home.x + dx * 0.45, y: home.y + dy * 0.45, duration: 110, ease: 'Quad.easeIn', delay: 120,
+      onComplete: () => {
+        this.showImpact(ally, foe, { hit: true, damage: landed.damage, note: landed.note }, dx, foe.hp === 0);
+        this.tweens.add({ targets: ally.view, x: home.x, y: home.y, duration: 160, delay: 90, ease: 'Quad.easeOut',
+          onComplete: () => {
+            if (ally.alive) this.showStanding(ally);
+            this.time.delayedCall(foe.hp === 0 ? 700 : 260, () => onDone(outcome));
+          } });
+      } });
   }
 
   // Shows the end of a push: a fall (a thud, dust, and the damage) and/or a
@@ -4825,6 +4908,7 @@ export default class BattleScene extends Phaser.Scene {
   // back a tile, away from the thrower (off a ledge, it falls). A knock that
   // carries it out of a clash breaks the clash.
   castThrow(thrower, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
     const result = rollAttack({ ...thrower, range: spell.range }, target);
     const dx = target.view.x - thrower.view.x;
     this.faceToward(thrower, dx, target.view.y - thrower.view.y);
@@ -4952,6 +5036,7 @@ export default class BattleScene extends Phaser.Scene {
   // nobody can walk through it and it stops arrows (setHeightLookup). If the
   // foe couldn't be moved, the spike breaks against it and no wall is left.
   castEarthDrive(user, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
     const tile = { col: target.col, row: target.row };
     const dx = target.view.x - user.view.x;
     this.faceToward(user, dx, target.view.y - user.view.y);
@@ -5024,6 +5109,7 @@ export default class BattleScene extends Phaser.Scene {
   // numbers are worked out first, like Earth Drive; the picture catches up.
   // Drawn with his attack pictures until Suleiman sends clap art.
   castClap(user, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
     const foes = this.clapFoes(user);
     const lead = foes[foes.length - 1]; // the nearest foe: he faces it
     const dx = lead ? lead.view.x - user.view.x : 1;
@@ -5287,6 +5373,7 @@ export default class BattleScene extends Phaser.Scene {
   //   stun      : Blitz (Swiftness). Stunned for a turn.
   // The charge uses up the rest of the unit's steps.
   castIntercept(charger, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
     const spot = this.chargeTile(charger, target, spell);
     if (!spot) {
       onDone();
@@ -5581,6 +5668,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   castSonicJavelin(user, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
     const plan = this.javelinForm(user, target, spell);
     const results = []; // { unit, damage, note, pushed }
     const strike = (u, damage, push) => {
