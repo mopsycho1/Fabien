@@ -45,7 +45,7 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 ### D. Reading the screen (phone, 390 x 844)
 - [ ] D1. Nothing over a unit's head overlaps a neighbour's (17.2). Test: a script that checks the nameplate boxes of adjacent units do not intersect.
 - [ ] D2. No floating word is cut by the screen edge or sits on another word (17.3). Test: every callout box inside the screen and no two intersect, logged over one battle.
-- [ ] D3. No test labels on screen ("H1", "E1", "Enemy 3"). Test: grep of all text objects during a battle.
+- [ ] D3. No test labels on screen ("H1", "E1", "Enemy 3"). An unnamed unit (the archers are generic, Suleiman 11 Nov) shows its class name ("Archer"), with no name or portrait needed. Test: grep of all text objects during a battle; the archer's label reads "Archer".
 - [ ] D4. All text is 11 real pixels tall or more; every button is 44 pixels tall or more (17.4, 17.5). Test: script measures text and hit boxes.
 - [ ] D5. The action menu always opens in the same place (17.5). Test: its position logged at every opening is identical.
 - [ ] D6. A fighter can be picked out from the floor at a glance (17.6). Test: Suleiman and Baiyee can name every unit's side on a still screenshot in 2 seconds; shadow and rim present on every figure.
@@ -182,7 +182,7 @@ All five are still there in today's run.
 ### 16. The board ends in a void; placeholder enemy (17.14, 17.12)
 - Black beyond the map edge on both screens.
 - "Enemy 3" with a generic face is the archer's name in units.json.
-- Fix: M17 (code fog and dust now; art ART5, ART6).
+- Fix: M17 (code fog and dust now; the archer shows her class name, no art needed for that; ART6 for the backdrop).
 
 ### 17. One 7,199 line file
 - BattleScene.js holds turns, AI, every skill and every animation. It is why the push code is copied 9 times. Not a player-facing gap, but it slows every milestone.
@@ -204,7 +204,7 @@ All five are still there in today's run.
 
 ## Part 3. Milestones, in order
 
-One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are 18.1 to 18.20 (Phase 18): 18.4 is M4, and so on. Letters A to H with a number (C1, D3) always mean a line of the Part 1 checklist; ART1 to ART10 are the art list in Part 4. "Done when" is the test.
+One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are 18.1 to 18.20 (Phase 18; 18.21 is the first item after 1.0): 18.4 is M4, and so on. Letters A to H with a number (C1, D3) always mean a line of the Part 1 checklist; ART1 to ART10 are the art list in Part 4. "Done when" is the test.
 
 | # | Milestone | Fixes | Done when | Art needed |
 |---|---|---|---|---|
@@ -224,10 +224,12 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | M14 | **Sound pass.** Recorded sounds for hits, steps, casts, UI, falls, deaths, mixed under the music. | Gap 12 | F4 passes. | None from Suleiman. Baiyee picks the source first. |
 | M15 | **Enemy play.** Healing self and allies (13.25), Sonic Burst and Earth Drive combo (13.38), AI fixes from the M11 log until both sides win 40 to 60 percent. | Gap 13 | G2, G3 pass. | ART10 optional (Sonic Burst frames). |
 | M16 | **Save, load, speed.** Save at each turn start and resume; loading bar; measure load time and frame rate; shrink the biggest pictures if needed. | Gap 14 | H2, H4, C4 pass. | None. |
-| M17 | **Edges and names.** Fog band and drifting dust below the board; the archer's real name and portrait wired. | 17.14, 17.12 | F5, D3 pass. | ART5 (name, portrait), ART6 (backdrop). Code fog ships without them. |
+| M17 | **Edges and names.** Fog band and drifting dust below the board; the archer shown by her class name ("Archer"), no name or portrait. | 17.14, 17.12 | F5, D3 pass. | ART6 (backdrop). Code fog ships without it. ART5 dropped (11 Nov). |
 | M18 | **Art drops.** One session per delivery: walk sheets (ART1), fall sets (ART2), redraws (ART3), the archer at full size (ART4). Cut with the M2 ruler so they land at the right size first time. | Gaps 1, 2, 3 (art part) | checklist B2, B4 pass; checklist A1 passes with real frames. | ART1 to ART4. |
 | M19 | **Front door.** Title with key art, drift and embers; story scenes with pictures, portraits and fades. | 17.8, 17.9 | Sheet on both screens. | ART9. |
 | M20 | **Release check.** Run the whole Part 1 checklist on phone and desktop; Baiyee and Suleiman each play 3 battles on their own phones; fix what they find. | All | Every box in Part 1 ticked. | None. |
+
+**Note on M10, team colours (11 Nov, Suleiman, voice note 1348):** he suggests white for the enemy team, so it stands out from ours, and says we are free to experiment. Before the build, test white first against one or two other colours, on one contact sheet of the same battle screenshot. Show that sheet to Baiyee before choosing. ART7 is optional now (see Part 4).
 
 Order logic: M1 to M4 are the named problems and need no art. M5 comes before the big screen changes so they can be trusted. M6 to M10 are the Phase 17 code items. M11 to M16 make it play like a finished game. M17 to M19 take art as it arrives. M18 can happen at any point after M2.
 
@@ -252,16 +254,22 @@ Order logic: M1 to M4 are the named problems and need no art. M5 comes before th
 | ART2 | **Fall set** | All 6, plus the bull | 3 frames per view, 2 views: (1) in the air, thrown back, limbs loose; (2) landed, on hands and knees; (3) pushing up to stand. White, 512 cells, ruler cell first. Frame 1 replaces every old "knocked" picture. | M18 | M1 tilts the hurt picture in the air and uses the existing down and kneel pictures. |
 | ART3 | **Redraws of old-style pictures** in the current isometric look | Gaha: victory, and the Sonic Javelin throw frames with his cloak on (6 frames). Sudeen: cast, victory. Layra: dodge (new), and a check of her set against her newest look (6.24). Rabdul: kneel and crumple in his cream outfit. Archer: dodge. | 2 views each, white, 512 cells, ruler cell first. "Knocked" for everyone is covered by ART2. | M18 (checklist B2) | M2 swaps each for the nearest new picture, which is consistent but plainer. |
 | ART4 | **The archer at full size** | Archer | First we check his originals in Fabien Blueprint: if they are 400 pixels or taller we re-cut and he draws nothing. Only if they are small: her standing, battle, aim and dagger pictures again at 400 pixels or more. | M18 | She stays a little soft on close-ups. |
-| ART5 | **Name and portrait for "Enemy 3"** | Archer | Her name. One portrait, head and shoulders, 512 x 512, framed like Gaha's; plus a hurt version. | M17 | "Enemy 3" stays, which fails D3. A name alone is enough to pass. |
+| ART5 | **Not needed: the archer is a generic unit** | Archer | None. An unnamed unit shows its class name ("Archer") on screen, with no name or portrait (Suleiman, 11 Nov). | M17 | Nothing. The class name passes D3. |
 | ART6 | **Cave depth backdrop**, and an optional Victory and Defeat lettering | Board | Backdrop: 2400 x 1400 or bigger, the cave falling away below and beside the arena (rock walls, mist, a few far lights), dark, nothing bright in the middle third where the board sits. Lettering: each word 1600 x 400 on black. | M17, M12 | Code fog, dust and a styled text banner. |
-| ART7 | **Colour accent per enemy** | Rabdul, Tayo, archer, bull | Not a redraw: tell us one cool or light accent colour per character (sash, cloth) and we test a tint; he redraws only if the tint looks wrong. | After M10 | Rim light and shadow from M10. |
+| ART7 | **Colour accent per enemy** | Rabdul, Tayo, archer, bull | Optional: Suleiman may send a curated version. | After M10 | Rim light and shadow from M10. |
 | ART8 | **Small icons** (6.19) | Swift, Fury, Stone, Slow, Rooted, Blinded | 96 x 96 each, bold single shape, 2 or 3 colours, on black. Must read at 18 pixels. | M6 | Current icons, shrunk (a bit blurry). |
 | ART9 | **Title and story art** | Front door | Title key art in two shapes: 1080 x 1920 (phone) and 1920 x 1080 (desktop), heroes and the logo lettering, with the logo also alone on black. Story: one picture per scene at 1920 x 1080 and a 512 x 512 speaker portrait per speaking character (the City of Chains shots 6.42 are the start). | M19 | Text screens stay as they are. |
 | ART10 | **Sonic Burst effect** (13.39) | Tayo | 8 frames on black, 512 cells, the burst centred on the same point in every frame: fists meeting, flash, sound rings spreading. The shockwave ring (6.40) is already here. | M15 (optional) | The punch pictures (6.39) and the ring we have. |
 
-**Most valuable first, if he can only do a little:** the name in ART5 (five minutes), then ART2 for Gaha and Sudeen, then ART1 for Gaha (toward the camera) and Sudeen, then ART3.
+**Most valuable first, if he can only do a little:** ART2 for Gaha and Sudeen, then ART1 for Gaha (toward the camera) and Sudeen, then ART3.
 
 **Nothing in M1 to M16 is blocked by art.** Art makes M17 to M19 and lifts the look of M1, M2 and M13.
+
+---
+
+## After 1.0
+
+**18.21 Generic version of every class (new 11 Nov, Suleiman, voice note 1348).** The archers are random units, not named characters. Fights will need a generic version of every class in jobs.json, each shown by its class name, with no name or portrait. Not part of 1.0. Art comes later and follows the Part 4 sheet rules.
 
 ---
 
