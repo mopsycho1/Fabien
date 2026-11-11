@@ -6,7 +6,7 @@ Written 11 Nov 2026. Planning only: nothing in the game changed with this docume
 
 **What "the battle system" covers here:** one full 3 v 3 fight in the Hidden Cavern with the current cast (Sudeen, Gaha, Layra against Rabdul, Tayo and the archer, the bull on the bench), from the first turn to the result screen, on an upright phone and on a desktop screen. Suleiman's ideas, characters and art style stay as they are.
 
-**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10), ramps (Phase 12), 4 v 4 and the wider cavern (Phase 14), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31, 6.38), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
+**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10), ramps (Phase 12), the wider cavern unless 4 v 4 needs it (14.2), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31, and whichever of Kofi 6.38 and the male sage 6.25 is not the 4th hero), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
 
 ## How this was checked
 
@@ -218,6 +218,7 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | M8 | **Desktop layout.** Bigger figures at rest on wide screens, title, story and result scale with the screen, hover and keyboard. | Gap 6 | E1, E2, E3 pass. | None. |
 | M9 | **Weight.** White flash, pale HP chunk that drains, number size by damage, turn banner in the side's colour. | 17.13, 17.15 | F1, F2 pass. | None. |
 | M10 | **Reading the board.** Contact shadow and team-colour rim on every figure, floor a little darker under them. Soft tiles with a bright pulsing edge, path line to the finger, red targets in the same style. | 17.6 (code part), 17.11 | D6, D7 pass. | ART7 later. |
+| M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: Kofi or the male sage, see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | A 4th hero. Nothing blocks a first playable version (see below). |
 | M11 | **Pace: measure, then cut.** 20 bot battles for a baseline (turns, who wins, skills used). Fast enemy turns. A fatigue rule (proposal: from round 6, every hit does +1 per round passed, both sides). | Gap 7, 13.34 | G1, G5 pass. Baiyee picks the rule before the build. | None. |
 | M12 | **The ending.** Slow last blow, dim board, the word sweeps in with a music sting, then turns, damage, who fell, faces. | 17.10 | F3 passes. | ART6 optional (banner). |
 | M13 | **Movement life in code.** A code walk for anyone without walk frames: two-beat step with lean, foot dust and a small squash, faster settle. Layra's walk is sand-driven (13.9, 13.41: she cannot walk unaided, sand and earth bound to her muscles move her, so sand gathers round her legs as she goes; not a plain float). Channel-then-cast pattern on the remaining spells (13.10). Any character's walk sheet drops in through `walkFrames` with no new code. | Gap 2 (code part), 13.9, 13.10 | Walk sheet for all 6: no one glides upright. | None. ART1 replaces the code walk per character. |
@@ -231,9 +232,35 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 
 **Note on M10, team colours (11 Nov, Suleiman, voice note 1348):** he suggests white for the enemy team, so it stands out from ours, and says we are free to experiment. Before the build, test white first against one or two other colours, on one contact sheet of the same battle screenshot. Show that sheet to Baiyee before choosing. ART7 is optional now (see Part 4).
 
-Order logic: M1 to M4 are the named problems and need no art. M5 comes before the big screen changes so they can be trusted. M6 to M10 are the Phase 17 code items. M11 to M16 make it play like a finished game. M17 to M19 take art as it arrives. M18 can happen at any point after M2.
+Order logic: M1 to M4 are the named problems and need no art. M5 comes before the big screen changes so they can be trusted. M6 to M10 are the Phase 17 code items. M10b (4 v 4, added 11 Nov because Suleiman asked when the 4th fighter comes) is before M11 so balancing is done once. M11 to M16 make it play like a finished game. M17 to M19 take art as it arrives. M18 can happen at any point after M2.
 
 ---
+
+### The 4th hero: art check (11 Nov, for M10b)
+
+Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture sent after 8 Nov 15:35 on one contact sheet, every voice note transcript, the PDFs through Spotlight) and the rest of Fabien Blueprint. **Nothing about Kofi or the male sage arrived after 8 Nov 15:35.** Kofi's spell kit and moveset ("i'll send the rest alongside his spell kit once i'm back home", 8 Nov 15:34) have not been sent. There is no written moveset for either of them anywhere. Nothing was missing from the roadmap log.
+
+| | Kofi the shaman (6.38) | Male sage (6.25) |
+|---|---|---|
+| **Have** | Standing, 4 views (1250). Battle-ready stance, 4 views (1251; 1252 and 1255 are more angles of it). Preparing a spell, 4 views (1254). All 1600 by 533, white background, about 400 pixels tall, painted floor shadow. | Standing, 4 views (1237 on a floor tile, 1238 the same on plain grey). Nothing else. |
+| Walk | Missing | Missing |
+| Attack | Missing (no strike or spell release picture) | Missing |
+| Hurt | Missing | Missing |
+| Fall (ART2) and down | Missing | Missing |
+| Dodge, guard | Missing | Missing |
+| Cast | Have the wind-up (1254). No release. | Missing |
+| Portrait, hurt face, shout | Missing (a face can be cropped from view 3 or 4 of 1250) | Missing (crop from 1238) |
+| Spell effects | None | None |
+| Moveset and class | None sent. Needs a class in jobs.json. | None needed if he is a second Sage (6.25: male versions so players can choose). |
+| Not cut, not in art.json | Yes | Yes |
+
+**What we can do now with the art we have**
+- The game already copes with missing pictures: no walk frames = the slide (the code walk in M13 covers everyone); no hurt picture = the standing picture with the white flash and recoil; no fall pictures = M1 leans the picture back; no down picture = the death topples the figure and dissolves it. So a fighter with only standing pictures can play a whole battle. It just looks plainer.
+- **Kofi can go in now as a working first version** (best feasible pick): his three sets give standing, the alert stance when a foe is near, and a cast pose. As a caster his attack is a spell, so the cast pose plus an effect we already have (lightning, fire, the Verse auras) reads fine. Until his own kit arrives he borrows the Sage's numbers and a small set of existing spells, marked temporary in jobs.json.
+- **The male sage can go in now only as a second Layra**: same Sage class and spells, standing picture for everything. Weaker to look at than Kofi (one pose), but needs no design.
+- A third option on file: the male archer (6.31) has a near complete set (stance, aim, fire, dagger, guard) and could share the archer's class. He is not what Suleiman asked for, so only if both above are rejected.
+
+**To make either of them finished (ask after Baiyee picks):** Kofi: his spell kit and moveset in words, then spell release, hurt, dodge, the ART2 fall set, down, a portrait, and his spell effects on black. Male sage: everything except standing. Both: ART1 walk sheets, same as the others.
 
 ## Part 4. Art needs (for Suleiman)
 
@@ -274,6 +301,7 @@ Order logic: M1 to M4 are the named problems and need no art. M5 comes before th
 ---
 
 ## Decisions needed from Baiyee
+0. New, 11 Nov, for M10b: the 4th hero. Proposed: Kofi now with a borrowed Sage kit, swapped for his own when Suleiman sends it. Then ask Suleiman for Kofi's kit and the missing pictures listed in "The 4th hero: art check".
 1. Agree that the rig is off the critical path for 1.0 (gap 2).
 2. The fatigue rule for M11 (proposal in the table) before that session.
 3. Where sounds come from for M14 (a licensed pack is proposed).
