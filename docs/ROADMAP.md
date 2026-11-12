@@ -167,6 +167,11 @@ Scout, Sovereign subset. Weak unbuffed, strongest buffed; each Verse changes his
 - [ ] 10.6 Class sheet v2 "Active and Echo" (1 Nov 19:04, incoming/2026-11-01/eve/King_Alagura_Class_Sheet_v2_Active_and_Echo.pdf): after receiving two blessings Alagara keeps one active and stashes the other (the Echo), and can switch between them. Not read yet (Baiyee at his weekly limit): read it first thing when Phase 10 starts. He's sending two more sheets for Alagara's techniques.
 Questions sent: hero in the test battle and who sits out (3v3)? Who is the Enchanter (Layra or someone new)? Claim on enemy buffs?
 
+- 12 Nov, the kings (18.27): Phase 10 is the first job after 1.0. The art each king already has:
+  - Alagura (also spelt Alagara in the files; treated as the same king, Baiyee to confirm): class sheet (31 Oct, PDF); battle, Swift, Fury and Earth front-on pictures and an iso neutral, all in incoming (6.21, not yet in the game); clash banner cut (public/art/clash/alagara_clash.webp and alagara_clash_name.webp). Suleiman's caption on the Email folder says Alagara's sheets are a rework of the old Gaha sprite, and Gaha was rebuilt as the spear unit (his caption, not checked).
+  - Gadara the Greater (6.22): turnaround in 8 directions, battle and attack iso pictures, mask on (4 views), mask south-west and mask spell, all in incoming (31 Oct); clash banner cut (public/art/clash/gadara_clash.webp and gadara_clash_name.webp); six-stage gravity spell effect (1 Nov).
+  - Gadara's moves: not written up, since her ability sheet has not arrived (6.47).
+
 ## Phase 14: 4 v 4 battles and a wider Hidden Cavern (logged 7 Nov, NOT built; do after Phase 10)
 - [ ] 14.1 4 v 4 battles. The 4th unit on each side comes from the reserve: the bull returns to the enemy side (out of sittingOut in cavern.json), and benched characters fill the free slots (units.json "bench", alsoFighting). New characters such as Alagara and Gadara join as they are built (Phase 10). Test with the 3 v 3 battles still passing. 11 Nov: now planned as 18.22 (milestone M10b), before the pace work.
 - [ ] 14.2 Widen the Hidden Cavern to 11 columns by 9 rows, enough for 8 units. Claude extends Suleiman's layout to match (heights, terrain letters, lamps, waterfalls, surround and starts), with no new markings from him. Needs non-square board support: GRID_SIZE is one number today (config.js, grid.js toView/fromView, boardArt.js, BattleScene.js) and the camera turns a quarter need to swap the two sizes. Do this after Phase 10.
@@ -266,7 +271,8 @@ One milestone per session. 18.n is milestone Mn in that file; read its row there
 - [ ] 18.24 Pace: keep the strategic element (Suleiman 12 Nov 06:05, voice note 1369: speeding battles up can remove the strategy; players should be rewarded for engaging with the systems and for a speedy win from good preparation, as Baiyee did with 40-plus plays). Input for M11 (pace); no change yet, decide the rule with Baiyee first.
 - [ ] 18.25 A document of the existing battle systems for Suleiman (his 12 Nov 06:58 text: "share all our existing battle systems in a document ... so i can review and start working towards finalizing everyone's skill set"). Not made. Ask Baiyee before making or sending it, since sending it outside is his call.
 - [ ] 18.26 Sharper old pictures on a big screen (Baiyee 11 Nov 22:13, voice note 1351: the old character PNGs look blurry on a computer; 22:38, voice note 1357: the archer looks blurry as a battlefield picture). ART4 covers the archer only; ask Suleiman for bigger originals for the others once the desktop check is done (18.20).
-- [ ] 18.27 Fourth fighter: which one, and the "kings" (Suleiman 11 Nov 22:55 to 22:56: "let's add the kings", "swap the archer out for kofi"; 22:55 "I'll render her anew", the character not named; Baiyee 22:38, voice note 1357: which fighter comes first, the transcript says "Coffee or the meal stage", probably Kofi or the male sage). Ask: which kings; is Kofi replacing the archer on the hero side or the enemy side (the archer is an enemy); who is "her".
+  - 12 Nov: the full-quality archer sheets came in the Email folder (19 sheets; see Files received). Their figures are 437 to 683 pixels tall, so ART4's height rule passes and no new drawing is needed. The cells are 543 wide, not 512; the cutter must set its own cell size. Contact sheet: Email/contact_archers_12nov.png. Not cut.
+- [x] 18.27 The kings and the archer, CLOSED 12 Nov (Baiyee's decision after Suleiman's messages 22:55 to 22:56). "The kings" = Alagara the Lesser and Gadara, Phase 10, after 1.0. "Swap the archer for Kofi" is settled: Kofi is the 4th hero; the archer stays an enemy (generic unit, 18.21). Built: nothing. Decided only.
 
 ## Phase 4: enemy skills (AI uses each) - DONE 1 Nov
 Art: his 29 Oct sheets in Fabien Blueprint/CHARACTER UPDATES (they were there all along; copies in incoming/2026-11-01/p4), cut by dev/tools/make_phase4.py, wired by wire_phase4.py. art.json "enchanted" = a look (battle pictures and poses) used while a unit is enchanted (art.js setLookLookup). Test dev/tests/n41.cjs (FABIEN_MAP=cavern), browser check dev/browser/phase4.cjs.
@@ -345,7 +351,7 @@ Status art batch notes: icons in public/art/icons (64x64), cards in public/art/c
 - [ ] 6.44 Cut scenes the Tactics way (Suleiman 11 Nov 12:58, voice note 1336; a new idea, not a picture): no need for elaborate art in every scene. Show a scene in an arena, or a simple interior (a house, a castle), built from the prompts we already use. Not built. APPROVED by Baiyee 11 Nov: yes, cut scenes the Tactics way, painted stills with text. Plan it with 6.34 and the gladiator arc (15.5, 13.15).
 - [ ] 6.45 Rabdul's own flame effects (Suleiman 12 Nov 05:58 to 06:00, voice note 1364 and texts). The voice note says his own flame effects are not in the game; his texts say the double hit ("Enchantment active") and the basic attack flame show. Check in the game which is true, then wire what is missing. Suleiman has not drawn the flame for Rabdul's neutral and battle-ready stance ("I'll get on that") or one for the archer's bow. Not built. Waiting on Suleiman's flame sheets (on black, 13.35) for the stances.
 - [ ] 6.46 Old attack animations still showing, and a missing flame (Suleiman 12 Nov 05:58, voice note 1364): some attack animations from the original sprite sheets are still in the game (the transcript says "Mataios", which is not a character name we use; check who he means). When a punch is thrown with Flame, the flame does not show, though Suleiman made the flame assets for it. Not built. Check the old animations are removed, then wire the flame assets.
-- [ ] 6.47 Ability sheets for Gadara and Alagura (Suleiman 12 Nov 07:33, voice note 1397: "I've only sent sheets for, I think, Gadara, Alagura, and Kofi"). Only Kofi's sheet is in the roadmap or the inbox. Alagura has a class sheet (31 Oct, Phase 10). Gadara has no ability sheet on file (only her spell effects, 1 Nov). Ask Suleiman to resend Gadara's sheet if it exists. Not built.
+- [ ] 6.47 Gadara's ability sheet (Suleiman 12 Nov 07:33, voice note 1397; the Email folder, 12 Nov). NOT RECEIVED. The file in Email is named "gadara's sheet.png" but is a phone HEIF photo, and it is Gadara's gravity spell effect (six growing stages on white, 1600 by 533, the same effect logged 1 Nov), not an ability sheet. So Gadara's moves cannot be written up yet. Ask Suleiman for her ability sheet. Not built.
 
 ## Phase 7: clash finishers (approved 29 Oct)
 - [ ] 7.1 Win a clash at +3 against a foe under a quarter health: the character's own finishing move (cut-in, the move, foe goes down) instead of the normal decisive hit. Needs one finishing-move sheet per character from Suleiman (he's fine with that).
@@ -542,3 +548,26 @@ Dev tools moved into the repo 31 Oct: dev/tests (test harness, `npm install` onc
 - 12 Nov 08:05 picture 1402 (gale spirit, Gale), same format. Checked, see 6.38. Not cut.
 - 12 Nov 08:05 voice note 1403 (Suleiman): excited about the spirit designs. No task, so no number.
 - 12 Nov 10:09 zip INBOX/2026-11-12/2026-11-12.zip: 657 files. Chat read from 11 Nov 22:13 (the last log was 22:21) to 09:14. Pictures opened on one contact sheet and a measure of each sheet's cells; 11 voice notes transcribed with whisper small via ~/.fabien-tools/venv (transcripts in INBOX/2026-11-12/voice-notes/transcripts.txt).
+- 12 Nov 20:43 Email/email.zip (35 MB, unzipped to Email/unzipped): 19 archer sheets, full quality, for ART4 (18.26). Each is 2172 by 724 pixels, white background, four figures (four views, or four frames for the run). Figure heights 437 to 683 pixels (passes the 400 rule). Cells 543 wide, not 512 (fails the cell size). Ruler: the first cell is not clearly the standing picture in most; check before cutting. Not cut. Poses and variants, from one contact sheet (Email/contact_archers_12nov.png), not zoomed:
+  - 1 Battle ready fem archer reverse: battle-ready, a female archer (possible new variant, to ask). Fails cell size; ruler to check.
+  - 2 Fallen Warrior Archer, four views: fallen on the ground (the fall set, ART2, for archers). Fails cell size; the figure is low, 437 pixels tall.
+  - 3 Four Views of a Horned Archer Warrior: aim and release, horned look (the game's archer already wears horns, so horned may be the current look). Fails cell size.
+  - 4 Four Views of a Horned Archer missing pov: aim, horned. The name says a view is missing; four views are shown, so check. Fails cell size.
+  - 5 Four Views of a Horned Archer: battle stance and aim, horned. Fails cell size.
+  - 6 Four Views of a Poisoning Archer: kneeling, drawing an arrow, poisoning variant (new variant). Fails cell size.
+  - 7 Four Views of the Archer Warrior: aim and release, warrior look. Fails cell size.
+  - 8 Four-Frame Golden Wind Archer Run: running, four frames (not views), golden wind variant (new). Fails cell size; frames, not views, so it is a run set.
+  - 9 Four-View African Archer Turnaround: standing turnaround, African variant (new). Fails cell size.
+  - 10 Four-View Archer Recoil Study: recoil. Fails cell size.
+  - 11 Four-View Archer Release Pose Turnaround: release. Fails cell size.
+  - 12 Four-View Horned Archer Character Sheet: battle and aim, horned. Fails cell size.
+  - 13 Horned Golden Archer Turnaround: standing turnaround, horned and golden (variant to ask). Fails cell size.
+  - 14 Ornate Archer Turnaround Sheet: battle and aim, ornate (variant to ask). Fails cell size.
+  - 15 Triumphant Archer Victory Sheet: victory. Fails cell size.
+  - 16 Triumphant Horned Archer Character Sheet: victory, horned. Fails cell size.
+  - 17 Wounded Archer Four-View Character Sheet: wounded, kneeling. Fails cell size.
+  - 18 Wounded Pixel Archer Turnaround Sheet: wounded, standing; the name says pixel, so check the style matches the others. Fails cell size.
+  - 19 Wounded archer reversed: wounded, kneeling or down. Fails cell size.
+- 12 Nov 20:56 Email/"gadara's sheet.png": a phone HEIF photo under a .png name (converted with sips to Email/converted/gadara_sheet.png). It is Gadara's gravity spell effect, six growing stages, not an ability sheet. 6.47 stays open.
+- 12 Nov: no full-quality spirit (1398, 1399, 1400, 1402) or Rabdul (1394, 1395) sheets are in the Email folder. The WhatsApp copies are still the only versions, so those stay uncut (6.38, 6.23).
+- Note on the folder name: it is Email (capital E) in the INBOX, not email/.

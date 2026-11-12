@@ -6,7 +6,10 @@ Written 11 Nov 2026. Planning only: nothing in the game changed with this docume
 
 **What "the battle system" covers here:** one full 3 v 3 fight in the Hidden Cavern with the current cast (Sudeen, Gaha, Layra against Rabdul, Tayo and the archer, the bull on the bench), from the first turn to the result screen, on an upright phone and on a desktop screen. Suleiman's ideas, characters and art style stay as they are.
 
-**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10), ramps (Phase 12), the wider cavern unless 4 v 4 needs it (14.2), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31 and the male sage 6.25; Kofi 6.38 is the 4th hero, decided 12 Nov), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
+**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10; the first job after 1.0; the kings are Alagara the Lesser and Gadara), ramps (Phase 12), the wider cavern unless 4 v 4 needs it (14.2), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31 and the male sage 6.25; Kofi 6.38 is the 4th hero, decided 12 Nov), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
+- **Phase 10, the first job after 1.0 (decided 12 Nov).** Art each king already has (details in roadmap Phase 10):
+  - Alagara the Lesser (Alagura in the roadmap): class sheet; battle, Swift, Fury and Earth front-on pictures and an iso neutral (in incoming, not yet in the game); clash banner cut.
+  - Gadara: 8-direction turnaround, battle and attack iso, mask on (4 views), mask south-west and mask spell (in incoming); clash banner cut; six-stage gravity spell effect. Her ability sheet has not arrived.
 
 ## How this was checked
 
@@ -270,6 +273,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 - **Kit in** (roadmap 6.38), from Suleiman's Kofi_Ability_Sheet.pdf: Haunt, Spirit Bolt, Call Spirit, Infuse. Numbers are placeholders. The sheet gives no range for Haunt or Spirit Bolt; Infuse reaches an ally within 3 tiles; Call Spirit raises a spirit on an adjacent tile.
 - **Still missing for Kofi:** walk; attack and spell release; hurt; dodge and guard; fall (ART2: in the air, on hands and knees, getting up); down; a portrait; a cast release (only the wind-up, 1254, is here); spell effects on black.
 - **Summons in, not cut:** flame (Ember, 1398), tide (1399), earth (Stone, 1400), gale (1402). Against the Part 4 rules: the cells are 400 pixels wide, not 512 (fails); no ruler cell (fails); a floor diamond under each, to be removed in the cut; white background (treated like characters); the four are four different designs, not palette swaps as the sheet suggests. Earth is shortest (about 410 pixels; the others 458 to 477). Ask Suleiman for full-quality files; these are WhatsApp copies.
+- **Swap the archer for Kofi:** settled 12 Nov. Kofi is the 4th hero; the archer stays an enemy.
 
 ## Part 4. Art needs (for Suleiman)
 
