@@ -271,6 +271,7 @@ One milestone per session. 18.n is milestone Mn in that file; read its row there
 - [ ] 18.24 Pace: keep the strategic element (Suleiman 12 Nov 06:05, voice note 1369: speeding battles up can remove the strategy; players should be rewarded for engaging with the systems and for a speedy win from good preparation, as Baiyee did with 40-plus plays). Input for M11 (pace); no change yet, decide the rule with Baiyee first.
 - [ ] 18.25 A document of the existing battle systems for Suleiman (his 12 Nov 06:58 text: "share all our existing battle systems in a document ... so i can review and start working towards finalizing everyone's skill set"). Not made. Ask Baiyee before making or sending it, since sending it outside is his call.
 - [ ] 18.26 Sharper old pictures on a big screen (Baiyee 11 Nov 22:13, voice note 1351: the old character PNGs look blurry on a computer; 22:38, voice note 1357: the archer looks blurry as a battlefield picture). ART4 covers the archer only; ask Suleiman for bigger originals for the others once the desktop check is done (18.20).
+  - 12 Nov, Baiyee: the Email archer sheets are the same old archer sheet at higher resolution (the old one was blurry), so they replace the blurry pictures. ART4 is answered by them; the poses and variant names in Files received are the captions, not new variants.
   - 12 Nov: the full-quality archer sheets came in the Email folder (19 sheets; see Files received). Their figures are 437 to 683 pixels tall, so ART4's height rule passes and no new drawing is needed. The cells are 543 wide, not 512; the cutter must set its own cell size. Contact sheet: Email/contact_archers_12nov.png. Not cut.
 - [x] 18.27 The kings and the archer, CLOSED 12 Nov (Baiyee's decision after Suleiman's messages 22:55 to 22:56). "The kings" = Alagara the Lesser and Gadara, Phase 10, after 1.0. "Swap the archer for Kofi" is settled: Kofi is the 4th hero; the archer stays an enemy (generic unit, 18.21). Built: nothing. Decided only.
 
@@ -549,20 +550,20 @@ Dev tools moved into the repo 31 Oct: dev/tests (test harness, `npm install` onc
 - 12 Nov 08:05 voice note 1403 (Suleiman): excited about the spirit designs. No task, so no number.
 - 12 Nov 10:09 zip INBOX/2026-11-12/2026-11-12.zip: 657 files. Chat read from 11 Nov 22:13 (the last log was 22:21) to 09:14. Pictures opened on one contact sheet and a measure of each sheet's cells; 11 voice notes transcribed with whisper small via ~/.fabien-tools/venv (transcripts in INBOX/2026-11-12/voice-notes/transcripts.txt).
 - 12 Nov 20:43 Email/email.zip (35 MB, unzipped to Email/unzipped): 19 archer sheets, full quality, for ART4 (18.26). Each is 2172 by 724 pixels, white background, four figures (four views, or four frames for the run). Figure heights 437 to 683 pixels (passes the 400 rule). Cells 543 wide, not 512 (fails the cell size). Ruler: the first cell is not clearly the standing picture in most; check before cutting. Not cut. Poses and variants, from one contact sheet (Email/contact_archers_12nov.png), not zoomed:
-  - 1 Battle ready fem archer reverse: battle-ready, a female archer (possible new variant, to ask). Fails cell size; ruler to check.
+  - 1 Battle ready fem archer reverse: battle-ready, a female archer (same archer, per Baiyee). Fails cell size; ruler to check.
   - 2 Fallen Warrior Archer, four views: fallen on the ground (the fall set, ART2, for archers). Fails cell size; the figure is low, 437 pixels tall.
   - 3 Four Views of a Horned Archer Warrior: aim and release, horned look (the game's archer already wears horns, so horned may be the current look). Fails cell size.
   - 4 Four Views of a Horned Archer missing pov: aim, horned. The name says a view is missing; four views are shown, so check. Fails cell size.
   - 5 Four Views of a Horned Archer: battle stance and aim, horned. Fails cell size.
-  - 6 Four Views of a Poisoning Archer: kneeling, drawing an arrow, poisoning variant (new variant). Fails cell size.
+  - 6 Four Views of a Poisoning Archer: kneeling, drawing an arrow, poisoning (caption name, same archer per Baiyee). Fails cell size.
   - 7 Four Views of the Archer Warrior: aim and release, warrior look. Fails cell size.
-  - 8 Four-Frame Golden Wind Archer Run: running, four frames (not views), golden wind variant (new). Fails cell size; frames, not views, so it is a run set.
-  - 9 Four-View African Archer Turnaround: standing turnaround, African variant (new). Fails cell size.
+  - 8 Four-Frame Golden Wind Archer Run: running, four frames (not views), golden wind (caption name, same archer per Baiyee). Fails cell size; frames, not views, so it is a run set.
+  - 9 Four-View African Archer Turnaround: standing turnaround, African (caption name, same archer per Baiyee). Fails cell size.
   - 10 Four-View Archer Recoil Study: recoil. Fails cell size.
   - 11 Four-View Archer Release Pose Turnaround: release. Fails cell size.
   - 12 Four-View Horned Archer Character Sheet: battle and aim, horned. Fails cell size.
-  - 13 Horned Golden Archer Turnaround: standing turnaround, horned and golden (variant to ask). Fails cell size.
-  - 14 Ornate Archer Turnaround Sheet: battle and aim, ornate (variant to ask). Fails cell size.
+  - 13 Horned Golden Archer Turnaround: standing turnaround, horned and golden (caption name). Fails cell size.
+  - 14 Ornate Archer Turnaround Sheet: battle and aim, ornate (caption name). Fails cell size.
   - 15 Triumphant Archer Victory Sheet: victory. Fails cell size.
   - 16 Triumphant Horned Archer Character Sheet: victory, horned. Fails cell size.
   - 17 Wounded Archer Four-View Character Sheet: wounded, kneeling. Fails cell size.
