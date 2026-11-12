@@ -29,7 +29,7 @@ if ! bash bundle.sh >/dev/null 2>&1; then
 fi
 
 # The tests that are not n*.cjs (the same list CLAUDE.md used to give).
-EXTRA="nov6b notes27 notes27b poison echo signatures gaha three archer sage-l approach speed duel-rules duel-scene terrain engage-scene tap-behind tap-circles tap-acted story-smoke rotate"
+EXTRA="ruler nov6b notes27 notes27b poison echo signatures gaha three archer sage-l approach speed duel-rules duel-scene terrain engage-scene tap-behind tap-circles tap-acted story-smoke rotate"
 
 # settings_for <name>: the map and bench settings a test needs (most need none).
 # n39 and n41 to n45 need the cavern map (see CLAUDE.md).

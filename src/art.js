@@ -156,11 +156,24 @@ export function textureKey(id, file) {
   return id + ':' + file;
 }
 
-// A frame is { key, flip, originX }. Flipping a frame mirrors where the body is too.
+// The size ruler (roadmap 18.2). "ruler" in art.json lists, per picture file,
+//   "scale": how much bigger or smaller to draw it so the head is the same
+//            size as in the standing picture (1 = as it is), and
+//   "feet":  where the ground is down the picture (1 = the bottom edge; 0.93
+//            when the last 7 percent is dust or a weapon tip below the feet).
+// A picture that is not listed is drawn as it is. dev/tools/ruler.py writes the list.
+export function rulerOf(id, file) {
+  const r = (art[id] && art[id].ruler && art[id].ruler[file]) || null;
+  return { scale: (r && r.scale) || 1, feet: (r && r.feet) || 1 };
+}
+
+// A frame is { key, flip, originX, scale, originY }. Flipping a frame mirrors where the body is too.
+// scale and originY come from the size ruler above.
 function makeFrame(id, value, mirrored) {
   const flip = mirrored ? !flipOf(value) : flipOf(value);
   const origin = originOf(value);
-  return { key: textureKey(id, fileOf(value)), flip, originX: mirrored ? 1 - origin : origin };
+  const rule = rulerOf(id, fileOf(value));
+  return { key: textureKey(id, fileOf(value)), flip, originX: mirrored ? 1 - origin : origin, scale: rule.scale, originY: rule.feet };
 }
 
 // True if this unit has pictures.

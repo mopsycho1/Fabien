@@ -54,8 +54,14 @@
         }
       },
       "cast": {
-        "file": "sudeen_cast.png",
-        "originX": 0.464
+        "upRight": {
+          "file": "sudeen_iso_heal_upRight.png",
+          "originX": 0.511
+        },
+        "downRight": {
+          "file": "sudeen_iso_heal_downRight.png",
+          "originX": 0.401
+        }
       },
       "guard": {
         "upLeft": {
@@ -86,8 +92,14 @@
         }
       },
       "knocked": {
-        "file": "sudeen_knocked.png",
-        "originX": 0.606
+        "upRight": {
+          "file": "sudeen_iso_hurt_upRight.png",
+          "originX": 0.324
+        },
+        "downRight": {
+          "file": "sudeen_iso_hurt_downRight.png",
+          "originX": 0.332
+        }
       },
       "down": {
         "file": "sudeen_n6_down_single.png",
@@ -351,7 +363,122 @@
         }
       }
     },
-    "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge."
+    "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge.",
+    "ruler": {
+      "sudeen_iso_battle_upRight.png": {
+        "scale": 0.9
+      },
+      "sudeen_iso_battle_downRight.png": {
+        "scale": 0.9
+      },
+      "sudeen_n9_windup_downLeft.png": {
+        "scale": 1.1
+      },
+      "sudeen_n9_windup_upRight.png": {
+        "scale": 1.1
+      },
+      "sudeen_n9_attack_downLeft.png": {
+        "scale": 1.11
+      },
+      "sudeen_n9_attack_upRight.png": {
+        "scale": 1.11
+      },
+      "sudeen_iso_heal_upRight.png": {
+        "scale": 1.29
+      },
+      "sudeen_iso_heal_downRight.png": {
+        "scale": 1.29
+      },
+      "sudeen_n8_guard_upLeft.png": {
+        "scale": 0.83
+      },
+      "sudeen_n8_guard_upRight.png": {
+        "scale": 0.83
+      },
+      "sudeen_n8_guard_downLeft.png": {
+        "scale": 0.83
+      },
+      "sudeen_n8_guard_downRight.png": {
+        "scale": 0.83
+      },
+      "sudeen_iso_hurt_upRight.png": {
+        "scale": 1.1
+      },
+      "sudeen_iso_hurt_downRight.png": {
+        "scale": 1.1
+      },
+      "sudeen_n6_down_single.png": {
+        "scale": 0.78
+      },
+      "sudeen_n6_bash_upLeft.png": {
+        "scale": 0.69
+      },
+      "sudeen_n6_bash_upRight.png": {
+        "scale": 0.69
+      },
+      "sudeen_n6_bash_downLeft.png": {
+        "scale": 0.69
+      },
+      "sudeen_n6_bash_downRight.png": {
+        "scale": 0.69
+      },
+      "sudeen_n6_stone_upLeft.png": {
+        "scale": 0.8
+      },
+      "sudeen_n6_stone_upRight.png": {
+        "scale": 0.8
+      },
+      "sudeen_n6_stone_downLeft.png": {
+        "scale": 0.8
+      },
+      "sudeen_n6_stone_downRight.png": {
+        "scale": 0.8
+      },
+      "sudeen_n6_swift_upLeft.png": {
+        "scale": 0.82
+      },
+      "sudeen_n6_swift_upRight.png": {
+        "scale": 0.82
+      },
+      "sudeen_n6_swift_downLeft.png": {
+        "scale": 0.82
+      },
+      "sudeen_n6_swift_downRight.png": {
+        "scale": 0.82
+      },
+      "sudeen_n9_fc_0.png": {
+        "scale": 1.2
+      },
+      "sudeen_n9_fc_1.png": {
+        "scale": 1.2
+      },
+      "sudeen_n9_fc_2.png": {
+        "scale": 1.2
+      },
+      "sudeen_n9_fc_3.png": {
+        "scale": 1.2
+      },
+      "sudeen_ram_0.png": {
+        "scale": 1.4
+      },
+      "sudeen_ram_1.png": {
+        "scale": 1.4
+      },
+      "sudeen_ram_2.png": {
+        "scale": 1.4
+      },
+      "sudeen_ram_3.png": {
+        "scale": 1.4
+      },
+      "sudeen_ram_4.png": {
+        "scale": 1.4
+      },
+      "sudeen_ram_5.png": {
+        "scale": 1.4
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures and \"cast\" his raised-arm heal pictures. The game leans the picture back itself."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -506,8 +633,8 @@
         }
       },
       "knocked": {
-        "file": "gaha_knocked.png",
-        "originX": 0.429
+        "file": "gaha_fall_air.png",
+        "originX": 0.5
       },
       "down": {
         "file": "gaha_n6_down_single.png",
@@ -964,7 +1091,236 @@
     },
     "note_nov6": "Nov set (roadmap 6.28, 1.14): weakened, defeated, victory, Stone/Fury/Swift stances and their own attack, guard and dodge pictures (buffPoses), the dodge, Fury Dive, Sonic Javelin close range and wind-up. Facings are true views.",
     "note_sonic": "Sonic Javelin throw (roadmap 6.28, 9.16): his 5 Nov 15:38 release pictures in four facings; the spear has left his hand (the flying spear and the 15:41 fire trail are effects).",
-    "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py."
+    "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py.",
+    "ruler": {
+      "gaha_iso_battle_upRight.png": {
+        "scale": 0.92
+      },
+      "gaha_iso_battle_downRight.png": {
+        "scale": 0.92
+      },
+      "gaha_n6_stoneGuard_upLeft.png": {
+        "scale": 1.25
+      },
+      "gaha_n6_stoneGuard_upRight.png": {
+        "scale": 1.25
+      },
+      "gaha_n6_stoneGuard_downLeft.png": {
+        "scale": 1.25
+      },
+      "gaha_n6_stoneGuard_downRight.png": {
+        "scale": 1.25
+      },
+      "gaha_n6_swiftStand_upLeft.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_swiftStand_upRight.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_swiftStand_downLeft.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_swiftStand_downRight.png": {
+        "scale": 1.13
+      },
+      "gaha_iso_attack_upRight.png": {
+        "scale": 1.12
+      },
+      "gaha_iso_attack_downRight.png": {
+        "scale": 1.12
+      },
+      "gaha_iso_guard_upRight.png": {
+        "scale": 0.9
+      },
+      "gaha_iso_guard_downRight.png": {
+        "scale": 0.9
+      },
+      "gaha_n6_dodge_upLeft.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_dodge_upRight.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_dodge_downLeft.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_dodge_downRight.png": {
+        "scale": 1.13
+      },
+      "gaha_iso_throw_downRight.png": {
+        "scale": 0.89
+      },
+      "gaha_iso_hurt_upLeft.png": {
+        "scale": 1.13
+      },
+      "gaha_iso_hurt_downRight.png": {
+        "scale": 1.13
+      },
+      "gaha_n6_down_single.png": {
+        "scale": 0.8
+      },
+      "gaha_n6_sonicPrep_upLeft.png": {
+        "scale": 1.42
+      },
+      "gaha_n6_sonicPrep_upRight.png": {
+        "scale": 1.42
+      },
+      "gaha_n6_sonicPrep_downLeft.png": {
+        "scale": 1.42
+      },
+      "gaha_n6_sonicPrep_downRight.png": {
+        "scale": 1.42
+      },
+      "gaha_n6_sonicClose_upLeft.png": {
+        "scale": 1.56
+      },
+      "gaha_n6_sonicClose_upRight.png": {
+        "scale": 1.56
+      },
+      "gaha_n6_sonicClose_downLeft.png": {
+        "scale": 1.56
+      },
+      "gaha_n6_sonicClose_downRight.png": {
+        "scale": 1.56
+      },
+      "gaha_n6_sonicThrow_upLeft.png": {
+        "scale": 1.84
+      },
+      "gaha_n6_sonicThrow_upRight.png": {
+        "scale": 1.84
+      },
+      "gaha_n6_sonicThrow_downLeft.png": {
+        "scale": 1.84
+      },
+      "gaha_n6_sonicThrow_downRight.png": {
+        "scale": 1.84
+      },
+      "gaha_sj_whirl_0.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_whirl_1.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_whirl_2.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_whirl_3.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_whirl_4.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_whirl_5.png": {
+        "scale": 0.82
+      },
+      "gaha_sj_throw_0.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_throw_1.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_throw_2.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_throw_3.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_throw_4.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_throw_5.png": {
+        "scale": 0.9
+      },
+      "gaha_sj_sweep_0.png": {
+        "scale": 0.75
+      },
+      "gaha_sj_sweep_1.png": {
+        "scale": 0.75
+      },
+      "gaha_sj_sweep_2.png": {
+        "scale": 0.75
+      },
+      "gaha_n6_furyDive_f0.png": {
+        "scale": 1.33
+      },
+      "gaha_n6_furyDive_f1.png": {
+        "scale": 1.33
+      },
+      "gaha_n6_furyDive_f2.png": {
+        "scale": 1.33
+      },
+      "gaha_n6_furyDive_f3.png": {
+        "scale": 1.33
+      },
+      "gaha_rooted_downRight.png": {
+        "scale": 1.29
+      },
+      "gaha_rooted_upRight.png": {
+        "scale": 1.29
+      },
+      "gaha_n6_stoneAttack_upLeft.png": {
+        "scale": 1.09
+      },
+      "gaha_n6_stoneAttack_upRight.png": {
+        "scale": 1.09
+      },
+      "gaha_n6_stoneAttack_downLeft.png": {
+        "scale": 1.09
+      },
+      "gaha_n6_stoneAttack_downRight.png": {
+        "scale": 1.09
+      },
+      "gaha_n6_furyAttack_upLeft.png": {
+        "scale": 1.34
+      },
+      "gaha_n6_furyAttack_upRight.png": {
+        "scale": 1.34
+      },
+      "gaha_n6_furyAttack_downLeft.png": {
+        "scale": 1.34
+      },
+      "gaha_n6_furyAttack_downRight.png": {
+        "scale": 1.34
+      },
+      "gaha_n6_swiftAttack_upLeft.png": {
+        "scale": 1.48
+      },
+      "gaha_n6_swiftAttack_upRight.png": {
+        "scale": 1.48
+      },
+      "gaha_n6_swiftAttack_downLeft.png": {
+        "scale": 1.48
+      },
+      "gaha_n6_swiftAttack_downRight.png": {
+        "scale": 1.48
+      },
+      "gaha_n6_swiftGuard_upLeft.png": {
+        "scale": 1.14
+      },
+      "gaha_n6_swiftGuard_upRight.png": {
+        "scale": 1.14
+      },
+      "gaha_n6_swiftGuard_downLeft.png": {
+        "scale": 1.14
+      },
+      "gaha_n6_swiftGuard_downRight.png": {
+        "scale": 1.14
+      },
+      "gaha_n6_swiftDodge_upLeft.png": {
+        "scale": 1.2
+      },
+      "gaha_n6_swiftDodge_upRight.png": {
+        "scale": 1.2
+      },
+      "gaha_n6_swiftDodge_downLeft.png": {
+        "scale": 1.2
+      },
+      "gaha_n6_swiftDodge_downRight.png": {
+        "scale": 1.2
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his in-the-air fall picture. The game leans the picture back itself."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -1031,8 +1387,14 @@
         }
       },
       "knocked": {
-        "file": "layra_knocked.png",
-        "originX": 0.502
+        "upRight": {
+          "file": "layra_iso_hurt2_upRight.png",
+          "originX": 0.435
+        },
+        "downRight": {
+          "file": "layra_iso_hurt2_downRight.png",
+          "originX": 0.382
+        }
       },
       "down": {
         "file": "layra_n6_down_single.png",
@@ -1136,7 +1498,35 @@
         "x": 0.6864,
         "y": 0.0266
       }
-    }
+    },
+    "ruler": {
+      "layra_iso_guard_upRight.png": {
+        "scale": 0.92
+      },
+      "layra_iso_guard_downRight.png": {
+        "scale": 0.92
+      },
+      "layra_iso_hurt2_upRight.png": {
+        "scale": 1.1
+      },
+      "layra_iso_hurt2_downRight.png": {
+        "scale": 1.1
+      },
+      "layra_n6_down_single.png": {
+        "scale": 1.1
+      },
+      "layra_n6_victory_single.png": {
+        "scale": 1.05
+      },
+      "layra_iso_blessed_upRight.png": {
+        "scale": 1.08
+      },
+      "layra_iso_blessed_downRight.png": {
+        "scale": 1.08
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses her hurt pictures. The game leans the picture back itself."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -1217,8 +1607,14 @@
         }
       },
       "knocked": {
-        "file": "bull_knocked.png",
-        "originX": 0.489
+        "upLeft": {
+          "file": "bull_iso_hurt_upLeft.png",
+          "originX": 0.309
+        },
+        "downLeft": {
+          "file": "bull_iso_hurt_downLeft.png",
+          "originX": 0.688
+        }
       },
       "down": {
         "upLeft": {
@@ -1436,7 +1832,8 @@
         }
       }
     },
-    "note_nov6b": "Nov set (roadmap 6.33): victory, weakened, defeated, shield throw and shield in flight, and the Bloodied Press look (stance, wind-up, strike, throw) that shows while he has Bloodied stacks."
+    "note_nov6b": "Nov set (roadmap 6.33): victory, weakened, defeated, shield throw and shield in flight, and the Bloodied Press look (stance, wind-up, strike, throw) that shows while he has Bloodied stacks.",
+    "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself."
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",
@@ -1943,8 +2340,22 @@
         }
       },
       "knocked": {
-        "file": "tayo_knocked.png",
-        "originX": 0.48
+        "upLeft": {
+          "file": "tayo_n6b_hurt_f1.png",
+          "originX": 0.259
+        },
+        "upRight": {
+          "file": "tayo_n6b_hurt_f2.png",
+          "originX": 0.182
+        },
+        "downLeft": {
+          "file": "tayo_n6b_hurt_f3.png",
+          "originX": 0.113
+        },
+        "downRight": {
+          "file": "tayo_n6b_hurt_f4.png",
+          "originX": 0.891
+        }
       },
       "down": {
         "upLeft": {
@@ -2222,7 +2633,146 @@
         "y": 0.0267
       }
     },
-    "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3."
+    "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3.",
+    "ruler": {
+      "tayo_n6b_battle_f1.png": {
+        "scale": 0.87
+      },
+      "tayo_n6b_battle_f2.png": {
+        "scale": 0.87
+      },
+      "tayo_n6b_battle_f3.png": {
+        "scale": 0.87
+      },
+      "tayo_n6b_battle_f4.png": {
+        "scale": 0.87
+      },
+      "tayo_n6b_punch_f1.png": {
+        "scale": 0.71
+      },
+      "tayo_n6b_punch_f2.png": {
+        "scale": 0.71
+      },
+      "tayo_n6b_punch_f3.png": {
+        "scale": 0.71
+      },
+      "tayo_n6b_punch_f4.png": {
+        "scale": 0.71
+      },
+      "tayo_n6b_guard_f1.png": {
+        "scale": 0.68
+      },
+      "tayo_n6b_guard_f2.png": {
+        "scale": 0.68
+      },
+      "tayo_n6b_guard_f3.png": {
+        "scale": 0.68
+      },
+      "tayo_n6b_guard_f4.png": {
+        "scale": 0.68
+      },
+      "tayo_dodge.png": {
+        "scale": 0.67
+      },
+      "tayo_n6b_hurt_f1.png": {
+        "scale": 0.88
+      },
+      "tayo_n6b_hurt_f2.png": {
+        "scale": 0.88
+      },
+      "tayo_n6b_hurt_f3.png": {
+        "scale": 0.88
+      },
+      "tayo_n6b_hurt_f4.png": {
+        "scale": 0.88
+      },
+      "tayo_n6b_down_f1.png": {
+        "scale": 0.65
+      },
+      "tayo_n6b_down_f2.png": {
+        "scale": 0.65
+      },
+      "tayo_n6b_down_f3.png": {
+        "scale": 0.65
+      },
+      "tayo_n6b_down_f4.png": {
+        "scale": 0.65
+      },
+      "tayo_n6d_blastWind_f1.png": {
+        "scale": 0.91
+      },
+      "tayo_n6d_blastWind_f2.png": {
+        "scale": 0.91
+      },
+      "tayo_n6d_blastWind_f3.png": {
+        "scale": 0.91
+      },
+      "tayo_n6d_blastWind_f4.png": {
+        "scale": 0.91
+      },
+      "tayo_drive_0.png": {
+        "scale": 0.61
+      },
+      "tayo_drive_1.png": {
+        "scale": 0.61
+      },
+      "tayo_drive_2.png": {
+        "scale": 0.61
+      },
+      "tayo_drive_3.png": {
+        "scale": 0.61
+      },
+      "tayo_n6b_weak_f1.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_weak_f2.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_weak_f3.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_weak_f4.png": {
+        "scale": 0.73
+      },
+      "tayo_n6c_gauntlet_f1.png": {
+        "scale": 0.91
+      },
+      "tayo_n6c_gauntlet_f2.png": {
+        "scale": 0.91
+      },
+      "tayo_n6c_gauntlet_f3.png": {
+        "scale": 0.91
+      },
+      "tayo_n6c_gauntlet_f4.png": {
+        "scale": 0.91
+      },
+      "tayo_n6b_punchFire_f1.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_punchFire_f2.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_punchFire_f3.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_punchFire_f4.png": {
+        "scale": 0.73
+      },
+      "tayo_n6b_block_f1.png": {
+        "scale": 0.75
+      },
+      "tayo_n6b_block_f2.png": {
+        "scale": 0.75
+      },
+      "tayo_n6b_block_f3.png": {
+        "scale": 0.75
+      },
+      "tayo_n6b_block_f4.png": {
+        "scale": 0.75
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
@@ -2471,6 +3021,39 @@
         "x": 0.5394,
         "y": 0.0266
       }
-    }
+    },
+    "ruler": {
+      "rabdul_hurt_downLeft.png": {
+        "scale": 0.85
+      },
+      "rabdul_hurt_upLeft.png": {
+        "scale": 0.85
+      },
+      "rabdul_hurt_upRight.png": {
+        "scale": 0.85
+      },
+      "rabdul_fall_0.png": {
+        "scale": 0.8
+      },
+      "rabdul_fall_1.png": {
+        "scale": 0.8
+      },
+      "rabdul_fall_2.png": {
+        "scale": 0.8
+      },
+      "rabdul_n6b_down_f1.png": {
+        "scale": 0.85
+      },
+      "rabdul_n6b_down_f3.png": {
+        "scale": 0.85
+      },
+      "rabdul_n6b_weak_f1.png": {
+        "scale": 0.85
+      },
+      "rabdul_n6b_weak_f3.png": {
+        "scale": 0.85
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }

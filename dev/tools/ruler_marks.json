@@ -1,0 +1,88 @@
+{
+  "note": "Hand corrections for the size ruler (dev/tools/ruler.py). Per character: \"scale\" = draw this picture, or this whole family of pictures (the file name without its facing or frame number), at this size, when the head finder is wrong; \"feet\" = where the ground is down the picture (1 = bottom edge), for pictures with dust, a weapon tip or a lying body below the feet. Run 'ruler.py measure' after any change. \"family\" = put a picture in a family by hand when its file name does not say so.",
+  "h2": {
+    "family": {
+      "gaha_iso_walk0.png": "gaha_iso_walk",
+      "gaha_iso_walk1.png": "gaha_iso_walk",
+      "gaha_iso_walk2.png": "gaha_iso_walk"
+    },
+    "scale": {
+      "gaha_n6_victory": 1.0,
+      "gaha_n6_down": 0.8
+    },
+    "feet": {}
+  },
+  "h1": {
+    "scale": {
+      "sudeen_n8_guard": 0.83,
+      "sudeen_n6_victory": 1.0,
+      "sudeen_n9_fc": 1.2,
+      "sudeen_ram": 1.4,
+      "sudeen_n6_stone": 0.8,
+      "sudeen_n6_swift": 0.82,
+      "sudeen_n9_furyAttack": 1.0
+    },
+    "feet": {}
+  },
+  "h3": {
+    "scale": {
+      "layra_n6_down": 1.1,
+      "layra_n6_victory": 1.05,
+      "layra_iso_hurt2": 1.1,
+      "layra_iso_blessed": 1.08,
+      "layra_n6_hurt": 1.0
+    },
+    "feet": {}
+  },
+  "e1": {
+    "scale": {
+      "tayo_n6b_victory": 1.0
+    },
+    "feet": {}
+  },
+  "e4": {
+    "note": "Rabdul is bald, so the head finder has no hair to go by: every family is set by eye.",
+    "scale": {
+      "rabdul_fall": 0.8,
+      "rabdul_hurt": 0.85,
+      "rabdul_iso_attack": 1.0,
+      "rabdul_iso_battle": 1.0,
+      "rabdul_iso_cast": 1.0,
+      "rabdul_iso_chant": 1.0,
+      "rabdul_iso_dodge": 1.0,
+      "rabdul_iso_fire": 1.0,
+      "rabdul_iso_stand": 1.0,
+      "rabdul_n6b_down": 0.85,
+      "rabdul_n6b_multi": 1.0,
+      "rabdul_n6b_multiFire": 1.0,
+      "rabdul_n6b_victory": 1.0,
+      "rabdul_n6b_weak": 0.85
+    },
+    "feet": {}
+  },
+  "e2": {
+    "note": "The bull: horns and bronze confuse the head finder, so every family is set by eye.",
+    "scale": {
+      "bull_dodge": 1.0,
+      "bull_ench_attack": 1.0,
+      "bull_ench_battle": 1.0,
+      "bull_iso_attack": 1.0,
+      "bull_iso_battle": 1.0,
+      "bull_iso_hurt": 1.0,
+      "bull_iso_stand": 1.0,
+      "bull_knocked": 1.0,
+      "bull_n6b_bl1": 1.0,
+      "bull_n6b_bl3": 1.0,
+      "bull_n6b_bl4": 1.0,
+      "bull_n6b_bl5": 1.0,
+      "bull_n6b_bl6": 1.0,
+      "bull_n6b_down": 1.0,
+      "bull_n6b_shield": 1.0,
+      "bull_n6b_throw1": 1.0,
+      "bull_n6b_throw2": 1.0,
+      "bull_n6b_victory": 1.0,
+      "bull_n6b_weak": 0.9
+    },
+    "feet": {}
+  }
+}

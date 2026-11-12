@@ -1287,13 +1287,14 @@ export default class BattleScene extends Phaser.Scene {
       body = this.add.ellipse(0, 2, 62, 28).setStrokeStyle(3, ringColor);
 
       // The picture stands on the tile: its feet are at the tile's middle
-      sprite = this.add.image(0, 6, frame.key).setOrigin(frame.originX, 1);
+      sprite = this.add.image(0, 6, frame.key).setOrigin(frame.originX, frame.originY || 1);
       // Every picture of this unit is drawn at one size, set so its TALLEST
       // standing picture is "height" pixels (so it never depends on which way
       // it happens to face first: a side view without the staff overhead is shorter)
       const tallest = Math.max(...standingKeys(data.id).filter((k) => this.textures.exists(k)).map((k) => this.textures.get(k).getSourceImage().height));
       artScale = height / (Number.isFinite(tallest) && tallest > 0 ? tallest : sprite.height);
-      sprite.setScale(artScale).setFlipX(frame.flip);
+      // (the size ruler, roadmap 18.2, then corrects single pictures cut too big or too small: frame.scale)
+      sprite.setScale(artScale * (frame.scale || 1)).setFlipX(frame.flip);
 
       topY = height + 12;
       centerY = height * 0.55;
@@ -1342,18 +1343,22 @@ export default class BattleScene extends Phaser.Scene {
 
     // Idle motion: the figure breathes, rising and settling a little, so it
     // never looks frozen. Each unit starts at a different moment.
+    // A picture breathes through a number going 0 to 1 and back ("breath"), not through a
+    // fixed height: its resting size changes with the picture it shows (the size ruler, 18.2).
     const idleTargets = sprite ? [sprite] : [body, labelText];
+    const breath = { v: 0 };
     const idleTween = this.tweens.add({
-      targets: idleTargets,
-      ...(sprite ? { scaleY: artScale * 1.035 } : { scaleX: 1.06, scaleY: 1.08 }),
+      targets: sprite ? breath : idleTargets,
+      ...(sprite ? { v: 1 } : { scaleX: 1.06, scaleY: 1.08 }),
       duration: 850 + Math.random() * 450,
       delay: Math.random() * 900,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
+      onUpdate: () => { if (sprite && sprite.active) sprite.scaleY = unit.artScale * (1 + 0.035 * breath.v); },
     });
 
-    return {
+    const unit = {
       ...data,
       maxHp: data.hp,
       ct: 0,
@@ -1364,7 +1369,10 @@ export default class BattleScene extends Phaser.Scene {
       view,
       body,
       sprite,
-      artScale,
+      baseScale: artScale,                              // the one size for all this unit's pictures
+      frameScale: usePicture ? frame.scale || 1 : 1,    // the size ruler's correction for the picture shown now
+      // the size the picture shown now is drawn at, at rest (what squashes and bounces return to)
+      get artScale() { return this.baseScale * this.frameScale; },
       ringColor,
       topY,
       centerY,
@@ -1375,6 +1383,7 @@ export default class BattleScene extends Phaser.Scene {
       idleTargets,
       idleTween,
     };
+    return unit;
   }
 
   // ---------- Turns ----------
@@ -3278,7 +3287,15 @@ export default class BattleScene extends Phaser.Scene {
     if (!unit.sprite || !unit.sprite.active || !frame || !this.textures.exists(frame.key)) return false;
     unit.sprite.setTexture(frame.key);
     unit.sprite.setFlipX(frame.flip);
-    unit.sprite.setOrigin(frame.originX, 1);
+    // The size ruler (roadmap 18.2): this picture's own scale and ground line. The sprite is
+    // multiplied by new over old, so a squash or a breath that is under way keeps its shape.
+    const scale = frame.scale || 1;
+    const was = unit.frameScale || 1;
+    if (scale !== was) {
+      unit.sprite.setScale(unit.sprite.scaleX * scale / was, unit.sprite.scaleY * scale / was);
+      unit.frameScale = scale;
+    }
+    unit.sprite.setOrigin(frame.originX, frame.originY || 1);
     if (unit.wading) this.cropWading(unit); // wading: the new picture's feet stay under the water too
     return true;
   }
@@ -3675,6 +3692,8 @@ export default class BattleScene extends Phaser.Scene {
       // the old picture stays under the new one as a ghost and fades out
       const ghost = this.add.image(sprite.x, sprite.y, sprite.texture.key).setOrigin(sprite.originX, sprite.originY).setFlipX(sprite.flipX);
       view.addAt(ghost, view.getIndex(sprite));
+      ghost.rule = unit.frameScale || 1; // the old picture's own ruler scale (18.2), kept while it fades
+      ghost.setScale(sprite.scaleX, sprite.scaleY);
       ghosts.push(ghost);
       this.showFrame(unit, frame);
       sprite.setAlpha(0);
@@ -3687,7 +3706,8 @@ export default class BattleScene extends Phaser.Scene {
     const starts = names.slice(1).map((n, i) => (wall ? 0.4 : 0.25) + (wall ? 0.4 : 0.45) * ((i + 0.5) / (names.length - 1)));
     let nextFade = 0;
 
-    const base = sprite ? { sx: sprite.scaleX, sy: sprite.scaleY } : null;
+    // the resting size, read fresh each time: it changes with the picture shown (size ruler, 18.2)
+    const base = sprite ? { get sx() { return unit.artScale || sprite.scaleX; }, get sy() { return unit.artScale || sprite.scaleY; } } : null;
     const x0 = view.x;
     const y0 = view.y;
     const land = wall ? 0.3 : 0.45;   // the share of the fall at which it hits the ground or the wall
@@ -3730,7 +3750,7 @@ export default class BattleScene extends Phaser.Scene {
         }
         // the picture swaps are fades, started on the way
         while (nextFade < starts.length && p >= starts[nextFade]) fadeTo(names[++nextFade]);
-        for (const g of ghosts) g.setAngle(sprite.angle).setScale(sprite.scaleX, sprite.scaleY);
+        for (const g of ghosts) { const k = g.rule / (unit.frameScale || 1); g.setAngle(sprite.angle).setScale(sprite.scaleX * k, sprite.scaleY * k); }
         // the hit: a squash and the dust, once
         if (!landed && p >= land) {
           landed = true;
@@ -4763,7 +4783,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     const cut = Math.round(TILE_HEIGHT * 0.16) / Math.abs(s.scaleY || 1);
-    s.setCrop(0, 0, s.frame.realWidth, Math.max(1, s.frame.realHeight - cut));
+    s.setCrop(0, 0, s.frame.realWidth, Math.max(1, s.frame.realHeight * s.originY - cut)); // from the feet (originY: the ruler's ground line)
   }
 
   // An engaged unit spends its turn trying to get loose.
@@ -5304,7 +5324,7 @@ export default class BattleScene extends Phaser.Scene {
       const flight = moveFrames(thrower.id, 'shieldFlight', dx >= 0 ? 'right' : 'left');
       let shield;
       if (flight) {
-        shield = this.add.image(a.x, a.y, flight.frames[0].key).setDepth(79).setScale(thrower.artScale || 0.5);
+        shield = this.add.image(a.x, a.y, flight.frames[0].key).setDepth(79).setScale((thrower.baseScale || 0.5) * (flight.frames[0].scale || 1));
         let n = 0;
         const spin = this.time.addEvent({ delay: flight.frameMs, loop: true, callback: () => { n++; const f = flight.frames[n % flight.frames.length]; shield.setTexture(f.key).setFlipX(f.flip); } });
         shield.once('destroy', () => spin.remove());
@@ -5675,7 +5695,7 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshButtons();
 
     const art = hasSonicArt(this);
-    const scale = user.artScale || 0.5;
+    const scale = user.baseScale || 0.5;
     const showHit = (r, dx) => {
       this.showImpact(user, r.unit, { hit: true, damage: r.damage, note: r.note }, dx, r.unit.hp === 0);
       const pushed = r.pushed;
@@ -6218,7 +6238,7 @@ export default class BattleScene extends Phaser.Scene {
     const pieces = [this.add.ellipse(0, 0, 46, 20, 0x000000, 0.3)];
     if (owner.sprite) {
       pieces.push(this.add.ellipse(0, 2, 62, 28).setStrokeStyle(3, owner.ringColor));
-      const img = this.add.image(0, 6, owner.sprite.texture.key).setOrigin(owner.sprite.originX, 1);
+      const img = this.add.image(0, 6, owner.sprite.texture.key).setOrigin(owner.sprite.originX, owner.sprite.originY);
       img.setScale(owner.artScale).setFlipX(owner.sprite.flipX);
       pieces.push(img);
       // it breathes like a living unit

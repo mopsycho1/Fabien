@@ -84,7 +84,8 @@ export function playKnockback(scene, unit, pushed, awayX = 0, label = null) {
   const knock = { cancelled: false };
   unit.knock = knock; // while this is set, showStanding leaves the unit's picture alone
   const alive = () => !knock.cancelled && view.active;
-  const base = sprite ? { sx: unit.artScale || sprite.scaleX, sy: unit.artScale || sprite.scaleY } : null;
+  // the resting size, read fresh each time: it changes with the picture shown (size ruler, roadmap 18.2)
+  const base = sprite ? { get sx() { return unit.artScale || sprite.scaleX; }, get sy() { return unit.artScale || sprite.scaleY; } } : null;
   if (unit.idleTween) unit.idleTween.pause(); // the breathing would fight the squash
 
   // the tiles it passes, the first being where it stood

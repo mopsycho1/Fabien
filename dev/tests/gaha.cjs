@@ -14,7 +14,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);
   const keys = game.textures.getTextureKeys().filter((k) => k.startsWith('h2:gaha_'));
-  check('all 111 of his pictures (6.3: and the 12 thrust frames; 18.1: his 3 fall pictures) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 111, keys.length);
+  check('all 110 of his pictures (6.3: and the 12 thrust frames; 18.1: his 3 fall pictures; 18.2: the old knocked picture is gone, his in-the-air fall picture stands in) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 110, keys.length);
   for (const u of b.units) put(u, 7, 7);
   put(U('H1'), 0, 7); put(U('H3'), 1, 7); put(U('E1'), 7, 0); put(U('E2'), 6, 0); put(U('E3'), 5, 0); put(gaha, 3, 6);
   b.faceNearestOpponent(gaha);
@@ -33,7 +33,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   for (const pose of ['windup', 'attack', 'ready', 'guard', 'dodge', 'hurt', 'knocked', 'down', 'victory']) {
     b.showPose(gaha, pose, 1);
     const isoName = { windup: 'battle', ready: 'battle' }[pose] || pose;
-    if (!gaha.sprite.texture.key.endsWith('gaha_' + pose + '.png') && !new RegExp('gaha_(iso|n6)_' + isoName + '_').test(gaha.sprite.texture.key) && !(pose === 'dodge' && /gaha_cu_clashSlip_/.test(gaha.sprite.texture.key))) check('pose ' + pose, false, gaha.sprite.texture.key);
+    if (!gaha.sprite.texture.key.endsWith('gaha_' + pose + '.png') && !new RegExp('gaha_(iso|n6)_' + isoName + '_').test(gaha.sprite.texture.key) && !(pose === 'dodge' && /gaha_cu_clashSlip_/.test(gaha.sprite.texture.key)) && !(pose === 'knocked' && /gaha_fall_air/.test(gaha.sprite.texture.key) /* 18.2 */)) check('pose ' + pose, false, gaha.sprite.texture.key);
   }
   check('every action pose shows', true);
   b.showStanding(gaha);
