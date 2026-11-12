@@ -492,3 +492,11 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Fall pictures go in `src/data/art.json` under the character's `poses`, three names: `fallAir` (thrown back, in the air), `fallLand` (on hands and knees), `fallRise` (pushing up). Draw them facing right; the game mirrors them. Gaha has them. A character without them leans its `hurt` picture back in the air and uses `kneel` or `down` on landing.
 - To cut a new fall sheet like Gaha's (one row: standing ruler, air, landed, rising): copy `dev/tools/make_gaha_fall.py`, change the names and the standing height, and run it with `~/.fabien-tools/venv/bin/python`.
 - To look at falls and slams: `node dev/browser/knock.cjs <out dir>` (add `desktop` for the big screen), then `python3 dev/browser/knock_sheet.py <out dir>`.
+
+## 12 Nov batch: the size ruler, the sharp archer, Kofi's first pictures (roadmap 18.2, 18.26, 6.38)
+- Every character has a `"ruler"` list in `src/data/art.json`: per picture file, `"scale"` (1.4 = drawn 1.4 times bigger, so the head matches the standing picture) and, for a few, `"feet"` (0.94 = the ground is 94 percent of the way down the picture; the rest is dust below the feet). A picture that is not listed is drawn as it is. Do not edit the list by hand: the tool writes it.
+- To change a size by hand, edit `dev/tools/ruler_marks.json` (per character: `"scale"` for one file or a whole family of files, `"feet"`, `"family"`), then run `~/.fabien-tools/venv/bin/python dev/tools/ruler.py measure`. `ruler.py audit` checks every head is within 8 percent; `ruler.py sheets <folder>` draws the contact sheets.
+- A new character needs the box round the head of each standing picture in `dev/tools/ruler_heads.json` (left, top, right, bottom in the picture's own pixels) before the tool can measure him.
+- New four-figure sheets are cut at the right size from the start with `dev/tools/sheet4.py` (see `make_archer_hq.py` and `make_kofi.py`): the standing sheet is the ruler, 300 pixels tall.
+- Kofi is `"h4"` in `art.json` (standing, battle, and his casting pose as `windup` and `cast`). He is not in `units.json` yet.
+

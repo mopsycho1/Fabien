@@ -195,7 +195,7 @@ def cmd_sheets(folder, old_root, ids):
     for cid in ids or list(art):
         if 'standing' not in art[cid]:
             continue
-        name = names.get(cid, art[cid].get('name', cid))
+        name = {'e3': 'Archer'}.get(cid) or names.get(cid, art[cid].get('name', cid))   # units.json still calls her "Enemy 3"
         halves = []
         if old_art and cid in old_art and not os.environ.get('RULER_CHECK'):
             old = dict(old_art[cid]); old.pop('ruler', None)

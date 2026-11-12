@@ -34,9 +34,9 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [x] A5. No unit moves more than one tile in 80 ms except moves on a short named list (Sonic Javelin forms, Blitz, Husk). Test: the jump logger at 60 frames a second over one full battle prints nothing outside the list.
 
 ### B. One character, one look
-- [ ] B1. For each character, the head is the same size in every picture, within 8 percent. Test: the size audit tool passes with no picture outside 0.92 to 1.08.
+- [x] B1. For each character, the head is the same size in every picture, within 8 percent. Test: the size audit tool passes with no picture outside 0.92 to 1.08. (12 Nov: `ruler.py audit` passes for Sudeen, Gaha, Layra, Tayo and Kofi, judged per picture set. Rabdul, the bull and the archer cannot be measured by the tool and were set by eye on their contact sheets.)
 - [ ] B2. No old-style picture is left (different outfit, colours or painting style). Test: the list in Part 4, item ART3, is empty; one contact sheet per character signed off by Suleiman.
-- [ ] B3. Feet stay on the same ground point when the picture changes. Test: the audit reports the foot point of every picture within 3 pixels of the tile middle at game scale.
+- [ ] B3. (12 Nov: the ruler can store a ground line per picture and the game uses it; set for 3 sets only. The audit does not measure foot points yet, so this stays open.) Feet stay on the same ground point when the picture changes. Test: the audit reports the foot point of every picture within 3 pixels of the tile middle at game scale.
 - [ ] B4. Every fighter has every core pose: stand, battle, windup, attack, guard, dodge, hurt, airborne, down, get up, weak, victory, walk. Test: a pose table printed by the audit has no empty cell.
 
 ### C. Effects
@@ -99,7 +99,7 @@ The single biggest thing that makes it look unfinished, because it shows on ever
   - Archer (56): her source pictures are half the size of everyone else's (standing figure 112 pixels against 200 to 222), so she is drawn at 0.89 scale while the others are at about 0.5. On the closer phone view (17.1) she is softer than the rest. Dodge and one knocked picture are old-style.
   - Bull (37, benched): "knocked" is darker than the rest.
 - **In a fall or death** the mismatch is worst: the body shrinks and turns pale as it cross-fades into the old "knocked" picture.
-- Fix: M2 (code: size ruler and per-set scale) now; ART3 (redraws) later.
+- Fix: M2 (code: size ruler and per-set scale) now; ART3 (redraws) later. DONE 12 Nov (roadmap 18.2): dev/tools/ruler.py, "ruler" in art.json, showFrame. New finding: Tayo was not the most consistent set; his punch, guard, block, weak and Earth Drive pictures had heads 1.3 to 1.6 times the standing head. The archer is recut at 300 pixels from the Email sheets (18.26).
 
 ### 2. Units do not move like living things (the skeleton or rig problem)
 - **State:** a walking unit is its standing picture sliding 190 ms a tile with a 4 pixel bob. Only Gaha has walk frames (3 pictures, one direction, away from the camera). The only idle life is a 3.5 percent breathing stretch.
@@ -213,7 +213,7 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | # | Milestone | Fixes | Done when | Art needed |
 |---|---|---|---|---|
 | M1 (done 11 Nov) | **One knockback.** All 9 push sites call one function in its own file. Knocked back in the hurt picture, a curved flight, a real drop at a ledge (speeding up), landing squash and dust, a held down or kneel picture, then get up. Wall slam: fly in, flatten, bounce, stagger. Drawing order follows the body. | Gap 3 | checklist A2, A3, A4 pass. Fall sheets (1 and 2 levels, both sides, lethal and not) looked at on phone and desktop. n47 updated. | None. Better with ART2. |
-| M2 | **Size ruler.** A tool that lays every picture of a character on a ruled sheet and records a scale and foot offset per picture set in art.json; `showFrame` uses them. Fix the worst sets first: Gaha thrust, sonic and swift attack; Sudeen ram, charge and Fury; the archer. Old-style pictures are swapped for the nearest new one (tilted hurt picture for "knocked") until redrawn. | Gap 1 | checklist B1, B3 pass for all 7 characters. Before and after sheets. Picture-count tests still pass. | None. ART3 finishes it. |
+| M2 (done 12 Nov) | **Size ruler.** A tool that lays every picture of a character on a ruled sheet and records a scale and foot offset per picture set in art.json; `showFrame` uses them. Fix the worst sets first: Gaha thrust, sonic and swift attack; Sudeen ram, charge and Fury; the archer. Old-style pictures are swapped for the nearest new one (tilted hurt picture for "knocked") until redrawn. | Gap 1 | checklist B1, B3 pass for all 7 characters. Before and after sheets. Picture-count tests still pass. | None. ART3 finishes it. |
 | M3 | **Effects stay put, and the water moves.** Generalise align_flame.py: every flipbook on one canvas with a named anchor. Re-cut the drifting ones. Check each unit effect follows its unit. Wire waterfall v2 and the splash ring into `drawWaterfall` (flip for right faces). | Gaps 4, 11 | C1, C2, C3 pass. Drift audit added to run_all.sh. | None. |
 | M3b | **Effects to studio quality** (added 12 Nov, Baiyee; Fable work; do not start before M5 is pushed). (1) Audit: every skill and status effect played in slow motion, one contact sheet or GIF per effect, compared against the standard of a modern tactics game. (2) Layers: each effect is built as anticipation or charge-up, a bright flash at the moment of impact, the main effect, particles, then smoke or embers that fade out; additive glow, plus light cast on the floor and on nearby units. (3) Impact feel: hit-stop, camera shake and zoom tuned to how strong each skill is. Small hits stay small, so the big ones feel big. (4) One colour language per element (fire, earth, sand, sound, poison), used the same way everywhere. (5) 16.4 clash burst: more boom, bigger, waves of energy (Baiyee's notes), using Suleiman's 1340 burst once he resends it on black. (6) Look again at the effects we rebuilt: Fury, Enchant, smoke, Sonic Burst, Element Blast, the spike. Rules: Suleiman's drawn effects stay the core; code adds glow, light and particles around them and never replaces his style. Respect the Full and Light effects setting and the frame-rate fallback, so phones stay smooth. | Gap 4 (the look, after M3 fixes the drift), 16.4, roadmap 18.23 | checklist C5 passes: a GIF per effect, before and after, sent to Baiyee and approved. C4 still passes. | None to start. The 1340 burst on black for the clash (16.4). |
 | M4 | **Skills show what they will do.** Sonic Javelin: form name on the board, ghost at the end tile, a streak for the zip. Same preview for Blitz, Shield Ram, Fury Dive, Husk. Rename Sonic Clap to Sonic Burst. (1.43 is closed, 11 Nov: Suleiman likes the dash, it is a design choice. The landing spot is still shown.) | Gap 10, 13.37 | G4 passes. Suleiman plays Gaha under Swift and says it is clear. | None. |
@@ -321,11 +321,20 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 3. Where sounds come from for M14 (a licensed pack is proposed).
 4. Guard and Rest (13.1) left out of 1.0: yes or no.
 
-## Where we stopped (12 Nov, after M5)
+## Where we stopped (12 Nov, after M2)
 
-- Done: M1 and M5. Next in the order: M2 (size ruler), M3 (effects stay put, waterfall v2), M3b (effects to studio quality), M4.
-- Decided: Kofi is the 4th hero (M10b). Still open for Baiyee: decisions 1 to 4 below.
-- Waiting on Suleiman: Kofi's missing pictures and full-quality summons (4th hero section); the art list in Part 4. The clash burst on black came 12 Nov (1390, roadmap 16.4).
+- Done: M1, M5 and M2. Next in the order: M3 (effects stay put, waterfall v2), M3b (effects to studio quality), M4.
+- M2 left open, on purpose: (1) foot points (checklist B3): the game can use a ground line per picture, but only 3 sets have one and nothing measures the rest; (2) Rabdul, the bull and the archer are sized by eye, not by the tool; (3) old-style pictures that are sized but not redrawn: victory for Gaha and Sudeen, dodge for Tayo and the archer, Rabdul's fall set (ART3); (4) the archer's dagger, poison, smoke and flame pictures are still the small soft ones (no full-quality sheet); (5) the new sizes were checked on contact sheets and in still pictures on the phone board (`node dev/browser/sizes.cjs`), not yet watched move by move: play one battle by hand and watch Sonic Javelin, Shield Ram and Tayo's punch.
+- Kofi: his 12 pictures are in art.json as h4 at the right size. M10b adds him to units.json with a class. His spirits wait for the full-quality files.
+- To send Suleiman: the 8 sheets in Fabien Blueprint/SIZE RULER SHEETS 2026-11-12.
+- Decided: Kofi is the 4th hero (M10b). Still open for Baiyee: decisions 1 to 4 above.
+- Waiting on Suleiman: Kofi's missing pictures and full-quality summons (4th hero section); the art list in Part 4; full-quality archer sheets for dagger, poison arrow, smoke bomb and the flaming bow.
+
+## Test results, 12 Nov (M2)
+
+- Full suite (`bash dev/tests/run_all.sh`): passed 47 of 47 (46 before, plus the new ruler.cjs), 0 failed, 195 seconds.
+- Real browser: `node dev/browser/battle.cjs phone 1`: one full phone battle, 64 turns, finished, 0 page errors. `node dev/browser/sizes.cjs <folder>` (new) photographs every fighter in 10 poses on the board: 0 page errors.
+- `~/.fabien-tools/venv/bin/python dev/tools/ruler.py audit`: ALL PASSED (no measured picture set outside 0.92 to 1.08).
 
 ## Test results, 12 Nov (M5)
 

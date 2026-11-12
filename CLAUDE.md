@@ -29,7 +29,8 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
   - Steady check: `bash dev/tests/steady.sh` runs the suite 3 times and says if the runs differ.
   - Bot battles (balance): `FABIEN_MAP=cavern node bot.cjs 2`. FABIEN_BENCH=<ids> picks who sits out, NO_ENCHANT=1 turns Enchant off.
 - Browser checks (Playwright): `node dev/browser/<name>.cjs <out dir>` with the preview running.
-  - Whole battles played by a test player: `node dev/browser/battle.cjs [phone|desktop|both] [how many]` lists page errors; `node dev/browser/jumps.cjs [phone|desktop]` is the jump logger (a figure moving over one tile in 80 ms, at 60 frames a second). Both end with ALL PASSED or FAILED.
+  - Whole battles played by a test player: `node dev/browser/battle.cjs [phone|desktop|both] [how many]` lists page errors; `node dev/browser/jumps.cjs [phone|desktop]` is the jump logger (a figure moving over one tile in 80 ms, at 60 frames a second). Both end with ALL PASSED or FAILED. `node dev/browser/sizes.cjs <out dir> [phone|desktop]` photographs every fighter in a list of poses (size ruler check).
+- Size ruler (roadmap 18.2): `~/.fabien-tools/venv/bin/python dev/tools/ruler.py measure|audit|sheets <folder>`. It writes "ruler" (scale and ground line per picture) in art.json; hand values go in dev/tools/ruler_marks.json, head boxes in ruler_heads.json. Run `measure` after adding or recutting pictures.
 - Deploy: commit and push to main; check `gh run list --limit 1`.
 
 ## Where things live
@@ -44,6 +45,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - Tests must not measure a figure's drawn height directly: figures breathe (up to 3.5 percent taller at a random moment). Measure through the sideways scale (see n37). In background shell loops, never wait with `pgrep -f`: it matches its own command line and never ends.
 - Never put `//` comments inside a one-line sed edit to test files: it swallows the rest of the line. Use `/* */`.
 - When adding pictures to a character, tests that count its pictures (poison.cjs, echo.cjs, gaha.cjs) need the new count.
+- A unit's pictures are not all drawn at one scale any more: `unit.baseScale` is its one size, `unit.artScale` is that times the ruler's scale for the picture shown now. Tests compare with `artScale`, read while breathing rests.
 - Phaser Graphics scale from their own x,y: draw shapes at (0,0) and place the Graphics, or they slide when tweened.
 - Enemies face the heroes with their upLeft/downLeft pictures; the other facings are mirrored.
 
