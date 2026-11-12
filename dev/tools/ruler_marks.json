@@ -10,7 +10,9 @@
       "gaha_n6_victory": 1.0,
       "gaha_n6_down": 0.8
     },
-    "feet": {}
+    "feet": {
+      "gaha_rooted": 0.94
+    }
   },
   "h1": {
     "scale": {
@@ -22,7 +24,10 @@
       "sudeen_n6_swift": 0.82,
       "sudeen_n9_furyAttack": 1.0
     },
-    "feet": {}
+    "feet": {
+      "sudeen_ram": 0.95,
+      "sudeen_n6_stone": 0.96
+    }
   },
   "h3": {
     "scale": {
@@ -103,6 +108,15 @@
       "archer_poison": 2.9,
       "archer_poisonShot": 2.68,
       "archer_smoke_throw": 2.68
+    },
+    "feet": {}
+  },
+  "h4": {
+    "note": "Kofi is cut at the right size by make_kofi.py; nothing to rescale.",
+    "scale": {
+      "kofi_stand": 1.0,
+      "kofi_battle": 1.0,
+      "kofi_cast": 1.0
     },
     "feet": {}
   }
