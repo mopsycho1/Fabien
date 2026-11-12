@@ -1,10 +1,125 @@
 {
   "note": "The size ruler's reference heads (roadmap 18.2). For each character: which standing picture, and the box round the head in it (left, top, right, bottom, in that picture's own pixels; hair top to chin, no weapon). dev/tools/ruler.py looks for this head in every other picture to tell how big the body is drawn there.",
-  "h1": { "sudeen_iso_stand_upRight.png": [20, 2, 62, 42], "sudeen_iso_stand_downRight.png": [30, 2, 74, 45] },
-  "h2": { "gaha_iso_stand_upRight.png": [29, 8, 61, 44], "gaha_iso_stand_downRight.png": [22, 8, 58, 46] },
-  "h3": { "layra_iso_stand_upRight.png": [12, 8, 56, 54], "layra_iso_stand_downRight.png": [10, 8, 58, 56] },
-  "e4": { "rabdul_iso_stand_upLeft.png": [47, 28, 73, 56], "rabdul_iso_stand_downLeft.png": [48, 28, 72, 58] },
-  "e1": { "tayo_n6b_stand_f1.png": [30, 2, 68, 42], "tayo_n6b_stand_f2.png": [18, 2, 62, 44], "tayo_n6b_stand_f3.png": [36, 2, 80, 46], "tayo_n6b_stand_f4.png": [36, 2, 82, 46] },
-  "e3": { "archer_n6b_stand_f1.png": [16, 0, 37, 26], "archer_n6b_stand_f2.png": [16, 0, 38, 26], "archer_n6b_stand_f3.png": [15, 0, 37, 28], "archer_n6b_stand_f4.png": [16, 0, 36, 28] },
-  "e2": { "bull_iso_stand_upLeft.png": [40, 2, 100, 50], "bull_iso_stand_downLeft.png": [62, 2, 128, 52] }
+  "h1": {
+    "sudeen_iso_stand_upRight.png": [
+      20,
+      2,
+      62,
+      42
+    ],
+    "sudeen_iso_stand_downRight.png": [
+      30,
+      2,
+      74,
+      45
+    ]
+  },
+  "h2": {
+    "gaha_iso_stand_upRight.png": [
+      29,
+      8,
+      61,
+      44
+    ],
+    "gaha_iso_stand_downRight.png": [
+      22,
+      8,
+      58,
+      46
+    ]
+  },
+  "h3": {
+    "layra_iso_stand_upRight.png": [
+      12,
+      8,
+      56,
+      54
+    ],
+    "layra_iso_stand_downRight.png": [
+      10,
+      8,
+      58,
+      56
+    ]
+  },
+  "e4": {
+    "rabdul_iso_stand_upLeft.png": [
+      47,
+      28,
+      73,
+      56
+    ],
+    "rabdul_iso_stand_downLeft.png": [
+      48,
+      28,
+      72,
+      58
+    ]
+  },
+  "e1": {
+    "tayo_n6b_stand_f1.png": [
+      30,
+      2,
+      68,
+      42
+    ],
+    "tayo_n6b_stand_f2.png": [
+      18,
+      2,
+      62,
+      44
+    ],
+    "tayo_n6b_stand_f3.png": [
+      36,
+      2,
+      80,
+      46
+    ],
+    "tayo_n6b_stand_f4.png": [
+      36,
+      2,
+      82,
+      46
+    ]
+  },
+  "e3": {
+    "archer_hq_stand_f1.png": [
+      42,
+      2,
+      93,
+      49
+    ],
+    "archer_hq_stand_f2.png": [
+      47,
+      2,
+      98,
+      49
+    ],
+    "archer_hq_stand_f3.png": [
+      27,
+      2,
+      79,
+      69
+    ],
+    "archer_hq_stand_f4.png": [
+      29,
+      2,
+      81,
+      69
+    ]
+  },
+  "e2": {
+    "bull_iso_stand_upLeft.png": [
+      40,
+      2,
+      100,
+      50
+    ],
+    "bull_iso_stand_downLeft.png": [
+      62,
+      2,
+      128,
+      52
+    ]
+  }
 }

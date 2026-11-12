@@ -15,7 +15,7 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
       listed++;
       if (!fs.existsSync(__dirname + '/../../public/art/' + file)) wrong.push(file + ' is not in public/art');
       if (!text.includes('"' + file + '"')) wrong.push(file + ' is not used by ' + id);
-      if (r.scale !== undefined && !(r.scale >= 0.5 && r.scale <= 2)) wrong.push(file + ' scale ' + r.scale);
+      if (r.scale !== undefined && !(r.scale >= 0.5 && r.scale <= 3.5)) wrong.push(file + ' scale ' + r.scale);
       if (r.feet !== undefined && !(r.feet >= 0.5 && r.feet <= 1)) wrong.push(file + ' feet ' + r.feet);
     }
   }
@@ -32,7 +32,9 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
   const gaha = b.units.find((u) => u.label === 'H2');
   const sp = gaha.sprite, base = gaha.baseScale;
   const near = (a, c) => Math.abs(a - c) < 0.002;
-  b.busy = true; await sleep(100); // an action is on: breathing rests, so sizes can be read exactly
+  // an action is on: breathing rests, so sizes can be read exactly
+  const rest = async () => { b.busy = true; while (!b.breathPaused) await sleep(20); for (const u of b.units) if (u.sprite) u.sprite.setScale(u.artScale); };
+  await rest();
   b.showStanding(gaha);
   check('standing: drawn at the unit\'s one size', gaha.frameScale === 1 && near(sp.scaleX, base) && sp.originY === 1, sp.scaleX + ' / ' + base);
   // a pose the ruler rescales
@@ -73,7 +75,7 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
   check('standing again and breathing from the one size', sp.scaleY / base > 0.999 && sp.scaleY / base < 1.0351 && near(sp.scaleX, base), (sp.scaleY / base).toFixed(3));
   // every unit: every pose it has is drawn at base x the ruler's scale
   let bad = [];
-  b.busy = true; await sleep(80);
+  await rest();
   for (const u of b.units.filter((x) => x.sprite)) {
     for (const name of Object.keys((art[u.id] || {}).poses || {})) {
       b.showPose(u, name, 1);

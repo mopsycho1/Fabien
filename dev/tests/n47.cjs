@@ -44,7 +44,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('bow: reaches Layra 2 tiles off but not Gaha right next to her (no room to draw)', tg.includes('H3') && !tg.includes('H2'), tg.join(','));
   check('a foe next to her no longer makes her draw the dagger by herself', !combat.usesCloseWeapon(archer, gaha));
   b.showStanding(archer);
-  check('and she stands in her bow stance', !/dagger/.test(archer.sprite.texture.key) && /n6b_(stand|battle)/.test(archer.sprite.texture.key), archer.sprite.texture.key);
+  check('and she stands in her bow stance', !/dagger/.test(archer.sprite.texture.key) && /(n6b|hq)_(stand|battle)/.test(archer.sprite.texture.key), archer.sprite.texture.key);
   check('Switch weapon works once, takes her to the dagger', b.switchWeapon(archer) === true && archer.weapon === 'dagger' && archer.weaponSwitched);
   tg = combat.getTargetsInRange(archer, b.units).map((u) => u.label);
   check('dagger: reaches only the tile next to her (Gaha), not Layra', tg.length === 1 && tg[0] === 'H2', tg.join(','));

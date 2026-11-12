@@ -16,7 +16,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const park = () => { for (const u of b.units) { u.engagedWith = null; u.hp = u.maxHp; u.status.cooldowns = {}; u.status.poison = null; u.status.buff = null; } b.refreshEngagementMarks(); put(sudeen, 0, 7); put(gaha, 1, 7); put(layra, 3, 7); put(tayo, 7, 0); put(bull, 6, 0); put(archer, 5, 0); };
   const real = w.Math.random; const sure = () => { w.Math.random = () => (/rollAttack|shootPoisonArrow/.test(new Error().stack) ? 0.01 : real()); };
 
-  check('all 58 of her pictures loaded (with her 4 enchanted ones, Phase 4; her fall from 6.2; 8 Nov: poison crouch in 4 views, 4 smoke-throw frames)', game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length === 58, game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length);
+  check('all 56 of her pictures loaded (18.26 and 18.2: sharp pictures in, the old knocked and crumple pictures out; with her 4 enchanted ones, Phase 4; her fall from 6.2; 8 Nov: poison crouch in 4 views, 4 smoke-throw frames)', game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length === 56, game.textures.getTextureKeys().filter((k) => k.startsWith('e3:archer_')).length);
   // dagger
   park(); put(archer, 3, 3); put(gaha, 3, 4); put(layra, 3, 5);
   archer.weapon = 'dagger'; // she chooses the dagger now (Switch weapon, 13.29): it is no longer swapped in for her

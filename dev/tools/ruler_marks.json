@@ -84,5 +84,26 @@
       "bull_n6b_weak": 0.9
     },
     "feet": {}
+  },
+  "e3": {
+    "note": "The archer: horns, veil and bronze confuse the head finder, so every family is set by eye. The archer_hq_* pictures are cut at the right size (make_archer_hq.py). The others are her old small pictures (standing was 112 pixels, now 300): 2.68 makes them the same size.",
+    "scale": {
+      "archer_dodge": 2.68,
+      "archer_ench": 2.68,
+      "archer_hq_battle": 1.0,
+      "archer_hq_down": 1.0,
+      "archer_hq_fire": 1.0,
+      "archer_hq_hit": 1.0,
+      "archer_hq_primed": 1.0,
+      "archer_hq_stand": 1.0,
+      "archer_hq_victory": 1.0,
+      "archer_hq_wound1": 1.0,
+      "archer_hq_wound2": 1.0,
+      "archer_n6b_dagger": 2.68,
+      "archer_poison": 2.9,
+      "archer_poisonShot": 2.68,
+      "archer_smoke_throw": 2.68
+    },
+    "feet": {}
   }
 }
