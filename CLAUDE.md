@@ -25,9 +25,11 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - Play locally: `npm install` once, then `npm run dev` (or `npx vite build` and `npx vite preview --port 4173`).
 - Tests (jsdom, in dev/tests): `cd dev/tests && npm install` once. Each run: start the picture server in another terminal, `node serve.cjs` (in dev/tests; the old python server drops pictures on Mac), then `bash bundle.sh` after any code change, then `node <test>.cjs`.
   - Most tests use the old 8x8 map (yoba). Cavern tests: `FABIEN_MAP=cavern FABIEN_BENCH= node n41.cjs`, `FABIEN_MAP=cavern FABIEN_BENCH=e1 node n39.cjs`.
-  - Full suite: `bash dev/tests/run_all.sh` (starts the picture server, bundles, runs every test with its settings, prints only failures and a final count). sage-l and story-smoke can fail under load: rerun alone.
+  - Full suite: `bash dev/tests/run_all.sh` (starts the picture server, bundles, runs every test with its settings 4 at a time, prints only failures and a final count; about 3 to 4 minutes). A test that fails beside the others is rerun alone and listed as SHAKY. `JOBS=1` runs one at a time. Results per test land in dev/tests/last_run.txt.
+  - Steady check: `bash dev/tests/steady.sh` runs the suite 3 times and says if the runs differ.
   - Bot battles (balance): `FABIEN_MAP=cavern node bot.cjs 2`. FABIEN_BENCH=<ids> picks who sits out, NO_ENCHANT=1 turns Enchant off.
 - Browser checks (Playwright): `node dev/browser/<name>.cjs <out dir>` with the preview running.
+  - Whole battles played by a test player: `node dev/browser/battle.cjs [phone|desktop|both] [how many]` lists page errors; `node dev/browser/jumps.cjs [phone|desktop]` is the jump logger (a figure moving over one tile in 80 ms, at 60 frames a second). Both end with ALL PASSED or FAILED.
 - Deploy: commit and push to main; check `gh run list --limit 1`.
 
 ## Where things live
@@ -39,6 +41,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 
 ## Gotchas
 - Background removal for new cuts: try rembg first (dev/tools/bgremove.py, installed in ~/.fabien-tools/venv; roadmap 1.36). It is clearly better on smoke and effect pictures on a plain background. Keep the colour-threshold cutters where a floor tile is in the picture (rembg keeps the tile): the sand impact cut. Check any cut on a contact sheet, old next to new.
+- Tests must not measure a figure's drawn height directly: figures breathe (up to 3.5 percent taller at a random moment). Measure through the sideways scale (see n37). In background shell loops, never wait with `pgrep -f`: it matches its own command line and never ends.
 - Never put `//` comments inside a one-line sed edit to test files: it swallows the rest of the line. Use `/* */`.
 - When adding pictures to a character, tests that count its pictures (poison.cjs, echo.cjs, gaha.cjs) need the new count.
 - Phaser Graphics scale from their own x,y: draw shapes at (0,0) and place the Graphics, or they slide when tweened.

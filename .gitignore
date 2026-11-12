@@ -6,3 +6,6 @@ dist/
 .DS_Store
 # Python cache files
 __pycache__/
+# Test run results (made by dev/tests/run_all.sh and steady.sh)
+dev/tests/last_run.txt
+dev/tests/steady_*.txt

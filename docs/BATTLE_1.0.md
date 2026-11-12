@@ -6,7 +6,7 @@ Written 11 Nov 2026. Planning only: nothing in the game changed with this docume
 
 **What "the battle system" covers here:** one full 3 v 3 fight in the Hidden Cavern with the current cast (Sudeen, Gaha, Layra against Rabdul, Tayo and the archer, the bull on the bench), from the first turn to the result screen, on an upright phone and on a desktop screen. Suleiman's ideas, characters and art style stay as they are.
 
-**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10), ramps (Phase 12), the wider cavern unless 4 v 4 needs it (14.2), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31, and whichever of Kofi 6.38 and the male sage 6.25 is not the 4th hero), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
+**Not part of 1.0** (they stay in the roadmap for after): King Alagura (Phase 10), ramps (Phase 12), the wider cavern unless 4 v 4 needs it (14.2), the hub (Phase 15), finishers (Phase 7), new characters (6.21, 6.22, 6.31 and the male sage 6.25; Kofi 6.38 is the 4th hero, decided 12 Nov), arena runes and terrain damage (13.7, 13.13, 13.16, 13.19), the barrier (13.2), team load-outs (13.8), self-inserts and trained AI (13.32, 13.33).
 
 ## How this was checked
 
@@ -28,7 +28,7 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [x] A2. A push off a ledge shows four clear beats: knocked back, in the air on a curve, landing with dust and a squash, getting up. It never travels in a straight line through a cliff face. Test: fall sheet for 1 and 2 levels, left and right; a jsdom test that the mid-flight point is above the straight line.
 - [x] A3. A wall slam shows the body fly to the wall, flatten, bounce and stagger. Lethal and non-lethal look like the same event with different endings. Test: slam sheet, both kinds.
 - [x] A4. All pushes (9 places in the code today) go through one function. Test: grep finds one caller of the slide and fall pair.
-- [ ] A5. No unit moves more than one tile in 80 ms except moves on a short named list (Sonic Javelin forms, Blitz, Husk). Test: the jump logger at 60 frames a second over one full battle prints nothing outside the list.
+- [x] A5. No unit moves more than one tile in 80 ms except moves on a short named list (Sonic Javelin forms, Blitz, Husk). Test: the jump logger at 60 frames a second over one full battle prints nothing outside the list.
 
 ### B. One character, one look
 - [ ] B1. For each character, the head is the same size in every picture, within 8 percent. Test: the size audit tool passes with no picture outside 0.92 to 1.08.
@@ -40,6 +40,7 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [ ] C1. No flipbook slides or jumps: its anchor point (base or centre, named per effect) stays within 3 percent of the frame width across frames. Test: the drift audit in the test suite.
 - [ ] C2. An effect that belongs to a unit follows that unit while it moves, and nothing is left behind after its turn. Test: n46 style check that emitters and pictures are gone, plus a walk under each Verse on a sheet.
 - [ ] C3. Water moves: the waterfalls play the v2 loop, with a splash ring in the pool. Test: phone and desktop shots of two frames that differ.
+- [ ] C5. Every skill and status effect has a charge-up, an impact and a follow-through (M3b), and Baiyee signs off each one. Test: a slow-motion GIF per effect, before and after, sent to Baiyee.
 - [ ] C4. Frame rate stays at 50 or more on a mid phone setting (4 times CPU slowdown in the browser) with 3 Verses and a clash on screen. Test: frame-rate log from the browser script.
 
 ### D. Reading the screen (phone, 390 x 844)
@@ -71,9 +72,9 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [ ] G5. Enemy turns can be sped up; a full enemy round takes under 8 seconds at fast speed. Test: timed in the browser.
 
 ### H. Solid ground
-- [ ] H1. The full test suite passes 3 runs in a row with the same result. Test: run_all.sh three times.
+- [x] H1. The full test suite passes 3 runs in a row with the same result. Test: run_all.sh three times.
 - [ ] H2. Closing the page mid-battle and coming back resumes at the start of the current turn. Test: Playwright reload.
-- [ ] H3. No page error in 5 full battles on each screen size. Test: browser script.
+- [x] H3. No page error in 5 full battles on each screen size. Test: browser script.
 - [ ] H4. First load on a phone connection shows a progress bar and reaches the title in under 10 seconds. Today the build is 42 MB (27 MB of pictures). Test: throttled load in the browser.
 
 ---
@@ -204,21 +205,22 @@ All five are still there in today's run.
 
 ## Part 3. Milestones, in order
 
-One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are 18.1 to 18.20 (Phase 18; 18.21 is the first item after 1.0): 18.4 is M4, and so on. Letters A to H with a number (C1, D3) always mean a line of the Part 1 checklist; ART1 to ART10 are the art list in Part 4. "Done when" is the test.
+One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are 18.1 to 18.20 (Phase 18; 18.21 is the first item after 1.0): 18.4 is M4, and so on. M10b is 18.22 and M3b is 18.23. Letters A to H with a number (C1, D3) always mean a line of the Part 1 checklist; ART1 to ART10 are the art list in Part 4. "Done when" is the test.
 
 | # | Milestone | Fixes | Done when | Art needed |
 |---|---|---|---|---|
 | M1 (done 11 Nov) | **One knockback.** All 9 push sites call one function in its own file. Knocked back in the hurt picture, a curved flight, a real drop at a ledge (speeding up), landing squash and dust, a held down or kneel picture, then get up. Wall slam: fly in, flatten, bounce, stagger. Drawing order follows the body. | Gap 3 | checklist A2, A3, A4 pass. Fall sheets (1 and 2 levels, both sides, lethal and not) looked at on phone and desktop. n47 updated. | None. Better with ART2. |
 | M2 | **Size ruler.** A tool that lays every picture of a character on a ruled sheet and records a scale and foot offset per picture set in art.json; `showFrame` uses them. Fix the worst sets first: Gaha thrust, sonic and swift attack; Sudeen ram, charge and Fury; the archer. Old-style pictures are swapped for the nearest new one (tilted hurt picture for "knocked") until redrawn. | Gap 1 | checklist B1, B3 pass for all 7 characters. Before and after sheets. Picture-count tests still pass. | None. ART3 finishes it. |
 | M3 | **Effects stay put, and the water moves.** Generalise align_flame.py: every flipbook on one canvas with a named anchor. Re-cut the drifting ones. Check each unit effect follows its unit. Wire waterfall v2 and the splash ring into `drawWaterfall` (flip for right faces). | Gaps 4, 11 | C1, C2, C3 pass. Drift audit added to run_all.sh. | None. |
+| M3b | **Effects to studio quality** (added 12 Nov, Baiyee; Fable work; do not start before M5 is pushed). (1) Audit: every skill and status effect played in slow motion, one contact sheet or GIF per effect, compared against the standard of a modern tactics game. (2) Layers: each effect is built as anticipation or charge-up, a bright flash at the moment of impact, the main effect, particles, then smoke or embers that fade out; additive glow, plus light cast on the floor and on nearby units. (3) Impact feel: hit-stop, camera shake and zoom tuned to how strong each skill is. Small hits stay small, so the big ones feel big. (4) One colour language per element (fire, earth, sand, sound, poison), used the same way everywhere. (5) 16.4 clash burst: more boom, bigger, waves of energy (Baiyee's notes), using Suleiman's 1340 burst once he resends it on black. (6) Look again at the effects we rebuilt: Fury, Enchant, smoke, Sonic Burst, Element Blast, the spike. Rules: Suleiman's drawn effects stay the core; code adds glow, light and particles around them and never replaces his style. Respect the Full and Light effects setting and the frame-rate fallback, so phones stay smooth. | Gap 4 (the look, after M3 fixes the drift), 16.4, roadmap 18.23 | checklist C5 passes: a GIF per effect, before and after, sent to Baiyee and approved. C4 still passes. | None to start. The 1340 burst on black for the clash (16.4). |
 | M4 | **Skills show what they will do.** Sonic Javelin: form name on the board, ghost at the end tile, a streak for the zip. Same preview for Blitz, Shield Ram, Fury Dive, Husk. Rename Sonic Clap to Sonic Burst. (1.43 is closed, 11 Nov: Suleiman likes the dash, it is a design choice. The landing spot is still shown.) | Gap 10, 13.37 | G4 passes. Suleiman plays Gaha under Swift and says it is clear. | None. |
-| M5 | **Steady tests.** Run the suite 3 times; fix anything that changes between runs (sage-l and story-smoke first) and cut the run time (it took over 20 minutes). Add the 60 frames a second jump logger and the page-error battle run to dev/browser. | Gap 15, rest of gap 10 | checklist H1, H3, A5 pass. | None. |
+| M5 (done 12 Nov) | **Steady tests.** Run the suite 3 times; fix anything that changes between runs (sage-l and story-smoke first) and cut the run time (it took over 20 minutes). Add the 60 frames a second jump logger and the page-error battle run to dev/browser. | Gap 15, rest of gap 10 | checklist H1, H3, A5 pass. | None. |
 | M6 | **Nameplates and one callout lane.** One small plate per unit, 2 icons then "+2", stance word and pips only for the two in the clash. All floating words go through a queue in a lane under the turn strip, clamped to the screen. Real names in the score line. | 17.2, 17.3 | D1, D2, D3 pass. | ART8 helps (small icons). |
 | M7 | **Card, menu, top strip.** Full-width card with 4 readable stats, rest behind a tap. Action menu fixed bottom right, 44 pixel rows. Title line gone, bigger turn faces with a "now" marker, no repeats of one face, Effects moved into a settings sheet. | 17.4, 17.5, 17.7 | D4, D5 pass. | None. |
 | M8 | **Desktop layout.** Bigger figures at rest on wide screens, title, story and result scale with the screen, hover and keyboard. | Gap 6 | E1, E2, E3 pass. | None. |
 | M9 | **Weight.** White flash, pale HP chunk that drains, number size by damage, turn banner in the side's colour. | 17.13, 17.15 | F1, F2 pass. | None. |
 | M10 | **Reading the board.** Contact shadow and team-colour rim on every figure, floor a little darker under them. Soft tiles with a bright pulsing edge, path line to the finger, red targets in the same style. | 17.6 (code part), 17.11 | D6, D7 pass. | ART7 later. |
-| M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: Kofi or the male sage, see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | A 4th hero. Nothing blocks a first playable version (see below). |
+| M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: **Kofi** (Baiyee, 12 Nov), with a borrowed Sage kit until his own arrives; see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | Nothing blocks the first version. Kofi's own kit and missing pictures finish him (see below). |
 | M11 | **Pace: measure, then cut.** 20 bot battles for a baseline (turns, who wins, skills used). Fast enemy turns. A fatigue rule (proposal: from round 6, every hit does +1 per round passed, both sides). | Gap 7, 13.34 | G1, G5 pass. Baiyee picks the rule before the build. | None. |
 | M12 | **The ending.** Slow last blow, dim board, the word sweeps in with a music sting, then turns, damage, who fell, faces. | 17.10 | F3 passes. | ART6 optional (banner). |
 | M13 | **Movement life in code.** A code walk for anyone without walk frames: two-beat step with lean, foot dust and a small squash, faster settle. Layra's walk is sand-driven (13.9, 13.41: she cannot walk unaided, sand and earth bound to her muscles move her, so sand gathers round her legs as she goes; not a plain float). Channel-then-cast pattern on the remaining spells (13.10). Any character's walk sheet drops in through `walkFrames` with no new code. | Gap 2 (code part), 13.9, 13.10 | Walk sheet for all 6: no one glides upright. | None. ART1 replaces the code walk per character. |
@@ -232,11 +234,13 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 
 **Note on M10, team colours (11 Nov, Suleiman, voice note 1348):** he suggests white for the enemy team, so it stands out from ours, and says we are free to experiment. Before the build, test white first against one or two other colours, on one contact sheet of the same battle screenshot. Show that sheet to Baiyee before choosing. ART7 is optional now (see Part 4).
 
-Order logic: M1 to M4 are the named problems and need no art. M5 comes before the big screen changes so they can be trusted. M6 to M10 are the Phase 17 code items. M10b (4 v 4, added 11 Nov because Suleiman asked when the 4th fighter comes) is before M11 so balancing is done once. M11 to M16 make it play like a finished game. M17 to M19 take art as it arrives. M18 can happen at any point after M2.
+Order logic: M1 to M4 are the named problems and need no art. M3b (effects to studio quality, added 12 Nov) sits right after M3 in the order, because M3 makes the flipbooks stay put first; it must not start before M5 is pushed. M5 comes before the big screen changes so they can be trusted. M6 to M10 are the Phase 17 code items. M10b (4 v 4, added 11 Nov because Suleiman asked when the 4th fighter comes) is before M11 so balancing is done once. M11 to M16 make it play like a finished game. M17 to M19 take art as it arrives. M18 can happen at any point after M2.
 
 ---
 
 ### The 4th hero: art check (11 Nov, for M10b)
+
+**Decided 12 Nov (Baiyee): Kofi is the 4th hero.** He goes in at M10b with the Sage's numbers and a small set of existing spells, marked temporary in jobs.json, and is swapped to his own kit when Suleiman sends it. The male sage stays in the roadmap for after 1.0 (6.25). Still to ask Suleiman: Kofi's spell kit and moveset in words, then the missing pictures listed at the end of this section.
 
 Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture sent after 8 Nov 15:35 on one contact sheet, every voice note transcript, the PDFs through Spotlight) and the rest of Fabien Blueprint. **Nothing about Kofi or the male sage arrived after 8 Nov 15:35.** Kofi's spell kit and moveset ("i'll send the rest alongside his spell kit once i'm back home", 8 Nov 15:34) have not been sent. There is no written moveset for either of them anywhere. Nothing was missing from the roadmap log.
 
@@ -260,7 +264,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 - **The male sage can go in now only as a second Layra**: same Sage class and spells, standing picture for everything. Weaker to look at than Kofi (one pose), but needs no design.
 - A third option on file: the male archer (6.31) has a near complete set (stance, aim, fire, dagger, guard) and could share the archer's class. He is not what Suleiman asked for, so only if both above are rejected.
 
-**To make either of them finished (ask after Baiyee picks):** Kofi: his spell kit and moveset in words, then spell release, hurt, dodge, the ART2 fall set, down, a portrait, and his spell effects on black. Male sage: everything except standing. Both: ART1 walk sheets, same as the others.
+**To make either of them finished (Kofi is the pick, so his list is the one to send):** Kofi: his spell kit and moveset in words, then spell release, hurt, dodge, the ART2 fall set, down, a portrait, and his spell effects on black. Male sage: everything except standing. Both: ART1 walk sheets, same as the others.
 
 ## Part 4. Art needs (for Suleiman)
 
@@ -271,6 +275,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 - **Standing height 400 pixels or more** in the source (head to feet). The game stores about 200; the spare keeps close-ups sharp.
 - **Views.** Two views at least: facing down-right (toward the camera) and up-right (away). We mirror them for the left. Four true views only for one-sided gear where the mirror looks wrong (Sudeen's shield, the archer's bow), if he has time.
 - **Same outfit and colours as the character's current standing picture.** No bare chest, changed cloak or lighter palette unless the skill calls for it.
+- **Effects come as a frame sequence** on pure black, in cells of the same size, centred on one point in every frame.
 - Send originals as PNG where possible (HEIC and JPG are fine if not).
 
 ### What to draw
@@ -301,11 +306,25 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 ---
 
 ## Decisions needed from Baiyee
-0. New, 11 Nov, for M10b: the 4th hero. Proposed: Kofi now with a borrowed Sage kit, swapped for his own when Suleiman sends it. Then ask Suleiman for Kofi's kit and the missing pictures listed in "The 4th hero: art check".
+0. DECIDED 12 Nov: the 4th hero is Kofi, with a borrowed Sage kit until his own arrives (M10b). Next: ask Suleiman for Kofi's kit and the missing pictures listed in "The 4th hero: art check".
 1. Agree that the rig is off the critical path for 1.0 (gap 2).
 2. The fatigue rule for M11 (proposal in the table) before that session.
 3. Where sounds come from for M14 (a licensed pack is proposed).
 4. Guard and Rest (13.1) left out of 1.0: yes or no.
+
+## Where we stopped (12 Nov, after M5)
+
+- Done: M1 and M5. Next in the order: M2 (size ruler), M3 (effects stay put, waterfall v2), M3b (effects to studio quality), M4.
+- Decided: Kofi is the 4th hero (M10b). Still open for Baiyee: decisions 1 to 4 below.
+- Waiting on Suleiman: Kofi's spell kit, moveset and missing pictures; the 1340 clash burst on black (16.4, for M3b); the art list in Part 4.
+
+## Test results, 12 Nov (M5)
+
+- Full suite: 46 tests (the old count of 48 and 49 ran nov6b, notes27 and notes27b twice). `bash dev/tests/steady.sh` runs it 3 times and compares: 46 of 46 each time, same result, 191 seconds a run (it was 989 seconds one test at a time, and over 20 minutes on a busy machine).
+- What made it faster: 4 tests side by side (JOBS in run_all.sh), no double runs, and a 200-frame warm-up in boot.cjs in place of a fixed 8 second wait for a picture that no longer exists.
+- What made it steady: (1) that warm-up. A test browser that has just started draws slowly for its first seconds, and tests that time an animation then miss frames; the warm-up is counted in frames, so it stretches by itself on a busy machine. (2) n37's size check measured figures while they breathe (up to 3.5 percent taller at a random moment); it now measures the resting size. (3) The start-up waits give up after 30 seconds, not 8. (4) A test that fails beside the others is run again alone and listed as SHAKY, so a wobble cannot hide. sage-l and story-smoke did not fail in any of 12 runs.
+- Jump logger (`node dev/browser/jumps.cjs`): one full phone battle, 64 turns, 60 frames a second (0.7 percent slow frames), no figure moved more than one tile in 80 ms, 0 page errors. Its self-test (SELFTEST=1) catches a forced 3 tile shove. Known limit: the test player does not force every Sonic Javelin form, so the sweep (a teleport by design, on the allowed list) may not have been seen in that battle.
+- Page-error run (`node dev/browser/battle.cjs both 5`): 5 full battles on the phone screen and 5 on the desktop screen, all played to the end, 63 to 93 turns each, 0 page errors in all 10.
 
 ## Test baseline, 11 Nov
 - Full suite (bash dev/tests/run_all.sh), one run: passed 48 of 48, 0 failed. Run time over 20 minutes with two browser battles running beside it.

@@ -36,7 +36,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('9.11 heroes use his north-east picture as drawn, enemies his south-west', look(gaha, 'upRight') === 'gaha_iso_stand_upRight.png' && look(bull, 'downLeft') === 'bull_iso_stand_downLeft.png');
 
   // the same size as before: tallest standing picture = height
-  const shown = (u) => Math.round(u.sprite.displayHeight);
+  /* measured through the sideways scale: breathing stretches the height by up to 3.5 percent at a random moment, which made this check shaky (18.5) */
+  const shown = (u) => Math.round(u.sprite.height * Math.abs(u.sprite.scaleX));
   for (const [u, h] of [[sudeen, 88], [gaha, 100], [layra, 100], [rabdul, 112], [bull, 112]]) { u.facing = 'downLeft'; b.showStanding(u); }
   // (map.json's figureScale shrinks everyone alike)
   const fs = shown(gaha) / 100;
