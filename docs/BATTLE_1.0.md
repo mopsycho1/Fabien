@@ -220,7 +220,7 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | M8 | **Desktop layout.** Bigger figures at rest on wide screens, title, story and result scale with the screen, hover and keyboard. | Gap 6 | E1, E2, E3 pass. | None. |
 | M9 | **Weight.** White flash, pale HP chunk that drains, number size by damage, turn banner in the side's colour. | 17.13, 17.15 | F1, F2 pass. | None. |
 | M10 | **Reading the board.** Contact shadow and team-colour rim on every figure, floor a little darker under them. Soft tiles with a bright pulsing edge, path line to the finger, red targets in the same style. | 17.6 (code part), 17.11 | D6, D7 pass. | ART7 later. |
-| M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: **Kofi** (Baiyee, 12 Nov), with a borrowed Sage kit until his own arrives; see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | Nothing blocks the first version. Kofi's own kit and missing pictures finish him (see below). |
+| M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: **Kofi** (Baiyee, 12 Nov). His own kit arrived 12 Nov (roadmap 6.38), so the borrowed Sage kit is not needed; see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | Nothing blocks the first version. Kofi's kit is in; his missing pictures (listed below) finish him. |
 | M11 | **Pace: measure, then cut.** 20 bot battles for a baseline (turns, who wins, skills used). Fast enemy turns. A fatigue rule (proposal: from round 6, every hit does +1 per round passed, both sides). | Gap 7, 13.34 | G1, G5 pass. Baiyee picks the rule before the build. | None. |
 | M12 | **The ending.** Slow last blow, dim board, the word sweeps in with a music sting, then turns, damage, who fell, faces. | 17.10 | F3 passes. | ART6 optional (banner). |
 | M13 | **Movement life in code.** A code walk for anyone without walk frames: two-beat step with lean, foot dust and a small squash, faster settle. Layra's walk is sand-driven (13.9, 13.41: she cannot walk unaided, sand and earth bound to her muscles move her, so sand gathers round her legs as she goes; not a plain float). Channel-then-cast pattern on the remaining spells (13.10). Any character's walk sheet drops in through `walkFrames` with no new code. | Gap 2 (code part), 13.9, 13.10 | Walk sheet for all 6: no one glides upright. | None. ART1 replaces the code walk per character. |
@@ -240,7 +240,7 @@ Order logic: M1 to M4 are the named problems and need no art. M3b (effects to st
 
 ### The 4th hero: art check (11 Nov, for M10b)
 
-**Decided 12 Nov (Baiyee): Kofi is the 4th hero.** He goes in at M10b with the Sage's numbers and a small set of existing spells, marked temporary in jobs.json, and is swapped to his own kit when Suleiman sends it. The male sage stays in the roadmap for after 1.0 (6.25). Still to ask Suleiman: Kofi's spell kit and moveset in words, then the missing pictures listed at the end of this section.
+**Decided 12 Nov (Baiyee): Kofi is the 4th hero.** He goes in at M10b. His own kit arrived 12 Nov, so he no longer borrows the Sage kit; the numbers in his kit are Suleiman's placeholders. The male sage stays in the roadmap for after 1.0 (6.25). Still to ask Suleiman: Kofi's spell kit and moveset in words, then the missing pictures listed at the end of this section.
 
 Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture sent after 8 Nov 15:35 on one contact sheet, every voice note transcript, the PDFs through Spotlight) and the rest of Fabien Blueprint. **Nothing about Kofi or the male sage arrived after 8 Nov 15:35.** Kofi's spell kit and moveset ("i'll send the rest alongside his spell kit once i'm back home", 8 Nov 15:34) have not been sent. There is no written moveset for either of them anywhere. Nothing was missing from the roadmap log.
 
@@ -254,8 +254,8 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 | Dodge, guard | Missing | Missing |
 | Cast | Have the wind-up (1254). No release. | Missing |
 | Portrait, hurt face, shout | Missing (a face can be cropped from view 3 or 4 of 1250) | Missing (crop from 1238) |
-| Spell effects | None | None |
-| Moveset and class | None sent. Needs a class in jobs.json. | None needed if he is a second Sage (6.25: male versions so players can choose). |
+| Spell effects | None yet. Four summon sheets in 12 Nov (below) | None |
+| Moveset and class | Kit in 12 Nov (roadmap 6.38). Needs a class in jobs.json. | None needed if he is a second Sage (6.25: male versions so players can choose). |
 | Not cut, not in art.json | Yes | Yes |
 
 **What we can do now with the art we have**
@@ -265,6 +265,11 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 - A third option on file: the male archer (6.31) has a near complete set (stance, aim, fire, dagger, guard) and could share the archer's class. He is not what Suleiman asked for, so only if both above are rejected.
 
 **To make either of them finished (Kofi is the pick, so his list is the one to send):** Kofi: his spell kit and moveset in words, then spell release, hurt, dodge, the ART2 fall set, down, a portrait, and his spell effects on black. Male sage: everything except standing. Both: ART1 walk sheets, same as the others.
+
+### 12 Nov update: Kofi's kit and missing pictures
+- **Kit in** (roadmap 6.38), from Suleiman's Kofi_Ability_Sheet.pdf: Haunt, Spirit Bolt, Call Spirit, Infuse. Numbers are placeholders. The sheet gives no range for Haunt or Spirit Bolt; Infuse reaches an ally within 3 tiles; Call Spirit raises a spirit on an adjacent tile.
+- **Still missing for Kofi:** walk; attack and spell release; hurt; dodge and guard; fall (ART2: in the air, on hands and knees, getting up); down; a portrait; a cast release (only the wind-up, 1254, is here); spell effects on black.
+- **Summons in, not cut:** flame (Ember, 1398), tide (1399), earth (Stone, 1400), gale (1402). Against the Part 4 rules: the cells are 400 pixels wide, not 512 (fails); no ruler cell (fails); a floor diamond under each, to be removed in the cut; white background (treated like characters); the four are four different designs, not palette swaps as the sheet suggests. Earth is shortest (about 410 pixels; the others 458 to 477). Ask Suleiman for full-quality files; these are WhatsApp copies.
 
 ## Part 4. Art needs (for Suleiman)
 
@@ -306,7 +311,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 ---
 
 ## Decisions needed from Baiyee
-0. DECIDED 12 Nov: the 4th hero is Kofi, with a borrowed Sage kit until his own arrives (M10b). Next: ask Suleiman for Kofi's kit and the missing pictures listed in "The 4th hero: art check".
+0. DECIDED 12 Nov: the 4th hero is Kofi (M10b). His kit arrived 12 Nov (roadmap 6.38). Next: ask Suleiman for the missing pictures and the full-quality summons, listed in "12 Nov update" under the 4th hero section.
 1. Agree that the rig is off the critical path for 1.0 (gap 2).
 2. The fatigue rule for M11 (proposal in the table) before that session.
 3. Where sounds come from for M14 (a licensed pack is proposed).
@@ -316,7 +321,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 
 - Done: M1 and M5. Next in the order: M2 (size ruler), M3 (effects stay put, waterfall v2), M3b (effects to studio quality), M4.
 - Decided: Kofi is the 4th hero (M10b). Still open for Baiyee: decisions 1 to 4 below.
-- Waiting on Suleiman: Kofi's spell kit, moveset and missing pictures; the 1340 clash burst on black (16.4, for M3b); the art list in Part 4.
+- Waiting on Suleiman: Kofi's missing pictures and full-quality summons (4th hero section); the art list in Part 4. The clash burst on black came 12 Nov (1390, roadmap 16.4).
 
 ## Test results, 12 Nov (M5)
 
