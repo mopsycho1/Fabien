@@ -405,6 +405,12 @@ Status art batch notes: icons in public/art/icons (64x64), cards in public/art/c
 - [ ] 13.42 Gaha lore for later visuals (Suleiman 11 Nov 22:21, relayed by Baiyee): Gaha is deaf, and one of his arms is an earth construct that Layra made and can move from a distance. Story lore; nothing to build yet. Keep it in mind for his art, his dialogue (story.json, dialogue.json) and any Layra and Gaha combo skill.
 - [ ] 13.43 Do Fury, Stone and Swift change how skirmishes go? (Suleiman 12 Nov 05:54, voice note 1363). He also noticed a foe can still be disoriented while engaged in a skirmish, and asks whether that changes the odds. Question to answer from the code (src/engagement.js); no change asked yet.
 - [ ] 13.44 Dodges for everyone? (Suleiman 11 Nov 20:54 and 22:21, voice notes 1348 and 1353). 1348: "for layra dodging isn't really her thing", the archer's dodge yes. 1353: "I'll add dodging animations for all the same". These disagree. Ask Suleiman whether Layra gets a dodge (ART3 says yes, and he will draw it); add dodges for everyone only if he says so.
+- [ ] 13.45 Players should be rewarded for rising above the usual battle length (Suleiman 13 Nov 10:09, voice note 1416). He is 33 turns into a game, took out the archer using Fury, and saw Gaha's damage. Tool-set use that works should pay off more. Ties to 13.43 and 13.34. Idea only, no design yet.
+- [ ] 13.46 New visual effects for buffs (Suleiman 13 Nov 10:09, voice note 1416): "what you discovered" (earlier finding on buff looks, see 16 and 4.4 to 4.5). He offers to generate new VFX himself; answer yes or no.
+- [ ] 13.47 Knockback can land a unit in the gap between blocks (Suleiman 13 Nov 10:12, voice note 1417). Find the cause (landing tile or position after push), then fix. Test with a push from the cavern edges.
+- [ ] 13.48 Enemies forage items too (Suleiman 13 Nov 10:15, chat); only Tayo uses items now.
+- [ ] 13.49 Tooltips for status effects and techniques (Suleiman 13 Nov 11:07, chat).
+- [ ] 13.50 Send Suleiman a breakdown of our systems (Suleiman 13 Nov 10:53, chat: "don't forget to shoot me the breakdown of our systems"). A write-up, not a build.
 - Feedback, all positive (no change asked): "too wet to burn" (Drenched works, 1 Nov 20:55); "Fury drive! Nice one" 20:57; played a full round, "so close to a fully fleshed out combat system" 21:04; combat "really fun now" 22:14; loved Sudeen's herb jumping across the screen 22:59; loves the new Fury animation (2 Nov 15:27); Sudeen "grows on me" 2 Nov 11:59; Slow's casting (13.10).
 
 ## Skeleton animation
@@ -573,3 +579,10 @@ Dev tools moved into the repo 31 Oct: dev/tests (test harness, `npm install` onc
 - 12 Nov 20:56 Email/"gadara's sheet.png": a phone HEIF photo under a .png name (converted with sips to Email/converted/gadara_sheet.png). It is Gadara's gravity spell effect, six growing stages, not an ability sheet. 6.47 stays open.
 - 12 Nov: no full-quality spirit (1398, 1399, 1400, 1402) or Rabdul (1394, 1395) sheets are in the Email folder. The WhatsApp copies are still the only versions, so those stay uncut (6.38, 6.23).
 - Note on the folder name: it is Email (capital E) in the INBOX, not email/.
+
+- 13 Nov 11:15 zip INBOX/2026-11-13/2026-11-13.zip (661 files, one full-chat zip). Chat read from 12 Nov 10:19 (last log 09:14) to 13 Nov 11:07. No pictures. 4 voice notes transcribed with whisper small via ~/.fabien-tools/venv (transcripts in INBOX/2026-11-13/voice-notes/transcripts.txt):
+  - 12 Nov 19:40 voice note 1413 (Baiyee's own): back from a long road trip, saw everything in the email, asked Suleiman to export all sheets at once. No task.
+  - 12 Nov 19:50 voice note 1415 (Suleiman): the resolution slip was his, he dragged and dropped the files in a hurry. No task.
+  - 13 Nov 10:09 voice note 1416 (Suleiman): compiling all Kofi animations; 33 turns into a game; rewarding players who rise above normal battle length; new buff VFX (13.45, 13.46).
+  - 13 Nov 10:12 voice note 1417 (Suleiman): knockback sometimes leaves a unit between blocks (13.47).
+  - 13 Nov chat lines: 10:15 enemies forage items (13.48); 10:21 Tayo won a match; 10:53 breakdown of our systems (13.50); 11:07 tooltips (13.49).
