@@ -3619,6 +3619,15 @@ export default class BattleScene extends Phaser.Scene {
       play('miss');
       this.floatText(target, 'Miss', '#e8d5a8');
       this.sidestep(target, dx);
+      // a miss is a dodge (roadmap 13.44, BATTLE_SYSTEMS.md 11.1): the dodge picture, facing the
+      // attacker, for a moment; units that have none just sidestep
+      if (target.alive && !target.knock && this.hasPose(target, 'dodge')) {
+        const token = (target.dodgeToken = {});
+        this.showPose(target, 'dodge', -dx);
+        this.time.delayedCall(520, () => {
+          if (target.dodgeToken === token && target.alive && !target.knock && target.view && target.view.active) this.showStanding(target);
+        });
+      }
       return;
     }
     const dir = dx >= 0 ? 1 : -1;

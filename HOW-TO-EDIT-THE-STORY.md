@@ -511,3 +511,8 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - **Waterfalls:** the pictures are `public/art/fx/waterfall_tall.png`, `waterfall.png` and `splash_ring.png` (12 frames side by side). Where falls are is still `waterfalls` in the map file. To swap in new frames, put them in the three folders and run `dev/tools/make_water.py`.
 - **Effect layers (roadmap 18.23):** the colours of each element and how hard each level of hit shakes the screen are at the top of `src/fxLayers.js` (`ELEMENTS`, `FEEL`). A skill names its element where it calls `showImpact` (for example `element: 'earth'`).
 - **Suleiman's buff effects (13.46):** put his frames in `public/art/fx` as `buff_fury_cast_0.png`, `buff_fury_loop_0.png` and so on, then write the frame counts in `src/data/fxSlots.json`. Nothing else to change.
+
+## 13 Nov late batch: falls and dodges (roadmap 18.18, 13.44)
+- A fall is three pictures in `poses`: `fallAir`, `fallLand`, `fallRise`. Each can be one picture or a set by facing (`downRight`, `upRight`, ...); a facing that is missing is the opposite one, mirrored. Sudeen and Gaha have down-right and up-right.
+- A miss shows the unit's `dodge` picture (also drawn by facing) for half a second. Every fighter has one now.
+- To cut new sheets: `dev/tools/make_falls_dodges.py`; the notes at the top of that file say what each sheet is.

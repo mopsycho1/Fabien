@@ -47,9 +47,11 @@ def sheet_heads(raw, stand, head_boxes):
         out[name] = (float(np.median(vals)) if vals else 1.0, [round(v, 2) for v in vals])
     return out
 
-def final_cut(cl, box, out, scale):
-    """One figure at its final size, saved small (255 colours). Returns originX (where the feet are across it)."""
-    ox, size = cut(cl, box, out, scale, strokes=False, keep=0.15, floor=True)
+def final_cut(cl, box, out, scale, keep=0.15):
+    """One figure at its final size, saved small (255 colours). Returns originX (where the feet are across it).
+    keep: pieces smaller than this share of the biggest piece are dropped (a weapon lying on the ground, apart
+    from the body, needs a small number such as 0.02)."""
+    ox, size = cut(cl, box, out, scale, strokes=False, keep=keep, floor=True)
     im = Image.open(out).convert('RGBA'); a = im.getchannel('A')
     q = im.convert('RGB').quantize(255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA')
     q.putalpha(a); q.save(out, optimize=True)

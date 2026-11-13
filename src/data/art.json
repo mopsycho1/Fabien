@@ -164,6 +164,36 @@
           "file": "sudeen_iso_battle_downRight.png",
           "originX": 0.178
         }
+      },
+      "fallAir": {
+        "downRight": {
+          "file": "sudeen_fall_air_downRight.png",
+          "originX": 0.361
+        },
+        "upRight": {
+          "file": "sudeen_fall_air_upRight.png",
+          "originX": 0.655
+        }
+      },
+      "fallLand": {
+        "downRight": {
+          "file": "sudeen_fall_land_downRight.png",
+          "originX": 0.544
+        },
+        "upRight": {
+          "file": "sudeen_fall_land_upRight.png",
+          "originX": 0.649
+        }
+      },
+      "fallRise": {
+        "downRight": {
+          "file": "sudeen_fall_rise_downRight.png",
+          "originX": 0.559
+        },
+        "upRight": {
+          "file": "sudeen_fall_rise_upRight.png",
+          "originX": 0.718
+        }
       }
     },
     "portrait": "sudeen_head_0.png",
@@ -365,6 +395,7 @@
     },
     "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures and \"cast\" his raised-arm heal pictures. The game leans the picture back itself.",
+    "note_falls": "Fall set from Suleiman's 13 Nov sheets (dev/tools/make_falls_dodges.py): fallAir, fallLand, fallRise in two views; the game mirrors them for the other two.",
     "ruler": {
       "sudeen_iso_stand_downRight.png": {
         "footX": 0.558
@@ -458,6 +489,21 @@
       },
       "sudeen_n6_bash2_downRight.png": {
         "footX": 0.53
+      },
+      "sudeen_fall_air_downRight.png": {
+        "footX": 0.551
+      },
+      "sudeen_fall_air_upRight.png": {
+        "footX": 0.455
+      },
+      "sudeen_fall_land_downRight.png": {
+        "footX": 0.512
+      },
+      "sudeen_fall_land_upRight.png": {
+        "footX": 0.573
+      },
+      "sudeen_fall_rise_upRight.png": {
+        "footX": 0.619
       },
       "sudeen_n6_stone_upLeft.png": {
         "scale": 0.8,
@@ -744,16 +790,34 @@
         "originX": 0.651
       },
       "fallAir": {
-        "file": "gaha_fall_air.png",
-        "originX": 0.5
+        "downRight": {
+          "file": "gaha_fall_air.png",
+          "originX": 0.5
+        },
+        "upRight": {
+          "file": "gaha_fall_air_upRight.png",
+          "originX": 0.774
+        }
       },
       "fallLand": {
-        "file": "gaha_fall_land.png",
-        "originX": 0.494
+        "downRight": {
+          "file": "gaha_fall_land.png",
+          "originX": 0.494
+        },
+        "upRight": {
+          "file": "gaha_fall_land_upRight.png",
+          "originX": 0.465
+        }
       },
       "fallRise": {
-        "file": "gaha_fall_rise.png",
-        "originX": 0.496
+        "downRight": {
+          "file": "gaha_fall_rise.png",
+          "originX": 0.496
+        },
+        "upRight": {
+          "file": "gaha_fall_rise_upRight.png",
+          "originX": 0.422
+        }
       },
       "victory": {
         "file": "gaha_n6_victory_single.png",
@@ -1304,11 +1368,20 @@
         "scale": 0.8,
         "footX": 0.505
       },
+      "gaha_fall_air_upRight.png": {
+        "footX": 0.562
+      },
       "gaha_fall_land.png": {
         "footX": 0.481
       },
+      "gaha_fall_land_upRight.png": {
+        "footX": 0.382
+      },
       "gaha_fall_rise.png": {
         "footX": 0.544
+      },
+      "gaha_fall_rise_upRight.png": {
+        "footX": 0.363
       },
       "gaha_iso_release_downRight.png": {
         "footX": 0.478
@@ -1676,6 +1749,24 @@
       "victory": {
         "file": "layra_n6_victory_single.png",
         "originX": 0.53
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "layra_dodge_upLeft.png",
+          "originX": 0.281
+        },
+        "upRight": {
+          "file": "layra_dodge_upRight.png",
+          "originX": 0.76
+        },
+        "downLeft": {
+          "file": "layra_dodge_downLeft.png",
+          "originX": 0.474
+        },
+        "downRight": {
+          "file": "layra_dodge_downRight.png",
+          "originX": 0.614
+        }
       }
     },
     "portrait": "layra_face.png",
@@ -1753,6 +1844,7 @@
       }
     },
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses her hurt pictures. The game leans the picture back itself.",
+    "note_dodge": "Layra's dodge, four views, from Suleiman's 13 Nov sheet (dev/tools/make_falls_dodges.py).",
     "ruler": {
       "layra_iso_stand_upRight.png": {
         "footX": 0.502
@@ -1787,6 +1879,18 @@
       },
       "layra_n6_victory_single.png": {
         "scale": 1.05
+      },
+      "layra_dodge_upLeft.png": {
+        "footX": 0.427
+      },
+      "layra_dodge_upRight.png": {
+        "footX": 0.675
+      },
+      "layra_dodge_downLeft.png": {
+        "footX": 0.382
+      },
+      "layra_dodge_downRight.png": {
+        "footX": 0.377
       },
       "layra_n6_hurt_upLeft.png": {
         "footX": 0.513
@@ -2311,8 +2415,22 @@
         }
       },
       "dodge": {
-        "file": "archer_dodge.png",
-        "originX": 0.412
+        "upLeft": {
+          "file": "archer_dodge_upLeft.png",
+          "originX": 0.109
+        },
+        "upRight": {
+          "file": "archer_dodge_upRight.png",
+          "originX": 0.889
+        },
+        "downLeft": {
+          "file": "archer_dodge_downLeft.png",
+          "originX": 0.118
+        },
+        "downRight": {
+          "file": "archer_dodge_downRight.png",
+          "originX": 0.857
+        }
       },
       "dagger": {
         "upLeft": {
@@ -2640,9 +2758,17 @@
         "scale": 2.68,
         "footX": 0.62
       },
-      "archer_dodge.png": {
-        "scale": 2.68,
-        "footX": 0.275
+      "archer_dodge_upLeft.png": {
+        "footX": 0.288
+      },
+      "archer_dodge_upRight.png": {
+        "footX": 0.719
+      },
+      "archer_dodge_downLeft.png": {
+        "footX": 0.487
+      },
+      "archer_dodge_downRight.png": {
+        "footX": 0.435
       },
       "archer_hq_hit_f2.png": {
         "footX": 0.475

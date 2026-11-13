@@ -8,7 +8,10 @@
     },
     "scale": {
       "gaha_n6_victory": 1.0,
-      "gaha_n6_down": 0.8
+      "gaha_n6_down": 0.8,
+      "gaha_fall_air": 1.0,
+      "gaha_fall_land": 1.0,
+      "gaha_fall_rise": 1.0
     },
     "feet": {
       "gaha_rooted": 0.94
@@ -22,7 +25,10 @@
       "sudeen_ram": 1.4,
       "sudeen_n6_stone": 0.8,
       "sudeen_n6_swift": 0.82,
-      "sudeen_n9_furyAttack": 1.0
+      "sudeen_n9_furyAttack": 1.0,
+      "sudeen_fall_air": 1.0,
+      "sudeen_fall_land": 1.0,
+      "sudeen_fall_rise": 1.0
     },
     "feet": {
       "sudeen_ram": 0.95,
@@ -35,7 +41,8 @@
       "layra_n6_victory": 1.05,
       "layra_iso_hurt2": 1.1,
       "layra_iso_blessed": 1.08,
-      "layra_n6_hurt": 1.0
+      "layra_n6_hurt": 1.0,
+      "layra_dodge": 1.0
     },
     "feet": {}
   },
@@ -93,7 +100,6 @@
   "e3": {
     "note": "The archer: horns, veil and bronze confuse the head finder, so every family is set by eye. The archer_hq_* pictures are cut at the right size (make_archer_hq.py). The others are her old small pictures (standing was 112 pixels, now 300): 2.68 makes them the same size.",
     "scale": {
-      "archer_dodge": 2.68,
       "archer_ench": 2.68,
       "archer_hq_battle": 1.0,
       "archer_hq_down": 1.0,
@@ -107,7 +113,8 @@
       "archer_n6b_dagger": 2.68,
       "archer_poison": 2.9,
       "archer_poisonShot": 2.68,
-      "archer_smoke_throw": 2.68
+      "archer_smoke_throw": 2.68,
+      "archer_dodge": 1.0
     },
     "feet": {}
   },

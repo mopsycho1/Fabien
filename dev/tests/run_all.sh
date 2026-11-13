@@ -36,7 +36,7 @@ EXTRA="ruler nov6b notes27 notes27b poison echo signatures gaha three archer sag
 settings_for() {
   case $1 in
     n39) echo "FABIEN_MAP=cavern FABIEN_BENCH=e1" ;;
-    n41|n42|n43|n44|n45|n53|n54|n56|n58) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
+    n41|n42|n43|n44|n45|n53|n54|n56|n58|n59) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
     n50|n51) echo "FABIEN_BENCH=" ;;
   esac
 }
