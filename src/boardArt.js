@@ -149,6 +149,8 @@ export function preloadBoardArt(scene) {
   }
   // Suleiman's 8 looping flame frames (roadmap 6.41), for every brazier and lamp
   for (let i = 1; i <= FLAME_FRAMES; i++) scene.load.image('flame:' + i, './art/fx/flame_f' + i + '.png');
+  // the waterfall loops (roadmap 18.3): 12 frames side by side in one picture each
+  for (const [name, w, h] of WATER_SHEETS) scene.load.spritesheet('water:' + name, './art/fx/' + name + '.png', { frameWidth: w, frameHeight: h });
 }
 
 const FLAME_FRAMES = 8;
@@ -1205,6 +1207,7 @@ function fireTint(f) {
 export function drawCavern(scene, map) {
   if (setting !== 'cavern') return;
   drawSurround(scene, map.surround || {});
+  waterfallSprites.length = 0; // (a new board: the old pictures went with the old scene)
   for (const w of map.waterfalls || []) drawWaterfall(scene, w);
   for (const [c, r] of map.lamps || []) drawLamp(scene, c, r, map.sigilCircle || [4, 4]);
   drawSites(scene);
@@ -1345,6 +1348,22 @@ function drawLamp(scene, col, row, centre) {
   flame(scene, cx, cy - 3, depth + 0.01, 0.45); // small flame in the bowl
 }
 
+// ---------- The waterfalls (roadmap 1.41 and 18.3, checklist C3) ----------
+// Three loops made in Blender with the board's own camera (12 frames each, in
+// one strip, see dev/tools/make_water.py): a tall sheet for a drop of two
+// levels or more, a short one for one level, and a ring of ripples where the
+// water lands. They are drawn for the front-LEFT face of a block; the
+// front-right face shows them mirrored.
+const WATER_SHEETS = [['waterfall_tall', 256, 352], ['waterfall', 256, 224], ['splash_ring', 272, 168]];
+// Where things are inside a frame, in its own pixels (measured on the frames):
+//   lip    : the middle of the sheet's top edge (it sits on the middle of the ledge's edge)
+//   height : how long the sheet is below the lip
+const FALL_SHAPE = {
+  waterfall_tall: { lip: { x: 111, y: 90 }, height: 194, w: 256, h: 352 },
+  waterfall: { lip: { x: 108, y: 92 }, height: 59, w: 256, h: 224 },
+};
+const WATER_FRAMES = 12;
+
 // Water pouring off a ledge into the water below: [col, row, toCol, toRow].
 // Only a face turned towards the camera shows it.
 function drawWaterfall(scene, w) {
@@ -1357,14 +1376,42 @@ function drawWaterfall(scene, w) {
   if (b.vc - a.vc === 0 && b.vr - a.vr === 1) left = true; // the front-left face
   else if (b.vc - a.vc === 1 && b.vr - a.vr === 0) left = false; // the front-right face
   else return;
-  makeFallTexture(scene);
   const { x, y } = tileToScreen(c, r);
   const hw = TILE_WIDTH / 2;
   const hh = TILE_HEIGHT / 2;
-  const sx = left ? x - hw / 2 : x + hw / 2;
+  const sx = left ? x - hw / 2 : x + hw / 2; // the middle of the ledge's edge
   const sy = y + hh / 2;
   const length = drop * LEVEL_HEIGHT + 6;
   const depth = depthFor(c, r) + 0.25;
+  const name = drop >= 2 ? 'waterfall_tall' : 'waterfall';
+  if (!scene.textures.exists('water:' + name)) return drawWaterfallOld(scene, sx, sy, length, depth, c2, r2);
+  const shape = FALL_SHAPE[name];
+  const loop = (key) => {
+    if (!scene.anims.exists(key + '-loop')) {
+      scene.anims.create({ key: key + '-loop', frames: scene.anims.generateFrameNumbers('water:' + key, { start: 0, end: WATER_FRAMES - 1 }), frameRate: 12, repeat: -1 });
+    }
+    return key + '-loop';
+  };
+  // the sheet: scaled so it is as long as the drop, its lip on the ledge
+  const scale = length / shape.height;
+  const fall = scene.add.sprite(sx, sy - 2, 'water:' + name)
+    .setOrigin(left ? shape.lip.x / shape.w : 1 - shape.lip.x / shape.w, shape.lip.y / shape.h)
+    .setScale(scale).setFlipX(!left).setDepth(depth);
+  fall.play({ key: loop(name), startFrame: Math.floor(Math.random() * WATER_FRAMES) }); // each fall starts on its own frame
+  waterfallSprites.push(fall);
+  // ripples where it lands, lying on the pool
+  if (scene.textures.exists('water:splash_ring')) {
+    const ring = scene.add.sprite(sx, sy + length + 2, 'water:splash_ring').setScale(scale * 0.9).setAlpha(0.85).setDepth(depthFor(c2, r2) + 0.3);
+    ring.play({ key: loop('splash_ring'), startFrame: Math.floor(Math.random() * WATER_FRAMES) });
+    waterfallSprites.push(ring);
+  }
+}
+// every waterfall picture on the board now (tests and the browser checks read this)
+export const waterfallSprites = [];
+
+// The old waterfall, drawn in code: only used if the pictures did not load.
+function drawWaterfallOld(scene, sx, sy, length, depth, c2, r2) {
+  makeFallTexture(scene);
   const fall = scene.add.tileSprite(sx, sy - 2, 26, length, 'fx-waterfall').setOrigin(0.5, 0).setDepth(depth).setAlpha(0.85);
   fall.setBlendMode(Phaser.BlendModes.SCREEN);
   scene.tweens.add({ targets: fall, tilePositionY: -256, duration: 1600, repeat: -1 });

@@ -31,7 +31,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const imgs = b.children.list.filter((o) => o.type === 'Image' && o.texture).map((o) => o.texture.key);
   check('11.2 his rock walls on the sides of the tiles', imgs.some((k) => /^face:cavern:112:/.test(k)));
   check('11.2 his props round the board (stalagmites, pillar, pots, braziers, bones, pool)', ['stalagmiteTall', 'pillar', 'pots', 'brazier', 'bones', 'rockPool'].every((p) => imgs.includes('terrain:' + p)));
-  check('11.2 water falls off the platform (the faces turned to the camera)', b.children.list.filter((o) => o.type === 'TileSprite').length >= 3); // (the canvas renderer gives each its own picture name)
+  check('11.2 water falls off the platform (the faces turned to the camera)', b.children.list.filter((o) => o.texture && /^water:waterfall/.test(o.texture.key)).length >= 3); // (the v2 loops, roadmap 18.3; they were drawn strips before)
   check('11.6 his cavern painting behind', imgs.includes('terrain:caveBackdrop'));
   b.activeUnit = gaha; b.pendingTarget = null; b.approach = null;
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); };

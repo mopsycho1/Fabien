@@ -1,0 +1,25 @@
+{
+  "note": "Every effect flipbook (roadmap 18.3, checklist C1): the point of the picture that must stay still while the frames play (the anchor), and where that point sits in the frame (originX, originY: the same numbers the game's code uses for the sprite's origin). dev/tools/align_fx.py puts all frames of a family on one same-size canvas with the anchor on that point; dev/tests/fxdrift.cjs fails if an anchor moves more than 3 percent of the frame's width. Anchor kinds: base = the foot of the effect (the lowest solid row, and the middle of the weight just above it), for things that rise from the ground; boxbase = the bottom middle of everything drawn, for rings lying round the feet; box = the middle of everything drawn, for symbols and rings seen flat; mass = the middle of the weight, for clouds; core = the middle of the brightest tenth of the pixels, for an orb or a burning symbol whose flames flicker round it; tip = the point of a thrown spear (drawn flying right); keep = leave the frames alone (already one canvas from one camera, or steady), still checked by its named anchor if 'check' is set.",
+  "families": {
+    "blast_orb":     { "frames": 4, "anchor": "core",    "originX": 0.5, "originY": 0.5 },
+    "dust_ring":     { "frames": 4, "anchor": "box",     "originX": 0.5, "originY": 0.5 },
+    "earth_cast":    { "frames": 4, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "enchant_ring":  { "frames": 4, "anchor": "boxbase", "originX": 0.5, "originY": 1 },
+    "enchant_sigil": { "frames": 4, "anchor": "core",    "originX": 0.5, "originY": 0.5 },
+    "enchant_comet": { "frames": 4, "anchor": "core",    "originX": 0.5, "originY": 0.5 },
+    "fury_cast":     { "frames": 7, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "rise_earth":    { "frames": 3, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "rise_hex":      { "frames": 3, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "rise_wind":     { "frames": 3, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "rise_fire":     { "frames": 2, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "sj_burst":      { "frames": 2, "anchor": "boxbase",   "originX": 0.5, "originY": 1 },
+    "sj_impact":     { "frames": 2, "anchor": "boxbase",   "originX": 0.5, "originY": 1 },
+    "swift_swirl":   { "frames": 6, "anchor": "boxbase", "originX": 0.5, "originY": 1 },
+    "swift_trail":   { "frames": 6, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "strike":        { "frames": 7, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "crackle":       { "frames": 5, "anchor": "box",     "originX": 0.5, "originY": 0.5 },
+    "stone_burst":   { "frames": 3, "anchor": "base",    "originX": 0.5, "originY": 1 },
+    "sj_spear":      { "frames": 3, "anchor": "tip",     "originX": 0.82, "originY": 0.5 },
+    "flame":         { "frames": 8, "anchor": "base",    "originX": 0.5, "originY": 0.91, "first": 1, "sep": "_f" }
+  }
+}
