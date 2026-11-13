@@ -19,7 +19,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import relayRules from '../data/relay.json'; // Relay Strike numbers
-import { chooseMoveTile, isCaster } from '../enemyAi.js';
+import { chooseMoveTile, chooseAfterTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
 import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
@@ -3944,7 +3944,7 @@ export default class BattleScene extends Phaser.Scene {
       this.busy = true;
       this.useItem(unit, unit, itemId, () => {
         this.busy = false;
-        this.time.delayedCall(300, () => this.endTurn());
+        this.enemyWrapUp(unit);
       });
       return;
     }
@@ -3960,7 +3960,7 @@ export default class BattleScene extends Phaser.Scene {
       unit.hasActed = true;
       this.castElementBlast(unit, mark, spells.elementBlast, () => {
         this.busy = false;
-        this.time.delayedCall(300, () => this.endTurn());
+        this.enemyWrapUp(unit);
       });
       return;
     }
@@ -3973,7 +3973,7 @@ export default class BattleScene extends Phaser.Scene {
       unit.hasActed = true;
       this.castSmokeBomb(unit, smokeTile, () => {
         this.busy = false;
-        this.time.delayedCall(300, () => this.endTurn());
+        this.enemyWrapUp(unit);
       });
       return;
     }
@@ -4008,7 +4008,7 @@ export default class BattleScene extends Phaser.Scene {
     this.aiPickWeapon(unit); // her one free weapon switch: dagger next to a foe, bow otherwise (13.29)
     const finish = () => {
       this.busy = false;
-      this.time.delayedCall(300, () => this.endTurn());
+      this.enemyWrapUp(unit);
     };
     // Rabdul sets Shango's symbol on the weapon that will do most with it:
     // the hardest-hitting ally (or himself) who is in the fight (roadmap 4.1)
@@ -4072,7 +4072,7 @@ export default class BattleScene extends Phaser.Scene {
       this.busy = true;
       this.performEngage(unit, pins[0], () => {
         this.busy = false;
-        this.time.delayedCall(300, () => this.endTurn());
+        this.enemyWrapUp(unit);
       });
       return;
     }
@@ -4090,7 +4090,7 @@ export default class BattleScene extends Phaser.Scene {
         unit.hasActed = true;
         this.castShieldToss(unit, marks[0], spells.shieldToss, () => {
           this.busy = false;
-          this.time.delayedCall(300, () => this.endTurn());
+          this.enemyWrapUp(unit);
         });
         return;
       }
@@ -4118,7 +4118,7 @@ export default class BattleScene extends Phaser.Scene {
         unit.hasActed = true;
         this.castPoisonArrow(unit, marks[0], spells.poisonArrow, () => {
           this.busy = false;
-          this.time.delayedCall(300, () => this.endTurn());
+          this.enemyWrapUp(unit);
         });
         return;
       }
@@ -4126,14 +4126,41 @@ export default class BattleScene extends Phaser.Scene {
     this.busy = true;
     const done = () => {
       this.busy = false;
-      this.time.delayedCall(300, () => this.endTurn());
+      this.enemyWrapUp(unit);
     };
-    if (targets[0].isDecoy) this.strikeDecoy(unit, targets[0].decoy, done); // fooled by Husk
+    if (targets[0].isDecoy) {
+      unit.stepsUsed = Infinity; // fooled by Husk: it does not walk on after striking the decoy (the trick must cost it the turn)
+      this.strikeDecoy(unit, targets[0].decoy, done);
+    }
     else if (unit.spells.includes('doubleHit') && distance(unit, targets[0]) <= spells.doubleHit.range && Math.random() < (spells.doubleHit.chance || 0)) {
       // the double hit is a chance on his normal attack (roadmap 4.6)
       unit.hasActed = true;
       this.castDoubleHit(unit, targets[0], spells.doubleHit, done);
     } else this.performAttack(unit, targets[0], done);
+  }
+
+  // The end of an enemy's turn (roadmap 13.53, act then move). A turn is one
+  // action and up to "move" steps, in any order, for both sides. So an enemy
+  // that has acted and still has steps left may use them now:
+  //   - a ranged unit (the archer) backs away from the heroes, but only to a
+  //     tile it can still shoot from; if it is taking aim (Poison Arrow) it
+  //     keeps its target in reach and in clear sight
+  //   - a close fighter that acted from a distance (Shield Toss, Element
+  //     Blast, Enchant) walks up toward the heroes
+  // It never walks out of a fight it is standing in, and the choice of tile is
+  // in src/enemyAi.js (chooseAfterTile). Then the turn ends.
+  enemyWrapUp(unit) {
+    const end = () => this.time.delayedCall(300, () => this.endTurn());
+    const cannot = () => this.battleOver || !unit.alive || unit !== this.activeUnit || unit.engagedWith || unit.knock || unit.hidden || unit.smokeHidden || this.stepsLeft(unit) <= 0;
+    if (this.enemySecondWalk === false || cannot()) return end(); // (tests can switch the second walk off)
+    this.time.delayedCall(260, () => {
+      if (cannot() || this.busy) return end();
+      const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || this.isDecoyAt(c, r);
+      const aim = unit.aiming && unit.aiming.target && unit.aiming.target.alive ? { target: unit.aiming.target, range: (spells[unit.aiming.spellId] || {}).range || unit.range } : null;
+      const tile = chooseAfterTile(unit, this.enemyEyes(), this.stepsLeft(unit), hiddenAt, aim);
+      if (!tile) return end();
+      this.moveUnit(unit, tile.col, tile.row, () => end());
+    });
   }
 
   // An enemy's turn while locked: Press, unless it is hurt and the odds are against it.

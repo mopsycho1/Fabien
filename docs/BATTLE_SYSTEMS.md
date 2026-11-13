@@ -10,7 +10,10 @@ Written 13 Nov from the game's real data files, so every number here is what the
 - The turn list on screen is a preview of this, played on copies.
 - **Slow** hurts twice: it knocks 50 off the meter (the next turn comes later) and takes 4 speed for 2 turns.
 - **Stun** makes the victim lose its next turn.
-- On a turn you can **walk, then do one action**: attack, a skill, an item, dig up a buried item, start a clash, or end the turn. Once you have acted, you can only end the turn.
+- **A turn is one action and up to your Move in steps, in any order** (as in Final Fantasy Tactics, and a little freer). You can walk then act, act then walk, or walk a bit, act, and walk the rest. The action is one of: attack, a skill, an item, dig up a buried item, start a clash. You can undo a walk until you act.
+  - Exceptions: taking aim with Poison Arrow, Meditate and being Stunned use the whole turn. A fighter in a clash cannot walk.
+  - **Enemies play by the same rule** (13 Nov): the Archer shoots and then backs off to the end of her reach, keeping a shot; a close fighter that acted from a distance (Shield Toss, Element Blast, Enchant) walks up afterwards. Nobody walks out of a fight they are standing in, and an enemy fooled by Layra's decoy does not walk on.
+  - Default, Suleiman can change.
 
 | Fighter | Speed | Move (tiles) |
 |---|---|---|

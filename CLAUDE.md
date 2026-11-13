@@ -24,7 +24,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 ## Commands
 - Play locally: `npm install` once, then `npm run dev` (or `npx vite build` and `npx vite preview --port 4173`).
 - Tests (jsdom, in dev/tests): `cd dev/tests && npm install` once. Each run: start the picture server in another terminal, `node serve.cjs` (in dev/tests; the old python server drops pictures on Mac), then `bash bundle.sh` after any code change, then `node <test>.cjs`.
-  - Most tests use the old 8x8 map (yoba). Cavern tests: `FABIEN_MAP=cavern FABIEN_BENCH= node n41.cjs` (n41 to n45 and n53), `FABIEN_MAP=cavern FABIEN_BENCH=e1 node n39.cjs`.
+  - Most tests use the old 8x8 map (yoba). Cavern tests: `FABIEN_MAP=cavern FABIEN_BENCH= node n41.cjs` (n41 to n45, n53, n54), `FABIEN_MAP=cavern FABIEN_BENCH=e1 node n39.cjs`.
   - Full suite: `bash dev/tests/run_all.sh` (starts the picture server, bundles, runs every test with its settings 4 at a time, prints only failures and a final count; about 3 to 4 minutes). A test that fails beside the others is rerun alone and listed as SHAKY. `JOBS=1` runs one at a time. Results per test land in dev/tests/last_run.txt.
   - Steady check: `bash dev/tests/steady.sh` runs the suite 3 times and says if the runs differ.
   - Bot battles (balance): `FABIEN_MAP=cavern node bot.cjs 2`. It also prints OFF TILE if a figure is left standing off the middle of its tile (13.47). FABIEN_BENCH=<ids> picks who sits out, NO_ENCHANT=1 turns Enchant off.
@@ -48,6 +48,9 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - A unit's pictures are not all drawn at one scale any more: `unit.baseScale` is its one size, `unit.artScale` is that times the ruler's scale for the picture shown now. Tests compare with `artScale`, read while breathing rests.
 - Phaser Graphics scale from their own x,y: draw shapes at (0,0) and place the Graphics, or they slide when tweened.
 - Enemies face the heroes with their upLeft/downLeft pictures; the other facings are mirrored.
+- Tests must never make `Math.random` return a constant (or only tiny numbers): Phaser names text pictures with random numbers, and the next text crashes with "reading 'context'".
+- An enemy that has acted may walk again with its leftover steps (13.53). A test that needs it to stay put sets `b.enemySecondWalk = false`.
+- With `b.setSpeed` above 1, `knockUntil` still waits in real milliseconds (the scene clock is not scaled): tests wait on `unit.knock`, and M11's fast speed must scale it.
 
 ## Suleiman's files (inbox)
 - Originals go in Baiyee's "Fabien Blueprint" folder. New WhatsApp batches: export the chat with media into Fabien Blueprint/INBOX/<date>/.

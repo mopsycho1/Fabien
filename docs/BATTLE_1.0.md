@@ -325,7 +325,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 
 The queue (Baiyee, 13 Nov), in order: 1 knockback gap 13.47; 2 three open rules in BATTLE_SYSTEMS.md; 3 clash dice; 4 high ground in a clash; 5 turn shape (act then move); 6 close M2's gaps (foot points B3, GIFs); 7 M3; 8 M3b (Blender allowed, see roadmap 18.23); 9 M4; 10 M13; 11 M10b (Kofi from the Email zip in INBOX/2026-11-13/Email); 12 enemies forage (13.48); then M11 and M15 if there is time.
 
-- **Queue items 1 to 4 done** (1: 13.47 knockback gap. 2: the three open rules, section 11 of BATTLE_SYSTEMS.md. 3: clash dice, 13.51. 4: high ground in a clash is 2 per level in both data files, 13.52). Next: queue item 5 (turn shape: act then move, 13.53).
+- **Queue items 1 to 5 done** (1: 13.47 knockback gap. 2: three open rules, BATTLE_SYSTEMS.md section 11. 3: clash dice, 13.51. 4: high ground 2 per level, 13.52. 5: turn shape, 13.53: one action and the steps in any order; enemies now walk after acting). Next: queue item 6 (close M2's gaps: foot points for B3, then the GIFs into Fabien Blueprint/SIZE RULER SHEETS 2026-11-12).
 
 ## Where we stopped before (12 Nov, after M2)
 

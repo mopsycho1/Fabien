@@ -87,3 +87,53 @@ export function chooseMoveTile(unit, units, extraBlocked = () => false) {
 
   return best;
 }
+
+// Where an enemy should walk AFTER it has acted, with the steps it has left
+// (roadmap 13.53: a turn is one action and up to "move" steps, in any order).
+// Returns a tile, or null to stay.
+//   steps : how many steps it still has
+//   aim   : optional { target, range }: it is taking aim at this unit and must
+//           keep it in reach and in clear sight
+// Ranged units back away: the tile furthest from every foe (up to their own
+// reach) that they can still shoot from, higher ground breaking ties. They only move
+// if that gives them more room than they have now.
+// Close fighters walk up, but only if no foe is next to them already (they do
+// not leave a fight) and only if it brings them nearer to striking.
+export function chooseAfterTile(unit, units, steps, extraBlocked = () => false, aim = null) {
+  const opponents = units.filter((other) => other.alive && other.side !== unit.side);
+  if (opponents.length === 0 || steps <= 0) return null;
+  const isBlocked = (col, row) =>
+    extraBlocked(col, row) || units.some((other) => other.alive && other.col === col && other.row === row);
+  const tiles = getReachableTiles(unit.col, unit.row, steps, isBlocked, moveRules(unit));
+  const better = (a, b) => {
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i];
+    return false;
+  };
+  let score;
+  let allowed = () => true;
+  if (unit.range > 1) {
+    const shooter = shootsProjectiles(unit);
+    const canHit = (t, o, range) => {
+      const d = distance(t, o);
+      return d <= range && !(shooter && (d <= 1 || !hasClearShot(t, o)));
+    };
+    allowed = (t) => (aim ? canHit(t, aim.target, aim.range) : opponents.some((o) => canHit(t, o, unit.range)));
+    // (before it shoots, KEEP_AWAY tiles of room is enough; once it has shot it may back off as far as its own reach)
+    const room = (t) => Math.min(unit.range, ...opponents.map((o) => distance(t, o)));
+    score = (t) => [-room(t), -getHeight(t.col, t.row), distance(unit, t)];
+  } else {
+    if (opponents.some((o) => distance(unit, o) <= 1)) return null; // already in the fight
+    const gap = (t) => Math.min(...opponents.map((o) => Math.max(0, distance(t, o) - unit.range) - (isCaster(o) ? CASTER_DETOUR : 0)));
+    score = (t) => [gap(t), distance(unit, t)];
+  }
+  let best = null;
+  let bestScore = score(unit);
+  const start = bestScore; // it only moves if the first score (room, or nearness) gets better
+  for (const tile of tiles) {
+    if (!allowed(tile)) continue;
+    const sc = score(tile);
+    if (sc[0] < start[0] && better(sc, bestScore)) { best = tile; bestScore = sc; }
+  }
+  return best;
+}
+

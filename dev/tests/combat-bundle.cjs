@@ -505,7 +505,8 @@ var engagement_default = {
   keepHoldBonus: {
     defence: 2
   },
-  heightBonusPerLevel: 1,
+  heightBonusPerLevel: 2,
+  heightBonusNote: "High ground in a clash is worth 2 per level (picked 13 Nov, roadmap 13.52). The same number is in terrain.json as openingHeightBonusPerLevel, which is the one the live stance duel reads: only the fighter who starts the clash gets it, only on the opening beat, and only for standing higher. Keep the two numbers the same (dev/tests/duel-rules.cjs checks it).",
   offBalance: {
     contest: 2,
     defense: 2,
@@ -640,6 +641,7 @@ var terrain_default = {
   note: "How the lie of the land changes a fight. First guesses for playtesting.",
   rangedAccuracyPerLevel: 10,
   openingHeightBonusPerLevel: 2,
+  openingHeightBonusNote: "High ground in a clash (picked 13 Nov, roadmap 13.52): 2 per level, for the fighter who starts the clash, on the opening beat only. 1 level up moves a fair beat from 36 wins in 100 to 55; 2 levels to 72. engagement.json heightBonusPerLevel must say the same number.",
   fallDamagePerLevel: 4,
   pushClimbLimit: 1,
   downhillPushExtra: 1,
