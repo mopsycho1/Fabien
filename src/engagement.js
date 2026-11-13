@@ -89,7 +89,8 @@ export function endEngagement(a) {
 
 // ---------- The contest ----------
 
-// Rolls the dice: by default two six-sided dice, so 2 to 12, usually near 7.
+// Rolls dice and adds them up. A beat of the stance duel rolls 3 (beatDice).
+// The default of 2 is only for the older "classic" clash, which the game no longer uses.
 export function rollDice(random, count = rules.dice) {
   let total = 0;
   for (let i = 0; i < count; i++) total += 1 + Math.floor(random() * rules.diceSides);
@@ -372,14 +373,39 @@ export function stanceRating(unit, stance) {
   return rating;
 }
 
-// Everything that adds up to one side's score in a beat, before the dice.
+// ---------- THE ONE RULE OF A BEAT (roadmap, 13 Nov) ----------
+//
+//   score = 3 dice  +  half the stat of your stance, rounded up  +  bonuses
+//
+//   3 dice         : three six-sided dice added up, 3 to 18, usually 10 or 11
+//   half the stat  : Press uses power, Guard uses guard, Slip and Break away
+//                    use agility. A Verse that lifts that stat is added to the
+//                    stat first, then the total is halved and rounded up.
+//   bonuses        : whole numbers, each from engagement.json:
+//                      +1 strong in the stance, -1 weak in it (affinityBonus)
+//                      +3 your stance beats theirs              (matchupBonus)
+//                      +2 you lead the momentum track by 2      (momentum.leadBonus)
+//                      +3 Empower, costs 1 Poise                (poise.empower)
+//                      -2 you are Off-Balance                   (offBalance.contest)
+//                      high ground, opening beat only           (terrain.json)
+//
+// Both fighters work out a score. The higher score wins the beat. A gap of
+// 0 or 1 is an even beat (stalemateWithin). A gap of 6 or more moves the
+// momentum track 1 further (decisiveMargin).
+//
+// Every part is a whole number, so the two scores shown on screen are the real
+// ones. (Before 13 Nov the stat was halved without rounding, so scores had
+// halves in them and the screen showed them rounded: "9 vs 8" could be a win
+// one time and an even beat the next.)
+//
+// beatParts lists the parts of one side's score, before the dice.
 // highGround: true only for the one who started the clash, on the opening beat:
 // engaging from higher ground gives a bonus for each level (terrain.json).
 export function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empowered = false, highGround = false) {
   const lead = momentumOf(unit) >= rules.momentum.leadAt ? rules.momentum.leadBonus : 0;
   const heightDiff = ctx.heightOf(unit.col, unit.row) - ctx.heightOf(foe.col, foe.row);
   return {
-    rating: stanceRating(unit, stance) * rules.statWeight, // stats count for half, so class strengths matter without deciding every beat
+    rating: Math.ceil(stanceRating(unit, stance) * rules.statWeight), // half the stat, rounded up: class strengths matter without deciding every beat
     affinity: rules.affinityBonus[stanceAffinity(unit, stance)] || 0,
     // only the side whose stance beats the other's gets the bonus (a soft edge, not a 6-point swing)
     matchup: stance === 'break' ? rules.breakVs[foeStance] || 0 : Math.max(0, matchup(stance, foeStance)),

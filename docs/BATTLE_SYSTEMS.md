@@ -72,7 +72,13 @@ Written 13 Nov from the game's real data files, so every number here is what the
   - **Slip** (uses agility): dodge and counter.
   - **Break away** (uses agility): try to leave the clash.
 - Stances beat each other in a circle: **Guard beats Press, Slip beats Guard, Press beats Slip**. A win in the circle gives +3, but dice still roll, so it is a bonus, not a guarantee.
-- Each class is strong, average or weak in each stance (strong +1, weak -1). A beat adds the matching stat, the stance bonus, the dice (3 dice), height and buffs.
+- **The one rule of a beat: score = 3 dice + half your stat for the stance (rounded up) + bonuses.** Both fighters work out a score. The higher score wins the beat. A gap of 0 or 1 is an even beat.
+  - **3 dice:** three six-sided dice added up, so 3 to 18, most often 10 or 11.
+  - **Half the stat:** Press uses power, Guard uses guard, Slip and Break away use agility. A Verse that lifts that stat is added first, then the total is halved and rounded up. Tayo's power 7 gives 4; under Fury (power 10) it gives 5.
+  - **Bonuses,** all whole numbers: +1 if your class is strong in the stance, -1 if weak; +3 if your stance beats theirs; +2 if you lead the momentum track by 2; +3 for Empower; -2 if you are Off-Balance; high ground on the opening beat (below).
+  - **Example:** Tayo presses (power 7, strong in Press): 4 + 1 = 5 before the dice. Sudeen guards (guard 8, strong in Guard, and Guard beats Press): 4 + 1 + 3 = 8. Sudeen is 3 ahead, so he wins about 64 times in 100, 22 are even and Tayo wins 14.
+  - **How much a lead is worth** (win, even, lose out of 100): lead 0: 36, 27, 36. Lead 1: 45, 27, 28. Lead 2: 55, 25, 21. Lead 3: 64, 22, 14. Lead 4: 72, 18, 10. Lead 5: 79, 15, 6.
+  - The two scores shown on screen after a beat are the real ones. (Changed 13 Nov: stats used to be halved without rounding, so the screen showed rounded scores and "9 vs 8" could mean a win or an even beat.)
 - **Momentum** is a shared track from -3 to +3. Winning a beat moves it your way by 1, a winning Press by 2. At +2 the leader fights better (+2). At +3 the beat is **decisive**: the loser is knocked Off-Balance and pushed back, the winner gets a free strike, and the track goes back to 0. A decisive Overpower win pushes 2 tiles.
 - **Poise** is a pool of 3 (you start with 2). Spend 1 to **Empower** a stance for +3 in that beat. Poise comes back +1 on each turn spent outside a clash and does not come back inside one, so long clashes drain it. Kola nut refills it.
 - **Height:** the one who starts a clash from higher ground gets a bonus for each level on the opening beat.

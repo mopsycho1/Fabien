@@ -21,3 +21,7 @@ window.__game = new Phaser.Game({ type: Phaser.CANVAS, parent: 'game', width: 72
 EOT
 node_modules/.bin/esbuild harness-entry.js --bundle --format=iife --platform=browser --outfile=$OUT_DIR/bundle.js --log-level=error
 rm -f harness-entry.js
+# The rules on their own, for the tests that need no screen (duel-rules, duel-odds, archer, echo, n28).
+# These two files used to be built by hand and went stale (found 13 Nov): now they are rebuilt every time.
+node_modules/.bin/esbuild src/engagement.js --bundle --format=cjs --platform=node --outfile=$OUT_DIR/eng-bundle.cjs --log-level=error
+node_modules/.bin/esbuild src/combat.js --bundle --format=cjs --platform=node --outfile=$OUT_DIR/combat-bundle.cjs --log-level=error

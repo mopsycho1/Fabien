@@ -51,4 +51,67 @@ g.status.buff = { id: 'stone', turnsLeft: 2 };
 check('a Verse of Stone adds to Guard (doubled on a Guardian: +6)', E.stanceRating(g, 'guard') === jobs.guardian.contest.guard + 6, E.stanceRating(g, 'guard'));
 E.endDuel(w);
 check('ending a duel clears it on both', !w.engagement && !g.engagement && !w.engagedWith && !g.engagedWith);
+
+// ---------- the one rule of a beat (13 Nov): score = 3 dice + half the stat (rounded up) + bonuses ----------
+{
+  const R = require(path.join(__dirname, '../../src/data/engagement.json'));
+  const statOf = { press: 'power', guard: 'guard', slip: 'agility', break: 'agility' };
+  const fighters = Object.keys(jobs).filter((j) => jobs[j] && jobs[j].contest); // every class with clash numbers
+  check('every class with clash numbers is tested', fighters.length >= 10, fighters.join());
+  // 1. the stat part: half, rounded up, for every fighter in every stance
+  let bad = [];
+  for (const j of fighters) for (const st of ['press', 'guard', 'slip', 'break']) {
+    const u = mk(j), foe = mk('guardian');
+    const want = Math.ceil(jobs[j].contest[statOf[st]] / 2);
+    const got = E.beatParts(u, st, foe, st).rating;
+    if (got !== want) bad.push(j + ' ' + st + ' ' + got + ' not ' + want);
+  }
+  check('the stat part is half the stance stat, rounded up, for every fighter and stance', bad.length === 0, bad.slice(0, 3).join(' | '));
+  // 2. the whole score with known dice: dice + half stat + strong or weak, nothing else
+  bad = [];
+  for (const j of fighters) for (const st of ['press', 'guard', 'slip']) {
+    const u = mk(j), foe = mk(j); E.startDuel(u, foe);
+    const r = E.resolveBeat(u, st, foe, st, dice(6, 2, 3, 1, 1, 1)); // same stance on both sides: no matchup bonus
+    const aff = { strong: 1, average: 0, weak: -1 }[(jobs[j].stances || {})[st] || 'average'];
+    const want = 11 + Math.ceil(jobs[j].contest[statOf[st]] / 2) + aff;
+    if (r.actorRoll !== 11 || r.holderRoll !== 3 || r.actorScore !== want) bad.push(j + ' ' + st + ' score ' + r.actorScore + ' not ' + want);
+  }
+  check('score = the 3 dice + half the stat + 1 if strong, - 1 if weak', bad.length === 0, bad.slice(0, 3).join(' | '));
+  // 3. each bonus is the whole number the data file says
+  const a = mk('warlord'), c = mk('warlord'); E.startDuel(a, c);
+  const plain = E.sumBeat(E.beatParts(a, 'press', c, 'press'));
+  check('your stance beating theirs is +' + R.matchupBonus, E.sumBeat(E.beatParts(a, 'press', c, 'slip')) - plain === R.matchupBonus && R.matchupBonus === 3);
+  check('the beaten stance gets nothing taken off (the bonus goes to one side only)', E.sumBeat(E.beatParts(a, 'press', c, 'guard')) === plain);
+  check('Empower is +' + R.poise.empower, E.sumBeat(E.beatParts(a, 'press', c, 'press', undefined, true)) - plain === R.poise.empower);
+  a.status.offBalance = true;
+  check('Off-Balance is -' + R.offBalance.contest, E.sumBeat(E.beatParts(a, 'press', c, 'press')) - plain === -R.offBalance.contest);
+  a.status.offBalance = false; E.shiftMomentum(a, 2);
+  check('leading the momentum track by 2 is +' + R.momentum.leadBonus, E.sumBeat(E.beatParts(a, 'press', c, 'press')) - plain === R.momentum.leadBonus);
+  E.resetMomentum(a);
+  a.status.buff = { id: 'fury', turnsLeft: 2 };
+  const withFury = E.beatParts(a, 'press', c, 'press').rating;
+  check('a Verse is added to the stat first, then halved and rounded up', withFury === Math.ceil(E.stanceRating(a, 'press') / 2) && withFury > Math.ceil(jobs.warlord.contest.power / 2), withFury);
+  a.status.buff = null;
+  // 4. every score is a whole number, whatever happens (2,000 random beats with every fighter)
+  let halves = 0;
+  for (let i = 0; i < 2000; i++) {
+    const u = mk(fighters[i % fighters.length]), foe = mk(fighters[(i * 3 + 1) % fighters.length]); E.startDuel(u, foe);
+    if (i % 5 === 0) u.status.offBalance = true;
+    const sts = ['press', 'guard', 'slip', 'break'];
+    const r = E.resolveBeat(u, sts[i % 4], foe, sts[(i >> 2) % 3], undefined, i % 7 === 0);
+    if (!Number.isInteger(r.actorScore) || !Number.isInteger(r.holderScore)) halves++;
+  }
+  check('no score ever has a half in it', halves === 0, halves);
+  // 5. who wins: a gap of 0 or 1 is even, 2 wins, 6 or more moves momentum 1 further
+  const even = (da, db) => { const u = mk('warlord'), foe = mk('warlord'); E.startDuel(u, foe); return E.resolveBeat(u, 'guard', foe, 'guard', dice(...da, ...db)); };
+  let r = even([3, 3, 3], [3, 3, 3]); check('gap 0: even', r.kind === 'even' && r.margin === 0, r.margin);
+  r = even([4, 3, 3], [3, 3, 3]); check('gap 1: still even', r.kind === 'even' && r.margin === 1, r.margin);
+  r = even([5, 3, 3], [3, 3, 3]); check('gap 2: the higher score wins, momentum moves 1', r.kind === 'win' && r.margin === 2 && r.shift === 1, r.margin + ' shift ' + r.shift);
+  r = even([6, 6, 3], [3, 3, 3]); check('gap 6: momentum moves 1 further', r.kind === 'win' && r.margin === 6 && r.shift === 2, r.margin + ' shift ' + r.shift);
+  // 6. the odds table in engagement.json (beatOddsNote) is right: count every one of the 46,656 dice results
+  const count = (lead) => { let win = 0, evenN = 0; for (let x = 0; x < 216; x++) for (let y = 0; y < 216; y++) { const sum = (n) => 3 + (n % 6) + (Math.floor(n / 6) % 6) + Math.floor(n / 36); const m = sum(x) + lead - sum(y); if (m > 1) win++; else if (m >= -1) evenN++; } return [Math.round(win / 466.56), Math.round(evenN / 466.56)]; };
+  const table = [0, 1, 2, 3, 4, 5, 6].map((l) => count(l).join('/')).join(' ');
+  check('odds by lead before the dice (win/even percent for a lead of 0 to 6)', table === '36/27 45/27 55/25 64/22 72/18 79/15 86/11', table);
+  check('the dice are 3 six-sided dice', R.beatDice === 3 && R.diceSides === 6 && r.actorRoll === 15);
+}
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);

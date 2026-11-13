@@ -24,6 +24,7 @@ __export(engagement_exports, {
   autoStance: () => autoStance,
   beatParts: () => beatParts,
   breakAwayContest: () => breakAwayContest,
+  canBeCaught: () => canBeCaught,
   canEngage: () => canEngage,
   contestEdge: () => contestEdge,
   contestParts: () => contestParts,
@@ -63,7 +64,9 @@ module.exports = __toCommonJS(engagement_exports);
 // src/data/engagement.json
 var engagement_default = {
   note: "Numbers for the Skirmish / Distraction engagement. Everything here is a first guess for playtesting.",
+  beatRule: "THE RULE OF A BEAT: score = 3 dice + half the stat of your stance (rounded up) + bonuses. The higher score wins; a gap of 0 or 1 is even (stalemateWithin); a gap of 6 or more moves momentum 1 further (decisiveMargin). Dice: beatDice dice of diceSides sides. Half: statWeight. Bonuses: affinityBonus, matchupBonus, momentum.leadBonus, poise.empower, offBalance.contest, and high ground on the opening beat (terrain.json).",
   dice: 2,
+  diceNote: 'dice, pressBonus, holdBonus, breakBonus, keepHoldBonus, heightBonusPerLevel and styleStat are only for the older "classic" clash (mode: classic), which the game no longer uses. The live rule is beatRule above.',
   diceSides: 6,
   stalemateWithin: 1,
   decisiveMargin: 6,
@@ -152,13 +155,43 @@ var engagement_default = {
     max: 3,
     start: 2,
     refill: 1,
-    empower: 3
+    empower: 3,
+    refillInClash: 0,
+    note: "Poise: up to max, a battle starts with start. Each turn OUT of a clash gives back refill; a turn IN a clash gives back refillInClash. Empower spends 1 for +empower to one beat."
   },
   decisiveStrike: true,
   aiReadChance: 40,
   beatDice: 3,
   statWeight: 0.5,
-  beatOddsNote: "With these numbers: same stance, a class strong in it beats one weak in it about 79% of the time; equal fighters where one stance beats the other, 64%; a strong class that picked the beaten stance, 55%."
+  beatOddsNote: "Odds of a beat, by how far ahead you are before the dice (your half stat and bonuses minus theirs). Lead 0: win 36%, even 27%, lose 36%. Lead 1: 45, 27, 28. Lead 2: 55, 25, 21. Lead 3 (your stance beats theirs, all else equal): 64, 22, 14. Lead 4: 72, 18, 10. Lead 5: 79, 15, 6. Lead 6: 86, 11, 4. Checked by dev/tests/duel-rules.cjs.",
+  rangedBreakChance: 50,
+  rangedBreakNote: "An archer caught in a clash cannot shoot, so on its turn it tries to Break away this often (in %), unless it is winning the clash.",
+  signatures: {
+    note: "Signature stances (Suleiman's tank design). A unit has one if its job in jobs.json has a signature line. Its defence works while it is in a clash and its last stance is the signature stance.",
+    bloodied: {
+      note: "Bloodied Press (Warlord, Berserker): every hit taken adds a stack. In Press, each stack takes 1 off every hit. Winning a beat with Press lands a quick hit of winHitBase + stacks, and a decisive win pushes 1 tile further.",
+      maxStacks: 3,
+      reducePerStack: 1,
+      winHitBase: 1,
+      decisivePushExtra: 1
+    },
+    counter: {
+      note: "Counter-Press (Bruiser): in Press, the gauntlet soaks up to absorb damage of the first hit after each beat. Every chargePer damage soaked is 1 Charge. Losing a beat releases all Charge as a counter-punch of damagePerCharge per Charge.",
+      absorb: 4,
+      chargePer: 4,
+      maxCharge: 3,
+      damagePerCharge: 3
+    },
+    bulwark: {
+      note: "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
+      max: 3,
+      pushResistPerLevel: 1,
+      standoffHeal: 2,
+      standoffPoise: 1
+    }
+  },
+  stanceChoice: "auto",
+  stanceChoiceNote: `How heroes pick stances in a clash, until the player switches: "auto" (one Fight button picks for you) or "manual" (Press, Guard and Slip buttons). The player's switch is remembered on their device.`
 };
 
 // src/data/terrain.json
@@ -168,7 +201,17 @@ var terrain_default = {
   openingHeightBonusPerLevel: 2,
   fallDamagePerLevel: 4,
   pushClimbLimit: 1,
-  downhillPushExtra: 1
+  downhillPushExtra: 1,
+  sightHeight: 1.5,
+  sightHeightNote: "Line of sight (Suleiman, 29 Oct): arrows and thrown weapons fly from chest height to chest height, this many levels above the ground each unit stands on. A tile in between whose top reaches that line stops the shot. Magic, and techniques that pierce, are not stopped. With 1.5, a block 2 levels higher than both units hides the target; 1 level does not.",
+  climbLimit: 1,
+  climbLimitNote: "Walking (roadmap 3.8): a unit can step up at most this many levels from one tile to the next; stepping down is always fine. Pushes have their own pushClimbLimit. Layra under a Verse of Swiftness ignores it (spells.json, swiftness, freeClimb).",
+  water: {
+    drenchedTurns: 2,
+    lightningTimes: 1.5,
+    fireTimes: 0.5,
+    note: "Shallow water (roadmap 11.4, Suleiman 29 Oct 19:58): units can wade through it. A unit standing in water is Drenched, and stays Drenched for drenchedTurns of its own turns after it leaves. Drenched units take lightningTimes the damage from lightning and fireTimes from fire (ice when it exists: more). Water puts out a burn, and fire can't set a Drenched unit alight."
+  }
 };
 
 // src/data/spells.json
@@ -177,8 +220,11 @@ var spells_default = {
     name: "Verse of Swiftness",
     button: "Swiftness",
     short: "SWIFT",
+    icon: "swiftness",
+    card: "swiftness",
+    effect: "Swift",
     kind: "buff",
-    group: "Verse",
+    group: "Blessings",
     color: "#9fd4ff",
     range: 3,
     turns: 2,
@@ -194,18 +240,29 @@ var spells_default = {
     use: "both",
     affinity: {
       jobs: [
-        "scout"
+        "scout",
+        "spearman"
       ],
       times: 2,
-      who: "a scout"
+      who: "a scout or spearman"
+    },
+    freeClimb: {
+      jobs: [
+        "sage"
+      ],
+      text: "A Sage (Layra) hops from one high spot to another: her moves ignore height, and she flies over anyone in her way."
     }
   },
   stone: {
     name: "Verse of Stone",
     button: "Stone",
-    short: "STONE",
+    short: "EARTH",
+    icon: "stone",
+    card: "stone",
+    effect: "Earth's Bulwark",
+    effectNote: "Suleiman 30 Oct: the effect of the Verse of Stone is called Earth's Bulwark. Its short word is EARTH because BULWARK is already the Warden's signature.",
     kind: "buff",
-    group: "Verse",
+    group: "Blessings",
     color: "#d9b77a",
     range: 3,
     turns: 2,
@@ -215,23 +272,35 @@ var spells_default = {
     boosts: {
       defense: 2
     },
-    text: "+2 defense. In a clash: +3 guard, harder to push.",
+    text: "Earth's Bulwark, +2 defense. In a clash: +3 guard, harder to push.",
     mp: 3,
     use: "both",
     affinity: {
       jobs: [
-        "guardian"
+        "guardian",
+        "warden"
       ],
       times: 2,
       who: "a shield-bearer"
+    },
+    stillGuard: {
+      jobs: [
+        "spearman"
+      ],
+      damageTaken: 0.5,
+      unpushable: true,
+      text: "A spearman (Gaha) who doesn't move on his turn plants his feet: half damage, and nothing can push him, until his next turn."
     }
   },
   fury: {
     name: "Verse of Fury",
     button: "Fury",
     short: "FURY",
+    icon: "fury",
+    card: "fury",
+    effect: "Fury",
     kind: "buff",
-    group: "Verse",
+    group: "Blessings",
     color: "#ff8a5c",
     range: 3,
     turns: 2,
@@ -265,7 +334,8 @@ var spells_default = {
     text: "Its next turn comes later, and it is slower for 2 turns.",
     mp: 4,
     use: "battlefield",
-    group: "Escape"
+    group: "Hexes",
+    icon: "slow"
   },
   husk: {
     name: "Husk",
@@ -274,10 +344,9 @@ var spells_default = {
     kind: "escape",
     color: "#8fd18a",
     range: 3,
-    text: "Leave a decoy and slip up to 3 tiles away, even out of a clash.",
+    text: "Leave a decoy that fools the enemy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by your next turn, it echoes your next spell: a second bolt of Lightning, or a Verse or Slow twice as strong. Cast under Swiftness, a struck decoy bursts in a howling gust: enemies next to it are blown 2 tiles away.",
     mp: 5,
-    use: "both",
-    group: "Escape"
+    use: "both"
   },
   meditate: {
     name: "Meditate",
@@ -292,7 +361,296 @@ var spells_default = {
       defense: 2,
       evade: 10
     },
-    text: "Restore 6 MP. Ends your turn; you are Exposed until your next."
+    text: "Sink into a trance: your next turn is spent meditating too (you can't act), then 6 MP come back. You are Exposed until then, so keep allies close."
+  },
+  spearThrow: {
+    name: "Spear Throw",
+    button: "Spear Throw",
+    short: "THROW",
+    kind: "throw",
+    color: "#e8c690",
+    range: 3,
+    push: 1,
+    cooldown: 3,
+    text: "Hurl the spear at an enemy up to 3 tiles away, 1 tile further for each level you stand above it. A hit knocks it back a tile (off a ledge, it falls; into a wall, it slams and is Disoriented). A higher block in the way stops the throw. Ready again after 3 turns.",
+    mp: 0,
+    use: "enemy",
+    rangePerLevel: 1
+  },
+  herbs: {
+    name: "Herbs",
+    button: "Herbs",
+    short: "HERBS",
+    kind: "heal",
+    color: "#9fdc8a",
+    range: 2,
+    heal: 10,
+    cooldown: 3,
+    uses: 3,
+    text: "Throw a pouch of healing herbs to an ally up to 2 tiles away (one tile further for each level you stand above them), or use it yourself: +10 health, and it cures poison and puts out a burn. Ready again after 3 turns. Only 3 pouches a battle.",
+    mp: 0,
+    use: "ally",
+    rangePerLevel: 1
+  },
+  poisonArrow: {
+    name: "Poison Arrow",
+    button: "Poison Arrow",
+    short: "POISON",
+    kind: "poison",
+    color: "#9fdc6a",
+    range: 5,
+    damageShare: 0.5,
+    poison: 3,
+    turns: 3,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Take aim this turn; the arrow flies at the start of your next turn if the target is still within reach and in clear sight (a higher block in the way stops it). Half damage, then 3 damage at the start of each of its next 3 turns. Poison never takes the last point of health, and Herbs cures it. Ready again after 3 turns."
+  },
+  intercept: {
+    name: "Intercept",
+    button: "Intercept",
+    short: "CHARGE",
+    kind: "charge",
+    color: "#ffd27a",
+    range: 4,
+    damageShare: 0.5,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Charge up to 4 tiles at an enemy and slam it with the shield: half damage, and it's locked in a clash with you. If it was clashing with an ally, you take over and the ally is free. Ready again after 3 turns.",
+    effect: "lock"
+  },
+  shieldToss: {
+    name: "Shield Toss",
+    button: "Shield Toss",
+    short: "TOSS",
+    kind: "toss",
+    color: "#c9d6e8",
+    range: 3,
+    damageShare: 0.5,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Hurl the shield at an enemy up to 3 tiles away (a higher block in the way stops it): half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
+  },
+  doubleHit: {
+    name: "Double Hit",
+    button: "Double Hit",
+    short: "DOUBLE",
+    kind: "double",
+    color: "#9fc4e8",
+    range: 1,
+    hits: 2,
+    damageShare: 0.6,
+    chance: 0.35,
+    cooldown: 0,
+    mp: 0,
+    use: "enemy",
+    text: "Strike with both heads of the spear: two quick hits on an enemy next to you, each 60% of a normal hit, each rolled on its own. When Rabdul attacks, there is a 35% chance he strikes this way."
+  },
+  shieldRam: {
+    name: "Shield Ram",
+    button: "Shield Ram",
+    short: "RAM",
+    kind: "charge",
+    effect: "knockback",
+    verse: {
+      of: "intercept",
+      with: "stone"
+    },
+    color: "#d9b77a",
+    range: 4,
+    damageShare: 0.5,
+    push: 2,
+    mp: 3,
+    use: "enemy",
+    text: "Stone turns Intercept into this: charge up to 4 tiles and ram the enemy 2 tiles back, no clash. Into a wall, it slams and is Disoriented. 3 Verse MP."
+  },
+  furyCharge: {
+    name: "Furious Charge",
+    button: "Furious Charge",
+    short: "FURY",
+    kind: "charge",
+    effect: "strike",
+    verse: {
+      of: "intercept",
+      with: "fury"
+    },
+    color: "#ff8a5c",
+    range: 4,
+    damageShare: 1,
+    mp: 3,
+    use: "enemy",
+    text: "Fury turns Intercept into this: charge up to 4 tiles and hit with your full strength, no clash. 3 Verse MP."
+  },
+  blitz: {
+    name: "Blitz",
+    button: "Blitz",
+    short: "BLITZ",
+    kind: "charge",
+    effect: "stun",
+    verse: {
+      of: "intercept",
+      with: "swiftness"
+    },
+    color: "#9fd4ff",
+    range: 4,
+    damageShare: 0.5,
+    mp: 3,
+    use: "enemy",
+    text: "Swiftness turns Intercept into this: a charge too fast to answer. Half damage, and it is stunned for a turn, no clash. 3 Verse MP."
+  },
+  sonicJavelin: {
+    name: "Sonic Javelin",
+    button: "Sonic Javelin",
+    short: "SONIC",
+    kind: "javelin",
+    verse: {
+      of: "spearThrow",
+      with: "swiftness"
+    },
+    color: "#f2d3a0",
+    range: 5,
+    rangePerLevel: 1,
+    pierce: true,
+    push: 1,
+    closeRange: 2,
+    sweepShare: 1.5,
+    mp: 3,
+    use: "enemy",
+    text: "Swiftness turns Spear Throw into this. Up close: dash in and whirl the spear down. Further (5 tiles): a throw that hits every enemy in its line, through high blocks. At a reeling foe: zip to it and sweep low (1.5x damage). Never misses. 3 Verse MP."
+  },
+  furyDive: {
+    name: "Fury Dive",
+    button: "Fury Dive",
+    short: "DIVE",
+    kind: "dive",
+    verse: {
+      of: "spearThrow",
+      with: "fury"
+    },
+    color: "#ff8a5c",
+    range: 3,
+    damageShare: 1.5,
+    mp: 3,
+    use: "enemy",
+    text: "Fury turns Spear Throw into this: leap up to 3 tiles, over heads and walls, and slam down on an enemy for 1.5x a normal blow. Enemies next to where he lands are knocked Off-Balance. Never misses. 3 Verse MP."
+  },
+  thunderclap: {
+    name: "Thunderclap",
+    button: "Thunderclap",
+    short: "CLAP",
+    kind: "bolt",
+    verse: {
+      of: "attack",
+      with: "stone",
+      jobs: [
+        "sage"
+      ]
+    },
+    color: "#d9b77a",
+    push: 1,
+    mp: 0,
+    use: "enemy",
+    text: "Stone turns her Lightning into this: the bolt knocks the target a tile back (into a wall, it slams). It still jumps to a second enemy.",
+    element: "lightning"
+  },
+  wildfire: {
+    name: "Wildfire",
+    button: "Wildfire",
+    short: "FIRE",
+    kind: "bolt",
+    element: "fire",
+    verse: {
+      of: "attack",
+      with: "fury",
+      jobs: [
+        "sage"
+      ]
+    },
+    color: "#ff8a3c",
+    burn: 2,
+    turns: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Fury turns her Lightning to fire: it sets the target alight, 2 damage a turn for 3 turns (never the last point; Herbs put it out). Fire doesn't jump."
+  },
+  enchant: {
+    name: "Enchant",
+    button: "Enchant",
+    short: "ENCHANTED",
+    kind: "enchant",
+    color: "#ff8a3c",
+    icon: "enchanted",
+    range: 3,
+    mp: 3,
+    cooldown: 3,
+    turns: 3,
+    damage: 2,
+    use: "ally",
+    note: "Roadmap 4.1 (Suleiman OK'd): Shango's symbol set on a weapon. Rabdul has 9 MP, so three casts a battle.",
+    text: "Rabdul calls on Shango and sets his symbol on a weapon: his own, or an ally's up to 3 tiles away. For its next 3 turns that weapon burns: +2 damage on every hit (+1 against a Drenched target, the water dulls the flames). Costs 3 MP. Ready again after 3 turns."
+  },
+  earthDrive: {
+    name: "Earth Drive",
+    button: "Earth Drive",
+    short: "EARTH DRIVE",
+    kind: "earthDrive",
+    color: "#d9a066",
+    range: 1,
+    damageShare: 0.5,
+    push: 1,
+    turns: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "Roadmap 4.2 (proposal built as proposed): half damage, push 1, the spike lasts 2 of Tayo's turns.",
+    text: "Tayo drives his fist into the ground and a spike of rock bursts up under the foe in front of him: half damage, and it is thrown back a tile (into a wall or a unit: a slam). The spike stays as a wall for 2 of his turns: nobody walks through it and it stops arrows and thrown weapons. Ready again after 3 turns."
+  },
+  clap: {
+    name: "Sonic Clap",
+    button: "Clap",
+    short: "CLAP",
+    kind: "clap",
+    color: "#e8c08a",
+    range: 2,
+    damageShare: 0.3,
+    push: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "area",
+    note: "Roadmap 13.31 (Baiyee 8 Nov, Suleiman agreed, no more long range): an area around Tayo, not a line. Every foe within 2 tiles takes a little damage (30 percent of a hit) and is knocked back 1 tile with the usual push rules (a wall or a unit behind it: a slam). The AI claps when 2 or more foes are within 2 tiles. Drawn with his attack pictures until Suleiman sends clap art.",
+    text: "Tayo claps his hands with all his might. A shockwave blasts every foe within 2 tiles: a little damage, and each is knocked back a tile (into a wall or a unit: a slam). Ready again after 3 turns."
+  },
+  elementBlast: {
+    name: "Element Blast",
+    button: "Element Blast",
+    short: "BLAST",
+    kind: "elementBlast",
+    color: "#ff8a3c",
+    range: 3,
+    damageShare: 1,
+    burn: 2,
+    turns: 3,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    needsElement: true,
+    note: "Roadmap 13.4 (Suleiman's 6 Nov art, 13.17): only while an element is on him. Enchanted = fire (sets Burn, burn and turns as Wildfire), Drenched = water (leaves the target Drenched, puts out a burn). Spends the element. A straight line, range 3, full damage, a block in the way stops it like an arrow.",
+    text: "Tayo gathers the element on him into one fist and fires it down a straight line, up to 3 tiles (a higher block in the way stops it). Full damage. Enchanted: a fire blast that sets the target Burning. Drenched: a water blast that leaves the target Drenched. It spends the element (the Enchant ends, or he dries off), so it only works while one is on him. Ready again after 3 turns."
+  },
+  smokeBomb: {
+    name: "Smoke Bomb",
+    button: "Smoke Bomb",
+    short: "SMOKE",
+    kind: "smoke",
+    color: "#c9c0b4",
+    range: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "battlefield",
+    text: "Throw a smoke bomb at your own feet. Enemies next to you are Blinded for 1 turn (their attacks mostly miss, and they cannot start a clash or take aim). Then slip up to 2 tiles away for free: you are Hidden for 1 turn, so enemies cannot target you. The cloud stays until your next turn. Ready again after 3 turns. Not during a clash."
   }
 };
 
@@ -308,7 +666,7 @@ function buffOf(unit) {
   const buff = statusOf(unit).buff;
   if (!buff) return null;
   const spell = spells_default[buff.id];
-  const times = affinityTimes(unit, buff.id);
+  const times = affinityTimes(unit, buff.id) * (buff.power || 1);
   const boosts = {};
   for (const [stat, value] of Object.entries(spell.boosts || {})) boosts[stat] = value * times;
   return {
@@ -326,6 +684,9 @@ function affinityTimes(unit, spellId) {
   const a = spells_default[spellId] && spells_default[spellId].affinity;
   return a && a.jobs.includes(unit.job) ? a.times : 1;
 }
+function isBlinded(unit) {
+  return !!(unit && unit.status && unit.status.blinded);
+}
 
 // src/combat.js
 function distance(a, b) {
@@ -335,13 +696,18 @@ function distance(a, b) {
 // src/engagement.js
 var DEFAULT_CTX = { random: Math.random, heightOf: () => 0 };
 function isMelee(unit) {
-  return !!unit.contest && unit.range === 1;
+  return !!unit.contest && (unit.range === 1 || !!unit.melee);
+}
+function canBeCaught(unit) {
+  return !!unit.contest;
 }
 function styleOf(unit) {
   return unit.contest ? unit.contest.style : null;
 }
 function canEngage(attacker, target) {
-  return attacker.alive && target.alive && attacker.side !== target.side && !attacker.hasActed && isMelee(attacker) && isMelee(target) && !attacker.engagedWith && !target.engagedWith && distance(attacker, target) === 1;
+  return attacker.alive && target.alive && attacker.side !== target.side && !attacker.hasActed && !isBlinded(attacker) && // it cannot see to grab anyone (Smoke Bomb)
+  (!target.hidden || target.isDecoy) && // a hidden unit cannot be grabbed (a decoy can)
+  isMelee(attacker) && canBeCaught(target) && !attacker.engagedWith && !target.engagedWith && distance(attacker, target) === 1;
 }
 function engageTargets(attacker, units) {
   return units.filter((other) => canEngage(attacker, other));
@@ -438,11 +804,7 @@ function displacementPath(loser, winner, steps, isFree) {
     row += dr;
     path.push({ col, row });
   }
-  if (path.length > 0) return path;
-  for (const [sc, sr] of [[dr, dc], [-dr, -dc]]) {
-    if (isFree(loser.col + sc, loser.row + sr, loser.col, loser.row)) return [{ col: loser.col + sc, row: loser.row + sr }];
-  }
-  return [];
+  return path;
 }
 function breakAwayContest(runner, holder, ctx = DEFAULT_CTX) {
   const runBuff = buffOf(runner);
@@ -506,7 +868,8 @@ function poiseOf(unit) {
   return unit.poise;
 }
 function refillPoise(unit) {
-  unit.poise = Math.min(engagement_default.poise.max, poiseOf(unit) + engagement_default.poise.refill);
+  const amount = unit.engagedWith ? engagement_default.poise.refillInClash || 0 : engagement_default.poise.refill;
+  unit.poise = Math.min(engagement_default.poise.max, poiseOf(unit) + amount);
 }
 function stanceName(stance) {
   return engagement_default.stances[stance] ? engagement_default.stances[stance].name : stance;
@@ -538,8 +901,8 @@ function beatParts(unit, stance, foe, foeStance, ctx = DEFAULT_CTX, empowered = 
   const lead = momentumOf(unit) >= engagement_default.momentum.leadAt ? engagement_default.momentum.leadBonus : 0;
   const heightDiff = ctx.heightOf(unit.col, unit.row) - ctx.heightOf(foe.col, foe.row);
   return {
-    rating: stanceRating(unit, stance) * engagement_default.statWeight,
-    // stats count for half, so class strengths matter without deciding every beat
+    rating: Math.ceil(stanceRating(unit, stance) * engagement_default.statWeight),
+    // half the stat, rounded up: class strengths matter without deciding every beat
     affinity: engagement_default.affinityBonus[stanceAffinity(unit, stance)] || 0,
     // only the side whose stance beats the other's gets the bonus (a soft edge, not a 6-point swing)
     matchup: stance === "break" ? engagement_default.breakVs[foeStance] || 0 : Math.max(0, matchup(stance, foeStance)),
@@ -618,6 +981,7 @@ function answerStance(unit, ctx = DEFAULT_CTX) {
   autoStance,
   beatParts,
   breakAwayContest,
+  canBeCaught,
   canEngage,
   contestEdge,
   contestParts,
