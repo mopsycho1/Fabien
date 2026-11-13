@@ -11,13 +11,17 @@ src/data/art.json, how much each picture must be scaled when it is drawn:
 
 "scale" 1.2 = draw this picture 1.2 times bigger. "feet" 0.93 = the ground is
 93 percent of the way down the picture (the rest is dust or a weapon tip below
-the feet). Pictures that are already right are left out.
+the feet). "footX" 0.41 = the feet are 41 percent of the way across the picture
+(checklist B3, 13 Nov): the game puts that point on the middle of the tile, so
+the feet do not jump sideways when the picture changes. Pictures that are
+already right are left out.
 The game reads this in src/art.js and BattleScene.showFrame.
 
 Run with the tools Python (~/.fabien-tools/venv/bin/python), from the project folder:
     python dev/tools/ruler.py measure            measure everyone, write art.json
     python dev/tools/ruler.py measure h2         only Gaha
-    python dev/tools/ruler.py audit              check: every head within 8 percent
+    python dev/tools/ruler.py audit              check: every head within 8 percent (B1),
+                                                 every foot point within 3 pixels (B3)
     python dev/tools/ruler.py sheets <folder> [<old project copy>]
                                                  before and after contact sheets
 
@@ -27,7 +31,7 @@ import sys, os, json
 import numpy as np
 from PIL import Image, ImageDraw
 from ruler_lib import (ROOT, ART_JSON, ART_DIR, load_art, inventory, open_art, alpha_box,
-                       head_model, find_head, family)
+                       head_model, find_head, family, foot_point, NO_FEET)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HEADS = json.load(open(os.path.join(HERE, 'ruler_heads.json')))
@@ -73,6 +77,58 @@ def measure(cid, entry):
         out[f] = {'family': fam, 'head': head[f], 'scale': round(scale, 2), 'feet': feet, 'by': by}
     return out
 
+FOOT_OK = 3.0      # checklist B3: the foot point within 3 pixels of the tile's middle, at the size drawn on the board
+FOOT_WRITE = 1.0   # an anchor less than a pixel out is left as the cutter made it
+
+def measure_feet(cid, entry, result):
+    """Checklist B3. Works out where the feet are in every picture and adds "footX" to result
+    (a share of the picture's width, counted in the file as it is stored, not mirrored).
+    Returns the list of every use of every picture, for the audit:
+        { label, file, err (pixels on the board, before), after (pixels, after), by }
+      - a still picture (standing, battle, weak, a pose): its own foot point.
+      - the frames of a move: the body is MEANT to travel from frame to frame (a lunge,
+        a leap), so the whole move is shifted by one amount, the one that puts the FIRST
+        frame's feet on the tile. A walk is shifted by its middle frame.
+      - hand marks in ruler_marks.json, "footX": a number for a picture or a family, or
+        "keep" to leave the cutter's anchor alone."""
+    base = draw_scale(entry, ART_DIR)
+    marks = MARKS.get(cid, {}).get('footX', {})
+    uses = []
+    for p in inventory(entry):
+        im = open_art(p['file']); r = result[p['file']]
+        fx, _ = foot_point(im, r['feet'], any(k in p['file'] for k in NO_FEET))
+        now = 1 - p['originX'] if p['flip'] else p['originX']      # the anchor today, in the file as stored
+        px = im.width * base * r['scale']                           # the picture's width on the board
+        uses.append({'label': p['label'], 'set': p['set'], 'file': p['file'], 'found': fx, 'now': now, 'px': px,
+                     'move': p['label'].startswith('moves.'), 'walk': p['label'].startswith('walk')})
+    # one shift for all the frames of a move
+    shift = {}
+    for u in uses:
+        if u['move'] or u['walk']:
+            shift.setdefault(u['set'], []).append(u)
+    for u in uses:
+        hand = marks.get(u['file'], marks.get(result[u['file']]['family']))
+        if hand == 'keep':
+            u['want'], u['by'] = u['now'], 'hand (kept)'
+        elif hand is not None:
+            u['want'], u['by'] = float(hand), 'hand'
+        elif u['move'] or u['walk']:
+            frames = shift[u['set']]
+            lead = frames[len(frames) // 2] if u['walk'] else frames[0]
+            u['want'], u['by'] = u['now'] + (lead['found'] - lead['now']) * lead['px'] / u['px'], 'move'
+        else:
+            u['want'], u['by'] = u['found'], 'measured'
+        u['err'] = (u['now'] - u['found']) * u['px']
+    # one anchor per file (a file used twice gets the anchor of its first still use, else its first use)
+    for u in sorted(uses, key=lambda u: u['move'] or u['walk']):
+        r = result[u['file']]
+        if 'footX' not in r:
+            r['footX'] = round(u['want'], 3) if abs(u['want'] - u['now']) * u['px'] > FOOT_WRITE else None
+    for u in uses:
+        anchor = result[u['file']]['footX']
+        u['after'] = ((anchor if anchor is not None else u['now']) - u['found']) * u['px']
+    return uses
+
 def write_ruler(art, cid, result):
     """Puts the "ruler" list of one character into art.json (only pictures that need a change)."""
     ruler = {}
@@ -80,12 +136,13 @@ def write_ruler(art, cid, result):
         e = {}
         if r['scale'] != 1.0: e['scale'] = r['scale']
         if r['feet'] != 1.0: e['feet'] = r['feet']
+        if r.get('footX') is not None: e['footX'] = r['footX']
         if e: ruler[f] = e
     art[cid].pop('ruler', None); art[cid].pop('note_ruler', None)
     if ruler:
         art[cid]['ruler'] = ruler
         art[cid]['note_ruler'] = ('Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size '
-                                  'as in the standing picture ("scale"), and where the ground is down the picture ("feet", 1 = the bottom edge). '
+                                  'as in the standing picture ("scale"), where the ground is down the picture ("feet", 1 = the bottom edge), and where the feet are across it ("footX", checklist B3: that point sits on the middle of the tile). '
                                   'Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.')
 
 def table(cid, result):
@@ -101,9 +158,11 @@ def cmd_measure(ids):
     art = load_art()
     for cid in ids or [c for c in art if c in HEADS]:
         result = measure(cid, art[cid])
+        measure_feet(cid, art[cid], result)
         write_ruler(art, cid, result)
         changed = sum(1 for r in result.values() if r['scale'] != 1.0)
-        print('%s: %d pictures, %d rescaled' % (cid, len(result), changed))
+        moved = sum(1 for r in result.values() if r.get('footX') is not None)
+        print('%s: %d pictures, %d rescaled, %d with a new foot point' % (cid, len(result), changed, moved))
         table(cid, result)
     json.dump(art, open(ART_JSON, 'w'), indent=2, ensure_ascii=False)
     open(ART_JSON, 'a').write('\n')
@@ -127,12 +186,34 @@ def cmd_audit(ids):
         print('%s: %d families, %d outside %.2f to %.2f, %d set by hand' % (cid, len(out), len(fails), LOW, HIGH, len(hand)))
         for fam, v in fails.items():
             print('   FAIL %-28s head %.2f of standing' % (fam, v))
+        # checklist B3: the foot point of every picture within 3 pixels of the tile's middle
+        ruler_now = art[cid].get('ruler', {})
+        uses = measure_feet(cid, art[cid], result)
+        for u in uses:   # judged against what art.json holds today, not what a new measure would write
+            anchor = ruler_now.get(u['file'], {}).get('footX', u['now'])
+            u['after'] = (anchor - u['found']) * u['px']
+        still = [u for u in uses if u['by'] == 'measured']
+        off = [u for u in still if abs(u['after']) > FOOT_OK]
+        lead_off = []
+        sets = {}
+        for u in uses:
+            if u['by'] == 'move': sets.setdefault(u['set'], []).append(u)
+        for name, frames in sets.items():
+            lead = frames[len(frames) // 2] if frames[0]['walk'] else frames[0]
+            if abs(lead['after']) > FOOT_OK: lead_off.append(lead)
+        by_hand = sorted({u['file'] for u in uses if u['by'].startswith('hand')})
+        was = sum(1 for u in still if abs(u['err']) > FOOT_OK)
+        bad += len(off) + len(lead_off)
+        print('   feet: %d still pictures, %d more than %g px from the tile middle (%d before the foot points); %d moves, %d starting off the tile; %d set by hand'
+              % (len(still), len(off), FOOT_OK, was, len(sets), len(lead_off), len(by_hand)))
+        for u in off + lead_off:
+            print('   FAIL feet %-34s %-38s %+.1f px' % (u['label'], u['file'], u['after']))
         poses = art[cid].get('poses', {})
         core = ['windup', 'attack', 'guard', 'dodge', 'hurt', 'fallAir', 'down', 'fallRise', 'victory']
         have = {'stand': 'standing' in art[cid], 'battle': 'battle' in art[cid], 'weak': 'weak' in art[cid], 'walk': 'walk' in art[cid]}
         have.update({p: p in poses for p in core})
         print('   poses missing: ' + (', '.join(k for k, v in have.items() if not v) or 'none'))
-    print('ALL PASSED' if not bad else 'FAILED: %d families' % bad)
+    print('ALL PASSED' if not bad else 'FAILED: %d' % bad)
     return 1 if bad else 0
 
 # ---------------------------------------------------------------------------
@@ -166,7 +247,10 @@ def strip(cid, entry, art_dir, title, width=1800, check=None):
             if h:
                 rr = check[1] * base
                 ImageDraw.Draw(im).ellipse((h[0] - rr, h[1] - rr, h[0] + rr, h[1] + rr), outline=(0, 255, 0, 255))
-        tiles.append((p['label'], im, below, p['originX']))
+        ox = p['originX']
+        if 'footX' in r: ox = 1 - r['footX'] if p['flip'] else r['footX']   # the measured foot point (B3)
+        if p['flip']: im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        tiles.append((p['label'], im, below, ox))
     stand_h = round(entry.get('height', 96) * ZOOM)
     row_h = max(max(im.height - below for _, im, below, _ in tiles), stand_h) + 8
     rows = [[]]; x = 8

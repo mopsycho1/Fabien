@@ -17,7 +17,8 @@ import * as items from './src/items.js';
 import * as spellArt from './src/spellArt.js';
 import * as knockback from './src/knockback.js';
 import * as enemyAi from './src/enemyAi.js';
-window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__grid = grid; window.__combat = combat; window.__items = items; window.__fx = spellArt; window.__knockback = knockback; window.__ai = enemyAi;
+import * as artLib from './src/art.js';
+window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__grid = grid; window.__combat = combat; window.__items = items; window.__fx = spellArt; window.__knockback = knockback; window.__ai = enemyAi; window.__art = artLib;
 window.__game = new Phaser.Game({ type: Phaser.CANVAS, parent: 'game', width: 720, height: 1280, backgroundColor: '#1a1410', banner: false, audio: { noAudio: true }, loader: { imageLoadType: 'HTMLImageElement' }, scene: [StartScene, DialogueScene, BattleScene, EndScene, EffectsLab] });
 EOT
 node_modules/.bin/esbuild harness-entry.js --bundle --format=iife --platform=browser --outfile=$OUT_DIR/bundle.js --log-level=error

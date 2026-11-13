@@ -3559,6 +3559,20 @@ export default class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: o, t: 1, duration, ease, hold, yoyo: true, onUpdate: place, onComplete: () => { o.t = 0; place(); } });
   }
 
+  // Where the middle of a unit's tile is on the board, in pixels.
+  tileCentre(unit) {
+    return tileToScreen(unit.col, unit.row);
+  }
+
+  // Puts a unit on a tile at once, with no walk (the recording and photo tools
+  // in dev/browser use it to stage a scene).
+  placeUnit(unit, col, row) {
+    unit.col = col;
+    unit.row = row;
+    const home = tileToScreen(col, row);
+    if (unit.view && unit.view.active) unit.view.setPosition(home.x, home.y).setDepth(depthFor(col, row) + 1);
+  }
+
   // Safety net for the same bug: at the end of every turn, any living figure
   // that is not on the middle of its tile (and is not being pushed) is put there.
   settleBodies() {

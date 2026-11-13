@@ -21,9 +21,10 @@ def is_pic(v):
     return isinstance(v, str) or (isinstance(v, dict) and 'file' in v)
 
 def pic(v):
+    # "placed": art.json gives this picture its own anchor (originX), set by the cutter that made it
     if isinstance(v, str):
-        return {'file': v, 'originX': 0.5, 'flip': False}
-    return {'file': v['file'], 'originX': v.get('originX', 0.5), 'flip': bool(v.get('flip'))}
+        return {'file': v, 'originX': 0.5, 'flip': False, 'placed': False}
+    return {'file': v['file'], 'originX': v.get('originX', 0.5), 'flip': bool(v.get('flip')), 'placed': 'originX' in v}
 
 # parts of an art.json entry that are faces, banners or notes, not body pictures
 SKIP = ('name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn')
@@ -130,3 +131,31 @@ def family(file):
     """Pictures drawn together on one sheet share a name: gaha_thrust_0..5 are
     the family gaha_thrust. One sheet is drawn at one size, so a family gets one scale."""
     return re.sub(r'_(upLeft|upRight|downLeft|downRight|f\d+|\d+|single)\.png$', '', file).replace('.png', '')
+
+# ---------------------------------------------------------------------------
+# Finding the feet (checklist B3: the feet stay on the same ground point).
+# ---------------------------------------------------------------------------
+# Pictures of a body that is lying down or in the air have no feet on the ground:
+# for those the whole body's middle is used.
+NO_FEET = ('down', 'fallAir', 'fall_air', 'knocked', 'crumple', 'dive', 'flight')
+
+def foot_point(im, feet=1.0, whole_body=False, thresh=60):
+    """Where the body stands in a picture: (x, y) as shares of its width and height.
+    y is the lowest solid row at or above the ground line ("feet").
+    x is the middle of the weight of the legs: the solid pixels in the lowest fifth
+    of the body. (The middle of the picture is no good: a spear or a bow held out
+    to one side makes the picture wider on that side. The middle of the leg pixels
+    is steadier than their left and right ends, which a spear butt or a mace head
+    resting on the ground would move.)"""
+    a = np.asarray(im)[:, :, 3] > thresh
+    rows = np.where(a.any(axis=1))[0]
+    if not len(rows):
+        return 0.5, 1.0
+    top = int(rows[0]); ground = int(round(im.height * feet)); bottom = min(int(rows[-1]) + 1, ground)
+    band = (bottom - top) if whole_body else max(3, int((bottom - top) * 0.2))
+    weight = a[max(top, bottom - band):bottom].sum(axis=0).astype(float)
+    if weight.sum() == 0:
+        return 0.5, bottom / im.height
+    x = float((weight * (np.arange(im.width) + 0.5)).sum() / weight.sum())
+    return x / im.width, (int(rows[-1]) + 1) / im.height
+

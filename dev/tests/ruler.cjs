@@ -17,10 +17,11 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
       if (!text.includes('"' + file + '"')) wrong.push(file + ' is not used by ' + id);
       if (r.scale !== undefined && !(r.scale >= 0.5 && r.scale <= 3.5)) wrong.push(file + ' scale ' + r.scale);
       if (r.feet !== undefined && !(r.feet >= 0.5 && r.feet <= 1)) wrong.push(file + ' feet ' + r.feet);
+      if (r.footX !== undefined && !(r.footX > 0.02 && r.footX < 0.98)) wrong.push(file + ' footX ' + r.footX);
     }
   }
   check('art.json: the ruler lists pictures, each one real, in use, with a sane scale and ground line', listed > 50 && wrong.length === 0, listed + ' listed; ' + wrong.slice(0, 3).join(' | '));
-  const standing = Object.keys(art).filter((id) => Object.values(art[id].standing || {}).some((v) => (art[id].ruler || {})[v.file || v]));
+  const standing = Object.keys(art).filter((id) => Object.values(art[id].standing || {}).some((v) => ((art[id].ruler || {})[v.file || v] || {}).scale));
   check('a standing picture is the ruler itself: none is rescaled', standing.length === 0, standing.join(' '));
   const old = ['gaha_knocked.png', 'sudeen_knocked.png', 'layra_knocked.png', 'tayo_knocked.png', 'bull_knocked.png', 'sudeen_cast.png'].filter((f) => JSON.stringify(art).includes('"' + f + '"'));
   check('the old-style "knocked" pictures are no longer used (swapped for the hurt or in-the-air picture)', old.length === 0, old.join(' '));
@@ -53,6 +54,40 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
   b.showPose(gaha, 'sonicRelease', 1);
   check('a squash under way keeps its shape through a picture change', near(sp.scaleX, base * 1.2 * big.rule.scale) && near(sp.scaleY, base * 0.8 * big.rule.scale), (sp.scaleX / base).toFixed(3) + ' ' + (sp.scaleY / base).toFixed(3));
   sp.setScale(gaha.artScale); b.showStanding(gaha);
+  // ---- the foot point (checklist B3, 13 Nov): the feet sit on the tile's middle in every picture ----
+  {
+    const withFoot = Object.values(art).reduce((n, e) => n + Object.values(e.ruler || {}).filter((r) => r.footX !== undefined).length, 0);
+    check('art.json: the ruler holds a foot point for the pictures whose anchor was off', withFoot > 200, withFoot);
+    const sud = b.units.find((u) => u.label === 'H1');
+    // his battle stance toward the camera is stored as drawn; the one away from the camera is the same file flipped
+    const bt = art.h1.battle;
+    const plain = Object.entries(bt).find(([, v]) => !v.flip && (art.h1.ruler[v.file] || {}).footX !== undefined);
+    const flipped = Object.entries(bt).find(([, v]) => v.flip && (art.h1.ruler[v.file] || {}).footX !== undefined);
+    const frames = w.__art; // (art.js, with frameFor: one picture entry as the game will draw it)
+    if (plain) {
+      const fx = art.h1.ruler[plain[1].file].footX;
+      const fr = frames.frameFor('h1', plain[1], false);
+      check('a picture stored as drawn: the tile middle is at its foot point', Math.abs(fr.originX - fx) < 1e-6 && fr.flip === false, fr.originX + ' / ' + fx);
+      const mir = frames.frameFor('h1', plain[1], true);
+      check('the same picture mirrored for the other side: the foot point is mirrored with it', Math.abs(mir.originX - (1 - fx)) < 1e-6 && mir.flip === true, mir.originX);
+    } else check('Sudeen has an unflipped battle picture with a foot point', false);
+    if (flipped) {
+      const fx = art.h1.ruler[flipped[1].file].footX;
+      const fr = frames.frameFor('h1', flipped[1], false);
+      check('a picture art.json draws flipped: its foot point is mirrored too', Math.abs(fr.originX - (1 - fx)) < 1e-6 && fr.flip === true, fr.originX + ' / ' + fx);
+    }
+    // in the battle: standing then battle stance, the sprite's anchor is the foot point each time
+    b.showStanding(sud);
+    const key0 = sud.sprite.texture.key.split(':')[1];
+    const want = (file, flip) => { const r = art.h1.ruler[file] || {}; return r.footX === undefined ? null : flip ? 1 - r.footX : r.footX; };
+    const w0 = want(key0, sud.sprite.flipX);
+    check('in the battle the standing sprite is anchored at its foot point', w0 === null || Math.abs(sud.sprite.originX - w0) < 1e-6, sud.sprite.originX + ' / ' + w0);
+    b.showPose(sud, 'guard', 1);
+    const key1 = sud.sprite.texture.key.split(':')[1];
+    const w1 = want(key1, sud.sprite.flipX);
+    check('and so is his guard picture (it used to sit up to 19 pixels to one side)', w1 !== null && Math.abs(sud.sprite.originX - w1) < 1e-6, key1 + ' ' + sud.sprite.originX + ' / ' + w1);
+    b.showStanding(sud);
+  }
   // the ground line
   const withFeet = Object.entries(art).flatMap(([id, e]) => Object.entries(e.ruler || {}).filter(([, r]) => r.feet).map(([file, r]) => ({ id, file, feet: r.feet })));
   if (withFeet.length) {

@@ -500,3 +500,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - New four-figure sheets are cut at the right size from the start with `dev/tools/sheet4.py` (see `make_archer_hq.py` and `make_kofi.py`): the standing sheet is the ruler, 300 pixels tall.
 - Kofi is `"h4"` in `art.json` (standing, battle, and his casting pose as `windup` and `cast`). He is not in `units.json` yet.
 
+
+## 13 Nov batch: the gap fix, the clash rule, turn shape, foot points (roadmap 13.47, 13.51 to 13.53, 18.2)
+- **The rule of a clash beat** is written once, as `"beatRule"` at the top of `src/data/engagement.json`: score = 3 dice + half the stance stat (rounded up) + bonuses. The numbers it names are in the same file (`beatDice`, `statWeight`, `affinityBonus`, `matchupBonus`, `momentum`, `poise`). The older numbers marked "classic" are not used by the game.
+- **High ground in a clash** is 2 per level: `openingHeightBonusPerLevel` in `terrain.json` (the one the game reads) and `heightBonusPerLevel` in `engagement.json`. Change both together; a test fails if they differ.
+- **Turn shape:** a turn is one action and up to Move steps in any order, for both sides. What an enemy does with its leftover steps is in `src/enemyAi.js`, `chooseAfterTile`.
+- **Foot points:** the ruler list in `art.json` can now hold `"footX"` per picture (0 = left edge, 1 = right edge): the point of the picture that sits on the middle of the tile. The tool writes it. To set one by hand, add `"footX": { "file_or_family": 0.47 }` under the character in `dev/tools/ruler_marks.json` (or `"keep"` to leave the cutter's anchor), then run `ruler.py measure`.
+- **Design defaults** for Suleiman to confirm are in `docs/BATTLE_SYSTEMS.md` section 11 (dodges, Guard and Rest, par for fast wins).

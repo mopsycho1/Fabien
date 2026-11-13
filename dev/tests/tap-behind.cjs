@@ -46,7 +46,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const blocked = b.highlights.length;
   const target = [...b.reachableKeys].map((k) => k.split(',').map(Number)).find(([c, r]) => c === 2 && r === 4) || [...b.reachableKeys].map((k) => k.split(',').map(Number))[0];
   // its centre is behind the enemy's chest (that tap now means the enemy), so tap its uncovered left corner
-  tap(360 + (target[0] - target[1]) * 43 - 32, 400 + (target[0] + target[1]) * 27 - H[target[1]][target[0]] * 22);
+  // (the first spot on the tile that no figure covers, starting at the left corner: where figures
+  //  stand moved a few pixels with the foot points of 13 Nov, so the spot is looked for, not fixed)
+  {
+    const cx = 360 + (target[0] - target[1]) * 43, cy = 400 + (target[0] + target[1]) * 27 - H[target[1]][target[0]] * 22;
+    const spots = [];
+    for (const dx of [-32, -36, -40, -26, -20, 20, 26, 32, 36, 40, -12, 12, 0]) for (const dy of [0, -6, -12, -18, 6, 12]) if (Math.abs(dx) / 43 + Math.abs(dy) / 27 < 0.95) spots.push([cx + dx, cy + dy]);
+    const free = spots.find(([x, y]) => !b.figureAt(x, y)) || spots[0];
+    tap(free[0], free[1]);
+  }
   check('tapping the visible corner of a blue tile hidden behind a figure walks there', U('H2').col === target[0] && U('H2').row === target[1], U('H2').col + ',' + U('H2').row);
   const real = errors.filter((e) => !e.includes('focus()'));
   check('no errors', real.length === 0, real.join(' | '));

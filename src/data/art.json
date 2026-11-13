@@ -366,62 +366,98 @@
     "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures and \"cast\" his raised-arm heal pictures. The game leans the picture back itself.",
     "ruler": {
+      "sudeen_iso_stand_downRight.png": {
+        "footX": 0.558
+      },
       "sudeen_iso_battle_upRight.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.634
       },
       "sudeen_iso_battle_downRight.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.551
       },
       "sudeen_n9_windup_downLeft.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.392
       },
       "sudeen_n9_windup_upRight.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.405
       },
       "sudeen_n9_attack_downLeft.png": {
-        "scale": 1.11
+        "scale": 1.11,
+        "footX": 0.512
       },
       "sudeen_n9_attack_upRight.png": {
-        "scale": 1.11
+        "scale": 1.11,
+        "footX": 0.516
       },
       "sudeen_iso_heal_upRight.png": {
-        "scale": 1.29
+        "scale": 1.29,
+        "footX": 0.48
       },
       "sudeen_iso_heal_downRight.png": {
         "scale": 1.29
       },
       "sudeen_n8_guard_upLeft.png": {
-        "scale": 0.83
+        "scale": 0.83,
+        "footX": 0.295
       },
       "sudeen_n8_guard_upRight.png": {
-        "scale": 0.83
+        "scale": 0.83,
+        "footX": 0.571
       },
       "sudeen_n8_guard_downLeft.png": {
-        "scale": 0.83
+        "scale": 0.83,
+        "footX": 0.564
       },
       "sudeen_n8_guard_downRight.png": {
-        "scale": 0.83
+        "scale": 0.83,
+        "footX": 0.582
       },
       "sudeen_iso_hurt_upRight.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.43
       },
       "sudeen_iso_hurt_downRight.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.502
       },
       "sudeen_n6_down_single.png": {
-        "scale": 0.78
+        "scale": 0.78,
+        "footX": 0.494
+      },
+      "sudeen_n6_victory_single.png": {
+        "footX": 0.468
       },
       "sudeen_n6_bash_upLeft.png": {
-        "scale": 0.69
+        "scale": 0.69,
+        "footX": 0.537
       },
       "sudeen_n6_bash_upRight.png": {
-        "scale": 0.69
+        "scale": 0.69,
+        "footX": 0.816
       },
       "sudeen_n6_bash_downLeft.png": {
-        "scale": 0.69
+        "scale": 0.69,
+        "footX": 0.467
       },
       "sudeen_n6_bash_downRight.png": {
-        "scale": 0.69
+        "scale": 0.69,
+        "footX": 0.458
+      },
+      "sudeen_n6_bash2_upLeft.png": {
+        "footX": 0.4
+      },
+      "sudeen_n6_bash2_upRight.png": {
+        "footX": 0.388
+      },
+      "sudeen_n6_bash2_downLeft.png": {
+        "footX": 0.601
+      },
+      "sudeen_n6_bash2_downRight.png": {
+        "footX": 0.53
       },
       "sudeen_n6_stone_upLeft.png": {
         "scale": 0.8,
@@ -433,23 +469,41 @@
       },
       "sudeen_n6_stone_downLeft.png": {
         "scale": 0.8,
-        "feet": 0.96
+        "feet": 0.96,
+        "footX": 0.577
       },
       "sudeen_n6_stone_downRight.png": {
         "scale": 0.8,
-        "feet": 0.96
+        "feet": 0.96,
+        "footX": 0.574
+      },
+      "sudeen_n9_furyStand_upLeft.png": {
+        "footX": 0.36
+      },
+      "sudeen_n9_furyStand_upRight.png": {
+        "footX": 0.226
+      },
+      "sudeen_n9_furyStand_downLeft.png": {
+        "footX": 0.542
+      },
+      "sudeen_n9_furyStand_downRight.png": {
+        "footX": 0.398
       },
       "sudeen_n6_swift_upLeft.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.386
       },
       "sudeen_n6_swift_upRight.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.598
       },
       "sudeen_n6_swift_downLeft.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.552
       },
       "sudeen_n6_swift_downRight.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.582
       },
       "sudeen_n9_fc_0.png": {
         "scale": 1.2
@@ -465,30 +519,69 @@
       },
       "sudeen_ram_0.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.559
       },
       "sudeen_ram_1.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.438
       },
       "sudeen_ram_2.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.332
       },
       "sudeen_ram_3.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.491
       },
       "sudeen_ram_4.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.527
       },
       "sudeen_ram_5.png": {
         "scale": 1.4,
-        "feet": 0.95
+        "feet": 0.95,
+        "footX": 0.553
+      },
+      "sudeen_n6_weak_upLeft.png": {
+        "footX": 0.433
+      },
+      "sudeen_n6_weak_upRight.png": {
+        "footX": 0.617
+      },
+      "sudeen_n6_weak_downLeft.png": {
+        "footX": 0.568
+      },
+      "sudeen_n6_weak_downRight.png": {
+        "footX": 0.569
+      },
+      "sudeen_n9_furyAttack_upRight.png": {
+        "footX": 0.242
+      },
+      "sudeen_n9_furyAttack_downLeft.png": {
+        "footX": 0.564
+      },
+      "sudeen_n9_furyAttack_downRight.png": {
+        "footX": 0.436
+      },
+      "sudeen_n9_furyWindup_upLeft.png": {
+        "footX": 0.677
+      },
+      "sudeen_n9_furyWindup_upRight.png": {
+        "footX": 0.323
+      },
+      "sudeen_n9_furyWindup_downLeft.png": {
+        "footX": 0.453
+      },
+      "sudeen_n9_furyWindup_downRight.png": {
+        "footX": 0.547
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
@@ -1104,125 +1197,208 @@
     "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his in-the-air fall picture. The game leans the picture back itself.",
     "ruler": {
+      "gaha_iso_stand_upRight.png": {
+        "footX": 0.564
+      },
+      "gaha_iso_stand_downRight.png": {
+        "footX": 0.522
+      },
       "gaha_iso_battle_upRight.png": {
-        "scale": 0.92
+        "scale": 0.92,
+        "footX": 0.53
       },
       "gaha_iso_battle_downRight.png": {
-        "scale": 0.92
+        "scale": 0.92,
+        "footX": 0.409
       },
       "gaha_n6_stoneGuard_upLeft.png": {
-        "scale": 1.25
+        "scale": 1.25,
+        "footX": 0.502
       },
       "gaha_n6_stoneGuard_upRight.png": {
-        "scale": 1.25
+        "scale": 1.25,
+        "footX": 0.517
       },
       "gaha_n6_stoneGuard_downLeft.png": {
         "scale": 1.25
       },
       "gaha_n6_stoneGuard_downRight.png": {
-        "scale": 1.25
+        "scale": 1.25,
+        "footX": 0.512
+      },
+      "gaha_n6_furyStand_upLeft.png": {
+        "footX": 0.426
+      },
+      "gaha_n6_furyStand_upRight.png": {
+        "footX": 0.601
+      },
+      "gaha_n6_furyStand_downLeft.png": {
+        "footX": 0.45
+      },
+      "gaha_n6_furyStand_downRight.png": {
+        "footX": 0.544
       },
       "gaha_n6_swiftStand_upLeft.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.286
       },
       "gaha_n6_swiftStand_upRight.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.619
       },
       "gaha_n6_swiftStand_downLeft.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.449
       },
       "gaha_n6_swiftStand_downRight.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.503
       },
       "gaha_iso_attack_upRight.png": {
         "scale": 1.12
       },
       "gaha_iso_attack_downRight.png": {
-        "scale": 1.12
+        "scale": 1.12,
+        "footX": 0.437
       },
       "gaha_iso_guard_upRight.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.524
       },
       "gaha_iso_guard_downRight.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.383
       },
       "gaha_n6_dodge_upLeft.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.382
       },
       "gaha_n6_dodge_upRight.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.536
       },
       "gaha_n6_dodge_downLeft.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.443
       },
       "gaha_n6_dodge_downRight.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.466
       },
       "gaha_iso_throw_downRight.png": {
-        "scale": 0.89
+        "scale": 0.89,
+        "footX": 0.539
       },
       "gaha_iso_hurt_upLeft.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.544
       },
       "gaha_iso_hurt_downRight.png": {
-        "scale": 1.13
+        "scale": 1.13,
+        "footX": 0.464
+      },
+      "gaha_fall_air.png": {
+        "footX": 0.451
       },
       "gaha_n6_down_single.png": {
-        "scale": 0.8
+        "scale": 0.8,
+        "footX": 0.505
+      },
+      "gaha_fall_land.png": {
+        "footX": 0.481
+      },
+      "gaha_fall_rise.png": {
+        "footX": 0.544
+      },
+      "gaha_iso_release_downRight.png": {
+        "footX": 0.478
+      },
+      "gaha_cu_clashSlip_upRight.png": {
+        "footX": 0.501
+      },
+      "gaha_cu_clashSlip_downRight.png": {
+        "footX": 0.411
       },
       "gaha_n6_sonicPrep_upLeft.png": {
-        "scale": 1.42
+        "scale": 1.42,
+        "footX": 0.45
       },
       "gaha_n6_sonicPrep_upRight.png": {
-        "scale": 1.42
+        "scale": 1.42,
+        "footX": 0.355
       },
       "gaha_n6_sonicPrep_downLeft.png": {
-        "scale": 1.42
+        "scale": 1.42,
+        "footX": 0.513
       },
       "gaha_n6_sonicPrep_downRight.png": {
-        "scale": 1.42
+        "scale": 1.42,
+        "footX": 0.509
       },
       "gaha_n6_sonicClose_upLeft.png": {
-        "scale": 1.56
+        "scale": 1.56,
+        "footX": 0.751
       },
       "gaha_n6_sonicClose_upRight.png": {
-        "scale": 1.56
+        "scale": 1.56,
+        "footX": 0.118
       },
       "gaha_n6_sonicClose_downLeft.png": {
-        "scale": 1.56
+        "scale": 1.56,
+        "footX": 0.602
       },
       "gaha_n6_sonicClose_downRight.png": {
-        "scale": 1.56
+        "scale": 1.56,
+        "footX": 0.406
       },
       "gaha_n6_sonicThrow_upLeft.png": {
-        "scale": 1.84
+        "scale": 1.84,
+        "footX": 0.626
       },
       "gaha_n6_sonicThrow_upRight.png": {
-        "scale": 1.84
+        "scale": 1.84,
+        "footX": 0.285
       },
       "gaha_n6_sonicThrow_downLeft.png": {
-        "scale": 1.84
+        "scale": 1.84,
+        "footX": 0.489
       },
       "gaha_n6_sonicThrow_downRight.png": {
-        "scale": 1.84
+        "scale": 1.84,
+        "footX": 0.502
+      },
+      "gaha_n6_weak_upRight.png": {
+        "footX": 0.518
+      },
+      "gaha_n6_weak_downLeft.png": {
+        "footX": 0.534
+      },
+      "gaha_n6_weak_downRight.png": {
+        "footX": 0.533
       },
       "gaha_sj_whirl_0.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.266
       },
       "gaha_sj_whirl_1.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.296
       },
       "gaha_sj_whirl_2.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.274
       },
       "gaha_sj_whirl_3.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.264
       },
       "gaha_sj_whirl_4.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.265
       },
       "gaha_sj_whirl_5.png": {
-        "scale": 0.82
+        "scale": 0.82,
+        "footX": 0.338
       },
       "gaha_sj_throw_0.png": {
         "scale": 0.9
@@ -1243,96 +1419,161 @@
         "scale": 0.9
       },
       "gaha_sj_sweep_0.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.485
       },
       "gaha_sj_sweep_1.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.46
       },
       "gaha_sj_sweep_2.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.336
       },
       "gaha_n6_furyDive_f0.png": {
-        "scale": 1.33
+        "scale": 1.33,
+        "footX": 0.537
       },
       "gaha_n6_furyDive_f1.png": {
-        "scale": 1.33
+        "scale": 1.33,
+        "footX": 0.05
       },
       "gaha_n6_furyDive_f2.png": {
-        "scale": 1.33
+        "scale": 1.33,
+        "footX": 0.808
       },
       "gaha_n6_furyDive_f3.png": {
-        "scale": 1.33
+        "scale": 1.33,
+        "footX": 0.271
+      },
+      "gaha_thrust_0.png": {
+        "footX": 0.646
+      },
+      "gaha_thrust_1.png": {
+        "footX": 0.618
+      },
+      "gaha_thrust_2.png": {
+        "footX": 0.531
+      },
+      "gaha_thrust_3.png": {
+        "footX": 0.419
+      },
+      "gaha_thrust_4.png": {
+        "footX": 0.442
+      },
+      "gaha_thrust_5.png": {
+        "footX": 0.587
+      },
+      "gaha_thrustUp_0.png": {
+        "footX": 0.594
+      },
+      "gaha_thrustUp_1.png": {
+        "footX": 0.606
+      },
+      "gaha_thrustUp_2.png": {
+        "footX": 0.717
+      },
+      "gaha_thrustUp_3.png": {
+        "footX": 0.552
+      },
+      "gaha_thrustUp_4.png": {
+        "footX": 0.606
+      },
+      "gaha_thrustUp_5.png": {
+        "footX": 0.62
       },
       "gaha_rooted_downRight.png": {
         "scale": 1.29,
-        "feet": 0.94
+        "feet": 0.94,
+        "footX": 0.49
       },
       "gaha_rooted_upRight.png": {
         "scale": 1.29,
-        "feet": 0.94
+        "feet": 0.94,
+        "footX": 0.488
       },
       "gaha_n6_stoneAttack_upLeft.png": {
-        "scale": 1.09
+        "scale": 1.09,
+        "footX": 0.331
       },
       "gaha_n6_stoneAttack_upRight.png": {
-        "scale": 1.09
+        "scale": 1.09,
+        "footX": 0.253
       },
       "gaha_n6_stoneAttack_downLeft.png": {
-        "scale": 1.09
+        "scale": 1.09,
+        "footX": 0.566
       },
       "gaha_n6_stoneAttack_downRight.png": {
-        "scale": 1.09
+        "scale": 1.09,
+        "footX": 0.413
       },
       "gaha_n6_furyAttack_upLeft.png": {
-        "scale": 1.34
+        "scale": 1.34,
+        "footX": 0.812
       },
       "gaha_n6_furyAttack_upRight.png": {
-        "scale": 1.34
+        "scale": 1.34,
+        "footX": 0.183
       },
       "gaha_n6_furyAttack_downLeft.png": {
-        "scale": 1.34
+        "scale": 1.34,
+        "footX": 0.56
       },
       "gaha_n6_furyAttack_downRight.png": {
-        "scale": 1.34
+        "scale": 1.34,
+        "footX": 0.447
       },
       "gaha_n6_swiftAttack_upLeft.png": {
-        "scale": 1.48
+        "scale": 1.48,
+        "footX": 0.786
       },
       "gaha_n6_swiftAttack_upRight.png": {
-        "scale": 1.48
+        "scale": 1.48,
+        "footX": 0.206
       },
       "gaha_n6_swiftAttack_downLeft.png": {
-        "scale": 1.48
+        "scale": 1.48,
+        "footX": 0.544
       },
       "gaha_n6_swiftAttack_downRight.png": {
-        "scale": 1.48
+        "scale": 1.48,
+        "footX": 0.438
       },
       "gaha_n6_swiftGuard_upLeft.png": {
-        "scale": 1.14
+        "scale": 1.14,
+        "footX": 0.265
       },
       "gaha_n6_swiftGuard_upRight.png": {
-        "scale": 1.14
+        "scale": 1.14,
+        "footX": 0.392
       },
       "gaha_n6_swiftGuard_downLeft.png": {
-        "scale": 1.14
+        "scale": 1.14,
+        "footX": 0.476
       },
       "gaha_n6_swiftGuard_downRight.png": {
-        "scale": 1.14
+        "scale": 1.14,
+        "footX": 0.507
       },
       "gaha_n6_swiftDodge_upLeft.png": {
-        "scale": 1.2
+        "scale": 1.2,
+        "footX": 0.471
       },
       "gaha_n6_swiftDodge_upRight.png": {
-        "scale": 1.2
+        "scale": 1.2,
+        "footX": 0.381
       },
       "gaha_n6_swiftDodge_downLeft.png": {
-        "scale": 1.2
+        "scale": 1.2,
+        "footX": 0.527
       },
       "gaha_n6_swiftDodge_downRight.png": {
-        "scale": 1.2
+        "scale": 1.2,
+        "footX": 0.535
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h3": {
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
@@ -1513,32 +1754,59 @@
     },
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses her hurt pictures. The game leans the picture back itself.",
     "ruler": {
+      "layra_iso_stand_upRight.png": {
+        "footX": 0.502
+      },
       "layra_iso_guard_upRight.png": {
-        "scale": 0.92
+        "scale": 0.92,
+        "footX": 0.551
       },
       "layra_iso_guard_downRight.png": {
-        "scale": 0.92
+        "scale": 0.92,
+        "footX": 0.433
+      },
+      "layra_iso_cast_upRight.png": {
+        "footX": 0.389
+      },
+      "layra_iso_cast_downRight.png": {
+        "footX": 0.402
+      },
+      "layra_iso_chant_downRight.png": {
+        "footX": 0.486
       },
       "layra_iso_hurt2_upRight.png": {
         "scale": 1.1
       },
       "layra_iso_hurt2_downRight.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.508
       },
       "layra_n6_down_single.png": {
-        "scale": 1.1
+        "scale": 1.1,
+        "footX": 0.497
       },
       "layra_n6_victory_single.png": {
         "scale": 1.05
       },
+      "layra_n6_hurt_upLeft.png": {
+        "footX": 0.513
+      },
+      "layra_n6_hurt_downLeft.png": {
+        "footX": 0.472
+      },
+      "layra_n6_hurt_downRight.png": {
+        "footX": 0.492
+      },
       "layra_iso_blessed_upRight.png": {
-        "scale": 1.08
+        "scale": 1.08,
+        "footX": 0.359
       },
       "layra_iso_blessed_downRight.png": {
-        "scale": 1.08
+        "scale": 1.08,
+        "footX": 0.441
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -1847,14 +2115,88 @@
     "note_nov6b": "Nov set (roadmap 6.33): victory, weakened, defeated, shield throw and shield in flight, and the Bloodied Press look (stance, wind-up, strike, throw) that shows while he has Bloodied stacks.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
     "ruler": {
+      "bull_iso_stand_upLeft.png": {
+        "footX": 0.322
+      },
+      "bull_iso_stand_downLeft.png": {
+        "footX": 0.576
+      },
+      "bull_iso_battle_upLeft.png": {
+        "footX": 0.322
+      },
+      "bull_iso_battle_downLeft.png": {
+        "footX": 0.564
+      },
+      "bull_iso_attack_upLeft.png": {
+        "footX": 0.383
+      },
+      "bull_iso_attack_downLeft.png": {
+        "footX": 0.556
+      },
+      "bull_dodge.png": {
+        "footX": 0.566
+      },
+      "bull_iso_hurt_upLeft.png": {
+        "footX": 0.398
+      },
+      "bull_iso_hurt_downLeft.png": {
+        "footX": 0.584
+      },
+      "bull_n6b_down_f1.png": {
+        "footX": 0.511
+      },
+      "bull_n6b_throw1_f1.png": {
+        "footX": 0.457
+      },
+      "bull_n6b_throw1_f3.png": {
+        "footX": 0.291
+      },
+      "bull_n6b_throw2_f3.png": {
+        "footX": 0.683
+      },
+      "bull_n6b_throw2_f1.png": {
+        "footX": 0.35
+      },
       "bull_n6b_weak_f1.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.45
       },
       "bull_n6b_weak_f3.png": {
-        "scale": 0.9
+        "scale": 0.9,
+        "footX": 0.437
+      },
+      "bull_ench_battle_downLeft.png": {
+        "footX": 0.536
+      },
+      "bull_ench_battle_upLeft.png": {
+        "footX": 0.47
+      },
+      "bull_n6b_bl3_f1.png": {
+        "footX": 0.336
+      },
+      "bull_n6b_bl3_f3.png": {
+        "footX": 0.466
+      },
+      "bull_n6b_bl4_f1.png": {
+        "footX": 0.392
+      },
+      "bull_n6b_bl4_f3.png": {
+        "footX": 0.356
+      },
+      "bull_n6b_bl1_f1.png": {
+        "footX": 0.382
+      },
+      "bull_n6b_bl1_f3.png": {
+        "footX": 0.433
+      },
+      "bull_n6b_bl6_f3.png": {
+        "footX": 0.286
+      },
+      "bull_n6b_bl6_f1.png": {
+        "footX": 0.532
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e3": {
     "note": "The horned archer, redrawn (Oct 26): bow, dagger for close range, Poison Arrow, hurt. Still the enemy Ranger until we know her name and side. Battle stance = her combat-ready pictures (the 'ready' set), shown whenever a foe is within her bow's reach (Suleiman, 29 Oct).",
@@ -2243,62 +2585,166 @@
     "note_nov8": "Poison Arrow crouch redrawn in four views and the Smoke Bomb throw (his 8 Nov sheets, roadmap 13.26, 13.29).",
     "note_hq": "12 Nov (roadmap 18.26, 18.2): stand, battle, aim, shot, hit, wounded, kneel, down and victory are cut again from Suleiman's full-quality Email sheets (archer_hq_*, standing 300 pixels tall; cut by dev/tools/make_archer_hq.py, wired by wire_archer_hq.py). Dagger, Poison Arrow, Smoke Bomb, the flaming look and dodge have no full-quality sheet yet: they are the old small pictures, drawn bigger by the size ruler. \"knocked\" uses her hit pictures; \"crumple\" is gone.",
     "ruler": {
+      "archer_hq_stand_f1.png": {
+        "footX": 0.514
+      },
+      "archer_hq_stand_f2.png": {
+        "footX": 0.478
+      },
+      "archer_hq_stand_f3.png": {
+        "footX": 0.391
+      },
+      "archer_hq_battle_f1.png": {
+        "footX": 0.498
+      },
+      "archer_hq_battle_f2.png": {
+        "footX": 0.468
+      },
+      "archer_hq_battle_f3.png": {
+        "footX": 0.331
+      },
+      "archer_hq_battle_f4.png": {
+        "footX": 0.526
+      },
+      "archer_hq_fire_f1.png": {
+        "footX": 0.531
+      },
+      "archer_hq_fire_f2.png": {
+        "footX": 0.461
+      },
+      "archer_hq_fire_f3.png": {
+        "footX": 0.358
+      },
+      "archer_hq_fire_f4.png": {
+        "footX": 0.495
+      },
+      "archer_hq_primed_f1.png": {
+        "footX": 0.534
+      },
+      "archer_hq_primed_f2.png": {
+        "footX": 0.463
+      },
       "archer_n6b_dagger_f1.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.351
       },
       "archer_n6b_dagger_f2.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.582
       },
       "archer_n6b_dagger_f3.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.373
       },
       "archer_n6b_dagger_f4.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.62
       },
       "archer_dodge.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.275
+      },
+      "archer_hq_hit_f2.png": {
+        "footX": 0.475
+      },
+      "archer_hq_hit_f3.png": {
+        "footX": 0.4
+      },
+      "archer_hq_hit_f4.png": {
+        "footX": 0.613
+      },
+      "archer_hq_down_f1.png": {
+        "footX": 0.509
+      },
+      "archer_hq_down_f2.png": {
+        "footX": 0.473
+      },
+      "archer_hq_down_f3.png": {
+        "footX": 0.515
+      },
+      "archer_hq_down_f4.png": {
+        "footX": 0.477
       },
       "archer_poison_f1.png": {
-        "scale": 2.9
+        "scale": 2.9,
+        "footX": 0.566
       },
       "archer_poison_f2.png": {
-        "scale": 2.9
+        "scale": 2.9,
+        "footX": 0.388
       },
       "archer_poison_f3.png": {
-        "scale": 2.9
+        "scale": 2.9,
+        "footX": 0.43
       },
       "archer_poison_f4.png": {
-        "scale": 2.9
+        "scale": 2.9,
+        "footX": 0.483
       },
       "archer_poisonShot.png": {
         "scale": 2.68
       },
+      "archer_hq_wound2_f4.png": {
+        "footX": 0.379
+      },
+      "archer_hq_wound2_f1.png": {
+        "footX": 0.57
+      },
+      "archer_hq_wound2_f2.png": {
+        "footX": 0.545
+      },
+      "archer_hq_victory_f1.png": {
+        "footX": 0.455
+      },
+      "archer_hq_victory_f2.png": {
+        "footX": 0.604
+      },
+      "archer_hq_victory_f3.png": {
+        "footX": 0.368
+      },
+      "archer_hq_wound1_f1.png": {
+        "footX": 0.621
+      },
+      "archer_hq_wound1_f3.png": {
+        "footX": 0.455
+      },
+      "archer_hq_wound1_f4.png": {
+        "footX": 0.43
+      },
       "archer_ench_downRight.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.53
       },
       "archer_ench_upRight.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.277
       },
       "archer_ench_upLeft.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.545
       },
       "archer_ench_downLeft.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.524
       },
       "archer_smoke_throw_f1.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.394
       },
       "archer_smoke_throw_f2.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.462
       },
       "archer_smoke_throw_f3.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.448
       },
       "archer_smoke_throw_f4.png": {
-        "scale": 2.68
+        "scale": 2.68,
+        "footX": 0.418
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",
@@ -2713,80 +3159,146 @@
     "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
     "ruler": {
+      "tayo_n6b_stand_f1.png": {
+        "footX": 0.422
+      },
+      "tayo_n6b_stand_f2.png": {
+        "footX": 0.547
+      },
       "tayo_n6b_battle_f1.png": {
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.366
       },
       "tayo_n6b_battle_f2.png": {
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.653
       },
       "tayo_n6b_battle_f3.png": {
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.329
       },
       "tayo_n6b_battle_f4.png": {
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.59
       },
       "tayo_n6b_punch_f1.png": {
-        "scale": 0.71
+        "scale": 0.71,
+        "footX": 0.521
       },
       "tayo_n6b_punch_f2.png": {
-        "scale": 0.71
+        "scale": 0.71,
+        "footX": 0.374
       },
       "tayo_n6b_punch_f3.png": {
-        "scale": 0.71
+        "scale": 0.71,
+        "footX": 0.602
       },
       "tayo_n6b_punch_f4.png": {
-        "scale": 0.71
+        "scale": 0.71,
+        "footX": 0.393
       },
       "tayo_n6b_guard_f1.png": {
-        "scale": 0.68
+        "scale": 0.68,
+        "footX": 0.527
       },
       "tayo_n6b_guard_f2.png": {
-        "scale": 0.68
+        "scale": 0.68,
+        "footX": 0.375
       },
       "tayo_n6b_guard_f3.png": {
-        "scale": 0.68
+        "scale": 0.68,
+        "footX": 0.63
       },
       "tayo_n6b_guard_f4.png": {
-        "scale": 0.68
+        "scale": 0.68,
+        "footX": 0.654
       },
       "tayo_dodge.png": {
-        "scale": 0.67
+        "scale": 0.67,
+        "footX": 0.671
       },
       "tayo_n6b_hurt_f1.png": {
-        "scale": 0.88
+        "scale": 0.88,
+        "footX": 0.373
       },
       "tayo_n6b_hurt_f2.png": {
-        "scale": 0.88
+        "scale": 0.88,
+        "footX": 0.408
       },
       "tayo_n6b_hurt_f3.png": {
-        "scale": 0.88
+        "scale": 0.88,
+        "footX": 0.32
       },
       "tayo_n6b_hurt_f4.png": {
-        "scale": 0.88
+        "scale": 0.88,
+        "footX": 0.715
       },
       "tayo_n6b_down_f1.png": {
-        "scale": 0.65
+        "scale": 0.65,
+        "footX": 0.482
       },
       "tayo_n6b_down_f2.png": {
-        "scale": 0.65
+        "scale": 0.65,
+        "footX": 0.534
       },
       "tayo_n6b_down_f3.png": {
-        "scale": 0.65
+        "scale": 0.65,
+        "footX": 0.527
       },
       "tayo_n6b_down_f4.png": {
         "scale": 0.65
       },
+      "tayo_n6b_victory_f1.png": {
+        "footX": 0.461
+      },
+      "tayo_n6b_victory_f2.png": {
+        "footX": 0.555
+      },
+      "tayo_n6b_victory_f3.png": {
+        "footX": 0.449
+      },
+      "tayo_n6b_victory_f4.png": {
+        "footX": 0.385
+      },
       "tayo_n6d_blastWind_f1.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.418
       },
       "tayo_n6d_blastWind_f2.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.578
       },
       "tayo_n6d_blastWind_f3.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.403
       },
       "tayo_n6d_blastWind_f4.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.439
+      },
+      "tayo_n6d_blastCharge_f1.png": {
+        "footX": 0.404
+      },
+      "tayo_n6d_blastCharge_f2.png": {
+        "footX": 0.531
+      },
+      "tayo_n6d_blastCharge_f3.png": {
+        "footX": 0.396
+      },
+      "tayo_n6d_blastCharge_f4.png": {
+        "footX": 0.411
+      },
+      "tayo_n6d_blastPunch_f1.png": {
+        "footX": 0.4
+      },
+      "tayo_n6d_blastPunch_f2.png": {
+        "footX": 0.521
+      },
+      "tayo_n6d_blastPunch_f3.png": {
+        "footX": 0.348
+      },
+      "tayo_n6d_blastPunch_f4.png": {
+        "footX": 0.412
       },
       "tayo_drive_0.png": {
         "scale": 0.61
@@ -2801,55 +3313,82 @@
         "scale": 0.61
       },
       "tayo_n6b_weak_f1.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.49
       },
       "tayo_n6b_weak_f2.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.581
       },
       "tayo_n6b_weak_f3.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.416
       },
       "tayo_n6b_weak_f4.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.451
       },
       "tayo_n6c_gauntlet_f1.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.401
       },
       "tayo_n6c_gauntlet_f2.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.53
       },
       "tayo_n6c_gauntlet_f3.png": {
         "scale": 0.91
       },
       "tayo_n6c_gauntlet_f4.png": {
-        "scale": 0.91
+        "scale": 0.91,
+        "footX": 0.527
+      },
+      "tayo_n6b_battleFire_f1.png": {
+        "footX": 0.372
+      },
+      "tayo_n6b_battleFire_f2.png": {
+        "footX": 0.66
+      },
+      "tayo_n6b_battleFire_f3.png": {
+        "footX": 0.298
+      },
+      "tayo_n6b_battleFire_f4.png": {
+        "footX": 0.583
       },
       "tayo_n6b_punchFire_f1.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.527
       },
       "tayo_n6b_punchFire_f2.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.371
       },
       "tayo_n6b_punchFire_f3.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.621
       },
       "tayo_n6b_punchFire_f4.png": {
-        "scale": 0.73
+        "scale": 0.73,
+        "footX": 0.439
       },
       "tayo_n6b_block_f1.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.568
       },
       "tayo_n6b_block_f2.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.343
       },
       "tayo_n6b_block_f3.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.629
       },
       "tayo_n6b_block_f4.png": {
-        "scale": 0.75
+        "scale": 0.75,
+        "footX": 0.661
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
@@ -3100,38 +3639,95 @@
       }
     },
     "ruler": {
+      "rabdul_iso_stand_downLeft.png": {
+        "footX": 0.533
+      },
+      "rabdul_iso_battle_upLeft.png": {
+        "footX": 0.332
+      },
+      "rabdul_iso_battle_downLeft.png": {
+        "footX": 0.549
+      },
+      "rabdul_iso_attack_upLeft.png": {
+        "footX": 0.646
+      },
+      "rabdul_iso_attack_downLeft.png": {
+        "footX": 0.529
+      },
+      "rabdul_iso_dodge_upLeft.png": {
+        "footX": 0.535
+      },
+      "rabdul_iso_dodge_downLeft.png": {
+        "footX": 0.414
+      },
       "rabdul_hurt_downLeft.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.493
       },
       "rabdul_hurt_upLeft.png": {
         "scale": 0.85
       },
       "rabdul_hurt_upRight.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.576
+      },
+      "rabdul_iso_chant_downLeft.png": {
+        "footX": 0.496
+      },
+      "rabdul_iso_fire_upLeft.png": {
+        "footX": 0.644
+      },
+      "rabdul_iso_fire_downLeft.png": {
+        "footX": 0.545
       },
       "rabdul_fall_0.png": {
-        "scale": 0.8
+        "scale": 0.8,
+        "footX": 0.445
       },
       "rabdul_fall_1.png": {
-        "scale": 0.8
+        "scale": 0.8,
+        "footX": 0.513
       },
       "rabdul_fall_2.png": {
-        "scale": 0.8
+        "scale": 0.8,
+        "footX": 0.48
       },
       "rabdul_n6b_down_f1.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.563
       },
       "rabdul_n6b_down_f3.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.492
+      },
+      "rabdul_n6b_victory_f1.png": {
+        "footX": 0.473
+      },
+      "rabdul_n6b_victory_f3.png": {
+        "footX": 0.53
+      },
+      "rabdul_n6b_multiFire_f2.png": {
+        "footX": 0.447
+      },
+      "rabdul_n6b_multiFire_f3.png": {
+        "footX": 0.285
       },
       "rabdul_n6b_weak_f1.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.54
       },
       "rabdul_n6b_weak_f3.png": {
-        "scale": 0.85
+        "scale": 0.85,
+        "footX": 0.522
+      },
+      "rabdul_n6b_multi_f2.png": {
+        "footX": 0.403
+      },
+      "rabdul_n6b_multi_f3.png": {
+        "footX": 0.264
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), and where the ground is down the picture (\"feet\", 1 = the bottom edge). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h4": {
     "note": "Kofi the shaman (roadmap 6.38), the 4th hero from M10b on. Pictures only for now: he is not in units.json yet. From Suleiman's 8 Nov sheets: standing (1250), battle-ready (1251), preparing a spell (1254), cut by dev/tools/make_kofi.py through the size ruler (standing 300 pixels tall, every sheet scaled to his standing head). Still to come from Suleiman: walk, attack and spell release, hurt, dodge, guard, fall, down, portrait, his effects, and full-quality spirits.",
@@ -3228,6 +3824,39 @@
           "originX": 0.497
         }
       }
-    }
+    },
+    "ruler": {
+      "kofi_stand_f1.png": {
+        "footX": 0.541
+      },
+      "kofi_stand_f2.png": {
+        "footX": 0.458
+      },
+      "kofi_battle_f1.png": {
+        "footX": 0.459
+      },
+      "kofi_battle_f2.png": {
+        "footX": 0.523
+      },
+      "kofi_battle_f3.png": {
+        "footX": 0.517
+      },
+      "kofi_battle_f4.png": {
+        "footX": 0.56
+      },
+      "kofi_cast_f1.png": {
+        "footX": 0.516
+      },
+      "kofi_cast_f2.png": {
+        "footX": 0.488
+      },
+      "kofi_cast_f3.png": {
+        "footX": 0.459
+      },
+      "kofi_cast_f4.png": {
+        "footX": 0.456
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }

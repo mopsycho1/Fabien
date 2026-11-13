@@ -36,7 +36,7 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 ### B. One character, one look
 - [x] B1. For each character, the head is the same size in every picture, within 8 percent. Test: the size audit tool passes with no picture outside 0.92 to 1.08. (12 Nov: `ruler.py audit` passes for Sudeen, Gaha, Layra, Tayo and Kofi, judged per picture set. Rabdul, the bull and the archer cannot be measured by the tool and were set by eye on their contact sheets.)
 - [ ] B2. No old-style picture is left (different outfit, colours or painting style). Test: the list in Part 4, item ART3, is empty; one contact sheet per character signed off by Suleiman.
-- [ ] B3. (12 Nov: the ruler can store a ground line per picture and the game uses it; set for 3 sets only. The audit does not measure foot points yet, so this stays open.) Feet stay on the same ground point when the picture changes. Test: the audit reports the foot point of every picture within 3 pixels of the tile middle at game scale.
+- [x] B3. (13 Nov: `ruler.py measure` finds the foot point of every picture, the middle of the weight of the legs, and writes it as "footX"; the game puts that point on the tile's middle. `ruler.py audit`: 440 still pictures, 0 more than 3 pixels out, where 298 were before; 13 moves, none starting off the tile. Seen on sheets for all 8 characters.) Feet stay on the same ground point when the picture changes. Test: the audit reports the foot point of every picture within 3 pixels of the tile middle at game scale.
 - [ ] B4. Every fighter has every core pose: stand, battle, windup, attack, guard, dodge, hurt, airborne, down, get up, weak, victory, walk. Test: a pose table printed by the audit has no empty cell.
 
 ### C. Effects
@@ -325,7 +325,8 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 
 The queue (Baiyee, 13 Nov), in order: 1 knockback gap 13.47; 2 three open rules in BATTLE_SYSTEMS.md; 3 clash dice; 4 high ground in a clash; 5 turn shape (act then move); 6 close M2's gaps (foot points B3, GIFs); 7 M3; 8 M3b (Blender allowed, see roadmap 18.23); 9 M4; 10 M13; 11 M10b (Kofi from the Email zip in INBOX/2026-11-13/Email); 12 enemies forage (13.48); then M11 and M15 if there is time.
 
-- **Queue items 1 to 5 done** (1: 13.47 knockback gap. 2: three open rules, BATTLE_SYSTEMS.md section 11. 3: clash dice, 13.51. 4: high ground 2 per level, 13.52. 5: turn shape, 13.53: one action and the steps in any order; enemies now walk after acting). Next: queue item 6 (close M2's gaps: foot points for B3, then the GIFs into Fabien Blueprint/SIZE RULER SHEETS 2026-11-12).
+- **Queue items 1 to 6 done** (1: 13.47 knockback gap. 2: three open rules, BATTLE_SYSTEMS.md section 11. 3: clash dice, 13.51. 4: high ground 2 per level, 13.52. 5: turn shape, 13.53. 6: M2's gaps: foot points measured for every picture set, checklist B3 ticked; 9 GIFs at game speed in Fabien Blueprint/SIZE RULER SHEETS 2026-11-12/GIFS 2026-11-13 and before and after foot sheets beside them). Next: queue item 7, M3 (effects stay put, waterfall v2).
+- M2 still open after item 6: Rabdul, the bull and the archer's heads are sized by eye; old-style pictures wait for ART3; the archer's dagger, poison, smoke and flame pictures are the small soft ones. The GIFs were checked frame by frame at small size and by numbers (every move ends on its tile middle; the only big height change is Gaha's low crouch in the whirl and the sweep, which is drawn that way): Baiyee should still watch them once.
 
 ## Where we stopped before (12 Nov, after M2)
 
@@ -353,3 +354,10 @@ The queue (Baiyee, 13 Nov), in order: 1 knockback gap 13.47; 2 three open rules 
 ## Test baseline, 11 Nov
 - Full suite (bash dev/tests/run_all.sh), one run: passed 48 of 48, 0 failed. Run time over 20 minutes with two browser battles running beside it.
 - Browser battles: phone 60 turns, desktop 97 turns, 0 page errors in both.
+
+## Test results, 13 Nov (queue items 1 to 6)
+
+- Full suite: 49 of 49 (47 on 12 Nov, plus n53 the push test and n54 the turn shape test), 234 seconds.
+- `ruler.py audit`: ALL PASSED, heads (B1) and feet (B3).
+- `node dev/browser/gifs.cjs <folder>` (new): 9 moves filmed in a real browser, each ends 0.0 pixels from its tile middle, 0 page errors.
+- Bot battles on the cavern (`FABIEN_MAP=cavern node bot.cjs 3`): no figure off its tile (11 before the 13.47 fix), no stuck turn. The simple test player lost all of them, as before today's changes.

@@ -161,19 +161,31 @@ export function textureKey(id, file) {
 //            size as in the standing picture (1 = as it is), and
 //   "feet":  where the ground is down the picture (1 = the bottom edge; 0.93
 //            when the last 7 percent is dust or a weapon tip below the feet).
+//   "footX": where the feet are across the picture (0 = left edge, 1 = right
+//            edge, counted in the file as stored). That point is put on the
+//            middle of the tile, so the feet do not jump sideways when the
+//            picture changes (checklist B3). Without it the picture's own
+//            originX in art.json is used.
 // A picture that is not listed is drawn as it is. dev/tools/ruler.py writes the list.
 export function rulerOf(id, file) {
   const r = (art[id] && art[id].ruler && art[id].ruler[file]) || null;
-  return { scale: (r && r.scale) || 1, feet: (r && r.feet) || 1 };
+  return { scale: (r && r.scale) || 1, feet: (r && r.feet) || 1, footX: r && r.footX !== undefined ? r.footX : null };
 }
 
 // A frame is { key, flip, originX, scale, originY }. Flipping a frame mirrors where the body is too.
 // scale and originY come from the size ruler above.
 function makeFrame(id, value, mirrored) {
   const flip = mirrored ? !flipOf(value) : flipOf(value);
-  const origin = originOf(value);
   const rule = rulerOf(id, fileOf(value));
+  // the measured foot point wins over the picture's own anchor; it is counted in the
+  // file as stored, so a picture that art.json draws flipped needs it mirrored
+  const origin = rule.footX === null ? originOf(value) : flipOf(value) ? 1 - rule.footX : rule.footX;
   return { key: textureKey(id, fileOf(value)), flip, originX: mirrored ? 1 - origin : origin, scale: rule.scale, originY: rule.feet };
+}
+
+// One picture entry of art.json as the game will draw it (for tests).
+export function frameFor(id, value, mirrored = false) {
+  return makeFrame(id, value, mirrored);
 }
 
 // True if this unit has pictures.
