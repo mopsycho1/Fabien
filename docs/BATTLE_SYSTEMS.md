@@ -206,12 +206,34 @@ When a push, pull or shove leaves a foe **standing next to one of your units**, 
 
 ## 10. Planned but not built yet
 
-- **Reward fast wins:** the result screen shows the turn count against a par for the battle, a rating, and a bonus for beating par.
+- **Reward fast wins:** the result screen shows the turn count against a par for the battle, a rating, and a bonus for beating par. The numbers are in section 11.
 - **Pace:** faster enemy turns and animations only. No fatigue rule.
 - **4 v 4 battles** and a wider Hidden Cavern.
 - **Healing and combos for the enemy AI:** enemies healing themselves and allies, Sonic Burst with Earth Drive, and enemies foraging items (only Tayo uses items now).
 - **Tooltips** for status effects and techniques.
 - **New buff visual effects.**
-- **Dodges for everyone** (open question).
+- **Dodges for everyone:** settled for now, see section 11.
 - **Kofi, the summoned spirits, Gadara and King Alagura:** kits are written up but not in battle yet. Attunement (two Verses at once, only the King) is planned with him.
-- **Real Guard and Rest actions**, and fixes for the gap-between-blocks knockback bug.
+- **Guard and Rest:** settled for now, see section 11.
+
+## 11. Three open rules, settled for now
+
+These three were open. Each has an answer now so the build can go on. **Every one is a default: Suleiman can change it.**
+
+**11.1 Dodges for everyone (roadmap 13.44). Default, Suleiman can change.**
+- A dodge is **how a miss looks**. It is not a new action and not a new number: the Evade stat already decides if a hit misses.
+- **Every fighter gets a dodge picture, Layra too.** Hers is not a jump: the sand that moves her body pulls her half a step aside (it fits 13.41, she cannot walk unaided).
+- Until a fighter's dodge picture arrives, a miss shows the small sidestep the game already has.
+- Why: one rule for all seven fighters is easier to read on screen, and it costs no balance work. A dodge that was its own action would slow battles down.
+
+**11.2 Guard and Rest (roadmap 13.1). Default, Suleiman can change.**
+- **No Guard button and no Rest button for everyone in 1.0.** Guard stays a stance inside a clash. Rest stays what it is today: Layra's Meditate, items, and Poise coming back by itself outside a clash.
+- In their place, one small rule, **Hold: a fighter who ends its turn without acting keeps 30 on its charge meter, so its next turn comes sooner.** No healing and no damage cut. (Not built yet.)
+- Why: healing or blocking for free every turn makes battles longer, and the pace goal is 20 to 35 turns. It would also make Gaha stronger, which is Suleiman's own worry. Hold rewards timing and does not reward hiding.
+
+**11.3 Reward fast wins (roadmap 13.45). Default, Suleiman can change.**
+- **Par for the Hidden Cavern is 30 turns** in a 3 against 3 battle and **40 turns** in a 4 against 4 battle. A turn is one fighter's turn, as the turn counter shows it.
+- Ratings: **Swift** at 8 turns under par or better, **Steady** up to par, **Long** over par. Losing has no rating.
+- Bonus: a Swift win shows a gold banner now. When the hub exists, a Swift win also gives one extra item to carry into the next battle.
+- Nothing in the battle itself changes with the count (no fatigue rule). The reward comes after, so speed comes from playing well. (Not built yet: it goes in with the ending screen, M12.)
+

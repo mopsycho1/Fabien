@@ -325,7 +325,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 
 The queue (Baiyee, 13 Nov), in order: 1 knockback gap 13.47; 2 three open rules in BATTLE_SYSTEMS.md; 3 clash dice; 4 high ground in a clash; 5 turn shape (act then move); 6 close M2's gaps (foot points B3, GIFs); 7 M3; 8 M3b (Blender allowed, see roadmap 18.23); 9 M4; 10 M13; 11 M10b (Kofi from the Email zip in INBOX/2026-11-13/Email); 12 enemies forage (13.48); then M11 and M15 if there is time.
 
-- **Queue item 1 done (13.47, knockback gap).** Next: queue item 2.
+- **Queue items 1 and 2 done** (13.47 knockback gap; the three open rules are section 11 of BATTLE_SYSTEMS.md: dodges, Guard and Rest, par for fast wins, each a default Suleiman can change). Next: queue item 3 (clash dice).
 
 ## Where we stopped before (12 Nov, after M2)
 
