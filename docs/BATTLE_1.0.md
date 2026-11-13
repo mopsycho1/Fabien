@@ -321,7 +321,13 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 3. Where sounds come from for M14 (a licensed pack is proposed).
 4. Guard and Rest (13.1) left out of 1.0: yes or no.
 
-## Where we stopped (12 Nov, after M2)
+## Where we stopped (13 Nov, working through the queue)
+
+The queue (Baiyee, 13 Nov), in order: 1 knockback gap 13.47; 2 three open rules in BATTLE_SYSTEMS.md; 3 clash dice; 4 high ground in a clash; 5 turn shape (act then move); 6 close M2's gaps (foot points B3, GIFs); 7 M3; 8 M3b (Blender allowed, see roadmap 18.23); 9 M4; 10 M13; 11 M10b (Kofi from the Email zip in INBOX/2026-11-13/Email); 12 enemies forage (13.48); then M11 and M15 if there is time.
+
+- **Queue item 1 done (13.47, knockback gap).** Next: queue item 2.
+
+## Where we stopped before (12 Nov, after M2)
 
 - Done: M1, M5 and M2. Next in the order: M3 (effects stay put, waterfall v2), M3b (effects to studio quality), M4.
 - M2 left open, on purpose: (1) foot points (checklist B3): the game can use a ground line per picture, but only 3 sets have one and nothing measures the rest; (2) Rabdul, the bull and the archer are sized by eye, not by the tool; (3) old-style pictures that are sized but not redrawn: victory for Gaha and Sudeen, dodge for Tayo and the archer, Rabdul's fall set (ART3); (4) the archer's dagger, poison, smoke and flame pictures are still the small soft ones (no full-quality sheet); (5) the new sizes were checked on contact sheets and in still pictures on the phone board (`node dev/browser/sizes.cjs`), not yet watched move by move: play one battle by hand and watch Sonic Javelin, Shield Ram and Tayo's punch.

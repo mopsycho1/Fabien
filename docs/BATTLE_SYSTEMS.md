@@ -202,7 +202,7 @@ When a push, pull or shove leaves a foe **standing next to one of your units**, 
 - **Slam:** if it hits a wall, higher ground or another unit before the push is used up, it takes **2 damage** and is **Disoriented**.
 - A fall or a slam also breaks a trance or an aim.
 - Resistance: a Rooted unit cannot be pushed at all, and a Warden's Bulwark cuts the push by 1 tile per level.
-- Known problem: sometimes a pushed unit ends up in the space between blocks (roadmap 13.47). Not fixed yet.
+- Fixed 13 Nov: a pushed unit could end up in the space between blocks (roadmap 13.47). The cause was a hit landing on a body that was still moving; every body now comes to rest on the middle of its tile.
 
 ## 10. Planned but not built yet
 

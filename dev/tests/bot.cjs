@@ -17,6 +17,9 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     const origAtk = b.performAttack.bind(b);
     b.performAttack = (a, t, d) => { const before = t.hp; const r = origAtk(a, t, d); dmg[a.label] = (dmg[a.label] || 0) + (before - t.hp); acts[a.label] = (acts[a.label] || 0) + 1; return r; };
     b.__dmg = dmg; b.__acts = acts;
+    // a short trail of what last moved bodies about, printed with any OFF TILE line
+    b.__trail = [];
+    for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function') continue; const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
     const origEngage = b.performEngage.bind(b);
     b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); };
     const waitIdle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 6000) await sleep(5); };
@@ -28,6 +31,10 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
       if (sig !== lastSig) { lastSig = sig; lastChange = Date.now(); }
       if (Date.now() - lastChange > 7000) { stuck = true; console.log('STUCK', u.label, 'busy', b.busy, 'mode', b.mode, 'cine', b.inCinematic); break; }
       if (u.side === 'hero' && !b.busy && !b.inCinematic) {
+        // every figure must be standing on the middle of its tile (roadmap 13.47): checked twice,
+        // a moment apart, so a body still settling is not counted
+        const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
+        if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
         // a hero's turn with every button greyed out is a stuck screen for a real player
         if (b.slots.every((sl) => !sl.enabled)) { tally.noButtons = (tally.noButtons || 0) + 1; console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed); }
         const foes = alive('enemy');
@@ -107,5 +114,5 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const real = errors.filter((e) => !e.includes('focus()'));
   console.log(JSON.stringify(tally));
   console.log('errors:', real.length ? real.slice(0, 5).join(' | ') : 'none');
-  w.close(); process.exit(tally.stuck || real.length ? 1 : 0);
+  w.close(); process.exit(tally.stuck || tally.offTile || real.length ? 1 : 0);
 })().catch((e) => { console.log('CRASH', e); process.exit(2); });

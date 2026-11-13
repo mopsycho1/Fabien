@@ -1527,6 +1527,7 @@ export default class BattleScene extends Phaser.Scene {
       }
       return;
     }
+    this.settleBodies(); // nobody starts a turn standing between two tiles (roadmap 13.47)
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
     // still in the water: still soaked; out of it: a turn drier (roadmap 11.4)
@@ -3534,9 +3535,40 @@ export default class BattleScene extends Phaser.Scene {
   // Thrown back by a blow, away from the attacker, then steadies.
   knockback(unit, dx, power) {
     const push = (dx >= 0 ? 1 : -1) * 14 * power;
-    const x0 = unit.view.x;
-    this.tweens.add({ targets: unit.view, x: x0 + push, duration: 90, ease: 'Quad.easeOut', yoyo: true, hold: 120 });
+    this.nudgeFromTile(unit, push, 0, { duration: 90, ease: 'Quad.easeOut', hold: 120 });
     dustPuff(this, unit.view.x + push, unit.view.y);
+  }
+
+  // A small there-and-back movement of a figure (a recoil, a sidestep), measured
+  // from the MIDDLE OF ITS TILE and worked out again every frame.
+  // Why (roadmap 13.47, the body left in the gap between blocks): these used to
+  // start from wherever the body was at that instant and return there. A unit
+  // hit while it was still flying from a push, getting up, or lunging in its own
+  // attack came back to that half-way spot and stayed between two tiles.
+  // Now the body always comes home to its tile, even if the tile changes while
+  // this plays. While a push is being drawn (unit.knock) this leaves it alone.
+  nudgeFromTile(unit, offX, offY, { duration = 100, ease = 'Linear', hold = 0 } = {}) {
+    const view = unit.view;
+    if (!view || !view.active) return;
+    const o = { t: 0 };
+    const place = () => {
+      if (!view.active || unit.knock) return;
+      const home = tileToScreen(unit.col, unit.row);
+      view.setPosition(home.x + offX * o.t, home.y + offY * o.t);
+    };
+    this.tweens.add({ targets: o, t: 1, duration, ease, hold, yoyo: true, onUpdate: place, onComplete: () => { o.t = 0; place(); } });
+  }
+
+  // Safety net for the same bug: at the end of every turn, any living figure
+  // that is not on the middle of its tile (and is not being pushed) is put there.
+  settleBodies() {
+    for (const u of this.units) {
+      if (!u.alive || u.knock || !u.view || !u.view.active) continue;
+      const home = tileToScreen(u.col, u.row);
+      if (Math.abs(u.view.x - home.x) > 0.5 || Math.abs(u.view.y - home.y) > 0.5) {
+        u.view.setPosition(home.x, home.y).setDepth(depthFor(u.col, u.row) + 1);
+      }
+    }
   }
 
   // What happens at the moment a blow lands (or misses).
@@ -3639,13 +3671,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // A quick step out of the way, for an attack that misses.
   sidestep(unit, dx) {
-    this.tweens.add({
-      targets: unit.view,
-      x: unit.view.x + (dx >= 0 ? 12 : -12),
-      y: unit.view.y - 6,
-      duration: 110,
-      yoyo: true,
-    });
+    this.nudgeFromTile(unit, dx >= 0 ? 12 : -12, -6, { duration: 110 });
   }
 
   // The fall (roadmap 16.2, reworked 8 Nov): ONE continuous motion. The fighter is knocked back,
@@ -4268,7 +4294,7 @@ export default class BattleScene extends Phaser.Scene {
     this.floatText(ally, 'Relay!', '#ffd27a', { rise: 44, pop: true });
     play('whoosh');
     this.showPose(ally, 'attack', dx);
-    const home = { x: ally.view.x, y: ally.view.y };
+    const home = tileToScreen(ally.col, ally.row); // its tile, not where it happens to be (13.47)
     this.tweens.add({ targets: ally.view, x: home.x + dx * 0.45, y: home.y + dy * 0.45, duration: 110, ease: 'Quad.easeIn', delay: 120,
       onComplete: () => {
         this.showImpact(ally, foe, { hit: true, damage: landed.damage, note: landed.note }, dx, foe.hp === 0);
@@ -5881,7 +5907,7 @@ export default class BattleScene extends Phaser.Scene {
         const dh = moveFrames(user.id, 'doubleHit', dx >= 0 ? 'right' : 'left'); // one head, then the other (4.6)
         if (!(dh && dh.frames[i] && this.showFrame(user, dh.frames[i]))) this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
         this.afterimage(user);
-        const home = { x: user.view.x, y: user.view.y };
+        const home = tileToScreen(user.col, user.row); // its tile, not where it happens to be (13.47)
         this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });
         this.time.delayedCall(100, () => this.showImpact(user, target, strike, dx, strike.lethal));
       });
