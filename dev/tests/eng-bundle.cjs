@@ -611,9 +611,9 @@ var spells_default = {
     text: "Tayo drives his fist into the ground and a spike of rock bursts up under the foe in front of him: half damage, and it is thrown back a tile (into a wall or a unit: a slam). The spike stays as a wall for 2 of his turns: nobody walks through it and it stops arrows and thrown weapons. Ready again after 3 turns."
   },
   clap: {
-    name: "Sonic Clap",
-    button: "Clap",
-    short: "CLAP",
+    name: "Sonic Burst",
+    button: "Burst",
+    short: "BURST",
     kind: "clap",
     color: "#e8c08a",
     range: 2,
@@ -622,7 +622,7 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "area",
-    note: "Roadmap 13.31 (Baiyee 8 Nov, Suleiman agreed, no more long range): an area around Tayo, not a line. Every foe within 2 tiles takes a little damage (30 percent of a hit) and is knocked back 1 tile with the usual push rules (a wall or a unit behind it: a slam). The AI claps when 2 or more foes are within 2 tiles. Drawn with his attack pictures until Suleiman sends clap art.",
+    note: 'Roadmap 13.31 (Baiyee 8 Nov, Suleiman agreed, no more long range): an area around Tayo, not a line. Every foe within 2 tiles takes a little damage (30 percent of a hit) and is knocked back 1 tile with the usual push rules (a wall or a unit behind it: a slam). The AI claps when 2 or more foes are within 2 tiles. Drawn with his attack pictures until Suleiman sends his Sonic Burst art (ART10). Renamed from Sonic Clap on 13 Nov (roadmap 13.37); the id stays "clap".',
     text: "Tayo claps his hands with all his might. A shockwave blasts every foe within 2 tiles: a little damage, and each is knocked back a tile (into a wall or a unit: a slam). Ready again after 3 turns."
   },
   elementBlast: {

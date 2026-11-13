@@ -165,7 +165,7 @@ Cooldown is in turns of that unit. "Verse" means Layra's buffs change a move int
 **Tayo (Bruiser)**
 - **Punch** (normal attack).
 - **Earth Drive** (range 1): half damage, push 1, and a rock spike stays as a wall for 2 of his turns. Cooldown 3.
-- **Sonic Clap** (area, 2 tiles): every foe within 2 takes 30 percent damage and is pushed 1 tile. Cooldown 3.
+- **Sonic Burst** (area, 2 tiles; called Sonic Clap before 13 Nov): every foe within 2 takes 30 percent damage and is pushed 1 tile. Cooldown 3.
 - **Element Blast** (range 3, needs an element on him): full damage down a straight line. Enchanted gives a fire blast that burns. Drenched gives a water blast that leaves the target Drenched. It spends the element. Cooldown 3.
 - **Counter-Press** (signature), see clashes.
 
@@ -204,7 +204,7 @@ When a push, pull or shove leaves a foe **standing next to one of your units**, 
 
 ## 9. Knockback
 
-- Every push (a lost clash, Spear Throw, Thunderclap, Shield Ram, Earth Drive, Sonic Clap, Husk's gust) uses the same rules.
+- Every push (a lost clash, Spear Throw, Thunderclap, Shield Ram, Earth Drive, Sonic Burst, Husk's gust) uses the same rules.
 - The unit moves straight away from the pusher, one tile at a time. It stops at the first tile that is blocked: the edge of the board, another unit, or a step up of more than 1 level.
 - **Downhill pushes carry 1 tile further.**
 - Each level it drops costs **4 damage**.

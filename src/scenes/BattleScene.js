@@ -22,6 +22,7 @@ import relayRules from '../data/relay.json'; // Relay Strike numbers
 import { chooseMoveTile, chooseAfterTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
+import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
 import { hasBuffLoop, buffLoopFx, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
@@ -1635,7 +1636,27 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Updates the line of text under the board.
+  // What the chosen skill will do, drawn on the board between the first tap and
+  // the second (roadmap 18.4, checklist G4): where the unit ends up, who is hit,
+  // where a pushed unit lands. Redrawn whenever the choice changes; gone when
+  // nothing is being chosen. The drawing is in src/preview.js.
+  refreshPreview() {
+    for (const o of this.previewItems || []) { this.tweens.killTweensOf(o); o.destroy(); }
+    this.previewItems = [];
+    this.previewPlan = null;
+    const unit = this.activeUnit;
+    if (this.battleOver || this.busy || !unit || unit.side !== 'hero') return;
+    let plan = null;
+    if (this.mode === 'spellTarget' && this.pendingTarget) plan = planSkill(this, unit, this.pendingTarget, this.selectedSpell);
+    else if (this.mode === 'attack' && this.pendingTarget) plan = planAttack(this, unit, this.pendingTarget);
+    else if (this.mode === 'huskTile' && this.pendingTile) plan = planHusk(this, unit, this.pendingTile);
+    if (!plan) return;
+    this.previewPlan = plan; // (tests and the browser check read this)
+    this.previewItems = drawPlan(this, unit, plan);
+  }
+
   refreshStatus() {
+    this.refreshPreview();
     if (this.battleOver) return; // the result screen has taken over
 
     const unit = this.activeUnit;
@@ -4229,17 +4250,26 @@ export default class BattleScene extends Phaser.Scene {
   //   - every level it drops on the way costs fallDamagePerLevel health
   // Changes the loser's tile and health straight away; returns what happened
   // ({ from, path, fall }), which knockBack then shows.
-  pushLoser(loser, winner, steps) {
-    if (isRooted(loser) && steps > 0) {
-      // Gaha standing his ground under Stone: nothing moves him
-      this.time.delayedCall(420, () => loser.alive && this.floatText(loser, 'Rooted!', '#d9b77a', { rise: 46 }));
-      return { path: [], fall: null, held: true };
-    }
+  // Works out a push WITHOUT changing anything: where the unit would end up.
+  // pushLoser uses it for the real push, and the skill preview (src/preview.js,
+  // roadmap 18.4) uses it to show the landing tile before the player confirms,
+  // so the two can never disagree.
+  //   winner : the unit, or just a tile { col, row }, the push comes from
+  //   moved  : optional { unit, to }: plan as if that unit had already gone to
+  //            the tile "to" (a charge ends next to the foe before it pushes)
+  // Returns { held, path, levels, slam } (held: it cannot be pushed at all;
+  // levels: how far it falls; slam: true if something stopped it short).
+  pushPlan(loser, winner, steps, moved = null) {
+    if (isRooted(loser) && steps > 0) return { held: true, rooted: true, path: [], levels: 0, slam: false };
     steps = Math.max(0, steps - pushResist(loser)); // Bulwark: a warden in Guard is hard to move
-    if (steps === 0) return { path: [], fall: null, held: true };
+    if (steps === 0) return { held: true, path: [], levels: 0, slam: false };
+    const blocked = (c, r) => {
+      if (moved && moved.unit.col === c && moved.unit.row === r && !(moved.to.col === c && moved.to.row === r)) return this.isDecoyAt(c, r) || !!this.spikeAt(c, r) || !!this.potAt(c, r); // it has left this tile
+      if (moved && moved.to.col === c && moved.to.row === r) return true; // and stands here now
+      return this.isBlocked(c, r);
+    };
     const isFree = (c, r, fc, fr) =>
-      isInsideGrid(c, r) && !this.isBlocked(c, r) && getHeight(c, r) - getHeight(fc, fr) <= terrain.pushClimbLimit;
-    const from = { col: loser.col, row: loser.row }; // where it stood (the knockback starts its flight here)
+      isInsideGrid(c, r) && !blocked(c, r) && getHeight(c, r) - getHeight(fc, fr) <= terrain.pushClimbLimit;
     let path = displacementPath(loser, winner, steps, isFree);
     if (path.length > 0 && getHeight(path[0].col, path[0].row) < getHeight(loser.col, loser.row)) {
       path = displacementPath(loser, winner, steps + terrain.downhillPushExtra, isFree); // downhill: further
@@ -4250,6 +4280,18 @@ export default class BattleScene extends Phaser.Scene {
       levels += Math.max(0, getHeight(prev.col, prev.row) - getHeight(step.col, step.row));
       prev = step;
     }
+    return { held: false, path, levels, slam: path.length < steps };
+  }
+
+  pushLoser(loser, winner, steps) {
+    const plan = this.pushPlan(loser, winner, steps);
+    if (plan.held) {
+      // Gaha standing his ground under Stone: nothing moves him
+      if (plan.rooted) this.time.delayedCall(420, () => loser.alive && this.floatText(loser, 'Rooted!', '#d9b77a', { rise: 46 }));
+      return { path: [], fall: null, held: true };
+    }
+    const from = { col: loser.col, row: loser.row }; // where it stood (the knockback starts its flight here)
+    const { path, levels } = plan;
     if (path.length > 0) {
       loser.col = path[path.length - 1].col;
       loser.row = path[path.length - 1].row;
@@ -4259,7 +4301,7 @@ export default class BattleScene extends Phaser.Scene {
     // used up: it slams into it, takes impact damage and is Disoriented
     // (Suleiman, 29 Oct; conditions.json). "fall" carries it, so every place
     // that shows a fall shows the slam too.
-    if (path.length < steps) {
+    if (plan.slam) {
       const toward = tileToScreen(loser.col + Math.sign(loser.col - winner.col), loser.row + Math.sign(loser.row - winner.row));
       const here = tileToScreen(loser.col, loser.row);
       fall = { ...(fall || { levels: 0, damage: 0 }), slam: conditions.disoriented.impactDamage, toward: { x: toward.x - here.x, y: toward.y - here.y } };
@@ -4917,6 +4959,7 @@ export default class BattleScene extends Phaser.Scene {
     const id = this.selectedSpell;
     this.cancelMode();
     this.busy = true;
+    this.refreshPreview(); // the skill starts: the preview goes
     this.castSpell(caster, target, id, () => {
       this.busy = false;
       this.refreshStatus();
