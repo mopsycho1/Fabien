@@ -23,7 +23,8 @@
   "keepHoldBonus": {
     "defence": 2
   },
-  "heightBonusPerLevel": 1,
+  "heightBonusPerLevel": 2,
+  "heightBonusNote": "High ground in a clash is worth 2 per level (picked 13 Nov, roadmap 13.52). The same number is in terrain.json as openingHeightBonusPerLevel, which is the one the live stance duel reads: only the fighter who starts the clash gets it, only on the opening beat, and only for standing higher. Keep the two numbers the same (dev/tests/duel-rules.cjs checks it).",
   "offBalance": {
     "contest": 2,
     "defense": 2,

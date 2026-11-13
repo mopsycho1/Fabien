@@ -112,6 +112,19 @@ check('ending a duel clears it on both', !w.engagement && !g.engagement && !w.en
   const count = (lead) => { let win = 0, evenN = 0; for (let x = 0; x < 216; x++) for (let y = 0; y < 216; y++) { const sum = (n) => 3 + (n % 6) + (Math.floor(n / 6) % 6) + Math.floor(n / 36); const m = sum(x) + lead - sum(y); if (m > 1) win++; else if (m >= -1) evenN++; } return [Math.round(win / 466.56), Math.round(evenN / 466.56)]; };
   const table = [0, 1, 2, 3, 4, 5, 6].map((l) => count(l).join('/')).join(' ');
   check('odds by lead before the dice (win/even percent for a lead of 0 to 6)', table === '36/27 45/27 55/25 64/22 72/18 79/15 86/11', table);
+  // 7. high ground (13.52): one number, 2 per level, the same in both data files
+  const T = require(path.join(__dirname, '../../src/data/terrain.json'));
+  check('high ground in a clash is 2 per level in terrain.json and in engagement.json', T.openingHeightBonusPerLevel === 2 && R.heightBonusPerLevel === 2);
+  {
+    const up = mk('warlord', { col: 0, row: 0 }), low = mk('warlord', { col: 1, row: 0 }); E.startDuel(up, low);
+    const hill = { random: () => 0.5, heightOf: (c) => (c === 0 ? 2 : 0) };
+    const flat = E.sumBeat(E.beatParts(up, 'press', low, 'press', hill, false, false));
+    check('starting a clash from 2 levels up is +4 on the opening beat', E.sumBeat(E.beatParts(up, 'press', low, 'press', hill, false, true)) - flat === 4 && E.openingHeightBonus(up, low, hill) === 4);
+    check('after the opening beat height gives nothing', E.beatParts(up, 'press', low, 'press', hill, false, false).height === 0);
+    check('starting a clash from below costs nothing', E.beatParts(low, 'press', up, 'press', hill, false, true).height === 0);
+    const r2 = E.resolveBeat(up, 'press', low, 'press', hill, false, true);
+    check('the one answering never gets the height bonus', r2.holderParts.height === 0 && r2.actorParts.height === 4);
+  }
   check('the dice are 3 six-sided dice', R.beatDice === 3 && R.diceSides === 6 && r.actorRoll === 15);
 }
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);

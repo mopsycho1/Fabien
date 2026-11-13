@@ -169,7 +169,7 @@ This is the Skirmish / Distraction system from the combat design notes. Every nu
 - `styleStat`: which number each style fights with (Overpower uses power, Defence uses guard, Evasion uses agility).
 - `pressBonus` / `holdBonus`: extra points for a style when it starts a contest, or when it receives one.
 - `breakBonus` / `keepHoldBonus`: extra points when breaking away, or when keeping a foe locked.
-- `heightBonusPerLevel`: points for standing higher than the foe.
+- `heightBonusPerLevel`: high ground in a clash, 2 per level. Keep it the same as `openingHeightBonusPerLevel` in terrain.json (that is the one the game reads; a test checks they match).
 - `offBalance`: what Off-Balance costs: points in a contest, defense and evade in ordinary attacks.
 - `holdGroundChance`: chance (percent) that a style is not pushed back when it loses.
 - `slipChance`: chance that a style avoids Off-Balance when it loses.
