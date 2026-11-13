@@ -140,7 +140,7 @@ All five are still there in today's run.
 ### 7. Battles run too long (13.34, 13.36)
 - Seen: 60 and 97 turns today (a simple test player, both lost); 43 and 128 turns in real play.
 - No fast speed for enemy turns apart from holding to skip.
-- Fix: M11 (code, needs Baiyee's pick on the fatigue rule).
+- Fix: M11 (code; no fatigue rule, only dead time is cut).
 
 ### 8. Hits, turns and the ending lack weight (17.13, 17.15, 17.10)
 - 17.13 The HP bar just gets shorter.
@@ -224,8 +224,8 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | M9 | **Weight.** White flash, pale HP chunk that drains, number size by damage, turn banner in the side's colour. | 17.13, 17.15 | F1, F2 pass. | None. |
 | M10 | **Reading the board.** Contact shadow and team-colour rim on every figure, floor a little darker under them. Soft tiles with a bright pulsing edge, path line to the finger, red targets in the same style. | 17.6 (code part), 17.11 | D6, D7 pass. | ART7 later. |
 | M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: **Kofi** (Baiyee, 12 Nov). His own kit arrived 12 Nov (roadmap 6.38), so the borrowed Sage kit is not needed; see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | Nothing blocks the first version. Kofi's kit is in; his missing pictures (listed below) finish him. |
-| M11 | **Pace: measure, then cut.** 20 bot battles for a baseline (turns, who wins, skills used). Fast enemy turns. A fatigue rule (proposal: from round 6, every hit does +1 per round passed, both sides). | Gap 7, 13.34 | G1, G5 pass. Baiyee picks the rule before the build. | None. |
-| M12 | **The ending.** Slow last blow, dim board, the word sweeps in with a music sting, then turns, damage, who fell, faces. | 17.10 | F3 passes. | ART6 optional (banner). |
+| M11 | **Pace: measure, then cut.** 20 bot battles for a baseline (turns, who wins, skills used). Fast enemy turns and faster animations: cut dead time only (enemy thinking time, slow animations). No fatigue rule (Baiyee, 13 Nov): battle length should come from how well the player plays. | Gap 7 | G1, G5 pass.  | None. |
+| M12 | **The ending.** Slow last blow, dim board, the word sweeps in with a music sting, then turns, damage, who fell, faces. | 17.10, 13.45 | F3 passes. Also: the result screen shows the turn count against a par for the battle, a rating, and a bonus for beating par (13.45, "Reward fast wins"). | ART6 optional (banner). |
 | M13 | **Movement life in code.** A code walk for anyone without walk frames: two-beat step with lean, foot dust and a small squash, faster settle. Layra's walk is sand-driven (13.9, 13.41: she cannot walk unaided, sand and earth bound to her muscles move her, so sand gathers round her legs as she goes; not a plain float). Channel-then-cast pattern on the remaining spells (13.10). Any character's walk sheet drops in through `walkFrames` with no new code. | Gap 2 (code part), 13.9, 13.10 | Walk sheet for all 6: no one glides upright. | None. ART1 replaces the code walk per character. |
 | M14 | **Sound pass.** Recorded sounds for hits, steps, casts, UI, falls, deaths, mixed under the music. | Gap 12 | F4 passes. | None from Suleiman. Baiyee picks the source first. |
 | M15 | **Enemy play.** Healing self and allies (13.25), Sonic Burst and Earth Drive combo (13.38), AI fixes from the M11 log until both sides win 40 to 60 percent. | Gap 13 | G2, G3 pass. | ART10 optional (Sonic Burst frames). |
@@ -317,7 +317,7 @@ Checked: every folder in Fabien Blueprint/INBOX (all chat exports, every picture
 ## Decisions needed from Baiyee
 0. DECIDED 12 Nov: the 4th hero is Kofi (M10b). His kit arrived 12 Nov (roadmap 6.38). Next: ask Suleiman for the missing pictures and the full-quality summons, listed in "12 Nov update" under the 4th hero section.
 1. Agree that the rig is off the critical path for 1.0 (gap 2).
-2. The fatigue rule for M11 (proposal in the table) before that session.
+2. (Fatigue rule dropped 13 Nov.)
 3. Where sounds come from for M14 (a licensed pack is proposed).
 4. Guard and Rest (13.1) left out of 1.0: yes or no.
 
