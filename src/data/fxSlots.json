@@ -1,0 +1,10 @@
+{
+  "note": "Room for Suleiman's own buff effects (roadmap 13.46, approved 13 Nov). He sends frame sequences on pure black, equal cells, centred on one point. Put the frames in public/art/fx as buff_<verse>_cast_0.png, _1 ... (played once when the Verse lands) and buff_<verse>_loop_0.png, _1 ... (played round the unit while the Verse lasts), run dev/tools/align_fx.py after adding the family to fx_anchors.json, then write how many frames there are below. 0 = no drawn effect yet: the game uses the look it has today. As soon as a number is above 0 his frames replace ours for that Verse, with no code change. frameMs = how long each frame shows. scale = size on the board (1 = the picture's own pixels). feetY = how far below the middle of the picture the unit's feet are, as a share of its height (0.5 = the feet are at the bottom edge).",
+  "buffs": {
+    "swiftness": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
+    "fury": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
+    "stone": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
+    "slow": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
+    "enchant": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 }
+  }
+}

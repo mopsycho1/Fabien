@@ -14,12 +14,17 @@ const { openBattle } = require('./lib/play.cjs');
 
 // The moves. "set" runs inside the page and stages the board, then starts the move.
 // Tiles are on the flat walkway along the near wall of the cavern (row 7), so nothing hides the figures.
+// who and foe are unit ids from units.json (h1 Sudeen, h2 Gaha, h3 Layra, e1 Tayo, e2 the bull,
+// e3 the archer, e4 Rabdul). One of:
+//   skill  : a hero's skill id from spells.json, chosen and confirmed as the player would
+//   cast   : any unit's skill id, cast straight at "foe" (or at the tile "tile")
+//   attack : a plain attack
+//   js     : anything else, as code run in the page with b (the scene), who, foe and done
+// verse puts a Verse on "who" first; before is code run after staging (to set a status).
 const MOVES = {
-  // who and foe are unit ids from units.json (h1 Sudeen, h2 Gaha, h3 Layra, e1 Tayo, e3 the archer).
-  // skill: the id of the Verse-changed move in spells.json, chosen as the Skills menu would.
   sonic_throw: { who: 'h2', verse: 'swiftness', at: [2, 7], foe: 'e1', foeAt: [6, 7], skill: 'sonicJavelin' },
   sonic_whirl: { who: 'h2', verse: 'swiftness', at: [3, 7], foe: 'e1', foeAt: [5, 7], skill: 'sonicJavelin' },
-  sonic_sweep: { who: 'h2', verse: 'swiftness', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'sonicJavelin', offBalance: true },
+  sonic_sweep: { who: 'h2', verse: 'swiftness', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'sonicJavelin', before: 'foe.status.offBalance = true;' },
   shield_ram: { who: 'h1', verse: 'stone', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'shieldRam' },
   furious_charge: { who: 'h1', verse: 'fury', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'furyCharge' },
   tayo_punch: { who: 'e1', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
@@ -27,16 +32,55 @@ const MOVES = {
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },
   archer_shot_away: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [4, 4], attack: true },
 };
+// Every skill and status effect, for the effects pass (roadmap 18.23, checklist C5):
+//   node dev/browser/gifs.cjs <out dir> phone effects
+const EFFECTS = {
+  lightning: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [6, 7], attack: true },
+  thunderclap: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [6, 7], attack: true, before: "who.status.buff = { id: 'stone', turnsLeft: 3, power: 1 };" },
+  wildfire: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [6, 7], attack: true, before: "who.status.buff = { id: 'fury', turnsLeft: 3, power: 1 };" },
+  verse_swiftness: { who: 'h3', at: [3, 7], foe: 'h2', foeAt: [5, 7], cast: 'swiftness', hold: 1400 },
+  verse_stone: { who: 'h3', at: [3, 7], foe: 'h1', foeAt: [5, 7], cast: 'stone', hold: 1400 },
+  verse_fury: { who: 'h3', at: [3, 7], foe: 'h2', foeAt: [5, 7], cast: 'fury', hold: 1400 },
+  slow: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [6, 7], cast: 'slow', hold: 1200 },
+  husk: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [4, 7], cast: 'husk', tile: [1, 7] },
+  meditate: { who: 'h3', at: [3, 7], foe: 'h2', foeAt: [5, 7], cast: 'meditate' },
+  herbs: { who: 'h1', at: [3, 7], foe: 'h2', foeAt: [4, 7], cast: 'herbs', before: 'foe.hp = 12; b.updateHpBar(foe);' },
+  spear_throw: { who: 'h2', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'spearThrow' },
+  fury_dive: { who: 'h2', verse: 'fury', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'furyDive' },
+  intercept: { who: 'h1', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'intercept' },
+  blitz: { who: 'h1', verse: 'swiftness', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'blitz' },
+  shield_ram: MOVES.shield_ram,
+  furious_charge: MOVES.furious_charge,
+  sonic_throw: MOVES.sonic_throw,
+  sonic_whirl: MOVES.sonic_whirl,
+  sonic_sweep: MOVES.sonic_sweep,
+  double_hit: { who: 'e4', at: [4, 7], foe: 'h2', foeAt: [3, 7], cast: 'doubleHit' },
+  enchant: { who: 'e4', at: [5, 7], foe: 'e1', foeAt: [3, 7], cast: 'enchant', hold: 1400 },
+  earth_drive: MOVES.tayo_earth_drive,
+  sonic_clap: { who: 'e1', at: [4, 7], foe: 'h2', foeAt: [3, 7], cast: 'clap', before: "b.placeUnit(b.units.find((u) => u.id === 'h1'), 5, 7);" },
+  element_blast_fire: { who: 'e1', at: [6, 7], foe: 'h2', foeAt: [3, 7], cast: 'elementBlast', before: "who.status.enchant = { id: 'enchant', damage: 2, turnsLeft: 3 }; b.refreshStatusTags();" },
+  element_blast_water: { who: 'e1', at: [6, 7], foe: 'h2', foeAt: [3, 7], cast: 'elementBlast', before: 'who.status.drenched = { turnsLeft: 2 }; b.refreshStatusTags();' },
+  shield_toss: { who: 'e2', at: [6, 7], foe: 'h2', foeAt: [3, 7], cast: 'shieldToss' },
+  poison_arrow: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], js: "b.castSpell(who, foe, 'poisonArrow', () => setTimeout(() => b.releaseAim(who, done), 500));" },
+  melee_hit: { who: 'e4', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
+  tayo_punch: MOVES.tayo_punch,
+  archer_shot: MOVES.archer_shot,
+  clash: { who: 'h2', at: [3, 7], foe: 'e1', foeAt: [4, 7], js: 'b.performEngage(who, foe, done);' },
+  death: { who: 'e4', at: [4, 7], foe: 'h2', foeAt: [3, 7], js: 'foe.hp = 0; b.updateHpBar(foe); b.playDefeat(foe, -1); setTimeout(done, 2600);', revive: true },
+  smoke_bomb: { who: 'e3', at: [4, 7], foe: 'h1', foeAt: [3, 7], cast: 'smokeBomb', tile: [6, 7], hold: 1200 },
+};
 
 (async () => {
   const out = process.argv[2] || '.'; const view = process.argv[3] || 'phone';
-  const names = process.argv[4] ? process.argv[4].split(',') : Object.keys(MOVES);
+  // the 4th word: nothing = the size-ruler moves, "effects" = every skill and status effect, or a list of names
+  const LIST = process.argv[4] === 'effects' || process.env.EFFECTS ? EFFECTS : { ...EFFECTS, ...MOVES };
+  const names = process.argv[4] && process.argv[4] !== 'effects' ? process.argv[4].split(',') : Object.keys(process.argv[4] === 'effects' ? EFFECTS : MOVES);
   fs.mkdirSync(out, { recursive: true });
-  const { browser, page, errors } = await openBattle(view);
+  const { browser, page, errors } = await openBattle(view, { everyone: true });
   await page.waitForTimeout(1200);
   const report = [];
   for (const name of names) {
-    const move = MOVES[name];
+    const move = LIST[name];
     if (!move) { console.log('no such move: ' + name); continue; }
     const result = await page.evaluate(async ({ move }) => {
       const game = window.__game; const b = game.scene.getScene('BattleScene');
@@ -63,7 +107,8 @@ const MOVES = {
         await sleep(900); await idle();
         b.placeUnit(sage, 0, 6);
       }
-      if (move.offBalance) { foe.status.offBalance = true; b.refreshStatusTags(); }
+      who.accuracy = 999; // a filmed blow should land (the game still caps the chance at 95 in 100)
+      if (move.before) { new Function('b', 'who', 'foe', move.before)(b, who, foe); b.refreshStatusTags(); }
       who.hasActed = false; b.activeUnit = who; b.busy = false; b.cancelMode(); b.refreshButtons && b.refreshButtons();
       b.showStanding(who); b.showStanding(foe);
       if (b.keepInView) b.keepInView(who);
@@ -97,20 +142,26 @@ const MOVES = {
       if (!b.__castTagged) { b.__castTagged = true; const o = b.castSpell.bind(b); b.castSpell = (...a) => { window.__lastCast = a[2]; return o(...a); }; }
       window.__lastCast = null;
       // ---- the move, through the game's own controls ----
+      let finished = false; const done = () => { finished = true; b.busy = false; };
+      const aim = move.tile ? { col: move.tile[0], row: move.tile[1] } : foe;
       if (move.skill) {
         b.onSpellButton(); b.chooseSpell(move.skill);
         b.handleTap(foe.col, foe.row); await sleep(60); b.handleTap(foe.col, foe.row);
+        finished = true;
       } else if (move.cast) {
-        b.busy = true; b.castSpell(who, foe, move.cast, () => { b.busy = false; });
+        b.busy = true; b.castSpell(who, aim, move.cast, done);
+      } else if (move.js) {
+        b.busy = true; new Function('b', 'who', 'foe', 'done', move.js)(b, who, foe, done);
       } else {
-        b.busy = true; b.performAttack(who, foe, () => { b.busy = false; });
+        b.busy = true; b.performAttack(who, foe, done);
       }
+      { const t = Date.now(); while (!finished && Date.now() - t < 12000) await sleep(40); }
       await idle(12000);
       const tEnd = Date.now(); while (b.time.now < (b.knockUntil || 0) && Date.now() - tEnd < 4000) await sleep(40);
-      await sleep(900); // and a moment after, to see it settle
+      await sleep(900 + (move.hold || 0)); // and a moment after, to see it settle (longer for a lasting look)
       on = false; game.events.off('postrender', grab);
       const home = { x: who.view.x, y: who.view.y };
-      return { frames, track, zoom: cam.zoom, used: window.__lastCast || null, acted: who.hasActed, endOff: Math.hypot(home.x - b.tileCentre(who).x, home.y - b.tileCentre(who).y) };
+      return { frames, track, zoom: cam.zoom, used: window.__lastCast || null, acted: who.hasActed || finished, endOff: Math.hypot(home.x - b.tileCentre(who).x, home.y - b.tileCentre(who).y) };
     }, { move });
 
     // ---- write the frames, then let Python make the GIF and the strip ----

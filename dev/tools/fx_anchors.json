@@ -20,6 +20,7 @@
     "crackle":       { "frames": 5, "anchor": "box",     "originX": 0.5, "originY": 0.5 },
     "stone_burst":   { "frames": 3, "anchor": "base",    "originX": 0.5, "originY": 1 },
     "sj_spear":      { "frames": 3, "anchor": "tip",     "originX": 0.82, "originY": 0.5 },
+    "clash_burst":   { "frames": 6, "anchor": "core",    "originX": 0.5, "originY": 0.5 },
     "flame":         { "frames": 8, "anchor": "base",    "originX": 0.5, "originY": 0.91, "first": 1, "sep": "_f" }
   }
 }

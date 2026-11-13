@@ -21,8 +21,9 @@ import conditions from '../data/conditions.json'; // stun, disoriented
 import relayRules from '../data/relay.json'; // Relay Strike numbers
 import { chooseMoveTile, chooseAfterTile, isCaster } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
+import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { hasBuffLoop, buffLoopFx, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -3028,6 +3029,7 @@ export default class BattleScene extends Phaser.Scene {
     const moveId = activeMove(attacker, 'attack');
     const variant = moveId !== 'attack' && !target.isDecoy ? spells[moveId] : null;
     const fire = !!variant && variant.element === 'fire';
+    if (fire) result.element = 'fire'; // Wildfire burns: the impact is drawn in fire's colours
 
     // The numbers change right away. The pictures and effects catch up a
     // moment later, when the blow lands (see playAttack and showImpact).
@@ -3602,8 +3604,15 @@ export default class BattleScene extends Phaser.Scene {
     const power = Math.min(2, 0.8 + result.damage / 8) * (lethal ? 1.3 : 1);
     const color = style === 'spark' ? 0x9fd4ff : 0xffd27a;
 
-    this.hitStop(lethal ? 80 : result.damage >= 8 ? 72 : 60);
+    // How big this hit is (1 light to 4 finishing) and what it is made of (roadmap 18.23):
+    // small hits stay small so the big ones feel big, and each element has its own colours.
+    const level = result.level || hitLevel(result.damage, lethal);
+    const kinds = verseKinds(attacker);
+    const element = result.element || (style === 'spark' ? 'lightning' : isEnchanted(attacker) || kinds.includes('fury') ? 'fire' : kinds.includes('stone') ? 'earth' : kinds.includes('swiftness') ? 'wind' : style === 'bash' ? 'earth' : 'steel');
+    const feel = FEEL[level];
+    this.hitStop(feel.stop);
     play(style === 'bash' ? 'bash' : 'impact');
+    impactLayers(this, { x: spot.x, y: spot.y, gx: target.view.x, gy: target.view.y, element, level, dir, depth: 80 });
 
     if (style === 'slash') heavySlash(this, spot.x, spot.y, dir, color);
     if (style === 'bash') {
@@ -3623,11 +3632,9 @@ export default class BattleScene extends Phaser.Scene {
     this.floatText(target, result.damage > 0 ? '-' + result.damage : 'Blocked', result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9 });
     if (result.note) this.floatText(target, result.note, '#ffd27a', { rise: 52 }); // a signature stance at work
     this.refreshStatusTags(); // stacks and Charge may have changed
-    this.cameraPunch(power);
-
-    // Big hits and finishing blows shake the screen
-    // light shake on every hit, growing with the damage (finishing blows get the most)
-    screenShake(this, Math.min(0.008, 0.0015 + 0.0004 * result.damage) * (lethal ? 1.3 : 1), 90 + Math.min(80, result.damage * 8));
+    this.cameraPunch(feel.zoom);
+    // the shake grows with the level of the hit (a light hit barely stirs the screen)
+    screenShake(this, feel.shake, feel.shakeMs);
 
     if (target.knockPending) {
       this.showPose(target, 'hurt', -dx); // a push follows: the knockback draws the rest (and the death, if the fall kills)
@@ -3816,6 +3823,7 @@ export default class BattleScene extends Phaser.Scene {
         this.time.delayedCall(420, () => {
           if (!view.active) return;
           goldDissolve(this, unit);
+          floorLight(this, unit.view.x, unit.view.y, elementOf('spirit').glow, { size: 1.6, peak: 0.5, ms: 1100 }); // the gold lights the ground as it goes (18.23)
         });
       },
     });
@@ -4518,7 +4526,14 @@ export default class BattleScene extends Phaser.Scene {
       });
       at(490, () => {
         clashFlash(this, mid.x, mid.y);
-        clashSparks(this, mid.x, mid.y); // 16.1 step 8: flash card, strike flipbook, gold sparks
+        // 16.4: his gold burst, bigger, with waves of energy rolling out along the ground and the
+        // two fighters lit by it; the opening and the decisive beat get the big one
+        const bigBeat = opening || beat.decisive;
+        clashSparks(this, mid.x, mid.y, 80, bigBeat);
+        const feet = { x: (a.view.x + b.view.x) / 2, y: (a.view.y + b.view.y) / 2 };
+        energyWaves(this, feet.x, feet.y, elementOf('spirit').glow, { count: bigBeat ? 3 : 2, size: bigBeat ? 1.25 : 0.85, gap: 85 });
+        floorLight(this, feet.x, feet.y, elementOf('spirit').glow, { size: bigBeat ? 2.4 : 1.6, peak: 0.6, ms: 480 });
+        lightNearby(this, mid.x, mid.y, elementOf('spirit').glow, { radius: bigBeat ? 200 : 130, peak: 0.6, ms: 360 });
         screenShake(this, 0.004, 120);
         play('clash');
         if (ring) ring.pulse(beat.winner, beat.decisive); // 16.1 step 10
@@ -4933,6 +4948,9 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'smoke') return this.castSmokeBomb(caster, target, onDone);
     if (spell.kind === 'rest') return this.castMeditate(caster, spell, onDone);
+    if (spell.kind === 'enchant') return this.castEnchant(caster, target, spell, onDone);
+    if (spell.kind === 'earthDrive') return this.castEarthDrive(caster, target, spell, onDone);
+    if (spell.kind === 'clap') return this.castClap(caster, spell, onDone);
 
     // Husk echo: the decoy nobody struck casts it too, so it works twice as well
     const echoed = caster.echoReady && this.decoys.some((d) => d.owner === caster);
@@ -4958,6 +4976,9 @@ export default class BattleScene extends Phaser.Scene {
     // one: a Verse reaches out to the ally; Slow is a curse thrown with the staff.
     const dxT = target.view.x - caster.view.x;
     const lead = poseFrame(caster.id, 'chant', 'right') ? 420 : 0;
+    // the Verse gathers as light at her hands, then lights the ground and the fighters where it lands (18.23)
+    const verseElement = { swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex' }[id] || 'spirit';
+    chargeUp(this, caster.view.x + Math.sign(dxT || 1) * 10, caster.view.y - caster.topY * 0.72, verseElement, { ms: lead + 250, size: 0.8, depth: caster.view.depth + 2 });
     if (lead) {
       this.showPose(caster, 'chant', dxT);
       elementRise(this, caster, id, lead); // the element gathers round her (roadmap 9.10)
@@ -4965,6 +4986,9 @@ export default class BattleScene extends Phaser.Scene {
     } else this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', dxT);
     this.time.delayedCall(lead + 250, () => {
       play('spell');
+      floorLight(this, target.view.x, target.view.y, elementOf(verseElement).glow, { size: 1.5, peak: 0.6, ms: 700 });
+      lightNearby(this, target.view.x, target.view.y - target.centerY, elementOf(verseElement).glow, { radius: 150, peak: 0.55, ms: 520 });
+      afterglow(this, target.view.x, target.view.y - 10, verseElement, { level: 3, depth: target.view.depth + 2 });
       if (spell.kind === 'hex' && slowCast(this, target.view.x, target.view.y)) {
         // the gravity effect from the Slow sheet
       } else if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
@@ -5088,6 +5112,9 @@ export default class BattleScene extends Phaser.Scene {
       enchantSigil(this, from, to, () => {
         applyEnchant(target, 'enchant', target === this.activeUnit);
         enchantLand(this, to.x, to.y);
+        floorLight(this, target.view.x, target.view.y, elementOf('fire').glow, { size: 1.5, peak: 0.6, ms: 700 });
+        lightNearby(this, to.x, to.y, elementOf('fire').glow, { radius: 150, peak: 0.55, ms: 480 });
+        afterglow(this, target.view.x, target.view.y - 10, 'fire', { level: 3, depth: target.view.depth + 2 });
         flameBurst(this, target.view.x, target.view.y);
         play('spark');
         this.floatText(target, 'Enchanted +' + spell.damage, spell.color, { pop: true });
@@ -5145,7 +5172,10 @@ export default class BattleScene extends Phaser.Scene {
       const rock = raiseSpike(this, p.x, p.y, depthFor(tile.col, tile.row) + 1.2, TILE_WIDTH * 1.05); // about as tall as a fighter: a wall to hide behind
       if (spike) spike.view = rock;
       else this.time.delayedCall(520, () => crumbleSpike(this, rock)); // it broke against the foe
-      this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
+      // the ground breaks: earth's light, a ring through the floor and dust that hangs (18.23)
+      energyWaves(this, p.x, p.y, elementOf('earth').glow, { count: 1, size: 0.8 });
+      afterglow(this, p.x, p.y, 'earth', { level: 4, depth: depthFor(tile.col, tile.row) + 1.3 });
+      this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note, element: 'earth', level: Math.max(3, hitLevel(landed.damage, target.hp === 0)) }, dx, target.hp === 0);
       if (pushed && (pushed.path.length || pushed.fall)) {
         this.time.delayedCall(120, () => this.knockBack(target, pushed, dx, { text: 'Thrown back!', color: '#d9a066' }));
       }
@@ -5210,6 +5240,10 @@ export default class BattleScene extends Phaser.Scene {
       const base = tileToScreen(user.col, user.row);
       shockRing(this, base.x, base.y, TILE_WIDTH * 1.1, TILE_HEIGHT * 1.1);
       dustRing(this, base.x, base.y, 200);
+      // sound: three pale rings rolling out, the floor and everyone near lit white-gold (18.23)
+      energyWaves(this, base.x, base.y, elementOf('sound').glow, { count: 3, size: 1.5, gap: 80 });
+      floorLight(this, base.x, base.y, elementOf('sound').glow, { size: 2.4, peak: 0.55, ms: 520 });
+      lightNearby(this, base.x, base.y - 30, elementOf('sound').glow, { radius: 240, peak: 0.5, ms: 380, skip: user });
       // a burst of sand and dust thrown out along the ground (fxEmitter, so Light mode and the particle cap apply)
       const dust = fxEmitter(this, user, {
         texture: 'fx-dot',
@@ -5235,7 +5269,7 @@ export default class BattleScene extends Phaser.Scene {
     hits.forEach(({ t, landed, pushed, away }) => {
       const reach = distance(user, t); // the near ones are hit first
       this.time.delayedCall(260 + 70 * reach, () => {
-        this.showImpact(user, t, { hit: true, damage: landed.damage, note: landed.note }, away, t.hp === 0);
+        this.showImpact(user, t, { hit: true, damage: landed.damage, note: landed.note, element: 'sound' }, away, t.hp === 0);
         if (pushed && (pushed.path.length || pushed.fall)) {
           this.time.delayedCall(120, () => this.knockBack(t, pushed, away, { text: 'Thrown back!', color: '#e8c08a' }));
         }
@@ -5297,6 +5331,7 @@ export default class BattleScene extends Phaser.Scene {
       [0, 170, 340].forEach((t) => this.time.delayedCall(t, () => dustRing(this, base.x, base.y, 190)));
       const h = hand();
       grow = elementOrb(this, h.x, h.y, { water: !fire, scale: 0.08 });
+      chargeUp(this, h.x, h.y, fire ? 'fire' : 'water', { ms: 540, size: 1.1 }); // the element is drawn into his fist (18.23)
       if (grow) this.tweens.add({ targets: grow, scale: 0.34, duration: 520, ease: 'Quad.easeOut' });
     });
     // the punch: the orb leaves his fist and flies to the target
@@ -5316,7 +5351,7 @@ export default class BattleScene extends Phaser.Scene {
         if (fire) flameBurst(this, target.view.x, target.view.y); else splash(this, p.x, p.y);
         play('crash');
         screenShake(this, 0.007, 180);
-        this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, dx, target.hp === 0);
+        this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note, element: fire ? 'fire' : 'water', level: Math.max(3, hitLevel(landed.damage, target.hp === 0)) }, dx, target.hp === 0);
         if (target.alive) {
           if (fire && !isDrenched(target)) {
             applyBurn(target, 'elementBlast'); // burns like Wildfire (not a Drenched unit: the fire hisses out)
@@ -5622,7 +5657,8 @@ export default class BattleScene extends Phaser.Scene {
           groundRing(this, end.x, end.y, 0xff8a5c, 1.4);
           verseAura(this, end.x, end.y, 'fury');
           flameBurst(this, target.view.x, target.view.y);
-          this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note }, target.view.x - end.x, target.hp === 0);
+          energyWaves(this, end.x, end.y, elementOf('fire').glow, { count: 2, size: 1.1 }); // he lands: rings of heat roll out (18.23)
+          this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note, element: 'fire', level: Math.max(3, hitLevel(landed.damage, target.hp === 0)) }, target.view.x - end.x, target.hp === 0);
           this.time.delayedCall(260, () => {
             for (const u of shaken) {
               if (!u.alive) continue;
@@ -5764,7 +5800,7 @@ export default class BattleScene extends Phaser.Scene {
     const art = hasSonicArt(this);
     const scale = user.baseScale || 0.5;
     const showHit = (r, dx) => {
-      this.showImpact(user, r.unit, { hit: true, damage: r.damage, note: r.note }, dx, r.unit.hp === 0);
+      this.showImpact(user, r.unit, { hit: true, damage: r.damage, note: r.note, element: 'sound' }, dx, r.unit.hp === 0);
       const pushed = r.pushed;
       if (pushed && (pushed.path.length || pushed.fall)) {
         this.time.delayedCall(160, () => this.knockBack(r.unit, pushed, dx));
@@ -6039,7 +6075,7 @@ export default class BattleScene extends Phaser.Scene {
       const a = this.centerOf(shooter);
       const b = this.centerOf(target);
       arrowShot(this, a.x, a.y, b.x, b.y, () => {
-        this.showImpact(bow, target, { hit, damage, note }, dx, target.hp === 0);
+        this.showImpact(bow, target, { hit, damage, note, element: 'poison' }, dx, target.hp === 0);
         if (hit && target.alive) {
           buffAura(this, target.view.x, target.view.y, 0x9fdc6a);
           this.floatText(target, 'Poisoned', '#9fdc6a', { rise: 46 });
@@ -6078,6 +6114,11 @@ export default class BattleScene extends Phaser.Scene {
       this.updateHpBar(target);
       play('spell');
       buffAura(this, target.view.x, target.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
+      // healing: soft green-gold light on the ground and on the one healed, motes rising after (18.23)
+      floorLight(this, target.view.x, target.view.y, elementOf('heal').glow, { size: 1.4, peak: 0.6, ms: 800 });
+      lightNearby(this, target.view.x, target.view.y - target.centerY, elementOf('heal').glow, { radius: 70, peak: 0.6, ms: 600 });
+      energyWaves(this, target.view.x, target.view.y, elementOf('heal').glow, { count: 1, size: 0.55, ms: 600 });
+      afterglow(this, target.view.x, target.view.y - 8, 'heal', { level: 4, depth: target.view.depth + 2 });
       this.floatText(target, '+' + amount, spell.color, { pop: true });
       if (target.lowGlow && target.hp / target.maxHp > 0.3) {
         target.lowGlow.destroy();
@@ -6570,7 +6611,11 @@ export default class BattleScene extends Phaser.Scene {
         unit.slowAura = null;
       }
       // under Swiftness, wind and feathers swirl at its feet (roadmap 3.10)
-      const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness';
+      // his own looping buff effects, once he sends them (13.46): they replace ours below
+      const verseNow = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
+      for (const id of ['swiftness', 'fury', 'stone']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id), () => buffLoopFx(this, unit, id));
+      this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
+      const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
       if (!swift && unit.swiftAura) {
         for (const o of unit.swiftAura) o.destroy();
@@ -6579,11 +6624,11 @@ export default class BattleScene extends Phaser.Scene {
       // under Fury or Earth's Bulwark, their own looks (roadmap 6.13)
       const verse = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
       // (Gaha has the fire painted round him in his own Fury pictures, so no ribbons are added)
-      this.keepAura(unit, 'furyAura', verse === 'fury', () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
-      this.keepAura(unit, 'bulwarkAura', verse === 'stone', () => bulwarkAura(this, unit));
+      this.keepAura(unit, 'furyAura', verse === 'fury' && !hasBuffLoop(this, 'fury'), () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
+      this.keepAura(unit, 'bulwarkAura', verse === 'stone' && !hasBuffLoop(this, 'stone'), () => bulwarkAura(this, unit));
       // Rabdul's Enchant: Shango's symbol glowing at its feet (roadmap 4.1)
       unit.hasEnchantedArt = artHasLook(unit.id, 'enchanted'); // its own flaming pictures to stand in
-      this.keepAura(unit, 'enchantAura', unit.alive && isEnchanted(unit), () => enchantAura(this, unit));
+      this.keepAura(unit, 'enchantAura', unit.alive && isEnchanted(unit) && !hasBuffLoop(this, 'enchant'), () => enchantAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);
       if (burning && !unit.burnAura) unit.burnAura = burnAura(this, unit);
@@ -6729,6 +6774,8 @@ export default class BattleScene extends Phaser.Scene {
     if (!loser || !winner) return;
     const depth = depthFor(loser.col, loser.row) + 2;
     decisiveBurst(this, loser.view.x, loser.view.y, depth);
+    energyWaves(this, loser.view.x, loser.view.y, elementOf('spirit').glow, { count: 3, size: 1.2 }); // 16.4: the waves spread from the burst
+    afterglow(this, loser.view.x, loser.view.y, 'sand', { level: 4, depth });
     screenShake(this, 0.007, 200);
     const kinds = verseKinds(winner);
     if (kinds.length) {

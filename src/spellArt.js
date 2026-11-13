@@ -7,7 +7,10 @@ import { preloadSmokeArt } from './smokeArt.js';
 // the light shows. Every one is optional: if a picture is missing, the game
 // keeps the effect it drew before.
 
+import fxSlots from './data/fxSlots.json';
+
 const FILES = [
+  'clash_burst_0', 'clash_burst_1', 'clash_burst_2', 'clash_burst_3', 'clash_burst_4', 'clash_burst_5', // his clash burst (16.4)
   'strike_0', 'strike_1', 'strike_2', 'strike_3', 'strike_4', 'strike_5', 'strike_6',
   'crackle_0', 'crackle_1', 'crackle_2', 'crackle_3', 'crackle_4',
   'fury_column', 'fury_ribbons', 'fury_ring', 'fury_sparks',
@@ -70,6 +73,7 @@ export const CARDS = ['offbalance', 'swiftness', 'fury', 'stone', 'press', 'empo
 
 export function preloadSpellArt(scene) {
   for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
+  for (const f of buffFxFiles()) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
   scene.load.image('fx:empower_aura', './art/fx/empower_aura.jpg'); // drawn on black: it glows (added light)
   for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
   for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
@@ -133,6 +137,43 @@ const has = (scene, keys) => keys.every((k) => scene.textures.exists('fx:' + k))
 
 // Plays pictures one after another at (x, y), standing on that point.
 // hold: how long the last picture stays before it fades; fade: how long the fade takes.
+// ---------- Room for Suleiman's drawn buff effects (roadmap 13.46) ----------
+// src/data/fxSlots.json says, per Verse, how many "cast" frames (played once
+// where it lands) and "loop" frames (played round the unit while it lasts) he
+// has sent. Nothing is drawn from here until a number there is above 0.
+const BUFF_FX = fxSlots.buffs || {};
+const buffFrames = (id, part) => range('buff_' + id + '_' + part, (BUFF_FX[id] && BUFF_FX[id][part]) || 0);
+function buffFxFiles() {
+  return Object.keys(BUFF_FX).flatMap((id) => [...buffFrames(id, 'cast'), ...buffFrames(id, 'loop')]);
+}
+// True if his looping frames for this Verse are loaded (then ours step aside).
+export function hasBuffLoop(scene, id) {
+  const keys = buffFrames(id, 'loop');
+  return keys.length > 0 && has(scene, keys);
+}
+// His cast effect where a Verse lands. Returns true if it was drawn.
+export function buffCastFx(scene, x, y, id) {
+  const keys = buffFrames(id, 'cast');
+  if (!keys.length || !has(scene, keys)) return false;
+  const slot = BUFF_FX[id];
+  const img = flipbook(scene, keys, x, y, { frameMs: slot.frameMs, scale: slot.scale, depth: 81, originY: 0.5 + slot.feetY });
+  img.setBlendMode(Phaser.BlendModes.ADD); // drawn on black: added as light
+  return true;
+}
+// His looping effect round a unit, inside the unit's own container (it walks with it).
+// Returns { objects, tweens } for BattleScene.keepAura, or null.
+export function buffLoopFx(scene, unit, id) {
+  if (!hasBuffLoop(scene, id)) return null;
+  const keys = buffFrames(id, 'loop');
+  const slot = BUFF_FX[id];
+  const anim = 'buffLoop-' + id;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slot.frameMs, repeat: -1 });
+  const sprite = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(0.5, 0.5 + slot.feetY).setScale(slot.scale).setBlendMode(Phaser.BlendModes.ADD);
+  sprite.play(anim);
+  behind(unit, sprite);
+  return { objects: [sprite], tweens: [] };
+}
+
 function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, originY = 1, flip = false, hold = 0, fade = 220 } = {}) {
   const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(0.5, originY).setScale(scale).setDepth(depth).setFlipX(flip);
   if (!PAINTED(keys[0])) img.setBlendMode(Phaser.BlendModes.ADD);
@@ -275,6 +316,7 @@ export function lightningStrike(scene, x, y, { big = false } = {}) {
 
 // The aura of a Verse settling on a unit. kind: 'fury', 'swiftness', 'stone'.
 export function verseAura(scene, x, y, kind) {
+  if (buffCastFx(scene, x, y, kind)) return true; // his own cast effect, once he sends it (13.46)
   // his 30 Oct sheets (roadmap 6.18): the ring opens, fire spirals up, bursts and settles
   if (kind === 'fury' && has(scene, FURY_CAST)) {
     flipbook(scene, FURY_CAST, x, y + 8, { frameMs: 85, scale: 0.95, depth: 79 });
@@ -1171,12 +1213,20 @@ export function sandImpact(scene, x, y, dir) {
 // ---------- Clash effects (roadmap 16.1 steps 8, 10 and 11) ----------
 // Where two blades meet: a white flash card for 2 frames, the strike flipbook tinted gold, and 30 gold
 // sparks flung both ways (15 each side, with gravity). Light halves the sparks (fxBurst).
-export function clashSparks(scene, x, y, depth = 80) {
-  const ks = range('strike', 7).filter((k) => has(scene, [k]));
-  if (ks.length) flipbook(scene, ks, x, y, { frameMs: 28, scale: 0.5, depth, originY: 0.5, fade: 90 }).setTint(0xffd27a);
+export function clashSparks(scene, x, y, depth = 80, big = false) {
+  // Suleiman's burst (chat 1390, roadmap 16.4): six stages of gold light, added as light, big.
+  // (The purple-tinted lightning strip that stood in for it is only the fallback now.)
+  const burst = range('clash_burst', 6).filter((k) => has(scene, [k]));
+  if (burst.length === 6) {
+    const img = flipbook(scene, burst, x, y, { frameMs: big ? 62 : 48, scale: big ? 0.62 : 0.44, depth: depth + 0.5, originY: 0.5, fade: 140 });
+    img.setBlendMode(Phaser.BlendModes.ADD);
+  } else {
+    const ks = range('strike', 7).filter((k) => has(scene, [k]));
+    if (ks.length) flipbook(scene, ks, x, y, { frameMs: 28, scale: 0.5, depth, originY: 0.5, fade: 90 }).setTint(0xffd27a);
+  }
   if (scene.textures.exists('fx-dot')) {
     // the flash card: one big soft white dot for about 2 frames
-    const card = scene.add.image(x, y, 'fx-dot').setDepth(depth + 1).setScale(5).setAlpha(0.7).setBlendMode(Phaser.BlendModes.ADD);
+    const card = scene.add.image(x, y, 'fx-dot').setDepth(depth + 1).setScale(big ? 7 : 5).setAlpha(0.7).setBlendMode(Phaser.BlendModes.ADD);
     scene.time.delayedCall(34, () => card.destroy());
   }
   const gold = [0xffe08a, 0xffc24a, 0xffffff];
