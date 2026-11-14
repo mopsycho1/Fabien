@@ -23,6 +23,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     // every skill and item each fighter uses, counted per battle (checklist G3: the enemies use every
     // skill they own; roadmap 18.11 and 18.15). The enemy AI calls these casts directly.
     for (const fn of ['castSpell', 'castEnchant', 'castSmokeBomb', 'castElementBlast', 'castClap', 'castEarthDrive', 'castPoisonArrow', 'castShieldToss', 'castDoubleHit', 'useItem', 'performEngage']) {
+      if (b['__counted_' + fn]) continue; b['__counted_' + fn] = true; // (the scene object lives on across battles: wrap it once, or battle n would count n times)
       const orig = b[fn].bind(b);
       b[fn] = (...args) => {
         const who = args[0]; const what = fn === 'castSpell' ? args[2] : fn === 'useItem' ? 'item ' + args[2] + (args[1] !== args[0] ? ' (to an ally)' : '') : fn.replace('cast', '').replace('perform', '');
