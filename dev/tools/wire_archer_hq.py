@@ -7,6 +7,8 @@ What changes (roadmap 18.26, 18.2):
 - The shot: the sharp sheet is his first "arrow let fly" sheet (1079). The old pictures came from
   its twin (1080), whose first two figures face the camera but were wired as her two views from
   behind, so she showed her front when shooting away from us. That is put right here.
+- AFTER this script, run fix_archer_facings.py: the front views on these sheets do not run down-left
+  then down-right (roadmap 1.45), and this script wires them as if they did.
 - kneel: the "reversed" sheet is the wounded sheet flipped, so its figures are read in flipped order.
 - No sharp sheet exists for: dagger and guard, Poison Arrow, Smoke Bomb, her flaming look, dodge.
   Those keep the old small pictures, drawn bigger by the size ruler ("ruler" in art.json).

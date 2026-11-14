@@ -51,6 +51,9 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - Phaser Graphics scale from their own x,y: draw shapes at (0,0) and place the Graphics, or they slide when tweened.
 - Enemies face the heroes with their upLeft/downLeft pictures; the other facings are mirrored.
 - Tests must never make `Math.random` return a constant (or only tiny numbers): Phaser names text pictures with random numbers, and the next text crashes with "reading 'context'".
+- A four-view sheet's front figures do not always run down-left then down-right (the archer's bow sheets both point right, 1.45). Look at a contact sheet before wiring; `"flip": true` in art.json mirrors one view.
+- Between turns an archer swaps dagger and bow by herself (`readyCloseWeapons`, 1.46), and her AI stabs a foe next to her before walking. A test that needs her to keep the bow keeps foes 2 tiles away.
+- `landHit` shows a hidden unit again (1.47). It does not take the health off: the caller does.
 - An enemy that has acted may walk again with its leftover steps (13.53). A test that needs it to stay put sets `b.enemySecondWalk = false`.
 - With `b.setSpeed` above 1, `knockUntil` still waits in real milliseconds (the scene clock is not scaled): tests wait on `unit.knock`, and M11's fast speed must scale it.
 

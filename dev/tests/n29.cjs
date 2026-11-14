@@ -62,11 +62,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.runEnemyTurn(); await sleep(500); await idle(); await sleep(1500); await idle();
   b.runEnemyTurn = () => {}; w.Math.random = real;
   const near = Math.min(...[sudeen, gaha, layra].map((h) => combat.distance(archer, h)));
-  check('1.4 with Gaha next to her, she backs off before shooting', near >= 3, 'archer at ' + archer.col + ',' + archer.row + ', nearest hero ' + near);
-  check('1.4 ...and still shoots someone', [sudeen, gaha, layra].some((h) => h.hp < h.maxHp), 'gaha ' + ghp + '->' + gaha.hp);
+  check('1.4 with Gaha next to her, she ends her turn well away from the heroes (since 1.46: a dagger stab, then she backs off)', near >= 3, 'archer at ' + archer.col + ',' + archer.row + ', nearest hero ' + near);
+  check('1.4 ...and still hurts someone', [sudeen, gaha, layra].some((h) => h.hp < h.maxHp), 'gaha ' + ghp + '->' + gaha.hp);
 
   // 1.5 line of sight: tile (4,5) is a block 2 high with flat ground around it
-  park(); put(archer, 4, 2); put(gaha, 4, 6);
+  park(); put(archer, 4, 2); put(gaha, 4, 6); archer.weapon = 'bow'; /* she stabbed Gaha with the dagger just above (1.46) */
   check('1.5 a hero right behind the high block can\'t be shot', !combat.hasClearShot(archer, gaha) && !combat.inReach(archer, gaha));
   put(gaha, 5, 6);
   check('1.5 one tile to the side, the shot is clear', combat.hasClearShot(archer, gaha) && combat.inReach(archer, gaha));

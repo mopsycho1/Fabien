@@ -2334,7 +2334,8 @@
       },
       "downLeft": {
         "file": "archer_hq_battle_f3.png",
-        "originX": 0.127
+        "originX": 0.873,
+        "flip": true
       },
       "downRight": {
         "file": "archer_hq_battle_f4.png",
@@ -2353,7 +2354,8 @@
         },
         "downLeft": {
           "file": "archer_hq_fire_f3.png",
-          "originX": 0.286
+          "originX": 0.714,
+          "flip": true
         },
         "downRight": {
           "file": "archer_hq_fire_f4.png",
@@ -2370,12 +2372,12 @@
           "originX": 0.574
         },
         "downLeft": {
-          "file": "archer_hq_primed_f3.png",
-          "originX": 0.379
-        },
-        "downRight": {
           "file": "archer_hq_primed_f4.png",
           "originX": 0.572
+        },
+        "downRight": {
+          "file": "archer_hq_primed_f3.png",
+          "originX": 0.379
         }
       },
       "ready": {
@@ -2389,7 +2391,8 @@
         },
         "downLeft": {
           "file": "archer_hq_battle_f3.png",
-          "originX": 0.127
+          "originX": 0.873,
+          "flip": true
         },
         "downRight": {
           "file": "archer_hq_battle_f4.png",
@@ -2523,8 +2526,18 @@
         }
       },
       "poisonShot": {
-        "file": "archer_poisonShot.png",
-        "originX": 0.477
+        "upLeft": {
+          "file": "archer_hq_fire_f1.png",
+          "originX": 0.492
+        },
+        "upRight": {
+          "file": "archer_hq_fire_f2.png",
+          "originX": 0.492
+        },
+        "downRight": {
+          "file": "archer_poisonShot.png",
+          "originX": 0.477
+        }
       },
       "kneel": {
         "upLeft": {
@@ -2870,7 +2883,8 @@
         "footX": 0.418
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_facings": "14 Nov (roadmap 1.45): her front-view bow pictures pointed right in both down views. Down-left battle and shot are the third figure mirrored (\"flip\"), the aim swaps its two front figures, and the Poison Arrow shot uses the full-quality shot from behind. See dev/tools/fix_archer_facings.py. Test: dev/tests/n60.cjs."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",

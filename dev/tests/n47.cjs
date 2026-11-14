@@ -119,7 +119,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); put(archer, 3, 3); put(gaha, 3, 4); // healthy and free to walk away
   b.activeUnit = archer; archer.hasActed = false; archer.hasMoved = false; archer.stepsUsed = 0;
   b.runEnemyTurn(); await sleep(800); await idle(); await sleep(900);
-  check('AI: healthy and able to walk away, she keeps her bow and steps away instead', !archer.hidden && St.cooldownOf(archer, 'smokeBomb') === 0 && Math.abs(archer.col - gaha.col) + Math.abs(archer.row - gaha.row) >= 2);
+  check('AI: healthy and able to walk away, she throws no Smoke Bomb: she stabs with the dagger and steps back (1.46)', !archer.hidden && St.cooldownOf(archer, 'smokeBomb') === 0 && Math.abs(archer.col - gaha.col) + Math.abs(archer.row - gaha.row) >= 2);
   park(); put(archer, 0, 0); put(gaha, 0, 1); put(sudeen, 1, 0); // cornered
   b.activeUnit = archer; archer.hasActed = false; archer.hasMoved = false; archer.stepsUsed = 0;
   b.runEnemyTurn(); await sleep(800); await idle(); await sleep(900);

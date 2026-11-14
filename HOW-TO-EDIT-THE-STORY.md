@@ -516,3 +516,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - A fall is three pictures in `poses`: `fallAir`, `fallLand`, `fallRise`. Each can be one picture or a set by facing (`downRight`, `upRight`, ...); a facing that is missing is the opposite one, mirrored. Sudeen and Gaha have down-right and up-right.
 - A miss shows the unit's `dodge` picture (also drawn by facing) for half a second. Every fighter has one now.
 - To cut new sheets: `dev/tools/make_falls_dodges.py`; the notes at the top of that file say what each sheet is.
+
+## 14 Nov batch: three archer fixes (roadmap 1.45 to 1.47)
+
+- Which way she points: in `src/data/art.json`, under `e3`, each pose has four views (upLeft, upRight, downLeft, downRight). A view with `"flip": true` is that picture drawn mirrored. Her down-left battle stance and shot are mirrored pictures, because both of Suleiman's front figures point right. If a new sheet arrives, look at which way the bow points before trusting the order of the figures.
+- Dagger or bow: nothing to edit. Between turns she holds the dagger when a foe she can see is next to her, the bow otherwise. The dagger's numbers are still `closeWeapon` in `src/data/jobs.json`.
+- Hidden: a hidden unit cannot be chosen as a target by the other side. Area effects (Lightning's jump, Sonic Burst) still hit it, and a hit shows it again. How faint a hidden enemy is drawn: `HIDDEN_ALPHA_FOE` near the top of `src/scenes/BattleScene.js` (0.3 = 30 percent).
+

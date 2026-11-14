@@ -107,6 +107,8 @@ const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
 // (1 = full) and this warm gold. Light adds to what is behind her, so the
 // floor always shows through.
 const HIDDEN_ALPHA = 0.6;
+const HIDDEN_ALPHA_FOE = 0.3; // a hidden enemy: only a faint shape (roadmap 1.47)
+const HIDDEN_GREY = 0x8f9bb0;
 const HIDDEN_GLOW = 0xffc46a;
 const STYLE_NAMES = { overpower: 'Overpower', defence: 'Defence', evasion: 'Evasion' };
 
@@ -1425,6 +1427,7 @@ export default class BattleScene extends Phaser.Scene {
     this.wakeSmoke(this.activeUnit); // her Smoke Bomb clears and she shows herself (13.26)
     this.activeUnit.weaponSwitched = false; // one free weapon switch a turn (13.29)
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
+    this.readyCloseWeapons(); // archers: dagger out for a foe next to them, bow otherwise (1.46)
     for (const unit of this.units) this.faceNearestOpponent(unit);
     this.refreshStatusTags();
     this.activeUnit.hasMoved = false;
@@ -1456,8 +1459,17 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // An archer who took aim last turn lets the Poison Arrow fly first
+    // An archer who took aim last turn lets the Poison Arrow fly first.
+    // Not at a foe that has come right next to her, though: there is no room to draw a bow
+    // (13.29). The aim is dropped, and she has her whole turn (her AI then uses the dagger, 1.46).
     const archer = this.activeUnit;
+    if (archer.aiming && archer.aiming.target.alive && !archer.engagedWith && distance(archer, archer.aiming.target) <= 1) {
+      if (archer.aiming.target.markedBy === archer) archer.aiming.target.markedBy = null;
+      archer.aiming = null;
+      this.floatText(archer, 'Too close', '#e8d5a8');
+      this.showStanding(archer);
+      this.refreshStatusTags();
+    }
     if (archer.aiming) {
       this.busy = true;
       this.releaseAim(archer, () => {
@@ -2812,6 +2824,7 @@ export default class BattleScene extends Phaser.Scene {
         this.refreshWater();
         this.keepInView(unit);
         this.faceNearestOpponent(unit); // on arriving, look at the nearest enemy
+        this.readyCloseWeapons(); // an archer it stopped next to draws her dagger at once (1.46)
         // everyone else may now be closer to (or further from) an enemy: relaxed or battle stance
         for (const u of this.units) if (u !== unit && u.alive && !u.engagedWith) this.showStanding(u);
         this.busy = false;
@@ -2833,6 +2846,7 @@ export default class BattleScene extends Phaser.Scene {
   // Every tile the unit could attack this target from this turn: where it
   // stands now, or anywhere it can still walk to, within its attack range.
   approachTiles(unit, target) {
+    if (!this.canSee(unit, target)) return []; // a hidden foe cannot be walked up to and struck (1.47)
     const here = { col: unit.col, row: unit.row };
     const spots = [here, ...getReachableTiles(unit.col, unit.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit))];
     return spots.filter((t) => {
@@ -2985,6 +2999,7 @@ export default class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: unit.view, x: p.x, y: p.y, duration: 160, ease: 'Sine.easeOut' });
     unit.facing = from.facing;
     this.showStanding(unit);
+    this.readyCloseWeapons(); // an archer it had walked up to puts her dagger away again (1.46)
     this.refreshStatus();
   }
 
@@ -3189,6 +3204,7 @@ export default class BattleScene extends Phaser.Scene {
     if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
     if (landed.damage > 0) this.interrupt(target);
+    if (landed.damage > 0 && target.hidden) this.revealHidden(target); // caught by an area attack: found out (1.47)
     return landed;
   }
 
@@ -3270,7 +3286,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const foes = this.units.filter((u) => u.alive && u.side !== unit.side);
+    const foes = this.units.filter((u) => u.alive && u.side !== unit.side && !u.hidden); // not toward a foe it cannot see (1.47)
     if (foes.length === 0) return;
 
     let nearest = foes[0];
@@ -3368,7 +3384,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // The nearest foe on the other side (or null), for turning a held weapon toward it.
   nearestFoe(unit) {
-    const foes = (this.units || []).filter((o) => o.alive && o.side !== unit.side && o.view);
+    const foes = (this.units || []).filter((o) => o.alive && o.side !== unit.side && o.view && !o.hidden);
     foes.sort((a, b) => distance(unit, a) - distance(unit, b));
     return foes[0] || null;
   }
@@ -3394,7 +3410,8 @@ export default class BattleScene extends Phaser.Scene {
   // A pose drawn in four facings uses the unit's up or down (set by faceToward)
   // with dx's left or right, so it looks at its target.
   showPose(unit, pose, dx) {
-    const right = dx >= 0;
+    // a target straight above or below on the screen: keep the side it already faces (1.45)
+    const right = Math.abs(dx) < 2 && unit.facing ? unit.facing.endsWith('Right') : dx >= 0;
     const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
     if (!this.showFrame(unit, poseFrame(unit.id, pose, right ? 'right' : 'left', facing))) this.showStanding(unit);
   }
@@ -3424,7 +3441,9 @@ export default class BattleScene extends Phaser.Scene {
     const readyPose = close ? 'ready' : 'windup';
 
     this.faceToward(attacker, dx, dy);
-    this.showPose(attacker, strikePose, dx);
+    // an archer draws and aims first, then lets fly (her "bow primed" picture, 1.45)
+    const aimFirst = style === 'arrow' && this.hasPose(attacker, 'windup');
+    this.showPose(attacker, aimFirst ? 'windup' : strikePose, dx);
 
     // striking a Husk decoy bursts it instead of hurting anyone
     const impact = target.isDecoy ? () => this.popDecoy(target.decoy) : () => this.showImpact(attacker, target, result, dx, lethal);
@@ -3463,11 +3482,12 @@ export default class BattleScene extends Phaser.Scene {
     if (style === 'arrow') {
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
-      this.time.delayedCall(140, () => {
+      this.time.delayedCall(aimFirst ? 200 : 140, () => {
+        if (aimFirst && attacker.alive) this.showPose(attacker, strikePose, dx);
         play('arrow');
         arrowShot(this, start.x, start.y, end.x, end.y, impact);
       });
-      this.time.delayedCall(420, () => this.showStanding(attacker));
+      this.time.delayedCall(aimFirst ? 520 : 420, () => this.showStanding(attacker));
       return;
     }
 
@@ -4029,6 +4049,12 @@ export default class BattleScene extends Phaser.Scene {
       });
       return;
     }
+    // A foe stands next to the archer: she does not walk off to shoot it. She takes her
+    // dagger and stabs first, then steps back with the steps she has left (1.46, 13.53).
+    if (unit.closeWeapon && this.adjacentFoe(unit)) {
+      this.enemyAttack(unit);
+      return;
+    }
     const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
@@ -4160,7 +4186,7 @@ export default class BattleScene extends Phaser.Scene {
     const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
     targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
     // An archer with Poison Arrow ready poisons the healthiest foe in reach that is not poisoned yet
-    if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow') && !isBlinded(unit)) {
+    if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow') && !isBlinded(unit) && !holdsDagger(unit)) { // (it needs the bow in hand)
       const reach = spells.poisonArrow.range;
       const marks = targets.filter((t) => !t.isDecoy && !isPoisoned(t) && distance(unit, t) <= reach).sort((a, b) => b.hp - a.hp);
       if (marks.length > 0) {
@@ -5250,8 +5276,10 @@ export default class BattleScene extends Phaser.Scene {
 
   // Every foe within the clap's reach (2 tiles around him), farthest first, so
   // the outer ones are knocked back before the inner ones are.
-  clapFoes(user) {
-    return this.enemyEyes()
+  // "all" = everyone really standing in the ring, hidden or not (who the shockwave hits);
+  // without it, only those the user can see (what its AI decides on). Roadmap 1.47.
+  clapFoes(user, all = false) {
+    return (all ? this.units : this.enemyEyes())
       .filter((t) => t.side !== user.side && t.alive && !t.isDecoy && distance(user, t) <= spells.clap.range)
       .sort((a, b) => distance(user, b) - distance(user, a));
   }
@@ -5263,7 +5291,7 @@ export default class BattleScene extends Phaser.Scene {
   // Drawn with his attack pictures until Suleiman sends clap art.
   castClap(user, spell, onDone) {
     onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
-    const foes = this.clapFoes(user);
+    const foes = this.clapFoes(user, true);
     const lead = foes[foes.length - 1]; // the nearest foe: he faces it
     const dx = lead ? lead.view.x - user.view.x : 1;
     if (lead) this.faceToward(user, dx, lead.view.y - user.view.y);
@@ -6088,7 +6116,7 @@ export default class BattleScene extends Phaser.Scene {
     shooter.hasActed = true; // the shot is this turn's action (she may still move)
     this.refreshStatusTags();
     // A marked target that ducked behind a higher block can't be hit (Suleiman, 29 Oct)
-    const why = !target.alive ? null : shooter.engagedWith ? 'Aim broken' : distance(shooter, target) > this.spellReach(shooter, target, spell) ? 'Out of reach' : !this.clearShot(shooter, target, spell) ? 'Blocked' : null;
+    const why = !target.alive ? null : shooter.engagedWith ? 'Aim broken' : !this.canSee(shooter, target) ? 'Lost sight' : distance(shooter, target) <= 1 ? 'Too close' : distance(shooter, target) > this.spellReach(shooter, target, spell) ? 'Out of reach' : !this.clearShot(shooter, target, spell) ? 'Blocked' : null;
     if (!target.alive || why) {
       if (why) this.floatText(shooter, why, '#e8d5a8');
       if (why === 'Blocked') this.floatText(target, 'Behind cover', '#9fd4ff', { rise: 46 });
@@ -6241,6 +6269,21 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshStatus();
   }
 
+  // Between turns an archer holds the weapon that fits (roadmap 1.46): the dagger while a
+  // foe she can see stands next to her, the bow otherwise. It is a reflex, so it is free and
+  // does not use her one switch. Not for whoever's turn it is (the player, or her AI, chooses
+  // then), not in a clash (she fights with the dagger there anyway), not while taking aim.
+  readyCloseWeapons() {
+    for (const unit of this.units) {
+      if (!unit.alive || !unit.closeWeapon || unit === this.activeUnit || unit.engagedWith || unit.aiming || unit.knock) continue;
+      const want = this.adjacentFoe(unit) ? 'dagger' : 'bow';
+      if (unit.weapon === want) continue;
+      unit.weapon = want;
+      if (want === 'dagger') this.floatText(unit, 'Dagger', '#e8d5a8');
+      this.showStanding(unit);
+    }
+  }
+
   // Her turn, before she acts: dagger for a foe next to her, bow otherwise (the one free switch).
   aiPickWeapon(unit) {
     if (!unit.closeWeapon || unit.engagedWith) return;
@@ -6290,7 +6333,7 @@ export default class BattleScene extends Phaser.Scene {
       caster.hidden = true;
       caster.smokeHidden = true;
       this.hiddenLook(caster, true);
-      this.tweens.add({ targets: caster.view, alpha: HIDDEN_ALPHA, duration: 220 });
+      this.tweens.add({ targets: caster.view, alpha: this.hiddenAlpha(caster), duration: 220 });
       this.floatText(caster, 'Hidden', spell.color, { rise: 30 });
       if (path.length) {
         caster.col = path[path.length - 1].col;
@@ -6367,7 +6410,7 @@ export default class BattleScene extends Phaser.Scene {
         const p = tileToScreen(tile.col, tile.row);
         caster.view.setPosition(p.x, p.y).setDepth(depthFor(tile.col, tile.row) + 1);
         this.huskSwarm(p.x, p.y - caster.centerY, 10);
-        this.tweens.add({ targets: caster.view, alpha: HIDDEN_ALPHA, duration: 220 });
+        this.tweens.add({ targets: caster.view, alpha: this.hiddenAlpha(caster), duration: 220 });
         this.hiddenLook(caster, true);
         this.faceNearestOpponent(caster);
         this.floatText(caster, 'Hidden', spells.husk.color);
@@ -6423,14 +6466,37 @@ export default class BattleScene extends Phaser.Scene {
   // she were made of light (the look Suleiman spotted when she stood hidden in
   // the cave's beam of daylight). The light is added on top of what is behind
   // her, so she glows on any tile, not only in the beam.
+  // A hidden ENEMY is drawn another way (roadmap 1.47): a faint grey shape, so the
+  // player can only just make out where she went, and cannot mistake her for a target.
   hiddenLook(unit, on) {
     const sprite = unit.sprite;
     if (!sprite || !sprite.active) return;
-    if (on) {
+    if (on && unit.side !== 'hero') {
+      sprite.setBlendMode(Phaser.BlendModes.NORMAL).setTint(HIDDEN_GREY);
+    } else if (on) {
       sprite.setBlendMode(Phaser.BlendModes.ADD).setTint(HIDDEN_GLOW);
     } else {
       sprite.setBlendMode(Phaser.BlendModes.NORMAL).clearTint();
     }
+  }
+
+  // How see-through a hidden unit is: the player's own hero stays easy to find,
+  // an enemy is only a faint shape (roadmap 1.47).
+  hiddenAlpha(unit) {
+    return unit.side === 'hero' ? HIDDEN_ALPHA : HIDDEN_ALPHA_FOE;
+  }
+
+  // A hidden unit is found out (roadmap 1.47): an area attack caught it. Smoke Bomb: she
+  // shows herself (her cloud stays until her turn). Husk: the trick is over, the decoy goes.
+  revealHidden(unit) {
+    if (!unit.hidden) return;
+    if (this.decoys.some((d) => d.owner === unit)) this.removeDecoys(unit);
+    unit.smokeHidden = false;
+    unit.hidden = false;
+    this.hiddenLook(unit, false);
+    if (unit.view && unit.view.active && unit.alive) this.tweens.add({ targets: unit.view, alpha: 1, duration: 200 });
+    if (unit.alive) this.floatText(unit, 'Revealed', '#e8d5a8', { rise: 46 });
+    this.refreshStatusTags();
   }
 
   popDecoy(decoy) {
