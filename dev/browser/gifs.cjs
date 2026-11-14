@@ -85,6 +85,12 @@ const FIXES = {
     who: id, at: [3, 7], foe: id === 'h2' ? 'h1' : 'h2', foeAt: [7, 6], wide: 380, centre: [5, 6],
     js: 'who.stepsUsed = 0; who.hasMoved = false; b.busy = false; b.activeUnit = who; b.moveUnit(who, 6, 7, () => setTimeout(() => { who.stepsUsed = 0; b.moveUnit(who, 6, 5, () => setTimeout(() => { who.stepsUsed = 0; b.moveUnit(who, 4, 5, () => setTimeout(done, 400)); }, 300)); }, 300));',
   }])),
+  // M10b (roadmap 6.38): Kofi. His bolt among the lamps (Ember), in the pool (Tide), Haunt, and Infuse on Gaha.
+  //   node dev/browser/gifs.cjs <out dir> phone kofi_ember,kofi_tide,kofi_haunt,kofi_infuse
+  kofi_ember: { who: 'h4', at: [4, 4], foe: 'e1', foeAt: [4, 7], attack: true },
+  kofi_tide: { who: 'h4', at: [2, 3], foe: 'e1', foeAt: [2, 6], attack: true },
+  kofi_haunt: { who: 'h4', at: [1, 8], foe: 'e1', foeAt: [4, 8], cast: 'haunt', hold: 500 },
+  kofi_infuse: { who: 'h4', at: [4, 4], foe: 'h2', foeAt: [4, 6], cast: 'infuse', hold: 900 },
   // Smoke Bomb: she fades to a faint shape; the hero taps her and opens Attack, and she cannot be chosen
   archer_invisible: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [3, 7], wide: 400, hold: 600,
     js: "b.castSpell(who, { col: 5, row: 8 }, 'smokeBomb', () => { b.busy = false; b.activeUnit = foe; foe.hasActed = false; b.refreshButtons(); b.markActive && b.markActive(); setTimeout(() => b.handleTap(5, 8), 800); setTimeout(() => { b.cancelMode(); b.startAttack(); }, 2200); setTimeout(() => { b.cancelMode(); b.activeUnit = who; done(); }, 3800); });" },

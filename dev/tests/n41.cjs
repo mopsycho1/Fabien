@@ -32,7 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 4.3 ----------
   // (this test runs with FABIEN_BENCH= so all four are on the board; the map's own line-up is checked here)
-  check('4.3 the cavern line-up: Tayo in for the bull (3 against 3)', b.lineUp.alsoFighting.includes('e1') && b.lineUp.sittingOut.includes('e2'), JSON.stringify(b.lineUp));
+  check('4.3 and 18.22 the cavern line-up: Tayo fights, and since M10b Kofi too and the bull is back (4 against 4)', b.lineUp.alsoFighting.includes('e1') && b.lineUp.alsoFighting.includes('h4') && !b.lineUp.sittingOut.includes('e2'), JSON.stringify(b.lineUp));
 
   // ---------- 4.1 the rules ----------
   check('4.1 Rabdul has his own MP (9) and Enchant', rabdul.maxMp === 9 && rabdul.spells.includes('enchant') && S.mpShown(rabdul) && S.mpShown(rabdul).max === 9);

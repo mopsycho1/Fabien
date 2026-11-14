@@ -530,3 +530,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - When Suleiman sends a walk sheet, add `"walk": { "frameMs": 75, "upLeft": [three or more pictures], "downLeft": [...] }` to the fighter in art.json. A side that is missing is the other side mirrored. The code walk stops by itself for the directions that have pictures.
 - How long a caster gathers a plain spell before casting: `CHANNEL_MS` near the top of `src/scenes/BattleScene.js` (280 = 0.28 seconds).
 
+## 14 Nov batch: 4 against 4 and Kofi (roadmap 18.22, 6.38, M10b)
+
+- Who fights on the cavern: `src/data/maps/cavern.json`, `alsoFighting` (benched fighters who join) and `sittingOut`. For 3 v 3 again: `"alsoFighting": ["e1"]`, `"sittingOut": ["e2"]`. Start tiles are in `starts`.
+- Kofi's numbers: `shaman` in `src/data/jobs.json`. `readingRules` there says how many points each thing near him gives each element (water tiles, lamps, sand, allies under a Verse, ...).
+- His four bolts, Haunt and Infuse are in `src/data/spells.json`: `spiritBoltFire`, `spiritBoltWater`, `spiritBoltEarth`, `spiritBoltStorm`, `haunt`, `infuse`. Change damage over time with `poison` and `turns` in `haunt`; which Verse Infuse gives per element is `verses` in `infuse`.
+- His casting pictures per element: `elementPoses` under `h4` in `src/data/art.json`.
+

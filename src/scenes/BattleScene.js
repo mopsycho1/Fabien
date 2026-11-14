@@ -28,7 +28,7 @@ import { hasBuffLoop, buffLoopFx, sandImpact, lightningStrike, verseAura, speedS
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, artHasLook } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
@@ -107,6 +107,7 @@ const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
 // A caster hidden by Husk is drawn as light (see hiddenLook): this strong
 // (1 = full) and this warm gold. Light adds to what is behind her, so the
 // floor always shows through.
+const READ_NAMES = { fire: 'Fire', water: 'Water', earth: 'Earth', storm: 'Storm' }; // Kofi's four elements (6.38)
 const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
 const HIDDEN_ALPHA = 0.6;
 const HIDDEN_ALPHA_FOE = 0.3; // a hidden enemy: only a faint shape (roadmap 1.47)
@@ -156,6 +157,11 @@ export default class BattleScene extends Phaser.Scene {
     setLookLookup((id) => {
       const u = this.units && this.units.find((x) => x.id === id);
       return u && u.alive && isEnchanted(u) ? 'enchanted' : null;
+    });
+    // Kofi's casting pictures follow the element he reads (art.json "elementPoses", roadmap 6.38)
+    setElementLookup((id) => {
+      const u = this.units && this.units.find((x) => x.id === id);
+      return u && u.alive && u.reading ? this.reading(u).element : null;
     });
     // a unit under a Verse can have its own attack, guard and dodge pictures (art.json "buffPoses")
     setBuffLookup((id) => {
@@ -1852,6 +1858,8 @@ export default class BattleScene extends Phaser.Scene {
         '\nLocked with ' + unit.engagedWith.name;
     } else {
       text = (unit.side === 'hero' ? 'Your turn: ' : 'Enemy turn: ') + unit.name + ' (' + unit.jobName + ')';
+      // Kofi: what he reads here, so the player knows what his spells will do
+      if (unit.reading) { const read = this.reading(unit); text += '\nReads ' + READ_NAMES[read.element] + (read.points ? ' ' + read.points : ' (faint)') + ': ' + spells[this.readingMove(unit)].name; }
     }
 
     this.statusText.setText(text);
@@ -2414,8 +2422,8 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
-    const friendsOnly = spell.kind === 'heal';
+    const foesOnly = ['haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
+    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse';
     this.targetsInRange = this.units.filter(
       (u) =>
         u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
@@ -3072,8 +3080,10 @@ export default class BattleScene extends Phaser.Scene {
   performAttack(attacker, target, onDone) {
     attacker.hasActed = true;
     const result = rollAttack(attacker, target);
+    const lead0 = target.isDecoy ? 0 : this.channelLead(attacker, target);
     // a Verse may have changed the attack (Layra: Thunderclap, Wildfire; roadmap 3.7 and 3.9)
-    const moveId = activeMove(attacker, 'attack');
+    // Kofi's Spirit Bolt takes the element he reads (roadmap 6.38): Ember, Tide, Stone or Gale Bolt
+    const moveId = this.readingMove(attacker) || activeMove(attacker, 'attack');
     const variant = moveId !== 'attack' && !target.isDecoy ? spells[moveId] : null;
     const fire = !!variant && variant.element === 'fire';
     if (fire) result.element = 'fire'; // Wildfire burns: the impact is drawn in fire's colours
@@ -3094,6 +3104,7 @@ export default class BattleScene extends Phaser.Scene {
     let pushed = null;
     if (variant && result.hit && target.alive) {
       if (fire && !isDrenched(target)) applyBurn(target, moveId); // Wildfire: it burns for a few turns (not a Drenched unit: the fire hisses out)
+      if (variant.drench) { applyDrenched(target, variant.drench); this.time.delayedCall(lead0 + 520, () => target.alive && this.floatText(target, 'Drenched', '#7fd6c4', { rise: 46 })); } // Tide Bolt
       if (variant.push) {
         pushed = this.pushLoser(target, attacker, variant.push); // Thunderclap: knocked a tile back
         if (target.engagedWith && distance(target, target.engagedWith) > 1) {
@@ -3113,7 +3124,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // Lightning jumps to a second enemy near the first, if the first bolt hit
     let jump = null;
-    if (result.hit && attacker.chain && !fire) { // fire doesn't jump
+    if (result.hit && attacker.chain && !fire && (!attacker.reading || (variant && variant.jump))) { // fire doesn't jump; Kofi's bolt jumps only as a Gale Bolt
       const next = chainTarget(attacker, target, this.units);
       if (next) {
         const hit = Math.random() * 100 < getHitChance(attacker, next);
@@ -3436,6 +3447,88 @@ export default class BattleScene extends Phaser.Scene {
     return poseFrame(unit.id, 'throwRelease', 'right') ? 'throwRelease' : 'attack';
   }
 
+  // ---------- Kofi's Reading (roadmap 6.38, M10b; first version of Suleiman's kit) ----------
+
+  // What Kofi reads in the ground and the people within 2 tiles of him: points for each of
+  // his four elements, and the strongest one. That element colours his Spirit Bolt, Haunt
+  // and Infuse, and his casting pictures. The points for each thing are in jobs.json
+  // ("readingRules"). A tie keeps the element he had; nothing to read = water at strength 0.
+  reading(unit) {
+    const rules = jobs[unit.job].readingRules;
+    const pts = { water: 0, earth: 0, fire: 0, storm: 0 };
+    const near = (c, r) => Math.abs(c - unit.col) + Math.abs(r - unit.row) <= rules.radius;
+    for (let c = unit.col - rules.radius; c <= unit.col + rules.radius; c++) {
+      for (let r = unit.row - rules.radius; r <= unit.row + rules.radius; r++) {
+        if (!near(c, r) || c < 0 || r < 0 || c >= GRID_SIZE || r >= GRID_SIZE) continue;
+        const ground = terrainAt(mapData, c, r);
+        if (ground === 'water') pts.water += rules.water.tile;
+        if (ground === 'caveSand' || ground === 'rubble' || ground === 'sand') pts.earth += rules.earth.sandOrRubbleTile;
+      }
+    }
+    for (const [c, r] of mapData.lamps || []) if (near(c, r)) pts.fire += rules.fire.lamp;
+    for (const u of this.units || []) {
+      if (!u.alive || u === unit || !near(u.col, u.row)) continue;
+      const verse = buffOf(u) && buffOf(u).id;
+      if (isDrenched(u)) pts.water += rules.water.drenchedUnit;
+      if (verse === 'stone') pts.earth += rules.earth.stoneVerseUnit;
+      if (isBurning(u) || isEnchanted(u)) pts.fire += rules.fire.burningOrEnchantedUnit;
+      if (verse === 'fury') pts.fire += rules.fire.furyVerseUnit;
+      if (verse === 'swiftness') pts.storm += rules.storm.swiftnessVerseUnit;
+      if (u.element === 'lightning') pts.storm += rules.storm.lightningCaster;
+    }
+    if (getHeight(unit.col, unit.row) >= 2) pts.storm += rules.storm.highGround;
+    const top = Math.max(...Object.values(pts));
+    const best = rules.order.filter((e) => pts[e] === top);
+    const element = top === 0 ? 'water' : best.includes(unit.lastRead) ? unit.lastRead : best[0];
+    unit.lastRead = element;
+    return { element, points: top, all: pts };
+  }
+
+  // The Spirit Bolt his reading gives (a spells.json id like "spiritBoltFire"), or null for
+  // anyone who does not read.
+  readingMove(unit) {
+    if (!unit.reading) return null;
+    const el = this.reading(unit).element;
+    return 'spiritBolt' + el[0].toUpperCase() + el.slice(1);
+  }
+
+  // Haunt: a spirit mark on a foe. 2 damage at the start of each of its next 3 turns (the
+  // same rules as poison: never the last point, Herbs lift it), and what Kofi reads adds
+  // to it. Fire: it burns too. Water: Drenched. Earth: bound (slower). Storm: shaken (an aim
+  // or a trance breaks, Off-Balance). Channel, then cast, like Slow.
+  castHaunt(caster, target, spell, onDone) {
+    const read = this.reading(caster).element;
+    const dx = target.view.x - caster.view.x;
+    this.faceToward(caster, dx, target.view.y - caster.view.y);
+    const tone = { fire: 'fire', water: 'water', earth: 'earth', storm: 'lightning' }[read];
+    this.showPose(caster, 'chant', dx);
+    chargeUp(this, caster.view.x + Math.sign(dx || 1) * 12, caster.view.y - caster.topY * 0.7, tone, { ms: 420, size: 0.9, depth: caster.view.depth + 2 });
+    play('select');
+    applyPoison(target, 'haunt');
+    let word = null;
+    if (read === 'fire' && !isDrenched(target)) { applyBurn(target, spell.burnAs); word = ['Burning!', '#ff8a3c']; }
+    if (read === 'water') { applyDrenched(target, spell.drench); word = ['Drenched', '#7fd6c4']; }
+    if (read === 'earth') { applySlow(target, 'haunt'); word = ['Bound', '#d9b77a']; }
+    if (read === 'storm') { applyOffBalance(target); word = ['Shaken', '#bfd8ff']; }
+    this.time.delayedCall(420, () => {
+      if (!caster.alive) return onDone();
+      this.showPose(caster, 'cast', dx);
+      play('spell');
+      const to = this.centerOf(target);
+      lightning(this, caster.view.x + Math.sign(dx || 1) * 14, caster.view.y - caster.topY * 0.7, to.x, to.y);
+      floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
+      lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
+      afterglow(this, target.view.x, target.view.y - 10, tone, { level: 3, depth: target.view.depth + 2 });
+      this.floatText(target, 'Haunted', spell.color, { pop: true });
+      if (word) this.time.delayedCall(420, () => target.alive && this.floatText(target, word[0], word[1], { rise: 46 }));
+      if (read === 'storm') this.interrupt(target);
+      this.refreshStatusTags();
+      this.refreshTurnStrip();
+      this.time.delayedCall(520, () => caster.alive && this.showStanding(caster));
+      this.time.delayedCall(900, onDone);
+    });
+  }
+
   // Channel, then cast (roadmap 13.10): how long a caster gathers a spell at her hands
   // before she lets it go, in milliseconds. 0 for anyone who is not casting (a fighter, an
   // archer) or has no "chant" picture. Short, because Lightning is cast every turn.
@@ -3472,7 +3565,7 @@ export default class BattleScene extends Phaser.Scene {
     if (lead) {
       const fire = variant && variant.element === 'fire';
       this.showPose(attacker, 'chant', dx);
-      chargeUp(this, attacker.view.x + Math.sign(dx || 1) * 10, attacker.view.y - attacker.topY * 0.72, fire ? 'fire' : 'lightning', { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
+      chargeUp(this, attacker.view.x + Math.sign(dx || 1) * 10, attacker.view.y - attacker.topY * 0.72, (variant && variant.element) || (fire ? 'fire' : 'lightning'), { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
       play('select');
       this.time.delayedCall(lead, () => attacker.alive && this.showPose(attacker, strikePose, dx));
     } else this.showPose(attacker, aimFirst ? 'windup' : strikePose, dx);
@@ -5042,11 +5135,22 @@ export default class BattleScene extends Phaser.Scene {
 
   // Casts a spell. It costs the caster's action and the spell's MP.
   // target is a unit (buff or hex), a tile (Husk), or the caster (Meditate).
-  castSpell(caster, target, id, onDone) {
+  // "free": the spell is cast as part of another one that has already been paid for (Kofi's
+  // Infuse casts a Verse), so no MP, cooldown or action is taken again.
+  castSpell(caster, target, id, onDone, free = false) {
     const spell = spells[id];
-    spendMp(caster, id);
-    startCooldown(caster, id);
-    caster.hasActed = true;
+    if (!free) {
+      spendMp(caster, id);
+      startCooldown(caster, id);
+      caster.hasActed = true;
+    }
+    if (spell.kind === 'haunt') return this.castHaunt(caster, target, spell, onDone);
+    if (spell.kind === 'infuse') {
+      // the blessing for what he reads: a Verse, or Renewal (water): healing
+      const verse = spell.verses[this.reading(caster).element];
+      if (verse) return this.castSpell(caster, target, verse, onDone, true);
+      return this.castHeal(caster, target, { ...spell, color: '#7fd6c4' }, onDone);
+    }
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);

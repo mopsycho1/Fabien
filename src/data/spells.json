@@ -104,6 +104,36 @@
       "who": "a heavy hitter"
     }
   },
+  "spiritBoltFire": {
+    "name": "Ember Bolt", "button": "Ember Bolt", "short": "EMBER", "kind": "bolt", "element": "fire", "reads": "fire",
+    "color": "#ff8a3c", "burn": 2, "turns": 3, "mp": 0, "use": "enemy",
+    "text": "Kofi reads Fire: his Spirit Bolt sets the target alight, 2 damage a turn for 3 turns (never the last point; Herbs put it out)."
+  },
+  "spiritBoltWater": {
+    "name": "Tide Bolt", "button": "Tide Bolt", "short": "TIDE", "kind": "bolt", "element": "water", "reads": "water",
+    "color": "#7fd6c4", "drench": 2, "mp": 0, "use": "enemy",
+    "text": "Kofi reads Water: his Spirit Bolt leaves the target Drenched for 2 turns, so lightning hurts it more."
+  },
+  "spiritBoltEarth": {
+    "name": "Stone Bolt", "button": "Stone Bolt", "short": "STONE", "kind": "bolt", "element": "earth", "reads": "earth",
+    "color": "#d9b77a", "push": 1, "mp": 0, "use": "enemy",
+    "text": "Kofi reads Earth: his Spirit Bolt knocks the target a tile back (into a wall, it slams)."
+  },
+  "spiritBoltStorm": {
+    "name": "Gale Bolt", "button": "Gale Bolt", "short": "GALE", "kind": "bolt", "element": "lightning", "reads": "storm",
+    "color": "#bfd8ff", "jump": true, "mp": 0, "use": "enemy",
+    "text": "Kofi reads Storm: his Spirit Bolt jumps to a second enemy within 2 tiles for half damage."
+  },
+  "haunt": {
+    "name": "Haunt", "button": "Haunt", "short": "HAUNT", "kind": "haunt", "color": "#8fe0b0", "range": 4,
+    "poison": 2, "turns": 3, "delay": 0, "speedLoss": 2, "drench": 2, "burnAs": "spiritBoltFire", "mp": 2, "use": "enemy",
+    "text": "A spirit mark: 2 damage at the start of each of the target's next 3 turns (never the last point; Herbs lift it). What Kofi reads adds to it. Fire: it also burns. Water: Drenched. Earth: bound, slower for 3 turns. Storm: shaken, its aim or trance breaks and it is Off-Balance."
+  },
+  "infuse": {
+    "name": "Infuse", "button": "Infuse", "short": "INFUSE", "kind": "infuse", "color": "#8fe0b0", "range": 3,
+    "verses": { "earth": "stone", "storm": "swiftness", "fire": "fury" }, "heal": 8, "cooldown": 2, "mp": 2, "use": "ally",
+    "text": "A blessing for an ally within 3 tiles, or himself, from what Kofi reads. Earth: the Stone Verse. Storm: Swiftness. Fire: Fury. Water: Renewal, +8 health and it lifts poison and burn. Ready again after 2 turns."
+  },
   "slow": {
     "name": "Slow",
     "button": "Slow",

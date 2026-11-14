@@ -67,6 +67,7 @@ export function buildUnit(entry, jobs) {
     weapon: job && job.closeWeapon ? 'bow' : null, // which one she holds: 'bow' or 'dagger' (Switch weapon, roadmap 13.29)
     attackName: job && job.attackName ? job.attackName : 'Attack', // the name on the attack button
     element: job && job.element ? job.element : null, // what its attack is made of (Layra's: lightning), for Drenched (roadmap 11.4)
+    reading: !!(job && job.reading), // Kofi: his spells take the element he reads round him (roadmap 6.38)
     chain: job && job.chain ? { ...job.chain } : null, // lightning that jumps to a second enemy
     closePenalty: job && job.closePenalty ? job.closePenalty : 0, // harder to aim at someone right next to you
     engagedWith: null, // the unit it is locked in an engagement with, if any

@@ -56,6 +56,8 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - Enemies face the heroes with their upLeft/downLeft pictures; the other facings are mirrored.
 - Tests must never make `Math.random` return a constant (or only tiny numbers): Phaser names text pictures with random numbers, and the next text crashes with "reading 'context'".
 - A four-view sheet's front figures do not always run down-left then down-right (the archer's bow sheets both point right, 1.45). Look at a contact sheet before wiring; `"flip": true` in art.json mirrors one view.
+- The cavern is 4 v 4 now (Kofi h4 and the bull e2; M10b). Cavern tests that set `FABIEN_BENCH=` get all 8; `FABIEN_BENCH=e2,h4` is the old 3 v 3. The old test map (yoba) is still 3 v 3 (Kofi is benched in units.json).
+- Kofi's head cannot be measured on his casting sheets (glowing orbs): new Kofi sheets are cut at one hand-set scale and pinned at 1.0 in ruler_marks.json. A word (not a picture) added to a fighter in art.json must go in SKIP in dev/tools/ruler_lib.py.
 - Between turns an archer swaps dagger and bow by herself (`readyCloseWeapons`, 1.46), and her AI stabs a foe next to her before walking. A test that needs her to keep the bow keeps foes 2 tiles away.
 - `landHit` shows a hidden unit again (1.47). It does not take the health off: the caller does.
 - An enemy that has acted may walk again with its leftover steps (13.53). A test that needs it to stay put sets `b.enemySecondWalk = false`.

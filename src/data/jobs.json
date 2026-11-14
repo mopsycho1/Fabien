@@ -78,6 +78,31 @@
     "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "weak" },
     "signature": { "id": "bulwark", "stance": "guard", "name": "Bulwark" }
   },
+  "shaman": {
+    "name": "Shaman",
+    "badge": "S",
+    "note": "Kofi (roadmap 6.38, M10b). FIRST VERSION of Suleiman's kit (Kofi_Ability_Sheet.pdf; all numbers are placeholders, his and ours). 'reading': each moment he reads the ground within 2 tiles of him; the strongest element there is the element of his Spirit Bolt, Haunt and Infuse (see reading() in BattleScene.js and 'readingRules' below). Spirit Bolt is his plain attack here (the sheet prices it at 2 MP; a caster needs one free attack). Call Spirit, his summon, is not built: it waits for the spirit pictures.",
+    "attackEffect": "spark",
+    "attackName": "Spirit Bolt",
+    "element": "spirit",
+    "attackType": "magic",
+    "reading": true,
+    "readingRules": {
+      "radius": 2,
+      "water": { "tile": 1, "drenchedUnit": 2 },
+      "earth": { "sandOrRubbleTile": 1, "stoneVerseUnit": 2 },
+      "fire": { "lamp": 2, "burningOrEnchantedUnit": 2, "furyVerseUnit": 2 },
+      "storm": { "swiftnessVerseUnit": 2, "lightningCaster": 2, "highGround": 2 },
+      "order": ["water", "earth", "fire", "storm"],
+      "note": "Points for each thing within 'radius' tiles of him. highGround: he stands 2 or more levels up (our addition: the sheet has no map rule for Storm). A tie keeps the element he had; with nothing to read he falls back to water (his lantern's own green), at strength 0."
+    },
+    "chain": { "range": 2, "share": 0.5 },
+    "closePenalty": 25,
+    "stats": { "hp": 26, "mp": 10, "attack": 3, "defense": 1, "magicAttack": 6, "magicDefense": 5, "accuracy": 85, "evade": 10, "speed": 9, "move": 3, "range": 4 },
+    "contest": { "style": "defence", "power": 2, "guard": 4, "agility": 2 },
+    "stances": { "press": "weak", "guard": "average", "slip": "weak", "break": "average" },
+    "spells": ["haunt", "infuse"]
+  },
   "sage": {
     "name": "Sage",
     "badge": "M",

@@ -33,7 +33,7 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
   b.endTurn = () => {}; b.runEnemyTurn = () => {};
   for (const st of b.sites || []) st.dug = true;
   const put = (u, c, r) => b.placeUnit(u, c, r);
-  let k = 0; const away = [[0, 0], [8, 0], [0, 2], [8, 2], [0, 4], [8, 4], [1, 1]];
+  let k = 0; const away = [[0, 0], [8, 0], [0, 2], [8, 2], [0, 4], [8, 4], [1, 1], [7, 1]]; /* 8 fighters since M10b */
   const clear = () => { k = 0; for (const u of b.units) { u.hp = u.maxHp = 300; u.alive = true; u.knockPending = false; u.engagedWith = null; u.status = { offBalance: false, buff: null, hex: null, cooldowns: {} }; put(u, ...away[k++]); } b.busy = false; };
   b.setSpeed('base', 3);
   const seen = async (unit, ms) => { const keys = new Set(); const t = Date.now(); while (Date.now() - t < ms) { if (unit.sprite && unit.sprite.active) keys.add(unit.sprite.texture.key.split(':')[1]); await sleep(8); } return [...keys]; };

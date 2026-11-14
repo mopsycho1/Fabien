@@ -72,6 +72,12 @@ let buffIdOf = () => null;
 export function setBuffLookup(fn) {
   buffIdOf = fn;
 }
+// Which element a unit reads right now ('fire', 'water', 'earth', 'storm'), or null. Kofi's
+// casting pictures are drawn once per element ("elementPoses" in art.json, roadmap 6.38).
+let elementOf = () => null;
+export function setElementLookup(fn) {
+  elementOf = fn;
+}
 function lookEntry(id) {
   const look = lookOf(id);
   return (look && art[id] && art[id][look]) || null;
@@ -91,7 +97,7 @@ function allFiles(entry) {
   if (entry.enchanted && entry.enchanted.battle) buffed.push(entry.enchanted.battle);
   if (entry.enchanted && entry.enchanted.standing) buffed.push(entry.enchanted.standing); // his neutral flame-imbued stance
   if (entry.enchanted && entry.enchanted.moves) for (const move of Object.values(entry.enchanted.moves)) for (const f of move.frames) files.add(fileOf(f));
-  const directional = [...Object.values(entry.poses || {}), ...Object.values(entry.buffPoses || {}).flatMap((b) => Object.values(b)), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
+  const directional = [...Object.values(entry.poses || {}), ...Object.values(entry.elementPoses || {}).flatMap((b) => Object.values(b)), ...Object.values(entry.buffPoses || {}).flatMap((b) => Object.values(b)), ...Object.values((entry.enchanted && entry.enchanted.poses) || {})].filter(isFacingSet);
   for (const move of Object.values(entry.moves || {})) if (move && move.frames) for (const f of move.frames) files.add(fileOf(f));
   for (const list of Object.values(entry.walk || {})) if (Array.isArray(list)) for (const f of list) files.add(fileOf(f));
   for (const group of [entry.standing, entry.battle, entry.weak, ...buffed, ...directional, entry.poses, entry.attack]) {
@@ -262,7 +268,9 @@ export function poseFrame(id, pose, side, facing = null) {
   const look = lookEntry(id);
   const bid = buffIdOf(id);
   const buffPose = bid && entry.buffPoses && entry.buffPoses[bid] && entry.buffPoses[bid][pose];
-  const value = (look && look.poses && look.poses[pose]) || buffPose || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
+  const el = entry.elementPoses ? elementOf(id) : null;
+  const elPose = el && entry.elementPoses[el] && entry.elementPoses[el][pose];
+  const value = (look && look.poses && look.poses[pose]) || buffPose || elPose || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
   if (!value) return null;
   if (isFacingSet(value)) return pickFacing(id, value, facing || (side === 'left' ? 'downLeft' : 'downRight'));
   return makeFrame(id, value, side === 'left');

@@ -2,6 +2,7 @@
   { "id": "h1", "name": "Sudeen",  "label": "H1", "side": "hero",  "job": "guardian", "col": 2, "row": 6, "hp": 48 },
   { "id": "h2", "name": "Gaha",    "label": "H2", "side": "hero",  "job": "spearman", "col": 4, "row": 6, "hp": 36 },
   { "id": "h3", "name": "Layra",   "label": "H3", "side": "hero",  "job": "sage",     "col": 3, "row": 7, "hp": 28 },
+  { "id": "h4", "name": "Kofi",    "label": "H4", "side": "hero",  "job": "shaman",   "col": 5, "row": 7, "hp": 30, "bench": true },
   { "id": "e4", "name": "Rabdul",  "label": "E1", "side": "enemy", "job": "twinSpear", "col": 2, "row": 1 },
   { "id": "e1", "name": "Tayo",    "label": "E4", "side": "enemy", "job": "bruiser",  "col": 2, "row": 1, "hp": 53, "bench": true },
   { "id": "e2", "name": "Bull Commander", "label": "E2", "side": "enemy", "job": "warlord",  "col": 4, "row": 1, "hp": 48 },

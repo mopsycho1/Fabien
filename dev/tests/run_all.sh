@@ -38,6 +38,7 @@ settings_for() {
     n39) echo "FABIEN_MAP=cavern FABIEN_BENCH=e1" ;;
     n41|n42|n43|n44|n45|n53|n54|n56|n58|n59) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
     n50|n51) echo "FABIEN_BENCH=" ;;
+    n62) echo "FABIEN_MAP=cavern" ;; # the map's own line-up: 4 against 4
   esac
 }
 

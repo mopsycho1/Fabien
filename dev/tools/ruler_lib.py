@@ -27,7 +27,7 @@ def pic(v):
     return {'file': v['file'], 'originX': v.get('originX', 0.5), 'flip': bool(v.get('flip')), 'placed': 'originX' in v}
 
 # parts of an art.json entry that are faces, banners or notes, not body pictures
-SKIP = ('name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn')
+SKIP = ('name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle')
 
 def inventory(entry):
     """Every body picture of one character, in art.json order.
@@ -44,7 +44,7 @@ def inventory(entry):
             out.append(p)
         elif isinstance(v, dict):
             for k, x in v.items():
-                if k.startswith('note') or k in ('frameMs', 'chargeFrames', 'strikeFrom', 'strikeTo'):
+                if k.startswith('note') or k in ('frameMs', 'chargeFrames', 'strikeFrom', 'strikeTo', 'walkStyle'):  # (walkStyle is a word, not a picture)
                     continue
                 walk(x, path + [k] if k != 'frames' else path)
         elif isinstance(v, list):

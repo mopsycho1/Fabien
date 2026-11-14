@@ -2717,6 +2717,7 @@
     },
     "note_nov8": "Poison Arrow crouch redrawn in four views and the Smoke Bomb throw (his 8 Nov sheets, roadmap 13.26, 13.29).",
     "note_hq": "12 Nov (roadmap 18.26, 18.2): stand, battle, aim, shot, hit, wounded, kneel, down and victory are cut again from Suleiman's full-quality Email sheets (archer_hq_*, standing 300 pixels tall; cut by dev/tools/make_archer_hq.py, wired by wire_archer_hq.py). Dagger, Poison Arrow, Smoke Bomb, the flaming look and dodge have no full-quality sheet yet: they are the old small pictures, drawn bigger by the size ruler. \"knocked\" uses her hit pictures; \"crumple\" is gone.",
+    "note_facings": "14 Nov (roadmap 1.45): her front-view bow pictures pointed right in both down views. Down-left battle and shot are the third figure mirrored (\"flip\"), the aim swaps its two front figures, and the Poison Arrow shot uses the full-quality shot from behind. See dev/tools/fix_archer_facings.py. Test: dev/tests/n60.cjs.",
     "ruler": {
       "archer_hq_stand_f1.png": {
         "footX": 0.514
@@ -2885,8 +2886,7 @@
         "footX": 0.418
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "note_facings": "14 Nov (roadmap 1.45): her front-view bow pictures pointed right in both down views. Down-left battle and shot are the third figure mirrored (\"flip\"), the aim swaps its two front figures, and the Poison Arrow shot uses the full-quality shot from behind. See dev/tools/fix_archer_facings.py. Test: dev/tests/n60.cjs."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e1": {
     "note": "Tayo the pugilist, from Suleiman's Tayo sheet. Standing in for the masked enemies until they are drawn.",
@@ -3949,24 +3949,356 @@
         }
       },
       "cast": {
-        "upLeft": {
-          "file": "kofi_cast_f1.png",
-          "originX": 0.163
+        "downRight": {
+          "file": "kofi_water_cast_f1.png",
+          "originX": 0.212
         },
         "upRight": {
-          "file": "kofi_cast_f2.png",
-          "originX": 0.83
-        },
-        "downRight": {
-          "file": "kofi_cast_f3.png",
-          "originX": 0.497
+          "file": "kofi_water_cast_f2.png",
+          "originX": 0.549
         },
         "downLeft": {
-          "file": "kofi_cast_f4.png",
-          "originX": 0.497
+          "file": "kofi_water_cast_f3.png",
+          "originX": 0.837,
+          "flip": true
+        },
+        "upLeft": {
+          "file": "kofi_water_cast_f4.png",
+          "originX": 0.468
+        }
+      },
+      "hurt": {
+        "upRight": {
+          "file": "kofi_hurt_f1.png",
+          "originX": 0.377
+        },
+        "upLeft": {
+          "file": "kofi_hurt_f2.png",
+          "originX": 0.638
+        },
+        "downLeft": {
+          "file": "kofi_hurt_f3.png",
+          "originX": 0.259
+        },
+        "downRight": {
+          "file": "kofi_hurt_f4.png",
+          "originX": 0.458
+        }
+      },
+      "down": {
+        "upLeft": {
+          "file": "kofi_down_f1.png",
+          "originX": 0.788
+        },
+        "upRight": {
+          "file": "kofi_down_f2.png",
+          "originX": 0.526
+        },
+        "downRight": {
+          "file": "kofi_down_f3.png",
+          "originX": 0.476
+        },
+        "downLeft": {
+          "file": "kofi_down_f4.png",
+          "originX": 0.557
+        }
+      },
+      "knocked": {
+        "upRight": {
+          "file": "kofi_hurt_f1.png",
+          "originX": 0.377
+        },
+        "upLeft": {
+          "file": "kofi_hurt_f2.png",
+          "originX": 0.638
+        },
+        "downLeft": {
+          "file": "kofi_hurt_f3.png",
+          "originX": 0.259
+        },
+        "downRight": {
+          "file": "kofi_hurt_f4.png",
+          "originX": 0.458
+        }
+      },
+      "chant": {
+        "downRight": {
+          "file": "kofi_water_chant_f1.png",
+          "originX": 0.321
+        },
+        "upRight": {
+          "file": "kofi_water_chant_f2.png",
+          "originX": 0.653
+        },
+        "downLeft": {
+          "file": "kofi_water_chant_f3.png",
+          "originX": 0.676,
+          "flip": true
+        },
+        "upLeft": {
+          "file": "kofi_water_chant_f4.png",
+          "originX": 0.272
+        }
+      },
+      "attack": {
+        "downRight": {
+          "file": "kofi_water_cast_f1.png",
+          "originX": 0.212
+        },
+        "upRight": {
+          "file": "kofi_water_cast_f2.png",
+          "originX": 0.549
+        },
+        "downLeft": {
+          "file": "kofi_water_cast_f3.png",
+          "originX": 0.837,
+          "flip": true
+        },
+        "upLeft": {
+          "file": "kofi_water_cast_f4.png",
+          "originX": 0.468
         }
       }
     },
+    "elementPoses": {
+      "water": {
+        "chant": {
+          "downRight": {
+            "file": "kofi_water_chant_f1.png",
+            "originX": 0.321
+          },
+          "upRight": {
+            "file": "kofi_water_chant_f2.png",
+            "originX": 0.653
+          },
+          "downLeft": {
+            "file": "kofi_water_chant_f3.png",
+            "originX": 0.676,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_water_chant_f4.png",
+            "originX": 0.272
+          }
+        },
+        "cast": {
+          "downRight": {
+            "file": "kofi_water_cast_f1.png",
+            "originX": 0.212
+          },
+          "upRight": {
+            "file": "kofi_water_cast_f2.png",
+            "originX": 0.549
+          },
+          "downLeft": {
+            "file": "kofi_water_cast_f3.png",
+            "originX": 0.837,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_water_cast_f4.png",
+            "originX": 0.468
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "kofi_water_cast_f1.png",
+            "originX": 0.212
+          },
+          "upRight": {
+            "file": "kofi_water_cast_f2.png",
+            "originX": 0.549
+          },
+          "downLeft": {
+            "file": "kofi_water_cast_f3.png",
+            "originX": 0.837,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_water_cast_f4.png",
+            "originX": 0.468
+          }
+        }
+      },
+      "fire": {
+        "chant": {
+          "downRight": {
+            "file": "kofi_fire_chant_f1.png",
+            "originX": 0.326
+          },
+          "upRight": {
+            "file": "kofi_fire_chant_f2.png",
+            "originX": 0.66
+          },
+          "downLeft": {
+            "file": "kofi_fire_chant_f3.png",
+            "originX": 0.659,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_fire_chant_f4.png",
+            "originX": 0.31
+          }
+        },
+        "cast": {
+          "downRight": {
+            "file": "kofi_fire_cast_f1.png",
+            "originX": 0.278
+          },
+          "upRight": {
+            "file": "kofi_fire_cast_f2.png",
+            "originX": 0.591
+          },
+          "downLeft": {
+            "file": "kofi_fire_cast_f3.png",
+            "originX": 0.708,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_fire_cast_f4.png",
+            "originX": 0.218
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "kofi_fire_cast_f1.png",
+            "originX": 0.278
+          },
+          "upRight": {
+            "file": "kofi_fire_cast_f2.png",
+            "originX": 0.591
+          },
+          "downLeft": {
+            "file": "kofi_fire_cast_f3.png",
+            "originX": 0.708,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_fire_cast_f4.png",
+            "originX": 0.218
+          }
+        }
+      },
+      "storm": {
+        "chant": {
+          "downRight": {
+            "file": "kofi_storm_chant_f1.png",
+            "originX": 0.374
+          },
+          "upRight": {
+            "file": "kofi_storm_chant_f2.png",
+            "originX": 0.674
+          },
+          "downLeft": {
+            "file": "kofi_storm_chant_f3.png",
+            "originX": 0.582,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_storm_chant_f4.png",
+            "originX": 0.299
+          }
+        },
+        "cast": {
+          "downRight": {
+            "file": "kofi_storm_cast_f1.png",
+            "originX": 0.377
+          },
+          "upRight": {
+            "file": "kofi_storm_cast_f2.png",
+            "originX": 0.641
+          },
+          "downLeft": {
+            "file": "kofi_storm_cast_f3.png",
+            "originX": 0.668,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_storm_cast_f4.png",
+            "originX": 0.398
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "kofi_storm_cast_f1.png",
+            "originX": 0.377
+          },
+          "upRight": {
+            "file": "kofi_storm_cast_f2.png",
+            "originX": 0.641
+          },
+          "downLeft": {
+            "file": "kofi_storm_cast_f3.png",
+            "originX": 0.668,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_storm_cast_f4.png",
+            "originX": 0.398
+          }
+        }
+      },
+      "earth": {
+        "chant": {
+          "downRight": {
+            "file": "kofi_earth_chant_f1.png",
+            "originX": 0.304
+          },
+          "upRight": {
+            "file": "kofi_earth_chant_f2.png",
+            "originX": 0.62
+          },
+          "downLeft": {
+            "file": "kofi_earth_chant_f3.png",
+            "originX": 0.476,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_earth_chant_f4.png",
+            "originX": 0.36
+          }
+        },
+        "cast": {
+          "downRight": {
+            "file": "kofi_earth_cast_f1.png",
+            "originX": 0.287
+          },
+          "upRight": {
+            "file": "kofi_earth_cast_f2.png",
+            "originX": 0.532
+          },
+          "downLeft": {
+            "file": "kofi_earth_cast_f3.png",
+            "originX": 0.701,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_earth_cast_f4.png",
+            "originX": 0.221
+          }
+        },
+        "attack": {
+          "downRight": {
+            "file": "kofi_earth_cast_f1.png",
+            "originX": 0.287
+          },
+          "upRight": {
+            "file": "kofi_earth_cast_f2.png",
+            "originX": 0.532
+          },
+          "downLeft": {
+            "file": "kofi_earth_cast_f3.png",
+            "originX": 0.701,
+            "flip": true
+          },
+          "upLeft": {
+            "file": "kofi_earth_cast_f4.png",
+            "originX": 0.221
+          }
+        }
+      }
+    },
+    "note_sheets": "13 Nov sheets (dev/tools/make_kofi_sheets.py): chant (channel) and cast (release) in his four elements under \"elementPoses\" (water, fire, storm, earth), hurt, down. No down-left casting view was drawn: it is figure 3 mirrored.",
     "ruler": {
       "kofi_stand_f1.png": {
         "footX": 0.541
@@ -3997,6 +4329,117 @@
       },
       "kofi_cast_f4.png": {
         "footX": 0.456
+      },
+      "kofi_water_cast_f1.png": {
+        "footX": 0.384
+      },
+      "kofi_water_cast_f2.png": {
+        "footX": 0.523
+      },
+      "kofi_water_cast_f3.png": {
+        "footX": 0.347
+      },
+      "kofi_water_cast_f4.png": {
+        "footX": 0.499
+      },
+      "kofi_hurt_f1.png": {
+        "footX": 0.49
+      },
+      "kofi_hurt_f2.png": {
+        "footX": 0.58
+      },
+      "kofi_hurt_f3.png": {
+        "footX": 0.372
+      },
+      "kofi_down_f1.png": {
+        "footX": 0.501
+      },
+      "kofi_down_f2.png": {
+        "footX": 0.466
+      },
+      "kofi_down_f3.png": {
+        "footX": 0.508
+      },
+      "kofi_down_f4.png": {
+        "footX": 0.528
+      },
+      "kofi_water_chant_f1.png": {
+        "footX": 0.466
+      },
+      "kofi_water_chant_f2.png": {
+        "footX": 0.505
+      },
+      "kofi_water_chant_f3.png": {
+        "footX": 0.5
+      },
+      "kofi_water_chant_f4.png": {
+        "footX": 0.455
+      },
+      "kofi_fire_chant_f1.png": {
+        "footX": 0.458
+      },
+      "kofi_fire_chant_f2.png": {
+        "footX": 0.498
+      },
+      "kofi_fire_chant_f3.png": {
+        "footX": 0.499
+      },
+      "kofi_fire_chant_f4.png": {
+        "footX": 0.47
+      },
+      "kofi_fire_cast_f1.png": {
+        "footX": 0.41
+      },
+      "kofi_fire_cast_f3.png": {
+        "footX": 0.426
+      },
+      "kofi_fire_cast_f4.png": {
+        "footX": 0.396
+      },
+      "kofi_storm_chant_f1.png": {
+        "footX": 0.428
+      },
+      "kofi_storm_chant_f2.png": {
+        "footX": 0.503
+      },
+      "kofi_storm_chant_f3.png": {
+        "footX": 0.495
+      },
+      "kofi_storm_chant_f4.png": {
+        "footX": 0.452
+      },
+      "kofi_storm_cast_f1.png": {
+        "footX": 0.449
+      },
+      "kofi_storm_cast_f2.png": {
+        "footX": 0.562
+      },
+      "kofi_storm_cast_f3.png": {
+        "footX": 0.422
+      },
+      "kofi_storm_cast_f4.png": {
+        "footX": 0.419
+      },
+      "kofi_earth_chant_f1.png": {
+        "footX": 0.398
+      },
+      "kofi_earth_chant_f2.png": {
+        "footX": 0.48
+      },
+      "kofi_earth_chant_f4.png": {
+        "footX": 0.507
+      },
+      "kofi_earth_cast_f1.png": {
+        "footX": 0.386
+      },
+      "kofi_earth_cast_f2.png": {
+        "footX": 0.479
+      },
+      "kofi_earth_cast_f3.png": {
+        "footX": 0.429
+      },
+      "kofi_earth_cast_f4.png": {
+        "footX": 0.406
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."

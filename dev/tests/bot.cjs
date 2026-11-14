@@ -68,9 +68,16 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
           b.onSpellButton(); b.chooseSpell('spearThrow'); b.handleTap(t.col, t.row); b.handleTap(t.col, t.row); tally.throws = (tally.throws || 0) + 1; await waitIdle();
         } else if (u.spells.length && !E.isMelee(u)) {
           const friend = alive('hero').find((f) => f.engagedWith && !St.buffOf(f) && dist(u, f) <= 3);
-          if (friend) {
-            b.onSpellButton(); b.chooseSpell(E.styleOf(friend) === 'evasion' ? 'swiftness' : 'stone');
+          // Kofi (4 v 4, M10b) has Infuse in place of the Verses, and Haunt for a foe in reach that is not marked yet
+          const bless = u.spells.includes('infuse') ? 'infuse' : E.styleOf(friend || u) === 'evasion' ? 'swiftness' : 'stone';
+          const canBless = friend && u.spells.includes(bless) && St.canAfford(u, bless) && St.cooldownOf(u, bless) === 0;
+          const mark = u.spells.includes('haunt') && St.canAfford(u, 'haunt') ? foes.filter((f) => dist(u, f) <= 4 && !St.isPoisoned(f) && !f.hidden).sort((a, c) => c.hp - a.hp)[0] : null;
+          if (canBless) {
+            b.onSpellButton(); b.chooseSpell(bless);
             b.handleTap(friend.col, friend.row); b.handleTap(friend.col, friend.row); tally.spells++; await waitIdle();
+          } else if (mark && Math.random() < 0.5) {
+            b.onSpellButton(); b.chooseSpell('haunt');
+            if (b.mode === 'spellTarget' && b.targetsInRange.includes(mark)) { b.handleTap(mark.col, mark.row); b.handleTap(mark.col, mark.row); tally.spells++; tally.haunts = (tally.haunts || 0) + 1; await waitIdle(); } else b.cancelMode();
           } else {
             if (Math.min(...foes.map((f) => dist(u, f))) > u.range) {
               b.handleTap(u.col, u.row);

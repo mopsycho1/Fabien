@@ -119,11 +119,21 @@
     "feet": {}
   },
   "h4": {
-    "note": "Kofi is cut at the right size by make_kofi.py; nothing to rescale.",
+    "note": "Kofi is cut at the right size by make_kofi.py and make_kofi_sheets.py; nothing to rescale. His 13 Nov sheets are pinned at 1.0: the head finder is fooled by the glowing orbs and his top-knot (see make_kofi_sheets.py).",
     "scale": {
       "kofi_stand": 1.0,
       "kofi_battle": 1.0,
-      "kofi_cast": 1.0
+      "kofi_cast": 1.0,
+      "kofi_water_chant": 1.0,
+      "kofi_water_cast": 1.0,
+      "kofi_fire_chant": 1.0,
+      "kofi_fire_cast": 1.0,
+      "kofi_storm_chant": 1.0,
+      "kofi_storm_cast": 1.0,
+      "kofi_earth_chant": 1.0,
+      "kofi_earth_cast": 1.0,
+      "kofi_hurt": 1.0,
+      "kofi_down": 1.0
     },
     "feet": {}
   }
