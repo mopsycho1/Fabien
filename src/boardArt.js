@@ -1354,13 +1354,27 @@ function drawLamp(scene, col, row, centre) {
 // levels or more, a short one for one level, and a ring of ripples where the
 // water lands. They are drawn for the front-LEFT face of a block; the
 // front-right face shows them mirrored.
-const WATER_SHEETS = [['waterfall_tall', 256, 352], ['waterfall', 256, 224], ['splash_ring', 272, 168]];
+//
+// Suleiman's own waterfall (roadmap 1.48, his GIF of 13 Nov) is the one shown: a column of
+// falling water with its own splash, 6 frames (dev/tools/make_water_s.py). His art comes first.
+// The Blender loops stay in the game as the other style: open the game with ?water=blender
+// to see them (tests and the side-by-side pictures use window.__waterStyle).
+const WATER_SHEETS = [['waterfall_tall', 256, 352], ['waterfall', 256, 224], ['splash_ring', 272, 168], ['waterfall_s_tall', 128, 246], ['waterfall_s', 128, 154]];
+export function waterStyle() {
+  if (typeof window === 'undefined') return 'drawn';
+  if (window.__waterStyle) return window.__waterStyle;
+  return /[?&]water=blender/.test(window.location.search || '') ? 'blender' : 'drawn';
+}
 // Where things are inside a frame, in its own pixels (measured on the frames):
 //   lip    : the middle of the sheet's top edge (it sits on the middle of the ledge's edge)
 //   height : how long the sheet is below the lip
 const FALL_SHAPE = {
   waterfall_tall: { lip: { x: 111, y: 90 }, height: 194, w: 256, h: 352 },
   waterfall: { lip: { x: 108, y: 92 }, height: 59, w: 256, h: 224 },
+  // his column: the lip is the top middle, the fall ends in the middle of his splash.
+  // 6 frames, 120 ms each as in his GIF. "own" = it brings its own splash (no ripple ring).
+  waterfall_s_tall: { lip: { x: 63, y: 3 }, height: 228, w: 128, h: 246, frames: 6, rate: 8.3, own: true },
+  waterfall_s: { lip: { x: 63, y: 3 }, height: 136, w: 128, h: 154, frames: 6, rate: 8.3, own: true },
 };
 const WATER_FRAMES = 12;
 
@@ -1383,12 +1397,15 @@ function drawWaterfall(scene, w) {
   const sy = y + hh / 2;
   const length = drop * LEVEL_HEIGHT + 6;
   const depth = depthFor(c, r) + 0.25;
-  const name = drop >= 2 ? 'waterfall_tall' : 'waterfall';
+  let name = drop >= 2 ? 'waterfall_tall' : 'waterfall';
+  const drawn = name.replace('waterfall', 'waterfall_s');
+  if (waterStyle() === 'drawn' && scene.textures.exists('water:' + drawn)) name = drawn; // Suleiman's own (1.48)
   if (!scene.textures.exists('water:' + name)) return drawWaterfallOld(scene, sx, sy, length, depth, c2, r2);
   const shape = FALL_SHAPE[name];
   const loop = (key) => {
+    const own = FALL_SHAPE[key] || {};
     if (!scene.anims.exists(key + '-loop')) {
-      scene.anims.create({ key: key + '-loop', frames: scene.anims.generateFrameNumbers('water:' + key, { start: 0, end: WATER_FRAMES - 1 }), frameRate: 12, repeat: -1 });
+      scene.anims.create({ key: key + '-loop', frames: scene.anims.generateFrameNumbers('water:' + key, { start: 0, end: (own.frames || WATER_FRAMES) - 1 }), frameRate: own.rate || 12, repeat: -1 });
     }
     return key + '-loop';
   };
@@ -1397,10 +1414,12 @@ function drawWaterfall(scene, w) {
   const fall = scene.add.sprite(sx, sy - 2, 'water:' + name)
     .setOrigin(left ? shape.lip.x / shape.w : 1 - shape.lip.x / shape.w, shape.lip.y / shape.h)
     .setScale(scale).setFlipX(!left).setDepth(depth);
-  fall.play({ key: loop(name), startFrame: Math.floor(Math.random() * WATER_FRAMES) }); // each fall starts on its own frame
+  fall.play({ key: loop(name), startFrame: Math.floor(Math.random() * (shape.frames || WATER_FRAMES)) }); // each fall starts on its own frame
   waterfallSprites.push(fall);
-  // ripples where it lands, lying on the pool
-  if (scene.textures.exists('water:splash_ring')) {
+  // his column lands just in front of the ledge's wall, in the pool: it is drawn with the pool tile
+  if (shape.own) fall.setDepth(depthFor(c2, r2) + 0.3).setAlpha(0.92);
+  // ripples where it lands, lying on the pool (his column brings its own splash)
+  if (!shape.own && scene.textures.exists('water:splash_ring')) {
     const ring = scene.add.sprite(sx, sy + length + 2, 'water:splash_ring').setScale(scale * 0.9).setAlpha(0.85).setDepth(depthFor(c2, r2) + 0.3);
     ring.play({ key: loop('splash_ring'), startFrame: Math.floor(Math.random() * WATER_FRAMES) });
     waterfallSprites.push(ring);

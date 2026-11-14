@@ -8,6 +8,7 @@ const { chromium } = require('playwright');
 //   view : 'phone' (390 x 844, touch) or 'desktop' (1440 x 900, mouse)
 // Gives back { browser, page, errors }; errors fills with every page error.
 //   opts.everyone : true puts all seven fighters on the board (nobody sits out), for filming every skill
+//   opts.water    : 'drawn' (Suleiman's waterfall) or 'blender' (the Blender loops), to compare them
 exports.openBattle = async function openBattle(view, opts = {}) {
   const desktop = view === 'desktop';
   const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -16,6 +17,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
     : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   if (opts.everyone) await page.addInitScript(() => { window.__bench = []; });
+  if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)
   const errors = [];
   page.on('pageerror', (e) => errors.push((e.stack || e.message).split('\n').slice(0, 4).join(' | ')));
   await page.goto('http://localhost:' + (process.env.PORT || 4173) + '/', { waitUntil: 'load' });

@@ -7,8 +7,9 @@ const { openBattle } = require('./lib/play.cjs');
 (async () => {
   const out = process.argv[2] || '.'; fs.mkdirSync(out, { recursive: true });
   let bad = 0;
-  for (const view of ['phone', 'desktop']) {
-    const { browser, page, errors } = await openBattle(view);
+  // both styles (roadmap 1.48): Suleiman's own waterfall, the one the game shows, and the Blender loops
+  for (const style of ['drawn', 'blender']) for (const view of ['phone', 'desktop']) {
+    const { browser, page, errors } = await openBattle(view, { water: style });
     await page.waitForTimeout(800);
     const look = async (tag) => {
       const info = await page.evaluate(() => {
@@ -22,15 +23,17 @@ const { openBattle } = require('./lib/play.cjs');
         return { falls: falls.length, rings: rings.length, frames: falls.map((f) => f.frame.name).join(','), playing: falls.every((f) => f.anims && f.anims.isPlaying) };
       });
       await page.waitForTimeout(120);
-      await page.screenshot({ path: out + '/water_' + view + '_' + tag + '.png' });
+      await page.screenshot({ path: out + '/water_' + style + '_' + view + '_' + tag + '.png' });
       return info;
     };
     const one = await look('a');
-    await page.waitForTimeout(420);
+    await page.waitForTimeout(250); // (not a whole loop later: his 6 frames come round every 720 ms)
     const two = await look('b');
-    const ok = one.falls >= 4 && one.rings === one.falls && one.playing && one.frames !== two.frames && errors.length === 0;
+    await page.waitForTimeout(170);
+    const three = await look('c'); // a third look: two looks can land exactly one loop apart
+    const ok = one.falls >= 4 && one.rings === (style === 'drawn' ? 0 : one.falls) && one.playing && (one.frames !== two.frames || two.frames !== three.frames) && errors.length === 0;
     if (!ok) bad++;
-    console.log((ok ? 'PASS ' : 'FAIL ') + view + ': ' + one.falls + ' falls, ' + one.rings + ' splash rings, frames ' + one.frames + ' then ' + two.frames + (errors.length ? ' | ' + errors[0] : ''));
+    console.log((ok ? 'PASS ' : 'FAIL ') + style + ' ' + view + ': ' + one.falls + ' falls, ' + one.rings + ' splash rings, frames ' + one.frames + ' then ' + two.frames + (errors.length ? ' | ' + errors[0] : ''));
     await browser.close();
   }
   console.log(bad ? 'FAILED' : 'ALL PASSED (pictures in ' + out + ')');
