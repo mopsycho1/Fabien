@@ -5,6 +5,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const { w, game, errors } = await start();
   let b = await battle(game); b.clashLifeOn = true; // the test player plays with the background clash exchanges on
   const E = w.__engagement, St = w.__status;
+  const used = {}; const turnsList = [];
   const tally = { Victory: 0, Defeat: 0, stuck: 0, engages: 0, presses: 0, breaks: 0, spells: 0, attacks: 0, enemyEngages: 0 };
   const texts = () => b.children.list.filter((o) => o.type === 'Text').map((o) => o.text);
   const dist = (a, c) => Math.abs(a.col - c.col) + Math.abs(a.row - c.row);
@@ -19,6 +20,17 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     b.__dmg = dmg; b.__acts = acts;
     // a short trail of what last moved bodies about, printed with any OFF TILE line
     b.__trail = [];
+    // every skill and item each fighter uses, counted per battle (checklist G3: the enemies use every
+    // skill they own; roadmap 18.11 and 18.15). The enemy AI calls these casts directly.
+    for (const fn of ['castSpell', 'castEnchant', 'castSmokeBomb', 'castElementBlast', 'castClap', 'castEarthDrive', 'castPoisonArrow', 'castShieldToss', 'castDoubleHit', 'useItem', 'performEngage']) {
+      const orig = b[fn].bind(b);
+      b[fn] = (...args) => {
+        const who = args[0]; const what = fn === 'castSpell' ? args[2] : fn === 'useItem' ? 'item ' + args[2] + (args[1] !== args[0] ? ' (to an ally)' : '') : fn.replace('cast', '').replace('perform', '');
+        if (who && who.name && !(fn !== 'castSpell' && b.__inCast)) { const key = who.name + ': ' + what[0].toLowerCase() + what.slice(1); used[key] = (used[key] || 0) + 1; }
+        const was = b.__inCast; if (fn === 'castSpell') b.__inCast = true;
+        try { return orig(...args); } finally { b.__inCast = was; }
+      };
+    }
     for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function') continue; const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
     const origEngage = b.performEngage.bind(b);
     b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); };
@@ -111,6 +123,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     const tw = Date.now(); while (!(allTexts(b).includes('Victory') || allTexts(b).includes('Defeat')) && Date.now() - tw < 5000) await sleep(30);
     const r = allTexts(b).includes('Victory') ? 'Victory' : allTexts(b).includes('Defeat') ? 'Defeat' : 'NONE';
     if (tally[r] !== undefined) tally[r]++;
+    turnsList.push(b.turnCount);
     console.log(`battle ${n}: ${r} after ${b.turnCount} turns | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);
     // sanity: no leftover engagement with a fallen unit
     if (b.units.some((u) => u.engagedWith && (!u.alive || !u.engagedWith.alive))) console.log('  WARNING: engaged with a fallen unit');
@@ -120,6 +133,9 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   }
   const real = errors.filter((e) => !e.includes('focus()'));
   console.log(JSON.stringify(tally));
+  const sorted = turnsList.slice().sort((x, y) => x - y);
+  if (sorted.length) console.log('turns: median ' + sorted[Math.floor(sorted.length / 2)] + ', shortest ' + sorted[0] + ', longest ' + sorted[sorted.length - 1]);
+  console.log('skills and items used (all battles): ' + Object.keys(used).sort().map((k) => k + ' x' + used[k]).join(', '));
   console.log('errors:', real.length ? real.slice(0, 5).join(' | ') : 'none');
   w.close(); process.exit(tally.stuck || tally.offTile || real.length ? 1 : 0);
 })().catch((e) => { console.log('CRASH', e); process.exit(2); });

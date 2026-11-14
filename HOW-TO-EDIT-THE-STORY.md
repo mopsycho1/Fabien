@@ -537,3 +537,9 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - His four bolts, Haunt and Infuse are in `src/data/spells.json`: `spiritBoltFire`, `spiritBoltWater`, `spiritBoltEarth`, `spiritBoltStorm`, `haunt`, `infuse`. Change damage over time with `poison` and `turns` in `haunt`; which Verse Infuse gives per element is `verses` in `infuse`.
 - His casting pictures per element: `elementPoses` under `h4` in `src/data/art.json`.
 
+## 14 Nov batch: pace and enemy play (roadmap 18.11, 18.15, 13.25, 13.38)
+
+- Fast enemy turns: the player taps the "Enemy turns" pill under the sound button. How much faster: `ENEMY_FAST` near the top of `src/scenes/BattleScene.js` (2 = double). The pause before an enemy acts: `ENEMY_THINK_MS` (400 = 0.4 seconds).
+- Enemies heal an ally: the rule is `enemyAllyItemChoice` in `src/items.js` (an ally next to it at 40 percent health or less gets its healing item; a poisoned or burning ally gets its cure). What each class carries is `start` in `src/data/items.json`.
+- The rock combo: `rockDamage` under `clap` in `src/data/spells.json` (4 = each foe next to a burst rock takes 4 more).
+

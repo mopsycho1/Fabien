@@ -68,11 +68,11 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [ ] F5. The board does not end in a black void (17.14). Test: sheet.
 
 ### G. Rules, AI and pacing
-- [ ] G1. A battle between two sensible players ends in 20 to 35 turns. Test: 20 bot battles, median inside the range. Today: 43, 60, 97 and 128 turns seen.
+- [ ] G1. A battle between two sensible players ends in 20 to 35 turns. Test: 20 bot battles, median inside the range. Today: 43, 60, 97 and 128 turns seen. 14 Nov (M11) measured: 4 v 4 middle about 110 turns (76 to 132), 3 v 3 about 62. Not dead time: most hero turns are spent locked in clashes. Open, needs Baiyee's decision (see roadmap 18.11 and 18.15).
 - [ ] G2. Bot against bot, each side wins 40 to 60 percent over 40 battles. Test: bot.cjs.
 - [ ] G3. Enemies heal themselves and each other when it is the right call (13.25) and use every skill they own at least once in 10 battles. Test: bot log.
 - [x] G4. (13 Nov: n58 and dev/browser/preview.cjs.) Every skill tells the player what it will do before they confirm, on the board (where the unit ends up, who is hit), not only in the small text box. Test: sheet per skill.
-- [ ] G5. Enemy turns can be sped up; a full enemy round takes under 8 seconds at fast speed. Test: timed in the browser.
+- [x] G5. Enemy turns can be sped up; a full enemy round takes under 8 seconds at fast speed. Test: timed in the browser. Done 14 Nov (M11): Fast enemy turns; `node dev/browser/pace.cjs phone`: the longest Fast round of 4 enemies 6.7 s, Normal 12.9 s.
 
 ### H. Solid ground
 - [x] H1. The full test suite passes 3 runs in a row with the same result. Test: run_all.sh three times.

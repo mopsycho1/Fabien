@@ -91,6 +91,11 @@ const FIXES = {
   kofi_tide: { who: 'h4', at: [2, 3], foe: 'e1', foeAt: [2, 6], attack: true },
   kofi_haunt: { who: 'h4', at: [1, 8], foe: 'e1', foeAt: [4, 8], cast: 'haunt', hold: 500 },
   kofi_infuse: { who: 'h4', at: [4, 4], foe: 'h2', foeAt: [4, 6], cast: 'infuse', hold: 900 },
+  // M15 (roadmap 13.38, 13.25): Tayo's Earth Drive, then Sonic Burst bursting the rock; the bull handing Tayo his balm.
+  tayo_rock_combo: { who: 'e1', at: [3, 7], foe: 'h2', foeAt: [4, 7], wide: 420, hold: 500,
+    js: "b.castSpell(who, foe, 'earthDrive', () => setTimeout(() => { who.status.cooldowns = {}; b.castSpell(who, null, 'clap', done); }, 700));" },
+  enemy_heals_ally: { who: 'e2', at: [4, 7], foe: 'e1', foeAt: [5, 7], hold: 600,
+    js: "foe.hp = Math.floor(foe.maxHp * 0.3); b.updateHpBar(foe); b.busy = false; b.activeUnit = who; b.enemySecondWalk = false; b.runEnemyTurn(); setTimeout(done, 2200);" },
   // Smoke Bomb: she fades to a faint shape; the hero taps her and opens Attack, and she cannot be chosen
   archer_invisible: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [3, 7], wide: 400, hold: 600,
     js: "b.castSpell(who, { col: 5, row: 8 }, 'smokeBomb', () => { b.busy = false; b.activeUnit = foe; foe.hasActed = false; b.refreshButtons(); b.markActive && b.markActive(); setTimeout(() => b.handleTap(5, 8), 800); setTimeout(() => { b.cancelMode(); b.startAttack(); }, 2200); setTimeout(() => { b.cancelMode(); b.activeUnit = who; done(); }, 3800); });" },

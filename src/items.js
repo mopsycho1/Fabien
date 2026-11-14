@@ -61,6 +61,23 @@ export function applyItem(unit, id, user = unit) {
 }
 
 // What an enemy would use right now, or null: it looks after itself first.
+// An enemy looks after its side too (roadmap 13.25, Suleiman 8 Nov: at least one enemy should
+// heal its teammates). "allies" are its living allies standing next to it. If one of them is
+// badly hurt (40 percent health or less) and it holds a healing item, it gives it: the one
+// with the least health first. It keeps the item for itself only when it is hurt too.
+// Poison and burn on an ally are cured the same way with a cure item.
+// Returns { id, target } or null.
+export function enemyAllyItemChoice(unit, allies) {
+  const held = heldItems(unit);
+  if (unit.hp <= unit.maxHp * 0.5) return null; // it needs the item itself (enemyItemChoice)
+  const heal = held.find((id) => ITEMS[id].heal);
+  const cure = held.find((id) => ITEMS[id].cure);
+  const hurt = allies.filter((a) => a.hp <= a.maxHp * 0.4 && heal && itemHelps(a, heal)).sort((a, b) => a.hp - b.hp)[0];
+  if (hurt) return { id: heal, target: hurt };
+  const sick = allies.find((a) => cure && itemHelps(a, cure));
+  return sick ? { id: cure, target: sick } : null;
+}
+
 export function enemyItemChoice(unit) {
   const held = heldItems(unit);
   const pick = (test) => held.find((id) => itemHelps(unit, id) && test(ITEMS[id]));

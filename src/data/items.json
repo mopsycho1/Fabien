@@ -10,6 +10,7 @@
     "guardian": { "sheaBalm": 1, "kolaNut": 1 },
     "spearman": { "sheaBalm": 1, "bitterLeaf": 1 },
     "sage": { "spiritWater": 1, "bitterLeaf": 1 },
+    "shaman": { "spiritWater": 1, "bitterLeaf": 1 },
     "twinSpear": { "kolaNut": 1 },
     "bruiser": { "sheaBalm": 1 },
     "warlord": { "sheaBalm": 1, "kolaNut": 1 },

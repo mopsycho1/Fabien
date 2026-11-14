@@ -428,13 +428,14 @@
     "kind": "clap",
     "color": "#e8c08a",
     "range": 2,
+    "rockDamage": 4,
     "damageShare": 0.3,
     "push": 1,
     "cooldown": 3,
     "mp": 0,
     "use": "area",
     "note": "Roadmap 13.31 (Baiyee 8 Nov, Suleiman agreed, no more long range): an area around Tayo, not a line. Every foe within 2 tiles takes a little damage (30 percent of a hit) and is knocked back 1 tile with the usual push rules (a wall or a unit behind it: a slam). The AI claps when 2 or more foes are within 2 tiles. Drawn with his attack pictures until Suleiman sends his Sonic Burst art (ART10). Renamed from Sonic Clap on 13 Nov (roadmap 13.37); the id stays \"clap\".",
-    "text": "Tayo claps his hands with all his might. A shockwave blasts every foe within 2 tiles: a little damage, and each is knocked back a tile (into a wall or a unit: a slam). Ready again after 3 turns."
+    "text": "Tayo claps his hands with all his might. A shockwave blasts every foe within 2 tiles: a little damage, and each is knocked back a tile (into a wall or a unit: a slam). Combo: any Earth Drive rock of his within 2 tiles bursts, and each foe next to a burst rock takes 4 more. Ready again after 3 turns."
   },
   "elementBlast": {
     "name": "Element Blast",

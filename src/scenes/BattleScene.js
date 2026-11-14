@@ -70,7 +70,7 @@ import {
   answerStance,
   openingHeightBonus,
 } from '../engagement.js';
-import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice } from '../items.js';
+import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
@@ -107,6 +107,9 @@ const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
 // A caster hidden by Husk is drawn as light (see hiddenLook): this strong
 // (1 = full) and this warm gold. Light adds to what is behind her, so the
 // floor always shows through.
+const ENEMY_FAST = 2;        // how many times faster an enemy turn plays when the player picks Fast (18.11)
+const ENEMY_THINK_MS = 400; // the pause before an enemy acts
+const PACE_KEY = 'fabien.enemyPace';
 const READ_NAMES = { fire: 'Fire', water: 'Water', earth: 'Earth', storm: 'Storm' }; // Kofi's four elements (6.38)
 const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
 const HIDDEN_ALPHA = 0.6;
@@ -174,6 +177,8 @@ export default class BattleScene extends Phaser.Scene {
     this.inHitStop = false;
     this.inCinematic = false;
     this.setSpeed('base', 1);
+    this.enemyFast = false;
+    try { this.enemyFast = window.localStorage.getItem(PACE_KEY) === 'fast'; } catch (e) { /* no storage: normal speed */ }
 
     setBoardSetting(mapData.setting); // "cave" or "wasteland" (see map.json)
     createBoardTextures(this); // paint the ground textures once
@@ -638,6 +643,12 @@ export default class BattleScene extends Phaser.Scene {
     fxLabel.on('pointerdown', () => { setFxMode(fxMode() === 'light' ? 'full' : 'light'); showFx(); play('click'); });
     this.events.on('fxmode', showFx);
     showFx();
+    // Enemy turns: Normal / Fast (roadmap 18.11, M11): Fast plays every enemy turn at double
+    // speed. A second pill under the Effects one; the choice is remembered on this device.
+    const paceLabel = keep(this.add.text(muteX + r, iy + r + S(40), '', { fontFamily: 'Georgia, serif', fontSize: S(12) + 'px', fontStyle: 'bold', color: '#e8d5a8', backgroundColor: '#1a1410', padding: { x: 6, y: 3 } }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }));
+    const showPace = () => paceLabel.setText('Enemy turns: ' + (this.enemyFast ? 'Fast' : 'Normal'));
+    paceLabel.on('pointerdown', () => { this.setEnemyFast(!this.enemyFast); showPace(); play('click'); });
+    showPace();
     fxWatchFrameRate(this);
     const rx = muteX - r * 2 - S(16);
     if (isPhone(this)) {
@@ -1425,6 +1436,9 @@ export default class BattleScene extends Phaser.Scene {
     // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
     this.tickSpikes(this.activeUnit);
     this.manualView = false;
+    // Fast enemy turns (roadmap 18.11): everything an enemy does on its own turn runs at double
+    // speed when the player has asked for it. A hero's turn is always at normal speed.
+    this.setSpeed('enemy', this.enemyFast && this.activeUnit.side === 'enemy' ? ENEMY_FAST : 1);
     this.followUnit(this.activeUnit); // the camera turns to whoever acts (roadmap 11.5)
     const wasRooted = isRooted(this.activeUnit);
     clearRooted(this.activeUnit); // Gaha's planted feet: until his next turn
@@ -1514,9 +1528,10 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // Enemies play by themselves, after a short pause so you can follow it.
+    // Enemies play by themselves, after a short pause so you can follow it
+    // (0.4 s, it was 0.6: long enough for the camera to reach it, roadmap 18.11).
     if (this.activeUnit.side === 'enemy') {
-      this.time.delayedCall(600, () => this.runEnemyTurn());
+      this.time.delayedCall(ENEMY_THINK_MS, () => this.runEnemyTurn());
     } else {
       play('turn');
     }
@@ -4064,6 +4079,7 @@ export default class BattleScene extends Phaser.Scene {
   // The end of the battle. The side still standing celebrates for a moment,
   // then the result panel appears.
   showResult(outcome) {
+    this.setSpeed('enemy', 1); // the ending always plays at normal speed
     const won = outcome === 'victory';
     stopMusic();
     play(won ? 'victory' : 'defeat');
@@ -4140,6 +4156,18 @@ export default class BattleScene extends Phaser.Scene {
     if (itemId) {
       this.busy = true;
       this.useItem(unit, unit, itemId, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
+
+    // ...and after an ally standing next to it who is badly hurt, poisoned or burning (roadmap 13.25)
+    const mates = this.units.filter((o) => o.alive && o.side === unit.side && o !== unit && distance(unit, o) === 1);
+    const gift = enemyAllyItemChoice(unit, mates);
+    if (gift) {
+      this.busy = true;
+      this.useItem(unit, gift.target, gift.id, () => {
         this.busy = false;
         this.enemyWrapUp(unit);
       });
@@ -4238,7 +4266,8 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     // Tayo claps when 2 or more foes are within 2 tiles (roadmap 13.31): a shockwave that knocks them all back
-    if (unit.spells.includes('clap') && canAfford(unit, 'clap') && this.clapFoes(unit).length >= 2) {
+    // ...or when one of his Earth Drive rocks stands in reach with a foe beside it: the combo (13.38)
+    if (unit.spells.includes('clap') && canAfford(unit, 'clap') && (this.clapFoes(unit).length >= 2 || this.clapCombo(unit))) {
       this.busy = true;
       startCooldown(unit, 'clap');
       unit.hasActed = true;
@@ -4565,7 +4594,10 @@ export default class BattleScene extends Phaser.Scene {
   //   label  : optional words over its head, { text, color }
   knockBack(unit, pushed, awayX, label = null) {
     const ms = playKnockback(this, unit, pushed, awayX, label);
-    this.knockUntil = Math.max(this.knockUntil || 0, this.time.now + ms);
+    // (the knockback's pictures run on the battle's speed, this wait on the real clock: at
+    // fast enemy speed it must shrink with them, or every push would cost its full time)
+    const total = Object.values(this.speed).reduce((a, b) => a * b, 1);
+    this.knockUntil = Math.max(this.knockUntil || 0, this.time.now + ms / Math.max(1, total));
   }
 
   // One beat of a stance duel: work it out, then show it.
@@ -5421,6 +5453,12 @@ export default class BattleScene extends Phaser.Scene {
       .sort((a, b) => distance(user, b) - distance(user, a));
   }
 
+  // True if a Sonic Burst now would burst one of his own rocks onto a foe he can see (13.38).
+  clapCombo(user) {
+    const seen = this.enemyEyes().filter((t) => t.side !== user.side && t.alive && !t.isDecoy);
+    return this.spikes.some((sp) => sp.owner === user && distance(user, sp) <= spells.clap.range && seen.some((t) => distance(t, sp) <= 1));
+  }
+
   // He claps his hands with all his might: a shockwave ring races out and dust
   // rolls up; every foe within 2 tiles takes a little damage and is knocked
   // back a tile (the usual push rules: a wall or a unit behind = a slam). The
@@ -5428,8 +5466,21 @@ export default class BattleScene extends Phaser.Scene {
   // Drawn with his attack pictures until Suleiman sends clap art.
   castClap(user, spell, onDone) {
     onDone = this.collectRelays(onDone); // Relay Strike: allies hit pushed foes after the skill
-    const foes = this.clapFoes(user, true);
-    const lead = foes[foes.length - 1]; // the nearest foe: he faces it
+    // The combo with Earth Drive (roadmap 13.38, Suleiman 9 Nov): the shockwave bursts every rock
+    // of his within its reach, and each burst rock hurts the foes standing next to it. Worked
+    // out first, where everyone stands now (the wave then throws them back).
+    const rocks = this.spikes.filter((sp) => sp.owner === user && distance(user, sp) <= spell.range);
+    const rockHits = [];
+    for (const sp of rocks) {
+      for (const t of this.units.filter((o) => o.alive && o.side !== user.side && distance(o, sp) <= 1)) {
+        const landed = this.landHit(t, spell.rockDamage);
+        t.hp = Math.max(0, t.hp - landed.damage);
+        if (t.hp === 0) this.defeat(t);
+        rockHits.push({ t, landed, sp });
+      }
+    }
+    const foes = this.clapFoes(user, true).filter((t) => t.alive);
+    const lead = foes[foes.length - 1] || (rockHits[0] && rockHits[0].t); // the nearest foe: he faces it
     const dx = lead ? lead.view.x - user.view.x : 1;
     if (lead) this.faceToward(user, dx, lead.view.y - user.view.y);
     const hits = foes.map((t) => {
@@ -5481,6 +5532,22 @@ export default class BattleScene extends Phaser.Scene {
       });
       if (dust) this.time.delayedCall(260, () => dust.emitter.scene && dust.emitter.stop()); // one blast, not a loop
       if (dust) this.time.delayedCall(1000, () => dust.destroy());
+    });
+    // the wave reaches his rocks: each bursts, and the foes beside it are struck by the pieces
+    rocks.forEach((sp) => {
+      this.time.delayedCall(240 + 70 * distance(user, sp), () => {
+        const at = tileToScreen(sp.col, sp.row);
+        play('crash');
+        dustRing(this, at.x, at.y, 120);
+        emberBurst(this, at.x, at.y - 20, elementOf('earth').spark, 26, 70);
+        floorLight(this, at.x, at.y, elementOf('earth').glow, { size: 1.3, peak: 0.6, ms: 420 });
+        this.removeSpike(sp);
+      });
+    });
+    rockHits.forEach(({ t, landed, sp }) => {
+      this.time.delayedCall(300 + 70 * distance(user, sp), () => {
+        this.showImpact(user, t, { hit: true, damage: landed.damage, note: 'Rock burst', element: 'earth' }, t.view.x - tileToScreen(sp.col, sp.row).x, t.hp === 0);
+      });
     });
     // the wave reaches them: a hit, and each one flies back a tile
     hits.forEach(({ t, landed, pushed, away }) => {
@@ -7047,6 +7114,13 @@ export default class BattleScene extends Phaser.Scene {
   // slow motion, and the split-second freeze when a blow lands. Each keeps its
   // own factor, and the real speed is all of them multiplied together, so one
   // can never undo or trap another. "base" is the normal speed (1).
+  // Turns fast enemy turns on or off and remembers it (roadmap 18.11).
+  setEnemyFast(on) {
+    this.enemyFast = !!on;
+    try { window.localStorage.setItem(PACE_KEY, on ? 'fast' : 'normal'); } catch (e) { /* private window: just not remembered */ }
+    if (this.activeUnit) this.setSpeed('enemy', this.enemyFast && this.activeUnit.side === 'enemy' ? ENEMY_FAST : 1);
+  }
+
   setSpeed(name, factor) {
     this.speed[name] = factor;
     const total = Object.values(this.speed).reduce((a, b) => a * b, 1);
