@@ -298,6 +298,12 @@ export function walkFrames(id, facing) {
   return { frames: list.map((f) => makeFrame(id, f, !w[facing])), frameMs: w.frameMs || 75 };
 }
 
+// How a fighter without walk pictures moves (roadmap 18.13): "walkStyle" in art.json.
+// "sand" = carried by sand (Layra, 13.41); nothing = the code walk (two footfalls a tile).
+export function walkStyle(id) {
+  return (art[id] && art[id].walkStyle) || 'code';
+}
+
 // A move played picture by picture ("moves" in art.json), facing "left" or
 // "right": { frames: [frame, ...], frameMs }, or null if the unit doesn't have it.
 export function moveFrames(id, move, side) {

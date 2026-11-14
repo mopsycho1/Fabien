@@ -79,6 +79,12 @@ const FIXES = {
   // a hero walks up to her: she draws the dagger; on her turn she stabs him, then steps back
   archer_dagger: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [1, 7], wide: 420,
     js: "b.busy = false; b.activeUnit = foe; b.moveUnit(foe, 3, 7, () => setTimeout(() => { b.activeUnit = who; who.status.cooldowns = { smokeBomb: 3 }; who.hasActed = false; who.stepsUsed = 0; b.runEnemyTurn(); setTimeout(done, 4200); }, 1100));" },
+  // M13 (roadmap 18.13): the walk made in code, 3 tiles to the right then 2 away from us.
+  //   node dev/browser/gifs.cjs <out dir> phone walk_sudeen,walk_layra,walk_tayo,walk_archer,walk_bull,walk_rabdul,walk_gaha
+  ...Object.fromEntries([['sudeen', 'h1'], ['layra', 'h3'], ['tayo', 'e1'], ['archer', 'e3'], ['bull', 'e2'], ['rabdul', 'e4'], ['gaha', 'h2']].map(([n, id]) => ['walk_' + n, {
+    who: id, at: [3, 7], foe: id === 'h2' ? 'h1' : 'h2', foeAt: [7, 6], wide: 380, centre: [5, 6],
+    js: 'who.stepsUsed = 0; who.hasMoved = false; b.busy = false; b.activeUnit = who; b.moveUnit(who, 6, 7, () => setTimeout(() => { who.stepsUsed = 0; b.moveUnit(who, 6, 5, () => setTimeout(() => { who.stepsUsed = 0; b.moveUnit(who, 4, 5, () => setTimeout(done, 400)); }, 300)); }, 300));',
+  }])),
   // Smoke Bomb: she fades to a faint shape; the hero taps her and opens Attack, and she cannot be chosen
   archer_invisible: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [3, 7], wide: 400, hold: 600,
     js: "b.castSpell(who, { col: 5, row: 8 }, 'smokeBomb', () => { b.busy = false; b.activeUnit = foe; foe.hasActed = false; b.refreshButtons(); b.markActive && b.markActive(); setTimeout(() => b.handleTap(5, 8), 800); setTimeout(() => { b.cancelMode(); b.startAttack(); }, 2200); setTimeout(() => { b.cancelMode(); b.activeUnit = who; done(); }, 3800); });" },
@@ -132,7 +138,7 @@ const FIXES = {
       // screen: the camera may pan during the move, and the picture must not swim with it ----
       const cam = b.cameras.main; const canvas = game.canvas;
       const k2 = canvas.width / game.scale.width; // canvas pixels per game pixel
-      const mid = move.wide ? { x: who.view.x, y: who.view.y - 34 } : { x: (who.view.x + foe.view.x) / 2, y: (who.view.y + foe.view.y) / 2 - 34 }; // on the board
+      const mid = move.centre ? { x: b.tileCentre({ col: move.centre[0], row: move.centre[1] }).x, y: b.tileCentre({ col: move.centre[0], row: move.centre[1] }).y - 34 } : move.wide ? { x: who.view.x, y: who.view.y - 34 } : { x: (who.view.x + foe.view.x) / 2, y: (who.view.y + foe.view.y) / 2 - 34 }; // on the board
       const span = Math.max(Math.abs(who.view.x - foe.view.x), Math.abs(who.view.y - foe.view.y));
       const sideBoard = move.wide || span + 190; // board pixels: both figures, with room for a push behind the foe
       const OUT = move.wide ? 440 : 320; const shot = document.createElement('canvas'); shot.width = OUT; shot.height = OUT; const g = shot.getContext('2d');

@@ -39,12 +39,15 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - src/scenes/BattleScene.js: the battle (turns, moves, skills, enemy AI in enemyAttack, animations).
 - src/data: jobs.json (classes, stats, skills), spells.json (every skill's numbers and text), units.json (who fights), art.json (every picture per character: standing, battle, poses, moves, "enchanted" looks), maps/cavern.json (the game's map) and maps/yoba.json (old map for tests), terrain.json, story.json, dialogue.json.
 - src/fxLayers.js: the layers round every effect (flash, floor light, light on fighters, afterglow, energy waves), the colour set per element and the hit levels. src/data/fxSlots.json: slots for Suleiman's buff effect frames.
+- src/codeWalk.js: the walk made in code for fighters without walk pictures, and Layra's sand walk (M13). `node dev/browser/walk_sheet.cjs <out dir>` makes a walk sheet per fighter.
 - src/status.js (buffs, statuses), src/combat.js (damage, line of sight), src/engagement.js (clashes), src/art.js (picks pictures), src/spellArt.js (effects), src/boardArt.js (map drawing, lights), src/enemyAi.js (where enemies walk).
 - dev/tools: Python cutters that turn Suleiman's sheets into game pictures (make_*.py; fxcut.cut, iso31.clean and cells are the helpers). public/art: the pictures.
 - HOW-TO-EDIT-THE-STORY.md: plain guide to the data files, one section per batch.
 
 ## Gotchas
 - Background removal for new cuts: try rembg first (dev/tools/bgremove.py, installed in ~/.fabien-tools/venv; roadmap 1.36). It is clearly better on smoke and effect pictures on a plain background. Keep the colour-threshold cutters where a floor tile is in the picture (rembg keeps the tile): the sand impact cut. Check any cut on a contact sheet, old next to new.
+- Never move a figure's picture up or down with a relative tween (`y: '-=3'`) where two can overlap: they stack and leave it off the ground. codeWalk.js sets the lift from the resting place (`unit.restY`); wading moves that resting place too.
+- Layra's Lightning now waits `CHANNEL_MS` (280 ms) before the bolt: a test that times her attack must allow for it (`b.channelLead(unit, target)`).
 - Tests must not measure a figure's drawn height directly: figures breathe (up to 3.5 percent taller at a random moment). Measure through the sideways scale (see n37). In background shell loops, never wait with `pgrep -f`: it matches its own command line and never ends.
 - Never put `//` comments inside a one-line sed edit to test files: it swallows the rest of the line. Use `/* */`.
 - When adding pictures to a character, tests that count its pictures (poison.cjs, echo.cjs, gaha.cjs) need the new count.

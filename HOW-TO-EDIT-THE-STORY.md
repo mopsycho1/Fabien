@@ -523,3 +523,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Dagger or bow: nothing to edit. Between turns she holds the dagger when a foe she can see is next to her, the bow otherwise. The dagger's numbers are still `closeWeapon` in `src/data/jobs.json`.
 - Hidden: a hidden unit cannot be chosen as a target by the other side. Area effects (Lightning's jump, Sonic Burst) still hit it, and a hit shows it again. How faint a hidden enemy is drawn: `HIDDEN_ALPHA_FOE` near the top of `src/scenes/BattleScene.js` (0.3 = 30 percent).
 
+## 14 Nov batch: walking (roadmap 18.13, M13)
+
+- A fighter with no walk pictures walks in code. The numbers are at the top of `src/codeWalk.js`: `LEAN` (degrees), `ROCK`, `BOB` (pixels), `SQUASH`, `SETTLE`.
+- Layra is carried by sand: `"walkStyle": "sand"` under `h3` in `src/data/art.json`. Take that line out and she walks like the others.
+- When Suleiman sends a walk sheet, add `"walk": { "frameMs": 75, "upLeft": [three or more pictures], "downLeft": [...] }` to the fighter in art.json. A side that is missing is the other side mirrored. The code walk stops by itself for the directions that have pictures.
+- How long a caster gathers a plain spell before casting: `CHANNEL_MS` near the top of `src/scenes/BattleScene.js` (280 = 0.28 seconds).
+

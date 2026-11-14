@@ -1649,6 +1649,8 @@
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h3": {
+    "walkStyle": "sand",
+    "note_walkStyle": "13.41: Layra cannot walk unaided. Sand and earth bound to her legs carry her, so she has no footfalls: sand gathers, circles her shins and falls away (src/codeWalk.js). Take this line out when she gets real walk pictures.",
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
     "height": 100,
     "standing": {

@@ -28,7 +28,8 @@ import { hasBuffLoop, buffLoopFx, sandImpact, lightningStrike, verseAura, speedS
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, artHasLook } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, artHasLook } from '../art.js';
+import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -106,6 +107,7 @@ const ENGAGE_COLOR = 0xff9a2e; // orange: engagements
 // A caster hidden by Husk is drawn as light (see hiddenLook): this strong
 // (1 = full) and this warm gold. Light adds to what is behind her, so the
 // floor always shows through.
+const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
 const HIDDEN_ALPHA = 0.6;
 const HIDDEN_ALPHA_FOE = 0.3; // a hidden enemy: only a faint shape (roadmap 1.47)
 const HIDDEN_GREY = 0x8f9bb0;
@@ -1359,7 +1361,8 @@ export default class BattleScene extends Phaser.Scene {
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
-      onUpdate: () => { if (sprite && sprite.active) sprite.scaleY = unit.artScale * (1 + 0.035 * breath.v); },
+      // (unit.squash: the code walk's footfall squash, see codeWalk.js)
+      onUpdate: () => { if (sprite && sprite.active) sprite.scaleY = unit.artScale * (1 + 0.035 * breath.v) * (1 - (unit.squash || 0)); },
     });
 
     const unit = {
@@ -2793,6 +2796,7 @@ export default class BattleScene extends Phaser.Scene {
           const leap = climb > terrain.climbLimit;
           const walk = !leap && !buffOf(unit) && walkFrames(unit.id, unit.facing);
           if (walk) {
+            if (unit.gait) settle(this, unit); // it was walking in code the tile before: upright again for his own frames
             // walk frames play through the whole step (units without them keep their stance)
             const n = Math.max(2, Math.round(STEP_MS / walk.frameMs));
             for (let k = 0; k < n; k++) {
@@ -2802,8 +2806,14 @@ export default class BattleScene extends Phaser.Scene {
             stride += n;
           }
           // small step bob: one rise and fall per tile, tiny so it reads as a gait not a hop
+          // Without walk pictures for this facing it walks in code (roadmap 18.13): two footfalls
+          // with a lean, a squash and foot dust. Layra is carried by her sand instead (13.41).
+          const ground = terrainAt(mapData, tile.col, tile.row) === 'water' ? 'water' : terrainAt(mapData, tile.col, tile.row) === 'caveSand' ? 'sand' : 'floor';
           if (leap) this.tweens.add({ targets: unit.idleTargets, y: '-=38', duration: 120, yoyo: true, ease: 'Sine.easeOut' });
-          else this.tweens.add({ targets: unit.idleTargets, y: walk ? '-=3' : '-=4', duration: STEP_MS / 2, yoyo: true, ease: 'Sine.easeOut' });
+          else if (walk) this.tweens.add({ targets: unit.idleTargets, y: '-=3', duration: STEP_MS / 2, yoyo: true, ease: 'Sine.easeOut' });
+          else if (!unit.sprite) this.tweens.add({ targets: unit.idleTargets, y: '-=4', duration: STEP_MS / 2, yoyo: true, ease: 'Sine.easeOut' });
+          else if (walkStyle(unit.id) === 'sand') sandStep(this, unit, { dx: p.x - fromPoint.x, ground });
+          else codeStep(this, unit, { dx: p.x - fromPoint.x, ms: STEP_MS, ground });
           const buff = buffOf(unit);
           // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
           if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
@@ -2819,6 +2829,7 @@ export default class BattleScene extends Phaser.Scene {
       tweens: steps,
       onComplete: () => {
         unit.view.setDepth(depthFor(col, row) + 1); // settle into its new place in the drawing order
+        settle(this, unit); // the code walk ends: it straightens up and sinks a touch (18.13)
         if (this.inWater(unit)) splash(this, unit.view.x, unit.view.y);
         else dustPuff(this, unit.view.x, unit.view.y);
         this.refreshWater();
@@ -3133,9 +3144,11 @@ export default class BattleScene extends Phaser.Scene {
         echo.result = { hit, damage };
       }
     }
+    // a caster gathers her spell first (channel, then cast: 13.10), so everything after it waits that long
+    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target);
     const playEcho = () => {
       if (!echo) return;
-      this.time.delayedCall(jump ? 820 : 420, () => {
+      this.time.delayedCall(lead + (jump ? 820 : 420), () => {
         const from = { x: echo.decoy.view.x, y: echo.decoy.view.y - attacker.centerY };
         if (echo.target) {
           const to = this.centerOf(echo.target);
@@ -3150,7 +3163,7 @@ export default class BattleScene extends Phaser.Scene {
     };
     const playJump = () => {
       if (!jump) return;
-      this.time.delayedCall(380, () => {
+      this.time.delayedCall(lead + 380, () => {
         const a = this.centerOf(target);
         const b = this.centerOf(jump.target);
         lightning(this, a.x, a.y, b.x, b.y);
@@ -3168,7 +3181,7 @@ export default class BattleScene extends Phaser.Scene {
     // Pause so the player sees the result, then either show the final
     // screen or carry on with the turn.
     const finish = () =>
-      this.time.delayedCall(lethal ? 1500 : 800, () => {
+      this.time.delayedCall(lead + (lethal ? 1500 : 800), () => {
         if (outcome) {
           this.busy = false; // nothing is happening any more; the battleOver flag blocks taps
           this.showResult(outcome);
@@ -3252,6 +3265,7 @@ export default class BattleScene extends Phaser.Scene {
   // numbers. The fall is drawn by playDefeat, when the blow lands.)
   defeat(unit) {
     unit.alive = false;
+    dropWalk(unit); // nothing of a walk in code is left on it (18.13)
     this.dropBag(unit); // what it carried waits in a satchel (roadmap 5.3)
     // his spikes fall with him (roadmap 4.2)
     for (const sp of this.spikes.filter((x) => x.owner === unit)) this.time.delayedCall(700, () => this.removeSpike(sp));
@@ -3422,6 +3436,15 @@ export default class BattleScene extends Phaser.Scene {
     return poseFrame(unit.id, 'throwRelease', 'right') ? 'throwRelease' : 'attack';
   }
 
+  // Channel, then cast (roadmap 13.10): how long a caster gathers a spell at her hands
+  // before she lets it go, in milliseconds. 0 for anyone who is not casting (a fighter, an
+  // archer) or has no "chant" picture. Short, because Lightning is cast every turn.
+  channelLead(attacker, target) {
+    if (attacker.attackEffect !== 'spark' || !this.hasPose(attacker, 'chant')) return 0;
+    if (target && usesCloseWeapon(attacker, target)) return 0;
+    return CHANNEL_MS;
+  }
+
   // The attack picture, if the unit has one. dx says which way it is swinging.
   showAttackPose(unit, dx) {
     this.showPose(unit, 'attack', dx);
@@ -3443,7 +3466,16 @@ export default class BattleScene extends Phaser.Scene {
     this.faceToward(attacker, dx, dy);
     // an archer draws and aims first, then lets fly (her "bow primed" picture, 1.45)
     const aimFirst = style === 'arrow' && this.hasPose(attacker, 'windup');
-    this.showPose(attacker, aimFirst ? 'windup' : strikePose, dx);
+    // a caster channels first, like Slow (13.10): hands together and the spell gathering at
+    // them, then she lets it go. "lead" is how long; every later moment waits for it.
+    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target);
+    if (lead) {
+      const fire = variant && variant.element === 'fire';
+      this.showPose(attacker, 'chant', dx);
+      chargeUp(this, attacker.view.x + Math.sign(dx || 1) * 10, attacker.view.y - attacker.topY * 0.72, fire ? 'fire' : 'lightning', { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
+      play('select');
+      this.time.delayedCall(lead, () => attacker.alive && this.showPose(attacker, strikePose, dx));
+    } else this.showPose(attacker, aimFirst ? 'windup' : strikePose, dx);
 
     // striking a Husk decoy bursts it instead of hurting anyone
     const impact = target.isDecoy ? () => this.popDecoy(target.decoy) : () => this.showImpact(attacker, target, result, dx, lethal);
@@ -3453,7 +3485,7 @@ export default class BattleScene extends Phaser.Scene {
       // Wildfire: a ball of fire, and flames burst up where it lands
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
-      this.time.delayedCall(120, () => {
+      this.time.delayedCall(lead + 120, () => {
         play('whoosh');
         fireball(this, start.x, start.y - 20, end.x, end.y, () => {
           if (!target.isDecoy) flameBurst(this, target.view.x, target.view.y);
@@ -3461,21 +3493,21 @@ export default class BattleScene extends Phaser.Scene {
           impact();
         });
       });
-      this.time.delayedCall(560, () => this.showStanding(attacker));
+      this.time.delayedCall(lead + 560, () => this.showStanding(attacker));
       return;
     }
 
     if (style === 'spark') {
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
-      this.time.delayedCall(140, () => {
+      this.time.delayedCall(lead + 140, () => {
         lightning(this, start.x, start.y - 20, end.x, end.y);
         // a bolt crashes down on the target (from Layra's effect sheet)
         if (!target.isDecoy) lightningStrike(this, target.view.x, target.view.y, { big: lethal });
         play('spark');
       });
-      this.time.delayedCall(260, impact);
-      this.time.delayedCall(460, () => this.showStanding(attacker));
+      this.time.delayedCall(lead + 260, impact);
+      this.time.delayedCall(lead + 460, () => this.showStanding(attacker));
       return;
     }
 
@@ -4918,6 +4950,7 @@ export default class BattleScene extends Phaser.Scene {
     const sink = Math.round(TILE_HEIGHT * 0.16);
     unit.wading = on;
     unit.sprite.y += on ? sink : -sink;
+    if (unit.restY !== undefined) unit.restY += on ? sink : -sink; // (the code walk lifts the picture from this resting place, codeWalk.js)
     if (on) {
       const rings = this.add.graphics();
       rings.lineStyle(2, 0xbfeaff, 0.7).strokeEllipse(0, 6, 46, 14);
@@ -6186,6 +6219,8 @@ export default class BattleScene extends Phaser.Scene {
     const dx = target.view.x - healer.view.x || 1;
     if (target !== healer) this.faceToward(healer, dx, target.view.y - healer.view.y);
     this.showPose(healer, 'heal', dx); // the herb pouch raised (his 11:51 pictures)
+    // channel, then cast (13.10): the herbs' glow gathers at the pouch before it is thrown or used
+    chargeUp(this, healer.view.x + Math.sign(dx) * 12, healer.view.y - healer.topY * 0.85, 'heal', { ms: 240, size: 0.6, depth: healer.view.depth + 2 });
     this.time.delayedCall(800, () => healer.alive && this.showStanding(healer));
     // where it lands: the healing shows there
     const land = () => {
@@ -6214,7 +6249,7 @@ export default class BattleScene extends Phaser.Scene {
       const peak = 46 + tiles * 16;
       const pouch = this.add.image(from.x, from.y, 'fx:herb_pouch').setDepth(Math.max(healer.view.depth, target.view.depth) + 2);
       const p = { t: 0 };
-      this.time.delayedCall(140, () => {
+      this.time.delayedCall(240, () => { // (after the glow has gathered at the pouch)
         play('whoosh');
         this.tweens.add({
           targets: p,
@@ -6232,8 +6267,8 @@ export default class BattleScene extends Phaser.Scene {
         });
       });
       flight += 140;
-    } else land();
-    this.time.delayedCall(900 + flight, onDone);
+    } else this.time.delayedCall(240, land); // on himself: once the glow has gathered
+    this.time.delayedCall(1000 + flight, onDone);
   }
 
   // ---------- Switch weapon (roadmap 13.29) ----------
@@ -6617,6 +6652,7 @@ export default class BattleScene extends Phaser.Scene {
     caster.meditating = { restore: spell.restore };
     caster.hasMoved = true;
     this.showStanding(caster); // the meditation picture, held until she wakes
+    chargeUp(this, caster.view.x, caster.view.y - caster.topY * 0.6, 'spirit', { ms: 420, size: 0.9, depth: caster.view.depth + 2 }); // (13.10) calm gathers round her
     this.refreshButtons();
     play('spell');
     buffAura(this, caster.view.x, caster.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
