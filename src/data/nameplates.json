@@ -1,0 +1,23 @@
+{
+  "note": "Nameplates over the fighters (roadmap 18.6, 17.2; M6). 'show': when the health plate over a head is seen: 'hit' = hidden, it flashes for 'flashMs' when the fighter is hurt or healed, and shows while the fighter is tapped or can be targeted; 'always' = always there (the player can switch in Settings; remembered on the device). 'maxIcons': status icons over a head before the rest become '+2'.",
+  "show": "hit",
+  "flashMs": 1700,
+  "tapMs": 4000,
+  "maxIcons": 2,
+  "classPlates": {
+    "note": "THE SLOT FOR SULEIMAN'S CLASS NAMEPLATES (he is drawing them, 14 Nov). To wire one: put the picture in public/art/ui/nameplates/ and name it here against the class id from jobs.json, for example \"guardian\": \"guardian.png\". It is drawn behind the health bar, 'height' game pixels tall (its width follows the picture), with the bar placed at 'barAt' (0 = top of the picture, 1 = bottom) and 'barWidth' of the picture's width. A class with no picture keeps the plain bar.",
+    "height": 30,
+    "barAt": 0.72,
+    "barWidth": 0.7,
+    "files": {
+      "guardian": null,
+      "spearman": null,
+      "sage": null,
+      "shaman": null,
+      "twinSpear": null,
+      "bruiser": null,
+      "warlord": null,
+      "ranger": null
+    }
+  }
+}

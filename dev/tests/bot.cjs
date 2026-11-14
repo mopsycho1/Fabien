@@ -10,7 +10,8 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const texts = () => b.children.list.filter((o) => o.type === 'Text').map((o) => o.text);
   const dist = (a, c) => Math.abs(a.col - c.col) + Math.abs(a.row - c.row);
   const N = Number(process.argv[2] || 6);
-  const STYLE = process.argv[3] || 'mixed';   // mixed | noengage
+  const STYLE = process.argv[3] || 'smart';   // smart (the careful player, bot_brain.cjs) | mixed (the old plain player) | noengage
+  const brain = require('./bot_brain.cjs')(w, tally);
   for (let n = 1; n <= N; n++) {
     b.setSpeed('base', 8);
     if (process.env.NO_ENCHANT) for (const u of b.units) u.spells = u.spells.filter((s) => s !== 'enchant'); // balance runs: Enchant off
@@ -32,9 +33,9 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         try { return orig(...args); } finally { b.__inCast = was; }
       };
     }
-    for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function') continue; const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
-    const origEngage = b.performEngage.bind(b);
-    b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); };
+    for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function' || b['__trailed_' + fn]) continue; b['__trailed_' + fn] = true; /* wrap once: the scene lives on across battles */ const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
+    if (!b.__engageCounted) { b.__engageCounted = true; const origEngage = b.performEngage.bind(b);
+      b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); }; }
     const waitIdle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 6000) await sleep(5); };
     const alive = (s) => b.units.filter((u) => u.alive && u.side === s);
     const t0 = Date.now(); let lastSig = '', lastChange = Date.now(), stuck = false;
@@ -49,7 +50,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
         if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
         // a hero's turn with every button greyed out is a stuck screen for a real player
-        if (b.slots.every((sl) => !sl.enabled)) { tally.noButtons = (tally.noButtons || 0) + 1; console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed); }
+        if ([...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed); }
         const foes = alive('enemy');
         if (u.engagedWith) {
           const foe = u.engagedWith;
@@ -60,8 +61,9 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
             // stance duel: break away when it makes sense, otherwise usually the class stance, sometimes a counter or a guess
             const hurtLosing = u.hp < u.maxHp * 0.35 && E.momentumOf(u) < 0;
             const roll = Math.random();
-            const stance = hurtLosing || (STYLE === 'noengage') ? 'break' : roll < 0.5 ? E.autoStance(u) : ['press', 'guard', 'slip'][Math.floor(Math.random() * 3)];
-            if (E.poiseOf(u) >= 2 && stance !== 'break' && Math.random() < 0.4) b.empower = true;
+            let stance = hurtLosing || (STYLE === 'noengage') ? 'break' : roll < 0.5 ? E.autoStance(u) : ['press', 'guard', 'slip'][Math.floor(Math.random() * 3)];
+            if (STYLE === 'smart') { const pick = brain.smartStance(b, u); stance = pick.stance; if (pick.empower) b.empower = true; }
+            else if (E.poiseOf(u) >= 2 && stance !== 'break' && Math.random() < 0.4) b.empower = true;
             const myTurn = b.turnCount;
             b.onStance(stance); tally[stance === 'break' ? 'breaks' : 'presses']++;
             await waitIdle();
@@ -70,6 +72,8 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
           }
           if (wantBreak) { b.onBreakButton(); tally.breaks++; } else { b.onPressButton(); tally.presses++; }
           await waitIdle();
+        } else if (STYLE === 'smart') {
+          await brain.smartTurn(b, u, waitIdle);
         } else if (E.isMelee(u) && u.spells.includes('herbs') && St.cooldownOf(u, 'herbs') === 0 && alive('hero').some((f) => dist(u, f) <= 1 && f.hp < f.maxHp * 0.5)) {
           const f = alive('hero').find((x) => dist(u, x) <= 1 && x.hp < x.maxHp * 0.5);
           b.onSpellButton(); b.chooseSpell('herbs'); b.handleTap(f.col, f.row); b.handleTap(f.col, f.row); tally.spells++; await waitIdle();

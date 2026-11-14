@@ -1,3 +1,4 @@
+import { classPlateFiles } from '../nameplate.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
 import { startStep } from '../story.js';
@@ -25,6 +26,7 @@ export default class StartScene extends Phaser.Scene {
     preloadNormals(this); // bump pictures for the ?light test
     preloadSpellArt(this); // lightning and Verse effects from the effect sheets
     preloadUiArt(this); // Suleiman's battle-screen frames, buttons and icons
+    for (const f of classPlateFiles()) this.load.image(f.key, './' + f.file); // his class nameplates, once they are named in nameplates.json (M6)
   }
 
   create() {

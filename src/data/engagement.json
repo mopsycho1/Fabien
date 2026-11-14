@@ -127,6 +127,8 @@
       "standoffPoise": 1
     }
   },
+  "enemyClashGap": 16,
+  "enemyClashGapNote": "Balance (roadmap 18.15, 14 Nov): after an enemy starts a clash, the whole enemy side waits this many turns (every fighter's turn counts as one) before any enemy starts another. 0 = no wait. Each enemy still waits 6 turns of its own after its clash ends.",
   "stanceChoice": "auto",
   "stanceChoiceNote": "How heroes pick stances in a clash, until the player switches: \"auto\" (one Fight button picks for you) or \"manual\" (Press, Guard and Slip buttons). The player's switch is remembered on their device."
 }

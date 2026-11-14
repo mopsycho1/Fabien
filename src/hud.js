@@ -1,3 +1,4 @@
+import { buttonTip, showTip, TIP_HOLD_MS } from './tooltip.js';
 import Phaser from 'phaser';
 import { play } from './audio.js';
 
@@ -401,18 +402,36 @@ export class CommandButton {
     this.hit = scene.add.rectangle(x, y, w, h, 0x000000, 0.001).setInteractive({ useHandCursor: true });
     this.view = scene.add.container(0, 0, [this.bg, this.plate, this.icon, this.glyph, this.label, this.hit]);
 
-    this.hit.on('pointerdown', () => {
+    this.hit.on('pointerdown', (pointer) => {
+      // held for half a second: a tooltip says what the button does (roadmap 13.49), also
+      // when the button is greyed out. The tap itself still happens at once.
+      this.stopHold();
+      const at = pointer ? { x: pointer.x, y: pointer.y } : { x, y };
+      this.holdTimer = setTimeout(() => {
+        this.holdTimer = null;
+        const tip = this.tip || buttonTip(this.label.text);
+        if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
+      }, TIP_HOLD_MS);
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
       this.onTap();
     });
+    this.hit.on('pointerup', () => this.stopHold());
     this.hit.on('pointerover', () => this.draw(true));
-    this.hit.on('pointerout', () => this.draw(false));
+    this.hit.on('pointerout', () => { this.stopHold(); this.draw(false); });
+  }
+
+  stopHold() {
+    if (this.holdTimer) clearTimeout(this.holdTimer);
+    this.holdTimer = null;
   }
 
   // label: the word on the button, or null to hide it.
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight } = {}) {
+  // tip: { title, body } for the long-press tooltip (a skill's or an item's own text);
+  //      without one, the main buttons find theirs by their word (tooltips.json).
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null } = {}) {
+    this.tip = tip;
     const visible = label !== null;
     this.view.setVisible(visible);
     this.hit.setVisible(visible);
@@ -543,18 +562,34 @@ export class MenuRow {
     this.cost = scene.add.text(0, 0, '', textStyle(15, '#bcd8ff')).setOrigin(1, 0.5);
     this.hit = scene.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
     this.view = scene.add.container(0, 0, [this.bg, this.icon, this.glyph, this.label, this.word, this.cost, this.hit]);
-    this.hit.on('pointerdown', () => {
+    this.hit.on('pointerdown', (pointer) => {
+      // held for half a second: a tooltip (roadmap 13.49), as on CommandButton above
+      this.stopHold();
+      const at = pointer && pointer.x !== undefined ? { x: pointer.x, y: pointer.y } : { x: this.x || 0, y: this.y || 0 };
+      this.holdTimer = setTimeout(() => {
+        this.holdTimer = null;
+        const tip = this.tip || buttonTip(this.label.text);
+        if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
+      }, TIP_HOLD_MS);
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
       this.onTap();
     });
+    this.hit.on('pointerup', () => this.stopHold());
     this.hit.on('pointerover', () => this.draw(true));
-    this.hit.on('pointerout', () => this.draw(false));
+    this.hit.on('pointerout', () => { this.stopHold(); this.draw(false); });
+  }
+
+  stopHold() {
+    if (this.holdTimer) clearTimeout(this.holdTimer);
+    this.holdTimer = null;
   }
 
   // label: the words on the row, or null to hide it.
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight } = {}) {
+  // tip: { title, body } for the long-press tooltip (see CommandButton.set)
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null } = {}) {
+    this.tip = tip;
     const visible = label !== null;
     this.view.setVisible(visible);
     this.hit.setVisible(visible);

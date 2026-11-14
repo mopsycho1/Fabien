@@ -46,8 +46,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   S.applyOffBalance(gaha); S.applyPoison(gaha, 'poisonArrow'); S.applyStun(gaha); S.applyDisoriented(gaha); S.applyBurn(gaha, 'wildfire');
   b.refreshStatusTags();
   check('6.7 every status with art names its icon', tagIcons(gaha) === 'offbalance,poison,burn,stunned,disoriented', tagIcons(gaha));
-  check('6.7 over the unit: icons, no words', icons(gaha) === 'offbalance,poison,burn,stunned,disoriented' && !gaha.tagRow.list.some((o) => o.type === 'Text'), icons(gaha));
-  check('6.7 each icon sits in a thin bronze frame', gaha.tagRow.list.filter((o) => o.type === 'Rectangle').length === 5);
+  check('6.7 over the unit: icons, no words', icons(gaha) === 'offbalance,poison' && gaha.tagRow.list.filter((o) => o.type === 'Text').map((o) => o.text).join() === '+3', icons(gaha)); /* M6: two icons, then "+3" */
+  check('6.7 each icon sits in a thin bronze frame', gaha.tagRow.list.filter((o) => o.type === 'Rectangle').length === 3); /* two icon frames and the +3 */
   reset([[bull, 3, 5]]);
   bull.fury = 2; b.refreshStatusTags();
   check('6.7 stacks show a number on the icon (Bloodied 2)', icons(bull) === 'bloodied' && bull.tagRow.list.some((o) => o.type === 'Text' && o.text === '2'), icons(bull));

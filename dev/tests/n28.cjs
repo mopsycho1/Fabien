@@ -67,7 +67,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // Double Hit (4.6): a 35% chance on his normal attack, two frames, two damage numbers
   const dhRun = async (roll) => {
     park(); put(rabdul, 3, 4); put(gaha, 3, 5);
-    w.Math.random = () => (/enemyAttack|castDoubleHit|performAttack/.test(new Error().stack) ? roll : real()); /* below 0.35 triggers it; the hit roll also lands */
+    w.Math.random = () => { const st = new Error().stack; return /enemyAttack|castDoubleHit|performAttack/.test(st) && !/new Text|UUID/.test(st) ? roll : real(); }; /* (texts get their names from real chance: the lane makes two in one call, M6) */ /* below 0.35 triggers it; the hit roll also lands */
     const seen = []; const sf = b.showFrame.bind(b);
     b.showFrame = (u, f) => { if (u === rabdul) seen.push(f && (f.key || f.texture || f)); return sf(u, f); };
     const floats = []; const ft = b.floatText.bind(b); b.floatText = (u, t, ...r) => { floats.push(String(t)); return ft(u, t, ...r); };

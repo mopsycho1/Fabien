@@ -1,3 +1,6 @@
+import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
+import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows } from '../nameplate.js';
+import { staysOnUnit, placeLabel, laneCallout, resetCallouts } from '../callouts.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, setBoardShape } from '../config.js';
 import {
@@ -206,6 +209,8 @@ export default class BattleScene extends Phaser.Scene {
     this.busy = false;              // true while something is moving or attacking
     this.battleOver = false;        // true once one side has been wiped out
     this.turnCount = 0;             // how many turns have been played
+    resetCallouts(this); // the callout lane and the words over heads start empty (M6)
+    this.lastEnemyClashTurn = undefined; // the turn an enemy last started a clash (the side-wide wait, 18.15)
     this.relayQueue = null;         // pushes made by the skill being cast, for Relay Strike (see collectRelays)
     this.highlights = [];           // the colored squares currently on screen
     this.reachableKeys = new Set(); // tiles the unit may walk to, written like "3,5"
@@ -273,6 +278,8 @@ export default class BattleScene extends Phaser.Scene {
     // "currentlyOver" lists the buttons under the finger. If there is one,
     // the button handles the tap, so we skip it here.
     this.input.on('pointerdown', (pointer, currentlyOver) => {
+      hideTip(this); // any new press puts the last tooltip away
+      this.startUnitHold(pointer, currentlyOver);
       // During a cut-in or clash, any tap speeds it up
       if (this.inCinematic) {
         this.skipCinematic();
@@ -293,6 +300,9 @@ export default class BattleScene extends Phaser.Scene {
     this.input.addPointer(1); // two fingers at once, for the pinch
     this.input.on('pointermove', (pointer) => this.follow && this.boardMove(pointer));
     this.input.on('pointerup', (pointer) => this.follow && this.boardUp(pointer));
+    this.input.on('pointermove', (pointer) => { if (this.unitHold && Math.hypot(pointer.x - this.unitHold.x, pointer.y - this.unitHold.y) > 10) this.stopUnitHold(); });
+    this.input.on('pointerup', () => this.stopUnitHold());
+    this.events.once('shutdown', () => { this.stopUnitHold(); hideTip(this); });
     this.input.on('wheel', (pointer, over, dx, dy) => {
       if (this.follow) this.zoomAt(pointer.x, pointer.y, this.cameras.main.zoom * Math.pow(1.0015, -dy));
     });
@@ -316,6 +326,31 @@ export default class BattleScene extends Phaser.Scene {
 
     // Start the battle: work out who goes first
     this.startTurn();
+  }
+
+  // A finger held still on a fighter for half a second: a tooltip lists its statuses and
+  // what each does (roadmap 13.49). The press then does not count as a tap.
+  startUnitHold(pointer, currentlyOver) {
+    this.stopUnitHold();
+    if (this.inCinematic || this.battleOver || (currentlyOver && currentlyOver.length > 0)) return;
+    const hold = { x: pointer.x, y: pointer.y };
+    hold.timer = setTimeout(() => {
+      this.unitHold = null;
+      if (this.inCinematic || this.battleOver) return;
+      const world = this.cameras.main.getWorldPoint(hold.x, hold.y);
+      const { col, row } = this.tileAtPoint(world.x, world.y);
+      const unit = this.getUnitAt(col, row);
+      if (!unit || !unit.alive || (unit.hidden && unit.side !== 'hero')) return;
+      if (this.press) this.press.moved = true; // not a tap any more
+      flashPlate(this, unit, plateRules.tapMs);
+      showTip(this, unitTip(unit), hold.x, hold.y);
+    }, TIP_HOLD_MS);
+    this.unitHold = hold;
+  }
+
+  stopUnitHold() {
+    if (this.unitHold) clearTimeout(this.unitHold.timer);
+    this.unitHold = null;
   }
 
   // Marks an interface object (and everything inside it) as part of the UI:
@@ -1359,7 +1394,10 @@ export default class BattleScene extends Phaser.Scene {
     // A row of small tags above the health bar: ENGAGED, OFF-BAL, and spells
     const tagRow = this.add.container(0, -topY - 19);
 
-    const pieces = [shadow, body, sprite, labelText, barBack, hpFill, badgeBack, badgeText, tagRow].filter(Boolean);
+    // The plate over its head (health bar, number, turn place): hidden until it is hit, tapped
+    // or can be targeted (M6, src/nameplate.js)
+    const plate = buildPlate(this, { topY, barBack, hpFill, job: data.job, hp: data.hp, maxHp: data.hp });
+    const pieces = [shadow, body, sprite, labelText, plate, badgeBack, badgeText, tagRow].filter(Boolean);
     const view = this.add.container(x, y, pieces).setDepth(depthFor(data.col, data.row) + 1);
     // less over the characters (roadmap 8.4): the job badge goes; the profile card says it
     if (usePicture) [badgeBack, badgeText].forEach((o) => o && o.setVisible(false));
@@ -1403,6 +1441,7 @@ export default class BattleScene extends Phaser.Scene {
       hitRadius,
       bodyHalfWidth,
       hpFill,
+      plate,
       tagRow,
       idleTargets,
       idleTween,
@@ -1566,6 +1605,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     this.settleBodies(); // nobody starts a turn standing between two tiles (roadmap 13.47)
+    spreadTagRows(this.units);
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
     // still in the water: still soaked; out of it: a turn drier (roadmap 11.4)
@@ -1638,7 +1678,7 @@ export default class BattleScene extends Phaser.Scene {
       if (!u.view || !u.view.active) continue;
       if (!u.orderNumber) {
         u.orderNumber = this.add.text(-BAR_WIDTH / 2 - 9, -u.topY, '', { fontFamily: 'Georgia, serif', fontSize: '15px', fontStyle: 'bold', color: '#ffe08a', stroke: '#1a1410', strokeThickness: 4 }).setOrigin(0.5);
-        u.view.add(u.orderNumber);
+        (u.plate || u.view).add(u.orderNumber); // on the plate: it shows and hides with the health bar (M6)
       }
       const place = next.indexOf(u);
       const show = u.alive && u !== this.activeUnit && place >= 0;
@@ -1693,6 +1733,9 @@ export default class BattleScene extends Phaser.Scene {
 
   refreshStatus() {
     this.refreshPreview();
+    // whoever can be chosen as a target right now shows its health (M6: the bars are hidden otherwise)
+    const marked = TARGET_MODES.includes(this.mode) ? this.targetsInRange || [] : [];
+    for (const u of this.units || []) holdPlate(this, u, marked.includes(u) || u === this.pendingTarget);
     if (this.battleOver) return; // the result screen has taken over
 
     const unit = this.activeUnit;
@@ -1913,7 +1956,7 @@ export default class BattleScene extends Phaser.Scene {
       const shown = paged ? entries.slice(this.itemPage * 2, this.itemPage * 2 + 2) : entries;
       [a, b].forEach((slot, i) => {
         const e = shown[i];
-        if (e) slot.set(e.label, 'bag', e.enabled, e.onTap, { selected: e.selected, accent: e.accent });
+        if (e) slot.set(e.label, 'bag', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip });
         else slot.set(null);
       });
       if (paged) c.set('More  >', 'gem', true, () => { this.itemPage = (this.itemPage + 1) % Math.ceil(entries.length / 2); this.refreshStatus(); });
@@ -1928,7 +1971,7 @@ export default class BattleScene extends Phaser.Scene {
       const entries = this.spellMenu(unit);
       [a, b, c].forEach((slot, i) => {
         const e = entries[i];
-        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent });
+        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -1989,7 +2032,7 @@ export default class BattleScene extends Phaser.Scene {
     const atk = activeMove(unit, 'attack');
     const atkName = atk !== 'attack' ? spells[atk].button : unit.attackName;
     const atkAccent = atk !== 'attack' ? Phaser.Display.Color.HexStringToColor(spells[atk].color).color : unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a;
-    b.set(atkName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: atkAccent });
+    b.set(atkName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: atkAccent, tip: atk !== 'attack' ? spellTip(atk) : { title: atkName, body: buttonTip('Attack').body } });
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
       // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
       c.set(null);
@@ -2035,6 +2078,7 @@ export default class BattleScene extends Phaser.Scene {
   inspect(unit) {
     play('select');
     this.viewing = unit;
+    flashPlate(this, unit, plateRules.tapMs); // tapped: its health shows for as long as its card
     this.statusText.setText(unit.name + ' (' + unit.jobName + ')' + (unit.contest ? ', ' + STYLE_NAMES[styleOf(unit)] + ' style' : ''));
     this.refreshCard(unit, true);
     if (this.inspectTimer) this.inspectTimer.remove();
@@ -2150,6 +2194,7 @@ export default class BattleScene extends Phaser.Scene {
       onTap: () => this.chooseItem(id),
       selected: this.selectedItem === id,
       accent: Phaser.Display.Color.HexStringToColor(ITEMS[id].color).color,
+      tip: { title: ITEMS[id].name, body: ITEMS[id].text },
     }));
     if (this.sitesNear(unit).length > 0) {
       list.push({ label: 'Dig up', enabled: !this.busy, onTap: () => this.digHere(), selected: false, accent: 0xe4c27c });
@@ -2294,6 +2339,7 @@ export default class BattleScene extends Phaser.Scene {
         onTap: () => this.chooseSpell(id),
         selected: this.selectedSpell === id,
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
+        tip: spellTip(id), // long press: what the skill does (13.49)
       };
     };
     if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map((id) => entry(id));
@@ -3279,6 +3325,10 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(450, () => unit.alive && !this.inCinematic && this.showStanding(unit)); // after the flinch: weakened, or upright again after healing
     }
     unit.hpFill.setScale(fraction, 1);
+    // the plate shows for a moment whenever the health changes (M6: the bars are hidden otherwise)
+    setPlateNumber(unit);
+    if ((unit.shownHp === undefined ? unit.maxHp : unit.shownHp) !== unit.hp) flashPlate(this, unit);
+    unit.shownHp = unit.hp;
     unit.hpFill.setFillStyle(fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f); // red when low
     if (fraction > 0 && fraction <= 0.3 && !unit.lowGlow && unit.view.active) {
       unit.lowGlow = this.add.ellipse(0, 2, 74, 32, 0xff3b2e, 0.35).setBlendMode(Phaser.BlendModes.ADD);
@@ -4020,7 +4070,14 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Text that floats up from a unit and fades, like "-7" or "Miss".
+  // A number or a short reaction stays over the fighter (moved clear of other words, kept
+  // inside the screen); a longer callout goes to the lane under the turn strip with the
+  // fighter's name (M6, 17.3: src/callouts.js).
   floatText(unit, text, color, options = {}) {
+    if (!options.pop && !options.big && !staysOnUnit(text) && this.lay) {
+      const from = unit.name ? unit : unit.owner || {};
+      return laneCallout(this, from.name || '', from.side || 'hero', text, color);
+    }
     const big = !!options.big;
     const label = this.add
       .text(unit.view.x, unit.view.y - unit.topY - 20 - (options.rise || 0), text, {
@@ -4033,6 +4090,7 @@ export default class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(80); // above every tile and unit
+    placeLabel(this, label);
 
     if (!options.pop) {
       this.tweens.add({
@@ -4208,6 +4266,21 @@ export default class BattleScene extends Phaser.Scene {
       this.enemyAttack(unit);
       return;
     }
+    // Nobody to strike this turn: it forages (roadmap 13.48). It digs up what is buried or
+    // dropped beside it, or walks to a spot it can reach this turn and digs there.
+    const forage = this.forageChoice(unit);
+    if (forage) {
+      const dig = () => {
+        this.busy = true;
+        this.digUp(unit, forage.site, () => {
+          this.busy = false;
+          this.enemyWrapUp(unit);
+        });
+      };
+      if (forage.tile) this.moveUnit(unit, forage.tile.col, forage.tile.row, dig);
+      else dig();
+      return;
+    }
     const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
 
     if (tile) {
@@ -4215,6 +4288,32 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       this.enemyAttack(unit);
     }
+  }
+
+  // Enemies forage too (roadmap 13.48, Suleiman 13 Nov). What an enemy would dig up this turn,
+  // or null. It forages only when it cannot strike anyone this turn (no foe within its walk
+  // plus its reach), and only for something it or its side can use: healing and cures always,
+  // spirit water only if it has MP, a kola nut only if it fights in clashes.
+  // Returns { site, tile }: tile is where to walk first, or null if it already stands beside it.
+  forageChoice(unit) {
+    if (unit.engagedWith || unit.hasActed) return null;
+    const foes = this.enemyEyes().filter((o) => o.alive && o.side !== unit.side && !o.isDecoy);
+    if (foes.some((f) => distance(unit, f) <= moveOf(unit) + unit.range)) return null;
+    const useful = (st) => st.items.some((id) => ITEMS[id].heal || ITEMS[id].cure || (ITEMS[id].mp && unit.maxMp > 0) || (ITEMS[id].poise && !!unit.contest));
+    const sites = (this.sites || []).filter((st) => !st.dug && useful(st));
+    if (sites.length === 0) return null;
+    const near = sites.filter((st) => distance(unit, st) <= 1).sort((a, b) => distance(unit, a) - distance(unit, b))[0];
+    if (near) return { site: near, tile: null };
+    const walk = getReachableTiles(unit.col, unit.row, moveOf(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
+    let best = null;
+    for (const st of sites) {
+      for (const t of walk) {
+        if (distance(t, st) > 1) continue;
+        const steps = distance(unit, t);
+        if (!best || steps < best.steps) best = { site: st, tile: t, steps };
+      }
+    }
+    return best ? { site: best.site, tile: best.tile } : null;
   }
 
   // Where an enemy with a Smoke Bomb would slip to, or null if it should not throw one now:
@@ -4295,13 +4394,18 @@ export default class BattleScene extends Phaser.Scene {
     const allyNear = (t) => this.units.some((o) => o.alive && o.side === unit.side && o !== unit && distance(o, t) <= o.move + o.range);
     // After an engagement ends it waits one of its own turns before pinning
     // again, so it does not lock the same hero down turn after turn.
-    const rested = !unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6;
+    // The whole enemy side also shares one wait (roadmap 18.15, 14 Nov): after any enemy starts a
+    // clash, no enemy starts another for "enemyClashGap" turns (engagement.json). Without it the
+    // heroes spent more turns in stances than attacking and almost never won.
+    const sideRested = this.lastEnemyClashTurn === undefined || this.turnCount - this.lastEnemyClashTurn >= (engagementRules.enemyClashGap || 0);
+    const rested = sideRested && (!unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6);
     const seen = this.enemyEyes();
     const pins = engageTargets(unit, seen).filter((t) => !t.isDecoy && allyNear(t));
     // (tanks with a signature stance, like the Bruiser and the Warlord, want clashes too)
     if ((styleOf(unit) === 'defence' || unit.signature) && rested && pins.length > 0) {
       pins.sort((a, b) => b.attack - a.attack); // the most dangerous one
       this.busy = true;
+      this.lastEnemyClashTurn = this.turnCount;
       this.performEngage(unit, pins[0], () => {
         this.busy = false;
         this.enemyWrapUp(unit);
@@ -4738,11 +4842,11 @@ export default class BattleScene extends Phaser.Scene {
         play(beat.success ? 'miss' : 'bash');
         this.showPose(b, 'attack', -dx);
         if (beat.success) {
-          this.banner(mid.x, headY - 70, 'Broke free!', '#9fd4ff', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          this.banner(mid.x, headY - 70, 'Broke free!', '#9fd4ff', a.name + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.name);
           this.duelFacesMood({ winner: a });
           if (escape) this.slideAlong(a, [escape]);
         } else {
-          this.banner(mid.x, headY - 70, 'Held fast!', '#ff6b5a', a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+          this.banner(mid.x, headY - 70, 'Held fast!', '#ff6b5a', a.name + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.name);
           this.duelFacesMood({ winner: b });
           this.recoil(a, -dx);
         }
@@ -4798,7 +4902,7 @@ export default class BattleScene extends Phaser.Scene {
           color = '#ffe08a';
           this.decisiveFinish(beat); // 16.1 step 11: a bigger burst on the loser
         }
-        this.banner(mid.x, headY - 70, title, color, a.label + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.label);
+        this.banner(mid.x, headY - 70, title, color, a.name + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.name);
         this.duelFacesMood(beat);
         if (!beat.winner) {
           this.showPose(a, 'ready', dx);
@@ -4987,7 +5091,7 @@ export default class BattleScene extends Phaser.Scene {
       const colors = { advantage: '#ffe08a', stalemate: '#e8d5a8', reversal: '#ff6b5a' };
       const headY = Math.min(aHome.y - a.topY, bHome.y - b.topY);
       this.banner(mid.x, headY - 70, words[result.outcome], colors[result.outcome],
-        a.label + ' ' + result.pressScore + '  vs  ' + result.holdScore + ' ' + b.label);
+        a.name + ' ' + result.pressScore + '  vs  ' + result.holdScore + ' ' + b.name);
       if (result.outcome === 'stalemate') {
         this.showPose(a, 'ready', dx);
         this.showPose(b, 'ready', -dx);
@@ -6900,7 +7004,12 @@ export default class BattleScene extends Phaser.Scene {
       unit.tagRow.removeAll(true);
       // Over the unit: ENGAGED is left out (the crossed blades already show it).
       // A status with a picture (like Slow) shows its icon instead of the word.
-      const tags = unit.alive ? statusTags(unit).filter((t) => t.text !== 'ENGAGED') : [];
+      const all = unit.alive ? statusTags(unit).filter((t) => t.text !== 'ENGAGED') : [];
+      // At most 2 over a head, then "+2" (M6, 17.2): the stance word of a clash first, the rest
+      // in order. A long press on the fighter lists them all (13.49).
+      const stanceFirst = [...all.filter((t) => !t.icon && ['PRESS', 'GUARD', 'SLIP'].includes(t.text)), ...all.filter((t) => t.icon || !['PRESS', 'GUARD', 'SLIP'].includes(t.text))];
+      const tags = stanceFirst.slice(0, plateRules.maxIcons);
+      if (stanceFirst.length > tags.length) tags.push({ text: '+' + (stanceFirst.length - tags.length), color: '#f1e6c8' });
       const items = tags.map((t) => {
         if (t.icon && this.textures.exists('icon:' + t.icon)) {
           // his icon in a thin bronze frame, with a small number for stacks (Bloodied 2)
@@ -6922,6 +7031,7 @@ export default class BattleScene extends Phaser.Scene {
         const w = text.width + 10;
         return { w, make: (cx) => [this.add.rectangle(cx, 0, w, 18, 0x1a1410, 0.85), text.setPosition(cx, 0)] };
       });
+      unit.tagRow.rowWidth = items.reduce((sum, it) => sum + it.w + 4, -4);
       let x = -items.reduce((sum, it) => sum + it.w + 4, -4) / 2;
       for (const it of items) {
         unit.tagRow.add(it.make(x + it.w / 2));
@@ -6962,6 +7072,7 @@ export default class BattleScene extends Phaser.Scene {
         unit.burnAura = null;
       }
     }
+    spreadTagRows(this.units); // icon rows of fighters standing together never sit on each other (D1)
   }
 
   // Starts or stops one of the looping looks on a unit (made by make(), which
@@ -7062,6 +7173,12 @@ export default class BattleScene extends Phaser.Scene {
       .text(x, y + 38, sub || '', { fontFamily: 'Georgia, serif', fontSize: '22px', color: '#f1e6c8', stroke: '#1a1410', strokeThickness: 5 })
       .setOrigin(0.5)
       .setDepth(88);
+    // kept inside the screen (17.3): a clash at the board's edge used to cut the words
+    const v = this.cameras.main.worldView;
+    const half = Math.max(big.width, small.width) / 2 + 8;
+    const cx = Phaser.Math.Clamp(x, v.x + half, v.right - half);
+    const cy = Phaser.Math.Clamp(y, v.y + v.height * 0.14 + 30, v.bottom - 70);
+    big.setPosition(cx, cy); small.setPosition(cx, cy + 38);
     this.tweens.add({ targets: big, scale: 1, duration: 160, ease: 'Back.easeOut' });
     this.tweens.add({ targets: [big, small], alpha: 0, delay: 480, duration: 260, onComplete: () => { big.destroy(); small.destroy(); } });
   }
