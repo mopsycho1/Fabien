@@ -78,7 +78,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -120,6 +120,7 @@ const PACE_KEY = 'fabien.enemyPace';
 const READ_NAMES = { fire: 'Fire', water: 'Water', earth: 'Earth', storm: 'Storm' }; // Kofi's four elements (6.38)
 const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
 const DOUBLE_WINDUP_MS = 110; // the lean before each of Rabdul's two strikes (18.29)
+const SHIELD_FACINGS = ['upLeft', 'upRight', 'downLeft', 'downRight']; // the order of the bull's four flaming shield pictures (18.31)
 const WINDUP_LEAN_DEG = 6; // how far a melee fighter leans back in the wind-up before the blow, when it has no drawn wind-up (18.29)
 const HIDDEN_ALPHA = 0.6;
 const HIDDEN_ALPHA_FOE = 0.3; // a hidden enemy: only a faint shape (roadmap 1.47)
@@ -1693,6 +1694,16 @@ export default class BattleScene extends Phaser.Scene {
       this.updateHpBar(this.activeUnit);
       const burnt = this.activeUnit;
       this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
+    }
+    // Kofi's Renewal (Infuse in Water, 1.49): a little health back and one weak status lifted at the start of its turn
+    const renewed = tickRenewal(this.activeUnit);
+    if (renewed.heal > 0 || renewed.cured) {
+      const blessed = this.activeUnit;
+      this.updateHpBar(blessed);
+      this.time.delayedCall(poisoned > 0 || burned > 0 ? 900 : 0, () => {
+        if (renewed.heal > 0) this.floatText(blessed, '+' + renewed.heal, '#7fd6c4', { pop: true });
+        if (renewed.cured) this.time.delayedCall(350, () => this.floatText(blessed, 'Cured', '#9fdc6a', { rise: 46 }));
+      });
     }
     this.refreshWater(); // anyone standing in the water is Drenched (roadmap 11.4)
     // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
@@ -5626,10 +5637,9 @@ export default class BattleScene extends Phaser.Scene {
     }
     if (spell.kind === 'haunt') return this.castHaunt(caster, target, spell, onDone);
     if (spell.kind === 'infuse') {
-      // the blessing for what he reads: a Verse, or Renewal (water): healing
-      const verse = spell.verses[this.reading(caster).element];
-      if (verse) return this.castSpell(caster, target, verse, onDone, true);
-      return this.castHeal(caster, target, { ...spell, color: '#7fd6c4' }, onDone);
+      // the blessing for what he reads, always a spirit's Verse that lasts (1.49): Stone, Swiftness, Fury or
+      // Renewal (Water). It used to be a plain herb-pouch heal in Water, which threw a pouch at the ally.
+      return this.castSpell(caster, target, spell.verses[this.reading(caster).element], onDone, true);
     }
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
@@ -5672,7 +5682,7 @@ export default class BattleScene extends Phaser.Scene {
     const dxT = target.view.x - caster.view.x;
     const lead = poseFrame(caster.id, 'chant', 'right') ? 420 : 0;
     // the Verse gathers as light at her hands, then lights the ground and the fighters where it lands (18.23)
-    const verseElement = { swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex' }[id] || 'spirit';
+    const verseElement = { swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex', renewal: 'heal' }[id] || 'spirit';
     chargeUp(this, caster.view.x + Math.sign(dxT || 1) * 10, caster.view.y - caster.topY * 0.72, verseElement, { ms: lead + 250, size: 0.8, depth: caster.view.depth + 2 });
     if (lead) {
       this.showPose(caster, 'chant', dxT);
@@ -6155,9 +6165,17 @@ export default class BattleScene extends Phaser.Scene {
       const a = this.centerOf(thrower);
       const b = this.centerOf(target);
       // his painted shield in flight (6.33), else the plain drawn one
-      const flight = moveFrames(thrower.id, 'shieldFlight', dx >= 0 ? 'right' : 'left');
+      // under Enchant the flaming shield has a picture for each direction it can fly (18.31): then it is not spun
+      const rightFlight = moveFrames(thrower.id, 'shieldFlight', 'right');
+      const directional = rightFlight && rightFlight.directional ? rightFlight : null;
+      const flight = directional || moveFrames(thrower.id, 'shieldFlight', dx >= 0 ? 'right' : 'left');
+      const dyT = target.view.y - thrower.view.y;
+      const flightPic = (ddx, ddy) => directional.frames[Math.max(0, SHIELD_FACINGS.indexOf((ddy < 0 ? 'up' : 'down') + (ddx >= 0 ? 'Right' : 'Left')))];
       let shield;
-      if (flight) {
+      if (directional) {
+        const f = flightPic(dx, dyT);
+        shield = this.add.image(a.x, a.y, f.key).setDepth(79).setScale((thrower.baseScale || 0.5) * (f.scale || 1));
+      } else if (flight) {
         shield = this.add.image(a.x, a.y, flight.frames[0].key).setDepth(79).setScale((thrower.baseScale || 0.5) * (flight.frames[0].scale || 1));
         let n = 0;
         const spin = this.time.addEvent({ delay: flight.frameMs, loop: true, callback: () => { n++; const f = flight.frames[n % flight.frames.length]; shield.setTexture(f.key).setFlipX(f.flip); } });
@@ -6181,6 +6199,7 @@ export default class BattleScene extends Phaser.Scene {
             this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
             this.refreshStatusTags();
           }
+          if (directional) shield.setTexture(flightPic(-dx, -dyT).key); // on its way back it flies the other way
           this.tweens.add({ targets: shield, x: a.x, y: a.y, duration: 280, ease: 'Quad.easeOut', onComplete: () => shield.destroy() });
         },
       });

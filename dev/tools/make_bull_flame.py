@@ -177,7 +177,7 @@ def main():
     json.dump(made, open(WORK + 'made.json', 'w'), indent=1)
     # wire: his flame look (Rabdul's Enchant). Only the two left-facing views; the game mirrors the others.
     two = lambda d: {k: d[k] for k in ('upLeft', 'downLeft')}
-    e['note'] = "Under Rabdul's Enchant (roadmap 4.1): his 15 Nov full-quality flame sheets (dev/tools/make_bull_flame.py): battle stance (ready, guard), neutral standing, the raised mace (windup) and the swung mace (attack), up-left and down-left, the rest mirrored. The flaming shield in flight (bull_flame_shield_*, four directions) is cut but not wired (the shield flight spins one set of pictures; see roadmap 18.31)."
+    e['note'] = "Under Rabdul's Enchant (roadmap 4.1): his 15 Nov full-quality flame sheets (dev/tools/make_bull_flame.py): battle stance (ready, guard), neutral standing, the raised mace (windup) and the swung mace (attack), up-left and down-left, the rest mirrored. The flaming shield in flight (bull_flame_shield_*, four directions) is wired as moves.shieldFlight with "directional" (18.31)."
     e['standing'] = two(made['stand'])
     e['battle'] = two(made['battle'])
     e['poses'] = {'ready': two(made['battle']), 'guard': two(made['battle']), 'windup': two(made['windup']), 'attack': two(made['strike'])}

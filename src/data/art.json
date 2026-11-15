@@ -878,13 +878,21 @@
         }
       },
       "clashSlip": {
+        "upLeft": {
+          "file": "gaha_n6_dodge_upLeft.png",
+          "originX": 0.319
+        },
         "upRight": {
-          "file": "gaha_cu_clashSlip_upRight.png",
-          "originX": 0.578
+          "file": "gaha_n6_dodge_upRight.png",
+          "originX": 0.495
+        },
+        "downLeft": {
+          "file": "gaha_n6_dodge_downLeft.png",
+          "originX": 0.483
         },
         "downRight": {
-          "file": "gaha_cu_clashSlip_downRight.png",
-          "originX": 0.607
+          "file": "gaha_n6_dodge_downRight.png",
+          "originX": 0.42
         }
       },
       "sonicWindup": {
@@ -1188,7 +1196,7 @@
       }
     },
     "note_clash": "His own clash banner (roadmap 8.15): drawn on the left of a clash as it is; on the right it is flipped and the small name picture goes over its plate so the name still reads the right way. Loaded in the background once a battle starts (dev/tools/cut_banners31.py). Gadara's and Alagara's are cut too (public/art/clash) for Phase 10.",
-    "note_clash_poses": "Clash close-ups (roadmap 9.9): Press, Guard and Slip from his 30 Oct 21:14, 20:15 and 21:03 sheets, shown when the camera zooms on a clash. Sonic Javelin (9.16): his 1 Nov wind-up (08:32) and close-range strike (08:22). Cut by dev/tools/make_cleanup.py.",
+    "note_clash_poses": "Clash close-ups (roadmap 9.9): Press, Guard and Slip from his 30 Oct 21:14, 20:15 and 21:03 sheets, shown when the camera zooms on a clash. Sonic Javelin (9.16): his 1 Nov wind-up (08:32) and close-range strike (08:22). Cut by dev/tools/make_cleanup.py. 15 Nov (Suleiman 12:23: his dodge was still the concept-art close-up): clashSlip is now his sprite-sheet dodge (poses.dodge, four views); the two gaha_cu_clashSlip pictures are gone. Press and Guard were already his isometric pictures.",
     "buffPoses": {
       "stone": {
         "attack": {
@@ -1452,12 +1460,6 @@
       },
       "gaha_release_downRight.png": {
         "footX": 0.59
-      },
-      "gaha_cu_clashSlip_upRight.png": {
-        "footX": 0.501
-      },
-      "gaha_cu_clashSlip_downRight.png": {
-        "footX": 0.411
       },
       "gaha_n6_sonicPrep_upLeft.png": {
         "scale": 1.42,
@@ -2135,7 +2137,7 @@
       }
     },
     "enchanted": {
-      "note": "Under Rabdul's Enchant (roadmap 4.1): his 15 Nov full-quality flame sheets (dev/tools/make_bull_flame.py): battle stance (ready, guard), neutral standing, the raised mace (windup) and the swung mace (attack), up-left and down-left, the rest mirrored. The flaming shield in flight (bull_flame_shield_*, four directions) is cut but not wired (the shield flight spins one set of pictures; see roadmap 18.31).",
+      "note": "Under Rabdul's Enchant (roadmap 4.1): his 15 Nov full-quality flame sheets (dev/tools/make_bull_flame.py): battle stance (ready, guard), neutral standing, the raised mace (windup) and the swung mace (attack), up-left and down-left, the rest mirrored. The flaming shield in flight (bull_flame_shield_*, four directions) is wired as moves.shieldFlight with \"directional\" (18.31).",
       "battle": {
         "upLeft": {
           "file": "bull_flame_battle_upLeft.png",
@@ -2196,6 +2198,31 @@
         "downLeft": {
           "file": "bull_flame_stand_downLeft.png",
           "originX": 0.407
+        }
+      },
+      "moves": {
+        "shieldFlight": {
+          "note": "The flaming shield in flight, one picture per direction (Suleiman's 15 Nov Flaming Shield Directional Tile Set, roadmap 18.31, dev/tools/make_bull_flame.py). Not spun: BattleScene.castShieldToss shows the picture for the way it flies, and the other way on its return. \"directional\": the four pictures are in the order up-left, up-right, down-left, down-right.",
+          "frameMs": 70,
+          "directional": true,
+          "frames": [
+            {
+              "file": "bull_flame_shield_upLeft.png",
+              "originX": 0.5
+            },
+            {
+              "file": "bull_flame_shield_upRight.png",
+              "originX": 0.5
+            },
+            {
+              "file": "bull_flame_shield_downLeft.png",
+              "originX": 0.5
+            },
+            {
+              "file": "bull_flame_shield_downRight.png",
+              "originX": 0.5
+            }
+          ]
         }
       }
     },
@@ -2375,6 +2402,18 @@
       },
       "bull_flame_stand_downLeft.png": {
         "footX": 0.537
+      },
+      "bull_flame_shield_upLeft.png": {
+        "footX": 0.749
+      },
+      "bull_flame_shield_upRight.png": {
+        "footX": 0.119
+      },
+      "bull_flame_shield_downLeft.png": {
+        "footX": 0.397
+      },
+      "bull_flame_shield_downRight.png": {
+        "footX": 0.61
       },
       "bull_n6b_bl3_f1.png": {
         "footX": 0.336

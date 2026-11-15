@@ -62,6 +62,20 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('18.29 her dagger stab leans back first too', Math.abs(peak(r.angles)) > 4, peak(r.angles).toFixed(1));
   check('18.29 and she stands straight again', Math.abs(r.end) < 0.01, r.end);
 
+  // ---------- 18.31 the bull's flaming shield flies as the picture for its direction ----------
+  const S = w.__status;
+  const facingOf = (ddx, ddy) => (ddy < 0 ? 'up' : 'down') + (ddx >= 0 ? 'Right' : 'Left');
+  for (const [tc, tr] of [[2, 6], [5, 7], [7, 3], [7, 1]]) { /* the four directions on screen */
+    reset([[bull, 5, 4], [sudeen, tc, tr]]);
+    S.applyEnchant(bull, 'enchant'); b.refreshStatusTags();
+    const ddx = sudeen.view.x - bull.view.x, ddy = sudeen.view.y - bull.view.y;
+    const seq = [];
+    const w2 = setInterval(() => { for (const o of b.children.list) if (o.texture && /bull_flame_shield_/.test(o.texture.key)) { const k = o.texture.key.replace(/^\w+:bull_flame_shield_|\.png$/g, ''); if (seq[seq.length - 1] !== k) seq.push(k); } }, 15);
+    await new Promise((res) => { b.busy = true; b.castSpell(bull, sudeen, 'shieldToss', () => { b.busy = false; res(); }); setTimeout(res, 3500); });
+    clearInterval(w2);
+    check('18.31 the flaming shield flies as the ' + facingOf(ddx, ddy) + ' picture, then the opposite one coming back', seq[0] === facingOf(ddx, ddy) && seq[1] === facingOf(-ddx, -ddy), seq.join(' > '));
+  }
+
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);
 })();

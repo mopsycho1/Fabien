@@ -105,9 +105,18 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await new Promise((res) => { b.busy = true; b.castSpell(kofi, gaha, 'infuse', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
   check('read in Fire, Infuse gives the Fury Verse, for 2 MP in all', St.buffOf(gaha) && St.buffOf(gaha).id === 'fury' && kofi.mp === kofi.maxMp - 2 && St.cooldownOf(kofi, 'infuse') === 2, (St.buffOf(gaha) || {}).id + ' mp ' + kofi.mp);
   park(); put(kofi, 2, 3); put(gaha, 2, 5); gaha.hp = 10; St.applyPoison(gaha, 'poisonArrow');
+  // 1.49 (15 Nov): in Water Infuse is the Renewal blessing, a Verse that lasts, not an herb pouch thrown at the ally
+  let pouched = false; const realHeal = b.castHeal; b.castHeal = (...a) => { pouched = true; return realHeal.apply(b, a); };
+  const pouchesSeen = new Set(); const pouchWatch = setInterval(() => { for (const o of b.children.list) if (o.texture && o.texture.key === 'fx:herb_pouch') pouchesSeen.add(o); }, 20);
   await new Promise((res) => { b.busy = true; b.castSpell(kofi, gaha, 'infuse', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
-  await sleep(300);
-  check('read in Water, Infuse is Renewal: +8 health and the poison is lifted', gaha.hp === 18 && !St.isPoisoned(gaha), gaha.hp);
+  await sleep(300); clearInterval(pouchWatch); b.castHeal = realHeal;
+  check('1.49 read in Water, Infuse is the Renewal Verse on the ally: 3 turns, no herb pouch thrown', St.buffOf(gaha) && St.buffOf(gaha).id === 'renewal' && St.buffOf(gaha).turnsLeft === 3 && !pouched && pouchesSeen.size === 0, (St.buffOf(gaha) || {}).id + ' pouched ' + pouched + ' pouches ' + pouchesSeen.size);
+  check('1.49 and it heals nothing at once (the healing comes at the start of its turns)', gaha.hp === 10 && St.isPoisoned(gaha), gaha.hp);
+  const rn = St.tickRenewal(gaha);
+  check('1.49 at the start of its turn: about 5 percent of its health back and one weak status lifted (the poison)', rn.heal === Math.max(1, Math.round(gaha.maxHp * 0.05)) && gaha.hp === 10 + rn.heal && rn.cured === 'poison' && !St.isPoisoned(gaha), JSON.stringify(rn) + ' hp ' + gaha.hp);
+  gaha.hp = gaha.maxHp; check('1.49 a full-health unit heals nothing more', St.tickRenewal(gaha).heal === 0);
+  St.tickBuff(gaha); St.tickBuff(gaha); St.tickBuff(gaha);
+  check('1.49 Renewal ends after 3 turns', !St.buffOf(gaha));
 
   // ---------- a whole 4 v 4 enemy round does not break ----------
   park(); b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b);

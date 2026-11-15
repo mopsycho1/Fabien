@@ -52,7 +52,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('9.9 Gaha Guarding: his close-up Guard, held as the blades meet', shown(gaha).filter((k) => /gaha_iso_guard_/.test(k)).length >= 2);
   seen.clear(); reset([[gaha, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(bull, gaha, 'press', 'slip', gaha), false, res));
-  check('9.9 Gaha Slipping: his close-up dodge', shown(gaha).some((k) => /gaha_cu_clashSlip_/.test(k)));
+  check('9.9 Gaha Slipping: his sprite-sheet dodge (15 Nov: no longer the concept-art close-up)', shown(gaha).some((k) => /gaha_n6_dodge_/.test(k)) && !shown(gaha).some((k) => /gaha_cu_clashSlip_/.test(k)));
 
   // ---------- 9.8 Sudeen ----------
   seen.clear(); reset([[sudeen, 3, 4], [bull, 3, 3]]);

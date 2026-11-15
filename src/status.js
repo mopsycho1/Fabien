@@ -342,6 +342,26 @@ export function tickPoison(unit) {
   return lost;
 }
 
+// ---------- Renewal (Kofi's Water blessing through Infuse, roadmap 1.49, 6.38) ----------
+
+// The start of a unit's turn while Renewal is on it: it heals a share of its health (spells.json "regen",
+// at least 1 point) and loses one weak status ("cleanse": poison, burn, blinded, disoriented, in that order).
+// Returns { heal, cured } (cured is the name of the status that lifted, or null).
+export function tickRenewal(unit) {
+  const buff = statusOf(unit).buff;
+  if (!buff || buff.id !== 'renewal') return { heal: 0, cured: null };
+  const spell = spells.renewal;
+  const heal = Math.min(Math.max(1, Math.round(unit.maxHp * spell.regen * (buff.power || 1))), unit.maxHp - unit.hp);
+  unit.hp += heal;
+  const status = statusOf(unit);
+  let cured = null;
+  if (status.poison) { status.poison = null; cured = 'poison'; }
+  else if (status.burn) { status.burn = null; cured = 'burn'; }
+  else if (status.blinded) { status.blinded = null; cured = 'blinded'; }
+  else if (status.disoriented) { status.disoriented = null; cured = 'disoriented'; }
+  return { heal, cured };
+}
+
 // ---------- Burn (Layra's Wildfire, roadmap 3.9) ----------
 
 // Burn works like poison: damage at the start of each of the unit's next few

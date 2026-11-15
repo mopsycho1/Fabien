@@ -315,11 +315,13 @@ export function walkStyle(id) {
 
 // A move played picture by picture ("moves" in art.json), facing "left" or
 // "right": { frames: [frame, ...], frameMs }, or null if the unit doesn't have it.
+// "directional" (18.31, the bull's flaming shield): the four frames are up-left, up-right, down-left, down-right;
+// the shield is then not spun but shown as the picture for the way it flies (ask for side "right": none is mirrored).
 export function moveFrames(id, move, side) {
   const entry = art[id];
   const look = lookEntry(id); // a flame version of the move, while enchanted
   const m = (look && look.moves && look.moves[move]) || (entry && entry.moves && entry.moves[move]);
   if (!m) return null;
   // chargeFrames: the frames shown in turn while he runs; strikeFrom to strikeTo: the frames of the hit before the shield push (Furious Charge and Shield Ram)
-  return { frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60, chargeFrames: m.chargeFrames || [1, 2], strikeFrom: m.strikeFrom == null ? 3 : m.strikeFrom, strikeTo: m.strikeTo == null ? 4 : m.strikeTo };
+  return { directional: m.directional || null, frames: m.frames.map((f) => makeFrame(id, f, side === 'left')), frameMs: m.frameMs || 60, chargeFrames: m.chargeFrames || [1, 2], strikeFrom: m.strikeFrom == null ? 3 : m.strikeFrom, strikeTo: m.strikeTo == null ? 4 : m.strikeTo };
 }
