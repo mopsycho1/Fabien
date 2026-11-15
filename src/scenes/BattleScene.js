@@ -1,3 +1,4 @@
+import { endingRules, parFor, rateWin, recordBest, battleTally } from '../ending.js';
 import { teamColor, figureShadows, addRim, syncRims, drawPath, boardRules } from '../boardRead.js';
 import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
 import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode, drainChunk, clearChunk } from '../nameplate.js';
@@ -211,6 +212,7 @@ export default class BattleScene extends Phaser.Scene {
     this.busy = false;              // true while something is moving or attacking
     this.battleOver = false;        // true once one side has been wiped out
     this.turnCount = 0;             // how many turns have been played
+    this.damageTaken = {}; // damage each fighter has taken, by id (the result screen, M12)
     resetCallouts(this); // the callout lane and the words over heads start empty (M6)
     this.lastEnemyClashTurn = undefined; // the turn an enemy last started a clash (the side-wide wait, 18.15)
     this.relayQueue = null;         // pushes made by the skill being cast, for Relay Strike (see collectRelays)
@@ -3395,6 +3397,7 @@ export default class BattleScene extends Phaser.Scene {
   landHit(target, damage) {
     if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
+    this.damageTaken[target.id] = (this.damageTaken[target.id] || 0) + (landed.damage || 0); // for the result screen (M12)
     if (landed.damage > 0) this.interrupt(target);
     if (landed.damage > 0 && target.hidden) this.revealHidden(target); // caught by an area attack: found out (1.47)
     return landed;
@@ -4246,17 +4249,26 @@ export default class BattleScene extends Phaser.Scene {
     return null;
   }
 
-  // The end of the battle. The side still standing celebrates for a moment,
-  // then the result panel appears.
+  // The end of the battle (M12, 17.10). It builds up: the last blow plays slowly, the board
+  // dims, the side still standing celebrates, the word sweeps in with its sting of music,
+  // then the numbers: turns against par with a rating (13.45), damage, who fell, the faces.
   showResult(outcome) {
     dropTurnBanner(this);
+    hideTip(this);
     this.setSpeed('enemy', 1); // the ending always plays at normal speed
     const won = outcome === 'victory';
     stopMusic();
-    play(won ? 'victory' : 'defeat');
     this.statusText.setText('');
-    for (const slot of this.slots) slot.set(null);
+    for (const slot of [...this.slots, ...this.halves, ...this.lowHalves]) slot.set(null);
+    // 1. the last blow, slowly (real time: the scene's own clock is the thing being slowed)
+    this.setSpeed('finale', endingRules.slowTo);
+    this.finaleTimer = setTimeout(() => { this.finaleTimer = null; if (this.sys.isActive()) this.setSpeed('finale', 1); }, endingRules.slowMs);
+    this.events.once('shutdown', () => { if (this.finaleTimer) clearTimeout(this.finaleTimer); this.speed.finale = 1; });
     this.resetCamera(300);
+    // 2. the board dims behind the fighters still standing
+    const v = this.cameras.main.worldView;
+    this.resultDim = this.add.rectangle(v.centerX, v.centerY, v.width * 3, v.height * 3, 0x000000, 0).setDepth(78.5);
+    this.tweens.add({ targets: this.resultDim, fillAlpha: endingRules.dim, duration: 500 });
 
     const survivors = this.units.filter((u) => u.alive && u.side === (won ? 'hero' : 'enemy'));
     survivors.forEach((u, i) => {
@@ -4268,39 +4280,84 @@ export default class BattleScene extends Phaser.Scene {
         this.time.delayedCall(260, () => u.alive && this.showPose(u, cheer, foeSide));
       });
     });
-    this.time.delayedCall(1000, () => this.showResultPanel(won));
+    // 3. the word and the numbers
+    this.time.delayedCall(700, () => this.showResultPanel(won));
   }
 
   showResultPanel(won) {
+    play(won ? 'victory' : 'defeat'); // the sting, as the word arrives
     // laid out around the middle of the screen, whatever its shape
     const W = this.scale.width;
     const H = this.scale.height;
-    const dy = Math.round(H / 2 - 640);
+    const least = this.lay ? this.lay.minText : 11;
+    const F = (n) => Math.max(n, least); // letters never under 11 real pixels
     const cover = this.ui(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(300));
-    this.tweens.add({ targets: cover, fillAlpha: 0.8, duration: 300 });
+    this.tweens.add({ targets: cover, fillAlpha: 0.55, duration: 300 });
 
-    const panel = this.ui(bronzePanel(this, W / 2 - Math.min(300, W / 2 - 60), 380 + dy, Math.min(600, W - 120), 540).setDepth(301));
-    const title = this.ui(
-      this.add
-        
-        .text(W / 2, 480 + dy, won ? 'Victory' : 'Defeat', textStyle(92, won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' }))
-        .setOrigin(0.5)
-        .setDepth(302)
-        .setScale(0.6)
-    );
-    this.tweens.add({ targets: title, scale: 1, duration: 280, ease: 'Back.easeOut' });
-    this.ui(this.add.text(W / 2, 568 + dy, won ? 'All enemies defeated.' : 'All heroes have fallen.', textStyle(30)).setOrigin(0.5).setDepth(302));
-    this.ui(this.add.text(W / 2, 612 + dy, 'Turns played: ' + this.turnCount, textStyle(24, '#a89a78')).setOrigin(0.5).setDepth(302));
-    this.ui(this.add.tileSprite(W / 2, 652 + dy, 420, 18, 'ui-woven').setDepth(302));
+    // what happened
+    const team = this.units.filter((u) => u.side === 'hero').length;
+    const tally = battleTally(this.units, this.damageTaken || {});
+    const par = parFor(this.mapName, team);
+    const rating = won ? rateWin(this.turnCount, par) : null;
+    const best = won ? recordBest(this.mapName, team, this.turnCount) : null;
+    this.result = { won, turns: this.turnCount, par, rating, best, tally };
 
-    let y = 730 + dy;
+    // the panel is as tall as what it holds: more lines after a win, one or two buttons
+    const buttons = won && this.stepIndex !== null ? 2 : 1;
+    const lh = (n) => Math.round(F(n) * 1.5);
+    const pw = Math.min(620, W - 60);
+    const ph = 170 + lh(30) + lh(24) + (rating ? (rating.banner ? 58 : 0) + lh(24) + 2 * lh(20) : lh(20)) + 30 + lh(24) + lh(22) + 102 + buttons * 92 + 24;
+    const px = W / 2 - pw / 2, py = Math.round(H / 2 - ph / 2);
+    const parts = [];
+    const add = (o) => { this.ui(o); parts.push(o); return o; };
+    add(bronzePanel(this, px, py, pw, ph).setDepth(301));
+    // the word sweeps in from the side, over a streak of light
+    const streak = add(this.add.rectangle(-W, py + 96, W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
+    const title = add(this.add.text(-W / 2, py + 96, won ? 'Victory' : 'Defeat', textStyle(96, won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
+    this.tweens.add({ targets: title, x: W / 2, duration: 320, ease: 'Cubic.easeOut' });
+    this.tweens.add({ targets: streak, x: W * 1.6, duration: 520, ease: 'Cubic.easeOut', onComplete: () => streak.setVisible(false) });
+    screenShake(this, 0.004, 140);
+    let y = py + 170;
+    const line = (text, size, color = '#f1e6c8', extra = {}) => { const t = add(this.add.text(W / 2, y, text, textStyle(F(size), color, extra)).setOrigin(0.5).setDepth(302).setAlpha(0)); y += Math.round(F(size) * 1.5); return t; };
+    const rows = [];
+    rows.push(line(won ? 'All enemies defeated.' : 'All heroes have fallen.', 30));
+    // a Swift win: the gold banner (the bonus for beating par, 13.45)
+    if (rating && rating.banner) {
+      const band = add(this.add.rectangle(W / 2, y + 16, pw - 80, 44, 0xb8860b, 0.95).setStrokeStyle(2, 0xffe08a).setDepth(302).setAlpha(0));
+      const word = add(this.add.text(W / 2, y + 16, rating.banner, textStyle(F(24), '#fff4d6', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setAlpha(0).setLetterSpacing(3));
+      rows.push(band, word); y += 58;
+    }
+    rows.push(line('Turns played: ' + this.turnCount, 24, '#e8d5a8'));
+    if (rating) {
+      rows.push(line('Par ' + par + '   ·   ' + rating.name + '  ' + '★'.repeat(rating.stars) + '☆'.repeat(3 - rating.stars), 24, rating.id === 'swift' ? '#ffe08a' : rating.id === 'steady' ? '#9fdc8a' : '#d8c8a4', { fontStyle: 'bold' }));
+      rows.push(line(rating.under >= 0 ? rating.under + ' under par. ' + rating.text : -rating.under + ' over par. ' + rating.text, 20, '#a89a78'));
+      rows.push(line(best.isNew ? 'New best: ' + best.best + ' turns' : 'Best: ' + best.best + ' turns', 20, best.isNew ? '#ffe08a' : '#a89a78'));
+    } else {
+      rows.push(line('Par for a win here: ' + par + ' turns', 20, '#a89a78'));
+    }
+    rows.push(add(this.add.tileSprite(W / 2, y + 4, 420, 18, 'ui-woven').setDepth(302).setAlpha(0))); y += 30;
+    rows.push(line('Damage dealt ' + tally.dealt + '   ·   taken ' + tally.taken, 24));
+    rows.push(line(tally.fallenHeroes.length ? 'Fell: ' + tally.fallenHeroes.join(', ') : 'No hero fell.', 22, tally.fallenHeroes.length ? '#ff9a8a' : '#9fdc8a'));
+    // the heroes' faces: bright if standing, dark if fallen
+    const r = 30, gap = 78, x0 = W / 2 - ((tally.heroes.length - 1) * gap) / 2;
+    y += r + 6;
+    tally.heroes.forEach((u, i) => {
+      const face = add(portraitMedallion(this, x0 + i * gap, y, r, u, portraitKey(u.id, u), { active: u.alive }).setDepth(302).setAlpha(0));
+      face.fallen = !u.alive;
+      rows.push(face);
+    });
+    y += r + 30;
+    // one after another, like a roll being read out
+    rows.forEach((o, i) => this.tweens.add({ targets: o, alpha: o.fallen ? 0.35 : 1, delay: 260 + i * 90, duration: 200 }));
+    this.resultRows = rows;
+
     const addButton = (label, icon, onTap) => {
-      const button = new CommandButton(this, W / 2, y, 420, 76);
+      const button = new CommandButton(this, W / 2, y + 30, 420, 76);
       button.set(label, icon, true, onTap);
       button.view.setDepth(303);
       this.ui(button.view);
       this.resultButtons.push(button);
-      y += 100;
+      y += 92;
     };
 
     // After a win, "Continue" moves the story on to the next step

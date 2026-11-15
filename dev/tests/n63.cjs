@@ -38,7 +38,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.setSpeed('slowMo', 0.35); check('slow motion multiplies with Fast (2 x 0.35)', Math.abs(total() - 0.7) < 1e-9, total()); b.setSpeed('slowMo', 1);
   // the ending is at normal speed
   b.setSpeed('enemy', 2); b.showResult('defeat');
-  check('the result screen plays at normal speed', b.speed.enemy === 1 && total() === 1, total());
+  /* M12: the last blow plays slowly for 0.65 s (speed.finale), then the ending is at normal speed; Fast is off at once */
+  check('the ending switches Fast off at once and slows the last blow', b.speed.enemy === 1 && b.speed.finale < 1, total());
+  await sleep(900);
+  check('the result screen then plays at normal speed', b.speed.enemy === 1 && total() === 1, total());
   pill() && pill().emit('pointerdown');
   check('tapping again goes back to Normal, remembered', b.enemyFast === false && w.localStorage.getItem('fabien.enemyPace') === 'normal');
   const real = errors.filter((e) => !e.includes('focus()'));

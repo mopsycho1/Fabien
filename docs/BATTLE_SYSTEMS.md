@@ -241,8 +241,8 @@ These three were open. Each has an answer now so the build can go on. **Every on
 - Why: healing or blocking for free every turn makes battles longer, and the pace goal is 20 to 35 turns. It would also make Gaha stronger, which is Suleiman's own worry. Hold rewards timing and does not reward hiding.
 
 **11.3 Reward fast wins (roadmap 13.45). Default, Suleiman can change.**
-- **Par for the Hidden Cavern is 30 turns** in a 3 against 3 battle and **40 turns** in a 4 against 4 battle. A turn is one fighter's turn, as the turn counter shows it.
-- Ratings: **Swift** at 8 turns under par or better, **Steady** up to par, **Long** over par. Losing has no rating.
-- Bonus: a Swift win shows a gold banner now. When the hub exists, a Swift win also gives one extra item to carry into the next battle.
-- Nothing in the battle itself changes with the count (no fatigue rule). The reward comes after, so speed comes from playing well. (Not built yet: it goes in with the ending screen, M12.)
+- **Par for the Hidden Cavern is 55 turns** in a 3 against 3 battle and **100 turns** in a 4 against 4 battle. A turn is one fighter's turn, as the turn counter shows it. (Changed 15 Nov from 30 and 40 after measuring: 40 test battles at 4 against 4 ran 86 to 162 turns, middle 125, so 40 could never be met. The numbers are in src/data/ending.json.)
+- Ratings: **Swift** (3 stars) at 15 turns under par or better, **Steady** (2 stars) up to par, **Long** (1 star) over par. Losing has no rating; the screen says what par is.
+- Bonus: a Swift win shows a gold banner, and the fewest turns ever is kept as "Best" on the device. When the hub exists, a Swift win also gives one extra item to carry into the next battle.
+- Nothing in the battle itself changes with the count (no fatigue rule). The reward comes after, so speed comes from playing well. (Built 15 Nov with the ending screen, M12.)
 
