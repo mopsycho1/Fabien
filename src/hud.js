@@ -614,7 +614,35 @@ export class MenuRow {
     this.draw(false);
   }
 
+  // The slim look (15 Nov): a round icon button; the word shows only for the chosen or hovered one,
+  // on a small tag to the left of the column.
+  drawSlim(hover) {
+    const { x, y, w, h, s } = this;
+    const on = this.enabled;
+    const cx = x + w / 2, cy = y + h / 2, rad = Math.min(w, h) / 2 - 2 * s;
+    const g = this.bg;
+    g.clear();
+    const lit = this.selected || (hover && on);
+    g.fillStyle(lit ? 0x5a3d1c : 0x1a1410, 0.92).fillCircle(cx, cy, rad);
+    g.lineStyle(lit ? 2.5 * s : 1.5 * s, lit ? UI.gold : on ? UI.bronze : UI.bronzeDark, 1).strokeCircle(cx, cy, rad);
+    const d = rad * 1.35;
+    const key = this.iconName && glyphKey(this.scene, this.iconName);
+    this.icon.clear();
+    if (key) this.glyph.setTexture(key).setPosition(cx, cy).setDisplaySize(d, d).setVisible(true).setAlpha(on ? 1 : 0.4);
+    else { this.glyph.setVisible(false); if (this.iconName) drawIcon(this.icon, this.iconName, cx, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434); }
+    this.cost.setText('');
+    if (lit) {
+      const size = Math.max(this.minText || 11, Math.round(15 * s));
+      this.word.setFontSize(size).setOrigin(1, 0.5).setPosition(x - 12 * s, cy).setVisible(true).setColor(on ? '#f1e6c8' : '#8a7a62');
+      const tw = this.word.width + 16 * s, th = size + 12 * s;
+      g.fillStyle(0x0e0906, 0.9).fillRoundedRect(x - 12 * s - tw + 8 * s, cy - th / 2, tw, th, 6 * s);
+      g.lineStyle(1, UI.bronze, 0.9).strokeRoundedRect(x - 12 * s - tw + 8 * s, cy - th / 2, tw, th, 6 * s);
+    } else this.word.setVisible(false);
+  }
+
   draw(hover) {
+    if (this.slim) return this.drawSlim(hover);
+    this.word.setVisible(true).setOrigin(0, 0.5);
     const { x, y, w, h, s } = this;
     const on = this.enabled;
     const cy = y + h / 2;

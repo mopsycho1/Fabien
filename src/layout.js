@@ -34,7 +34,10 @@ export function uiScaleFor(scene) {
   const display = scene.scale.displaySize;
   const shown = Math.min(display.width / scene.scale.width, display.height / scene.scale.height);
   if (!Number.isFinite(shown) || shown <= 0) return 1;
-  return clamp(0.62 / shown, 1, 1.45);
+  // Baiyee 15 Nov: the UI was too big and the game should be minimalist, so the interface is
+  // smaller (0.5 in place of 0.62, and it may go down to 0.85). Nothing is allowed under 11 real
+  // pixels of text or 44 of tap (minText, minTap in BattleScene.computeLayout).
+  return clamp(0.5 / shown, 0.85, 1.3);
 }
 
 // Keeps the game the same shape as the window. When the shape changes enough

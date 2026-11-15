@@ -400,8 +400,8 @@ export default class BattleScene extends Phaser.Scene {
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
     const b = this.boardBounds();
-    const top = portrait ? m + 104 * s : m;
-    const bottom = portrait ? H - Math.max(214 * s, 8.6 * minText + 60 * s) : H - m; // above the full-width card
+    const top = portrait ? m + 66 * s : m; // (a smaller turn strip, 15 Nov)
+    const bottom = portrait ? H - this.cardMetrics().slimH - 2 * m : H - m; // above the slim card bar
     const zoom = Math.max(0.7, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
     this.lay.top = top;       // the board's free space on the screen: under the turn strip...
     this.lay.bottom = bottom; // ...and above the cards (the follow camera centres in it, roadmap 17.1)
@@ -644,28 +644,28 @@ export default class BattleScene extends Phaser.Scene {
       return o;
     };
     const T = (n) => Math.max(S(n), this.lay.minText); // letters: never under 11 real pixels (M7)
-    this.stripY = m + S(40);
+    this.stripY = m + S(28);
 
     // Top left: the turn order, with a thin gold line under it. (The title line that stood
     // here is gone: it took a line for nothing, 17.7. The faces are bigger instead.)
     const line = keep(this.add.graphics());
     line.lineStyle(1, UI.bronze, 0.8);
-    if (this.lay.portrait) line.lineBetween(m, this.stripY + S(50), m + S(400), this.stripY + S(50));
+    if (this.lay.portrait) line.lineBetween(m, this.stripY + S(36), m + S(300), this.stripY + S(36));
     this.turnStripLayer = keep(this.add.container(0, 0));
 
     // Top right: the turn number, and the tile in focus (its ground and height)
-    const bw = S(214);
-    const bh = S(72);
+    const bw = S(206);
+    const bh = S(52);
     const bx = W - m - bw;
     darkPanel(keep(this.add.graphics()), bx, m, bw, bh, s);
-    keep(this.add.text(bx + S(14), m + S(18), 'TURN', textStyle(T(13), '#a89a78')).setLetterSpacing(2).setOrigin(0, 0.5));
-    this.turnText = keep(this.add.text(bx + bw - S(14), m + S(18), '01', textStyle(S(28), '#ffe08a')).setOrigin(1, 0.5));
-    this.tileText = keep(this.add.text(bx + S(14), m + S(52), '', textStyle(T(14), '#e8d5a8')).setOrigin(0, 0.5));
+    keep(this.add.text(bx + S(12), m + S(14), 'TURN', textStyle(T(12), '#a89a78')).setLetterSpacing(2).setOrigin(0, 0.5));
+    this.turnText = keep(this.add.text(bx + bw - S(12), m + S(14), '01', textStyle(S(20), '#ffe08a')).setOrigin(1, 0.5));
+    this.tileText = keep(this.add.text(bx + S(12), m + S(37), '', textStyle(T(12), '#e8d5a8')).setOrigin(0, 0.5));
 
     // Under it: turn the camera (his curved arrows) either side of the little
     // map of the board, and sound on or off
-    const r = S(21);
-    const iy = m + bh + S(12) + r;
+    const r = S(17);
+    const iy = m + bh + S(8) + r;
     const round = (x, icon, onTap, y = iy) => {
       const pic = iconImage(this, x, y, icon, r * 2);
       if (pic) keep(pic);
@@ -850,26 +850,34 @@ export default class BattleScene extends Phaser.Scene {
     const header = this.mode === 'item' || this.mode === 'itemTarget' ? 'Items' : this.mode === 'spell' || this.spellGroup ? this.spellGroup || (caster ? 'Verses' : 'Skills') : '';
     const headH = header ? Math.max(Math.round(24 * s), this.lay.minText + Math.round(8 * s)) : 0;
     this.menuHeader.setFontSize(Math.max(Math.round(14 * s), this.lay.minText));
-    const gripH = Math.round(14 * s);
+    // Baiyee 15 Nov: the main menu is a slim column of icon buttons on the right edge; only the
+    // chosen (or hovered) one shows its word. Lists of skills and items keep their words.
+    const slim = !header;
+    const gripH = slim ? 0 : Math.round(14 * s);
     // On an upright phone the main menu has two buttons a line (thumb sized, M7); lists of
     // skills and items keep one a line so their names and costs fit.
-    const cols = this.lay.portrait && !header ? 2 : 1;
-    const colW = (menuW - 2 * pad) / cols;
+    const cols = 1;
+    const slimW = this.lay.minTap; // a square the size of a finger
+    const mW = slim ? slimW + 2 * pad : menuW;
+    const rH = slim ? this.lay.minTap : rowH;
+    const colW = (mW - 2 * pad) / cols;
     rows.forEach((r, i) => {
-      const alone = cols === 2 && i === rows.length - 1 && rows.length % 2 === 1; // the odd one out takes the whole line
-      r.place(pad + (i % cols) * colW, pad + gripH + headH + Math.floor(i / cols) * rowH, alone ? menuW - 2 * pad : colW, rowH, s, this.lay.minText);
+      r.slim = slim;
+      r.place(pad + (i % cols) * colW, pad + gripH + headH + Math.floor(i / cols) * rH, colW, rH, s, this.lay.minText);
     });
-    const h = pad * 2 + gripH + headH + Math.ceil(rows.length / cols) * rowH;
+    const h = pad * 2 + gripH + headH + Math.ceil(rows.length / cols) * rH;
     this.menuPanel.clear();
-    darkPanel(this.menuPanel, 0, 0, menuW, h, s);
+    if (slim) { this.menuPanel.fillStyle(0x0e0906, 0.55).fillRoundedRect(0, 0, mW, h, 10 * s); this.menuPanel.lineStyle(1, UI.bronze, 0.7).strokeRoundedRect(0, 0, mW, h, 10 * s); }
+    else darkPanel(this.menuPanel, 0, 0, mW, h, s);
     // the grip: two short rows of gold dots, centred along the top
     this.menuGrip.clear().fillStyle(this.menuPin ? 0xffd27a : UI.bronzeLight, this.menuPin ? 0.95 : 0.7);
-    for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(menuW / 2 + i * 7 * s, pad + gripH / 2 + dy * s, 1.6 * s);
-    this.menuGripHit.setSize(menuW, pad + gripH + Math.round(4 * s));
-    if (this.menuGripHit.input) this.menuGripHit.input.hitArea.setTo(0, 0, menuW, pad + gripH + Math.round(4 * s));
+    if (!slim) for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(mW / 2 + i * 7 * s, pad + gripH / 2 + dy * s, 1.6 * s);
+    const gripHit = slim ? 1 : pad + gripH + Math.round(4 * s);
+    this.menuGripHit.setSize(mW, gripHit);
+    if (this.menuGripHit.input) this.menuGripHit.input.hitArea.setTo(0, 0, mW, gripHit);
     this.menuHeader.setText(header.toUpperCase()).setPosition(pad + Math.round(10 * s), pad + gripH + headH / 2);
     this.menuRows = rows;
-    this.menuSize = { w: menuW, h };
+    this.menuSize = { w: mW, h };
     this.ui(this.menu);
     this.placeMenu();
   }
@@ -885,7 +893,7 @@ export default class BattleScene extends Phaser.Scene {
     const u = this.activeUnit;
     const turn = u && u.side === 'hero' && u.alive && !this.busy && !this.battleOver && !this.inCinematic && !this.rotating;
     const picking = TARGET_MODES.includes(this.mode);
-    const show = !!(turn && !picking && this.menuRows.length > 0);
+    const show = !!(turn && !picking && this.menuRows.length > 0 && this.cardOpen !== true);
     this.menu.setVisible(show);
     this.showPill(!!(turn && picking));
     if (show !== this.menuShown) {
@@ -1033,7 +1041,9 @@ export default class BattleScene extends Phaser.Scene {
     const topH = Math.max(h0 + 3 * line, 2 * r + S(20));
     const statsH = S(6) + small + big + S(8);
     const chipsH = Math.max(S(24), small + S(8)) + S(6);
-    return { S, T, pad, r, nameSize, small, big, line, h0, topH, statsH, chipsH, closedH: pad + topH + statsH + chipsH + pad - S(4) };
+    // the slim bar the card is while closed (15 Nov): a small face, the name and a thin HP bar
+    const slimH = Math.max(S(54), this.lay.minTap);
+    return { S, T, pad, r, nameSize, small, big, line, h0, topH, statsH, chipsH, slimH, closedH: slimH };
   }
 
   // The unit's profile along the bottom (roadmap 8.2, his 30 Oct mockups; reworked in M7,
@@ -1049,6 +1059,7 @@ export default class BattleScene extends Phaser.Scene {
     const { s, m, H, cardW: w, portrait } = this.lay;
     const { S, T, pad, r, nameSize, small, big, line, h0, topH, statsH, chipsH, closedH } = this.cardMetrics();
     const open = !!this.cardOpen;
+    if (!open) return this.drawSlimCard(unit, viewing);
     const items = [];
     items.push(ringPortrait(this, pad + r + S(2), pad + r + S(8), r, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
     const tx = pad + 2 * r + S(34); // clear of the ring's tassels
@@ -1116,13 +1127,13 @@ export default class BattleScene extends Phaser.Scene {
     };
     // The card never changes height (the menu stands on it): a tap turns the page to the
     // other numbers, a second tap turns it back. (cardOpen 'all' shows both rows: old tests.)
-    if (!open || this.cardOpen === 'all') row(main);
+    row(main);
     if (open) row(rest);
 
     // Conditions as small chips: his icon and the word (roadmap 6.7). If the
     // row gets too long for the card, the chips with an icon drop the word.
     const chipH = chipsH - S(6);
-    const hintText = this.add.text(w - pad, y + chipH / 2, open ? 'Tap: back' : 'Tap: more', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0.5);
+    const hintText = this.add.text(w - pad, y + chipH / 2, 'Tap: close', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0.5);
     items.push(hintText);
     const chipRoom = w - 2 * pad - hintText.width - S(10);
     const buff = buffOf(unit);
@@ -1173,6 +1184,58 @@ export default class BattleScene extends Phaser.Scene {
     this.ui(L);
   }
 
+
+  // The card while closed (15 Nov, Baiyee: minimalist): a slim bar along the bottom with a small
+  // round face, the name, a thin HP bar (and a thinner MP bar for a caster) and the conditions as
+  // small icons. Tap it to open the full numbers; tap again to close.
+  drawSlimCard(unit, viewing) {
+    const L = this.cardLayer;
+    const { s, m, H, cardW: w } = this.lay;
+    const { S, T, slimH: h } = this.cardMetrics();
+    const items = [];
+    const r = Math.round(h / 2 - S(6));
+    items.push(portraitMedallion(this, S(10) + r, h / 2, r, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
+    const tx = S(10) + 2 * r + S(12);
+    const nameSize = T(17), small = T(12);
+    const name = this.add.text(tx, h / 2 - S(5), unit.name, textStyle(nameSize, '#ffe08a')).setOrigin(0, 1);
+    items.push(name);
+    const side = this.add.text(tx + name.width + S(10), h / 2 - S(7), unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(small, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a')).setOrigin(0, 1);
+    items.push(side);
+    // the thin bars
+    const numW = Math.round(small * 3.6), rightEdge = w - S(12);
+    const barX = tx, barW = rightEdge - numW - S(10) - barX;
+    const bars = this.add.graphics();
+    items.push(bars);
+    const thin = (y, value, max, color, hh) => {
+      bars.fillStyle(UI.ink, 1).fillRoundedRect(barX, y, barW, hh, hh / 2);
+      if (value > 0) bars.fillStyle(color, 1).fillRoundedRect(barX, y, Math.max(hh, barW * Math.min(1, value / max)), hh, hh / 2);
+    };
+    const frac = Math.max(0, unit.hp / unit.maxHp);
+    const hy = h / 2 + S(5);
+    thin(hy, unit.hp, unit.maxHp, frac <= 0.35 ? 0xe05a47 : 0x6fcf7f, S(6));
+    items.push(this.add.text(rightEdge, hy + S(3), unit.hp + '/' + unit.maxHp, textStyle(small, '#f1e6c8', { fontStyle: 'bold' })).setOrigin(1, 0.5));
+    const mpNow = mpShown(unit);
+    if (mpNow) thin(hy + S(9), mpNow.mp, mpNow.max, mpNow.lent ? Phaser.Display.Color.HexStringToColor(buffOf(unit).color).color : 0x5aa8ff, S(3));
+    // conditions: icons only, on the name's line at the right
+    let cx = rightEdge;
+    for (const tag of statusTags(unit)) {
+      if (!tag.icon || !this.textures.exists('icon:' + tag.icon)) continue;
+      const d = S(20);
+      items.push(this.add.image(cx - d / 2, h / 2 - S(16), 'icon:' + tag.icon).setDisplaySize(d, d));
+      cx -= d + S(4);
+    }
+    if (viewing) items.push(this.add.text(rightEdge, h / 2 - S(16), 'viewing', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0.5));
+    const back = this.add.graphics();
+    darkPanel(back, 0, 0, w, h, s);
+    const hit = this.add.rectangle(0, 0, w, h, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    hit.on('pointerdown', () => { this.cardOpen = true; play('select'); this.refreshCard(this.cardUnit, this.cardViewing); });
+    this.cardHit = hit;
+    L.add([back, ...items, hit]);
+    L.setPosition(m, H - m - h);
+    this.cardTop = H - m - h;
+    this.cardHeight = h;
+    this.ui(L);
+  }
 
   // Draws the whole board, one tile block at a time.
   // We go from the far corner to the near corner, so tiles in front are drawn
@@ -1560,6 +1623,7 @@ export default class BattleScene extends Phaser.Scene {
   startTurn() {
     if (this.battleOver) return;
     hideTip(this);
+    if (this.cardOpen === true) this.cardOpen = false; // a new turn: the card is the slim bar again
     // Saved on the device between turns (M16, checklist H2): closing the page loses at most
     // the turn being played. (Tests switch it off with window.__noSave.)
     if (!(typeof window !== 'undefined' && window.__noSave)) writeSave(this);
@@ -1744,8 +1808,8 @@ export default class BattleScene extends Phaser.Scene {
     let count = 5;
     if (!portrait) {
       // as many as fit above the profile card
-      const room = Math.min(this.cardTop, this.lay.H - 200 * s) - m - (y0 + 64 * s);
-      count = Math.max(2, Math.min(7, Math.floor(room / (54 * s))));
+      const room = Math.min(this.cardTop, this.lay.H - 200 * s) - m - (y0 + 48 * s);
+      count = Math.max(2, Math.min(8, Math.floor(room / (36 * s))));
     }
     // Each fighter once, in the order of their NEXT turn (M7, 17.7): a fast fighter used to
     // show two or three times and push the others off the strip.
@@ -1755,22 +1819,22 @@ export default class BattleScene extends Phaser.Scene {
     const small = Math.max(Math.round(13 * s), this.lay.minText);
     lineup.forEach((unit, i) => {
       const now = i === 0;
-      const x = portrait ? (now ? m + 36 * s : m + 112 * s + (i - 1) * 58 * s) : m + 36 * s;
-      const y = portrait ? y0 : now ? y0 : y0 + 66 * s + (i - 1) * 54 * s;
+      const x = portrait ? (now ? m + 26 * s : m + 78 * s + (i - 1) * 38 * s) : m + 26 * s;
+      const y = portrait ? y0 : now ? y0 : y0 + 48 * s + (i - 1) * 36 * s;
       const medal = now
-        ? medalPortrait(this, x, y, 32 * s, unit, portraitKey(unit.id, unit), { active: true })
-        : portraitMedallion(this, x, y, 24 * s, unit, portraitKey(unit.id, unit), { active: false });
+        ? medalPortrait(this, x, y, 23 * s, unit, portraitKey(unit.id, unit), { active: true })
+        : portraitMedallion(this, x, y, 16 * s, unit, portraitKey(unit.id, unit), { active: false });
       this.turnStripLayer.add(medal);
       if (!now) {
         // its place in the order
-        this.turnStripLayer.add(this.add.text(x + (portrait ? 18 : -30) * s, y + (portrait ? -20 : 0) * s, String(i + 1), textStyle(small, '#ffe08a', { fontStyle: 'bold' })).setOrigin(0.5));
+        this.turnStripLayer.add(this.add.text(x + (portrait ? 12 : -22) * s, y + (portrait ? -14 : 0) * s, String(i + 1), textStyle(small, '#ffe08a', { fontStyle: 'bold' })).setOrigin(0.5));
       }
       if (now) {
         // the "now" marker: the word under the big face, in the side's colour, and the arrow to the next
-        this.turnStripLayer.add(this.add.text(x, y + 32 * s + small * 0.75, 'NOW', textStyle(small, unit.side === 'hero' ? '#9fd4ff' : '#ff9a8a', { fontStyle: 'bold' })).setOrigin(0.5).setLetterSpacing(1));
+        this.turnStripLayer.add(this.add.text(x, y + 23 * s + small * 0.75, 'NOW', textStyle(small, unit.side === 'hero' ? '#9fd4ff' : '#ff9a8a', { fontStyle: 'bold' })).setOrigin(0.5).setLetterSpacing(1));
         const arrow = this.add.graphics();
         arrow.fillStyle(UI.gold, 1);
-        if (portrait) arrow.fillTriangle(x + 46 * s, y, x + 56 * s, y - 8 * s, x + 56 * s, y + 8 * s);
+        if (portrait) arrow.fillTriangle(x + 32 * s, y, x + 40 * s, y - 6 * s, x + 40 * s, y + 6 * s);
         this.turnStripLayer.add(arrow);
       }
     });
@@ -2211,7 +2275,10 @@ export default class BattleScene extends Phaser.Scene {
     const t = this.statusText;
     if (!t || !this.lay) return;
     const { W, H, m, s, infoW, portrait } = this.lay;
-    let size = Math.max(this.lay.minText, Math.round(19 * s));
+    // The plain "Your turn: Gaha" line is a small line that fades out after 2 seconds (15 Nov);
+    // hints, previews and messages keep the bigger box until they are replaced.
+    const turnLine = /^(Your|Enemy) turn: /.test(t.text);
+    let size = Math.max(this.lay.minText, Math.round((turnLine ? 15 : 19) * s));
     t.setFontSize(size);
     const maxH = (portrait ? 200 : 168) * s;
     while (t.height > maxH && size > Math.max(12, this.lay.minText)) t.setFontSize(--size);
@@ -2221,14 +2288,28 @@ export default class BattleScene extends Phaser.Scene {
       this.infoTop = H;
       return;
     }
-    const pad = Math.round(12 * s);
+    const pad = Math.round((turnLine ? 7 : 12) * s);
     const h = t.height + 2 * pad;
-    // upright phone: left of the menu, standing on the card; wide screen: bottom right
-    const x = portrait ? m : W - m - infoW;
+    const bw = turnLine ? Math.min(infoW, t.width + 2 * pad) : infoW;
+    // upright phone: left, standing on the card; wide screen: bottom right (clear of the menu column)
+    const x = portrait ? m : W - m - bw;
     const y = portrait ? Math.min(this.cardTop, H - m - this.cardClosedH()) - m - h : H - m - h;
-    darkPanel(this.infoPanel, x, y, infoW, h, s);
+    darkPanel(this.infoPanel, x, y, bw, h, s);
     t.setPosition(x + pad, y + pad);
     this.infoTop = y;
+    // fade: shown once per turn, gone after 2 seconds
+    const key = this.turnCount + ':' + (this.activeUnit && this.activeUnit.id);
+    if (turnLine && key !== this.turnLineKey) {
+      this.turnLineKey = key; this.turnLineGone = false;
+      if (this.turnLineTimer) this.turnLineTimer.remove();
+      this.turnLineTimer = this.time.delayedCall(2000, () => {
+        this.turnLineGone = true;
+        this.tweens.add({ targets: [t, this.infoPanel], alpha: 0, duration: 300 });
+      });
+    }
+    const hide = turnLine && this.turnLineGone;
+    if (!hide) this.tweens.killTweensOf([t, this.infoPanel]);
+    t.setAlpha(hide ? 0 : 1); this.infoPanel.setAlpha(hide ? 0 : 1);
     this.refreshTileInfo();
   }
 
