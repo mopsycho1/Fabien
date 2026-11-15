@@ -5771,7 +5771,7 @@ export default class BattleScene extends Phaser.Scene {
       afterglow(this, target.view.x, target.view.y - 10, verseElement, { level: 3, depth: target.view.depth + 2 });
       if (spell.kind === 'hex' && slowCast(this, target.view.x, target.view.y)) {
         // the gravity effect from the Slow sheet
-      } else if (!verseAura(this, target.view.x, target.view.y, id)) buffAura(this, target.view.x, target.view.y, color);
+      } else if (!verseAura(this, target.view.x, target.view.y, id, target)) buffAura(this, target.view.x, target.view.y, color);
       const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
       // a Verse shows his card for it on the ally (Swift, Fury, Earth's Bulwark); other spells float their name
       const named = (spell.effect || spell.button) + (times > 1 ? ' x' + times : '');
@@ -6481,7 +6481,7 @@ export default class BattleScene extends Phaser.Scene {
           this.cameraPunch(2);
           dustPuff(this, end.x, end.y);
           groundRing(this, end.x, end.y, 0xff8a5c, 1.4);
-          verseAura(this, end.x, end.y, 'fury');
+          verseAura(this, end.x, end.y, 'fury', user);
           flameBurst(this, target.view.x, target.view.y);
           energyWaves(this, end.x, end.y, elementOf('fire').glow, { count: 2, size: 1.1 }); // he lands: rings of heat roll out (18.23)
           this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note, element: 'fire', level: Math.max(3, hitLevel(landed.damage, target.hp === 0)) }, target.view.x - end.x, target.hp === 0);
@@ -7355,7 +7355,7 @@ export default class BattleScene extends Phaser.Scene {
     for (const { u } of blown) if (u.engagedWith && distance(u, u.engagedWith) > 1) endDuel(u);
     play('whoosh');
     screenShake(this, 0.008, 200);
-    verseAura(this, decoy.view.x, decoy.view.y, 'swiftness');
+    verseAura(this, decoy.view.x, decoy.view.y, 'swiftness', decoy.owner);
     this.floatText({ view: decoy.view, topY: decoy.owner.topY }, 'Gust!', '#9fd4ff', { pop: true, rise: 40 });
     blown.forEach(({ u, pushed }) => {
       const awayX = u.view.x - decoy.view.x;

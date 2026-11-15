@@ -1,108 +1,236 @@
 {
-  "note": "Suleiman's drawn effects (roadmap 13.46, 6.58). He sends them as GIFs, one folder per spell; dev/tools/make_gif_fx.py turns the frames into pictures in public/art/fx (the black ground becomes see-through, half size) and fills this file in: \"buffs\" per Verse: cast (played once where it lands; \"castUses\": \"loop\" plays the loop frames once), loop (round the unit while it lasts), move (on the unit while it walks) and rooted (instead of the loop while Gaha stands his ground), each as a number of frames (0 = none drawn yet: the game uses its own look) with <part>Ms the frame time of his GIF; scale = size on the board (1 = the picture's own pixels, which are half of his 439); feetY = how far below the middle of the picture the unit's feet are, as a share of its height (0.5 = the feet are at the bottom edge); moveScale = the size of the move effect, if not scale. \"spells\": Lightning and Wildfire pieces (orb, bolt, strike, lance) with where each is anchored; lead = ms she gathers an orb before it goes, hitMs = ms from the start of a beam until it reaches the target, reach = how far along its frame a beam runs. Run dev/tools/align_fx.py after adding a family to dev/tools/fx_anchors.json.",
-  "buffs": {
-    "swiftness": {
-      "cast": 0,
-      "loop": 8,
-      "frameMs": 80,
-      "scale": 1.0,
-      "feetY": 0.4,
-      "loopMs": 140,
-      "move": 8,
-      "moveMs": 110
+ "note": "Suleiman's drawn effects (roadmap 13.46, 6.58). He sends them as GIFs, one folder per spell; dev/tools/make_gif_fx.py turns the frames into pictures in public/art/fx (the black ground becomes see-through, half size) and fills this file in: \"buffs\" per Verse: cast (played once where it lands; \"castUses\": \"loop\" plays the loop frames once), loop (round the unit while it lasts), move (on the unit while it walks) and rooted (instead of the loop while Gaha stands his ground), each as a number of frames (0 = none drawn yet: the game uses its own look) with <part>Ms the frame time of his GIF; scale = size on the board (1 = the picture's own pixels, which are half of his 439); feetY = how far below the middle of the picture the unit's feet are, as a share of its height (0.5 = the feet are at the bottom edge); moveScale = the size of the move effect, if not scale. \"spells\": Lightning and Wildfire pieces (orb, bolt, strike, lance) with where each is anchored; lead = ms she gathers an orb before it goes, hitMs = ms from the start of a beam until it reaches the target, reach = how far along its frame a beam runs. Run dev/tools/align_fx.py after adding a family to dev/tools/fx_anchors.json.",
+ "buffs": {
+  "swiftness": {
+   "cast": 0,
+   "loop": 8,
+   "frameMs": 80,
+   "scale": 1.0,
+   "feetY": 0.4,
+   "loopMs": 140,
+   "move": 8,
+   "moveMs": 110,
+   "fit": {
+    "loop": {
+     "h": 135,
+     "w": 161,
+     "mx": 112,
+     "my": 176,
+     "by": 244,
+     "W": 226,
+     "H": 272,
+     "k": 1.3,
+     "anchor": "base",
+     "layer": "behind"
     },
-    "fury": {
-      "cast": 0,
-      "loop": 8,
-      "frameMs": 80,
-      "scale": 1.0,
-      "feetY": 0.4,
-      "loopMs": 130,
-      "move": 8,
-      "moveMs": 110
-    },
-    "stone": {
-      "cast": 0,
-      "loop": 8,
-      "frameMs": 80,
-      "scale": 1.0,
-      "feetY": 0.4,
-      "loopMs": 140,
-      "rooted": 8,
-      "rootedMs": 130,
-      "castUses": "loop"
-    },
-    "slow": {
-      "cast": 0,
-      "loop": 0,
-      "frameMs": 80,
-      "scale": 0.5,
-      "feetY": 0.4
-    },
-    "enchant": {
-      "cast": 0,
-      "loop": 0,
-      "frameMs": 80,
-      "scale": 0.5,
-      "feetY": 0.4
+    "move": {
+     "h": 142,
+     "w": 188,
+     "mx": 108,
+     "my": 109,
+     "by": 180,
+     "W": 220,
+     "H": 220,
+     "k": 1.2,
+     "anchor": "centre",
+     "layer": "behind"
     }
+   }
   },
-  "spells": {
-    "lightning_orb": {
-      "frames": 8,
-      "frameMs": 110,
-      "originX": 0.5,
-      "originY": 0.5,
-      "size": [
-        220,
-        220
-      ],
-      "lead": 440
+  "fury": {
+   "cast": 0,
+   "loop": 8,
+   "frameMs": 80,
+   "scale": 1.0,
+   "feetY": 0.4,
+   "loopMs": 130,
+   "move": 8,
+   "moveMs": 110,
+   "fit": {
+    "loop": {
+     "h": 178,
+     "w": 176,
+     "mx": 114,
+     "my": 137,
+     "by": 226,
+     "W": 228,
+     "H": 252,
+     "k": 1.3,
+     "anchor": "base",
+     "layer": "behind"
     },
-    "lightning_bolt": {
-      "frames": 8,
-      "frameMs": 110,
-      "originX": 0.244,
-      "originY": 0.522,
-      "reach": 0.995,
-      "size": [
-        220,
-        220
-      ],
-      "hitMs": 330
-    },
-    "lightning_strike": {
-      "frames": 8,
-      "frameMs": 120,
-      "originX": 0.506,
-      "originY": 0.995,
-      "size": [
-        220,
-        220
-      ]
-    },
-    "wildfire_orb": {
-      "frames": 8,
-      "frameMs": 140,
-      "originX": 0.5,
-      "originY": 0.5,
-      "size": [
-        220,
-        220
-      ],
-      "lead": 560
-    },
-    "wildfire_lance": {
-      "frames": 8,
-      "frameMs": 100,
-      "originX": 0.384,
-      "originY": 0.551,
-      "reach": 0.995,
-      "size": [
-        220,
-        220
-      ],
-      "hitMs": 400
+    "move": {
+     "h": 146,
+     "w": 202,
+     "mx": 104,
+     "my": 106,
+     "by": 182,
+     "W": 220,
+     "H": 220,
+     "k": 1.2,
+     "anchor": "centre",
+     "layer": "behind"
     }
+   }
+  },
+  "stone": {
+   "cast": 0,
+   "loop": 8,
+   "frameMs": 80,
+   "scale": 1.0,
+   "feetY": 0.4,
+   "loopMs": 140,
+   "rooted": 8,
+   "rootedMs": 130,
+   "castUses": "loop",
+   "fit": {
+    "loop": {
+     "h": 172,
+     "w": 176,
+     "mx": 114,
+     "my": 115,
+     "by": 201,
+     "W": 228,
+     "H": 230,
+     "k": 1.3,
+     "anchor": "centre",
+     "layer": "split"
+    },
+    "rooted": {
+     "h": 160,
+     "w": 186,
+     "mx": 112,
+     "my": 218,
+     "by": 298,
+     "W": 224,
+     "H": 332,
+     "k": 1.3,
+     "anchor": "base",
+     "layer": "front"
+    }
+   }
+  },
+  "slow": {
+   "cast": 0,
+   "loop": 0,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4
+  },
+  "enchant": {
+   "cast": 0,
+   "loop": 0,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4
   }
+ },
+ "spells": {
+  "lightning_orb": {
+   "frames": 8,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    220,
+    220
+   ],
+   "lead": 440,
+   "fit": {
+    "h": 156,
+    "w": 170,
+    "mx": 118,
+    "my": 133,
+    "by": 216,
+    "W": 232,
+    "H": 282,
+    "tiles": 1.0
+   }
+  },
+  "lightning_bolt": {
+   "frames": 8,
+   "frameMs": 110,
+   "originX": 0.244,
+   "originY": 0.522,
+   "reach": 0.995,
+   "size": [
+    220,
+    220
+   ],
+   "hitMs": 330,
+   "fit": {
+    "h": 118,
+    "w": 201,
+    "mx": 107,
+    "my": 108,
+    "by": 166,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   }
+  },
+  "lightning_strike": {
+   "frames": 8,
+   "frameMs": 120,
+   "originX": 0.506,
+   "originY": 0.995,
+   "size": [
+    220,
+    220
+   ],
+   "fit": {
+    "h": 207,
+    "w": 146,
+    "mx": 107,
+    "my": 105,
+    "by": 207,
+    "W": 220,
+    "H": 220,
+    "tiles": 1.0
+   }
+  },
+  "wildfire_orb": {
+   "frames": 8,
+   "frameMs": 140,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    220,
+    220
+   ],
+   "lead": 560,
+   "fit": {
+    "h": 171,
+    "w": 172,
+    "mx": 116,
+    "my": 112,
+    "by": 198,
+    "W": 240,
+    "H": 242,
+    "tiles": 1.0
+   }
+  },
+  "wildfire_lance": {
+   "frames": 8,
+   "frameMs": 100,
+   "originX": 0.384,
+   "originY": 0.551,
+   "reach": 0.995,
+   "size": [
+    220,
+    220
+   ],
+   "hitMs": 400,
+   "fit": {
+    "h": 107,
+    "w": 202,
+    "mx": 106,
+    "my": 113,
+    "by": 170,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   }
+  }
+ }
 }

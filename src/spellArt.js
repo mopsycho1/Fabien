@@ -168,27 +168,71 @@ export function hasBuffPart(scene, id, part) {
   const keys = buffFrames(id, part);
   return keys.length > 0 && has(scene, keys);
 }
-// His cast effect where a Verse lands. Returns true if it was drawn.
-export function buffCastFx(scene, x, y, id) {
+// ---------- Sized to the fighter (roadmap 6.64) ----------
+// His frames are 439 px canvases cut to half size, so the picture is far bigger than the effect drawn in it. Each part has a
+// "fit" in fxSlots.json (dev/tools/fx_fit.py): h, w = the size of what is DRAWN, mx, my, by = its middle and its bottom in
+// the picture, k = how many body heights tall it should be, anchor "base" (its bottom on the feet) or "centre" (its middle
+// on the middle of the body), layer "behind", "front" or "split". The body height is the ruler's standing height of the
+// fighter (unit.topY - 12), not the picture's size, so every fighter gets an aura of the same proportion.
+const DEFAULT_BODY = 96;
+const bodyHeight = (unit) => (unit && unit.topY ? Math.max(40, unit.topY - 12) : DEFAULT_BODY);
+const buffFit = (id, part) => (BUFF_FX[id] && BUFF_FX[id].fit && BUFF_FX[id].fit[part]) || null;
+// { scale, originX, originY, y } for a drawn effect on this unit, y = where the sprite stands inside the unit's container.
+function placeFit(fit, unit) {
+  const scale = (fit.k * bodyHeight(unit)) / fit.h;
+  const base = fit.anchor === 'base';
+  return { scale, originX: fit.mx / fit.W, originY: (base ? fit.by : fit.my) / fit.H, y: base ? 6 : -((unit && unit.centerY) || DEFAULT_BODY * 0.55) };
+}
+// Puts a picture in front of the unit's figure (just above it, so the name tags and bars stay on top).
+function inFront(unit, obj) {
+  const at = unit.sprite ? unit.view.getIndex(unit.sprite) : 0;
+  unit.view.addAt(obj, Math.max(0, at) + 1);
+}
+
+// His cast effect where a Verse lands, sized to the unit it lands on when given. Returns true if it was drawn.
+export function buffCastFx(scene, x, y, id, unit = null) {
   const keys = buffFrames(id, 'cast');
   if (!keys.length || !has(scene, keys)) return false;
   const slot = BUFF_FX[id];
-  const img = flipbook(scene, keys, x, y, { frameMs: slotMs(id, 'cast'), scale: slot.scale, depth: 81, originY: 0.5 + slot.feetY });
+  const fit = buffFit(id, slot.castUses === 'loop' && !slotCount(id, 'cast') ? 'loop' : 'cast');
+  const place = fit ? placeFit(fit, unit) : null;
+  const img = flipbook(scene, keys, x, y, { frameMs: slotMs(id, 'cast'), scale: place ? place.scale : slot.scale, depth: 81, originY: place ? place.originY : 0.5 + slot.feetY });
+  if (place) img.setOrigin(place.originX, place.originY);
+  if (place && place.y > 0) img.y = y + 6; // the base stands on the feet
+  else if (place) img.y = y - ((unit && unit.centerY) || DEFAULT_BODY * 0.55);
   img.setBlendMode(Phaser.BlendModes.ADD); // drawn on black: added as light
   return true;
 }
 // His looping effect round a unit, inside the unit's own container (it walks with it): the loop frames, or for
 // part "rooted" the standing-his-ground frames. Returns { objects, tweens } for BattleScene.keepAura, or null.
+// Sized by the fit (6.64): an aura about 1.3 body heights tall, its base on the feet, behind the body; the Rooted dome is
+// in front of Gaha (it overlays him); the orbiting stones are drawn behind and their near, lower half again in front.
 export function buffLoopFx(scene, unit, id, part = 'loop') {
   if (!hasBuffPart(scene, id, part)) return null;
   const keys = buffFrames(id, part);
   const slot = BUFF_FX[id];
   const anim = 'buff' + part + '-' + id;
   if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slotMs(id, part), repeat: -1 });
-  const sprite = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(0.5, 0.5 + slot.feetY).setScale(slot.scale).setBlendMode(Phaser.BlendModes.ADD);
-  sprite.play(anim);
-  behind(unit, sprite);
-  return { objects: [sprite], tweens: [] };
+  const fit = buffFit(id, part);
+  const place = fit ? placeFit(fit, unit) : null;
+  const make = () => {
+    const sp = scene.add.sprite(0, place ? place.y : 6, 'fx:' + keys[0]).setBlendMode(Phaser.BlendModes.ADD);
+    if (place) sp.setOrigin(place.originX, place.originY).setScale(place.scale);
+    else sp.setOrigin(0.5, 0.5 + slot.feetY).setScale(slot.scale);
+    sp.play(anim);
+    return sp;
+  };
+  const layer = (fit && fit.layer) || 'behind';
+  const objects = [];
+  const main = make();
+  if (layer === 'front') inFront(unit, main); else behind(unit, main);
+  objects.push(main);
+  if (layer === 'split') {
+    const near = make().setCrop(0, fit.my, fit.W, fit.H - fit.my); // the lower, near half of the ring passes in front of the body
+    inFront(unit, near);
+    objects.push(near);
+  }
+  return { objects, tweens: [] };
 }
 // His "in motion" effect on a unit while it walks under a Verse. It sits on the unit's body (inside its container, so it
 // goes with it) and is drawn facing right; dx says which way the unit goes now. Returns { objects, tweens } or null.
@@ -198,7 +242,11 @@ export function buffMoveFx(scene, unit, id, dx) {
   const slot = BUFF_FX[id];
   const anim = 'buffmove-' + id;
   if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slotMs(id, 'move'), repeat: -1 });
-  const sprite = scene.add.sprite(0, -unit.centerY, 'fx:' + keys[0]).setScale(slot.moveScale || slot.scale).setBlendMode(Phaser.BlendModes.ADD).setFlipX(dx < 0);
+  const fit = buffFit(id, 'move');
+  const place = fit ? placeFit(fit, unit) : null;
+  const sprite = scene.add.sprite(0, place ? place.y : -unit.centerY, 'fx:' + keys[0]).setBlendMode(Phaser.BlendModes.ADD).setFlipX(dx < 0);
+  if (place) sprite.setOrigin(place.originX, place.originY).setScale(place.scale);
+  else sprite.setScale(slot.moveScale || slot.scale);
   sprite.play(anim);
   behind(unit, sprite);
   return { objects: [sprite], tweens: [] };
@@ -221,31 +269,36 @@ export function sfxInfo(name) {
   return SFX[name] || null;
 }
 // Plays his frames once at (x, y), anchored on his point of the picture, then they fade. rotation turns it about that point.
-function sfxPlay(scene, name, x, y, { scale = 1, rotation = 0, depth = 81, fade = 160 } = {}) {
+function sfxPlay(scene, name, x, y, { scale = 1, scaleY = scale, rotation = 0, depth = 81, fade = 160 } = {}) {
   const info = SFX[name];
   const keys = sfxKeys(name);
-  const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setRotation(rotation).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale, scaleY).setRotation(rotation).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
   keys.forEach((k, i) => scene.time.delayedCall(i * info.frameMs, () => img.active && img.setTexture('fx:' + k)));
   scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * info.frameMs, duration: fade, onComplete: () => img.destroy() });
   return img;
 }
-// The orb she gathers at her hands (Lightning's vortex, Wildfire's fireball forming).
-export function sfxChannel(scene, name, x, y, { depth = 81, scale = 0.9 } = {}) {
+// What a projectile's drawing is across, in tiles, sized to the board (6.64: about one tile wide). "fit" is from fx_fit.py.
+const SFX_FIT = (name) => (SFX[name] && SFX[name].fit) || null;
+const acrossScale = (name, across) => { const f = SFX_FIT(name); return f ? (TILE_WIDTH * (f.tiles || 1)) / across(f) : 0.9; };
+// The orb she gathers at her hands (Lightning's vortex, Wildfire's fireball forming): about one tile wide.
+export function sfxChannel(scene, name, x, y, { depth = 81, scale = acrossScale(name, (f) => f.w) } = {}) {
   return sfxPlay(scene, name, x, y, { scale, depth });
 }
 // The beam from her hands to the target: the orb sits on (x0, y0) and the beam is turned and stretched so its far end
-// reaches (x1, y1) when it is at full length.
+// reaches (x1, y1) when it is at full length. Its thickness is about one tile (6.64); only the length is stretched.
 export function sfxBeam(scene, name, x0, y0, x1, y1, { depth = 80 } = {}) {
   const info = SFX[name];
   const w = info.size[0];
   const length = Math.max(20, (info.reach - info.originX) * w);
   const dist = Math.hypot(x1 - x0, y1 - y0);
-  const scale = Math.min(1.6, Math.max(0.3, dist / length));
-  return sfxPlay(scene, name, x0, y0, { scale, rotation: Math.atan2(y1 - y0, x1 - x0), depth });
+  const thick = acrossScale(name, (f) => f.h);
+  const along = Math.min(2.6, Math.max(0.3, dist / length));
+  return sfxPlay(scene, name, x0, y0, { scale: Math.max(along, thick * 0.6), scaleY: Math.min(thick, along), rotation: Math.atan2(y1 - y0, x1 - x0), depth });
 }
-// The strike that comes down on the target's feet (x, y).
+// The strike that comes down on the target's feet (x, y): about one tile wide.
 export function sfxStrike(scene, name, x, y, { big = false } = {}) {
-  return sfxPlay(scene, name, x, y + 8, { scale: big ? 1.15 : 0.95, depth: 82 });
+  const s = acrossScale(name, (f) => f.w);
+  return sfxPlay(scene, name, x, y + 8, { scale: big ? s * 1.2 : s, depth: 82 });
 }
 
 function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, originY = 1, flip = false, hold = 0, fade = 220 } = {}) {
@@ -389,8 +442,8 @@ export function lightningStrike(scene, x, y, { big = false } = {}) {
 }
 
 // The aura of a Verse settling on a unit. kind: 'fury', 'swiftness', 'stone'.
-export function verseAura(scene, x, y, kind) {
-  if (buffCastFx(scene, x, y, kind)) return true; // his own cast effect, once he sends it (13.46)
+export function verseAura(scene, x, y, kind, unit = null) {
+  if (buffCastFx(scene, x, y, kind, unit)) return true; // his own cast effect, once he sends it (13.46)
   // his 30 Oct sheets (roadmap 6.18): the ring opens, fire spirals up, bursts and settles
   if (kind === 'fury' && has(scene, FURY_CAST)) {
     flipbook(scene, FURY_CAST, x, y + 8, { frameMs: 85, scale: 0.95, depth: 79 });
