@@ -7,8 +7,8 @@ For Suleiman. Written 14 Nov from the roadmap and the Battle 1.0 plan. Plain wor
 
 - **Done:** the battle screen restyle (Phase 2), Intercept and the Verse moves (3), enemy skills (4), items (5), the new battle screen (8), the Hidden Cavern (11), the effects flair pass (16), your music.
 - **Almost done:** the fixes list (Phase 1), the isometric look and animations (9), the art wiring (6: most of your sheets are in the game; a few wait on files).
-- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 13 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
-- **Next, in order:** fighters that stand out from the floor (M10), a proper Victory and Defeat (M12), then the desktop layout, saving, sounds, and the board's edges.
+- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 14 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
+- **Next, in order:** a proper Victory and Defeat (M12), then the desktop layout, saving, sounds, and the board's edges.
 - **After Battle 1.0:** the kings (Phase 10), finishers (7), slopes (12), the camp and town (15).
 
 ---
@@ -322,12 +322,12 @@ What an art director would fix after watching one battle on a phone. Most of it 
 - [x] Floating words no longer collide or leave the screen (14 Nov)
 - [x] The unit card: four big numbers, the rest on a tap (14 Nov)
 - [x] The action menu has one fixed home, bottom right, with thumb-sized buttons (14 Nov)
-- [ ] Fighters melt into the floor (M10; a colour accent per enemy is optional art)
+- [x] Fighters stand out from the floor: shadow and a rim in the team's colour, white for the enemy team as you suggested (15 Nov; a colour accent on clothes is optional art)
 - [x] The top strip: bigger turn faces, a NOW marker, a Settings sheet (14 Nov)
 - [ ] Title screen is plain text (needs your art: key art)
 - [ ] Story scenes are a text box on brown (needs your art: scene pictures and portraits)
 - [ ] Victory and Defeat feel flat (M12; a banner picture is optional art)
-- [ ] Move tiles hide the floor and show no path (M10)
+- [x] Move tiles let the floor show, and a walk draws its path (15 Nov)
 - [ ] The archer's placeholder name "Enemy 3" (she will show as "Archer"; no art needed)
 - [x] Hits have weight: white flash, the lost health drains as a pale chunk, bigger numbers for bigger hits (15 Nov)
 - [ ] The board ends in a black void (code fog first; the cave backdrop needs your art)
@@ -350,7 +350,7 @@ One battle that feels finished. The steps are the milestones at the bottom.
 - [x] Card, action menu, top strip (14 Nov)
 - [ ] Desktop layout
 - [x] Weight: hit flash, health chunk, turn banner (15 Nov)
-- [ ] Reading the board: shadow, team colour rim, tiles, path (we test white for the enemy team, as you suggested)
+- [x] Reading the board: shadow, team colour rim, tiles, path (15 Nov; white for the enemy team)
 - [ ] The ending
 - [ ] Sound pass
 - [x] Enemy play and balance: enemies heal and forage; over 40 test battles each side won 20 (14 Nov)
@@ -407,7 +407,7 @@ None of this blocks the next steps (M7 to M16). They are all code.
 | M7 | Card, menu, top strip | Done (14 Nov) |
 | M8 | Desktop layout | Not done |
 | M9 | Weight: hit flash, health chunk, turn banner | Done (15 Nov) |
-| M10 | Reading the board: shadow, team colour, tiles, path | Not done |
+| M10 | Reading the board: shadow, team colour, tiles, path | Done (15 Nov) |
 | M10b | 4 against 4 with Kofi | Done (first version of Kofi's kit) |
 | M11 | Pace: fast enemy turns | Done |
 | M12 | The ending: Victory and Defeat, rating for fast wins | Not done |

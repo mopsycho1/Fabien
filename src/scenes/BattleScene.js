@@ -1,3 +1,4 @@
+import { teamColor, figureShadows, addRim, syncRims, drawPath, boardRules } from '../boardRead.js';
 import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
 import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode, drainChunk, clearChunk } from '../nameplate.js';
 import { damageSize, turnBanner, dropTurnBanner } from '../weight.js';
@@ -986,6 +987,8 @@ export default class BattleScene extends Phaser.Scene {
   // blue tiles come back by themselves (roadmap 8.5).
   update() {
     if (!this.lay) return;
+    syncRims(this.units); // the coloured rims stay on their figures (M10)
+    this.hoverPath();     // on a computer: the walking line to the tile under the mouse (M10)
     if (this.statusText && this.statusText.text !== this.infoText) this.fitStatus();
     this.placeMenu();
     const u = this.activeUnit;
@@ -1406,7 +1409,8 @@ export default class BattleScene extends Phaser.Scene {
     const facing = data.side === 'hero' ? 'upRight' : 'downLeft';
 
     // A soft shadow on the tile, so the unit looks like it is standing on it
-    const shadow = this.add.ellipse(0, 0, 46, 20, 0x000000, 0.3);
+    // (M10, 17.6: a small dark patch where the feet touch, and a wider soft one that darkens the floor a little)
+    const [floorShade, shadow] = figureShadows(this);
 
     // If this unit has pictures (see src/art.js) and they loaded, it is drawn
     // as a picture. Otherwise it is a colored circle.
@@ -1427,8 +1431,8 @@ export default class BattleScene extends Phaser.Scene {
       const height = artHeight(data.id) * (mapData.figureScale || 1); // map.json can shrink everyone to leave more room
 
       // A ring on the ground in the side's color. It turns gold on this unit's turn.
-      ringColor = SIDE_COLORS[data.side];
-      body = this.add.ellipse(0, 2, 62, 28).setStrokeStyle(3, ringColor);
+      ringColor = teamColor(data.side); // (M10: the side's colour from board.json, also the rim round the figure)
+      body = this.add.ellipse(0, 2, 62, 28, ringColor, 0.14).setStrokeStyle(3, ringColor);
 
       // The picture stands on the tile: its feet are at the tile's middle
       sprite = this.add.image(0, 6, frame.key).setOrigin(frame.originX, frame.originY || 1);
@@ -1483,10 +1487,12 @@ export default class BattleScene extends Phaser.Scene {
     // The plate over its head (health bar, number, turn place): hidden until it is hit, tapped
     // or can be targeted (M6, src/nameplate.js)
     const plate = buildPlate(this, { topY, barBack, hpFill, job: data.job, hp: data.hp, maxHp: data.hp });
-    const pieces = [shadow, body, sprite, labelText, plate, badgeBack, badgeText, tagRow].filter(Boolean);
+    const pieces = [floorShade, shadow, body, sprite, labelText, plate, badgeBack, badgeText, tagRow].filter(Boolean);
     const view = this.add.container(x, y, pieces).setDepth(depthFor(data.col, data.row) + 1);
     // less over the characters (roadmap 8.4): the job badge goes; the profile card says it
     if (usePicture) [badgeBack, badgeText].forEach((o) => o && o.setVisible(false));
+    // a rim of light in the side's colour round the figure, so it stands out from the cave (M10, 17.6)
+    const rims = sprite ? addRim(this, view, sprite, ringColor) : null;
 
     // Idle motion: the figure breathes, rising and settling a little, so it
     // never looks frozen. Each unit starts at a different moment.
@@ -1528,6 +1534,7 @@ export default class BattleScene extends Phaser.Scene {
       bodyHalfWidth,
       hpFill,
       plate,
+      rims,
       tagRow,
       idleTargets,
       idleTween,
@@ -2923,6 +2930,12 @@ export default class BattleScene extends Phaser.Scene {
 
     let path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
     if (path.length === 0) path = [{ col, row }];
+    // a hero's walk shows its line, which fades once he is on his way (M10, 17.11)
+    if (unit.side === 'hero') {
+      const line = drawPath(this, { x: unit.view.x, y: unit.view.y }, path, 79);
+      this.lastPath = line;
+      this.tweens.add({ targets: line, alpha: 0, delay: 200 + path.length * 90, duration: 300, onComplete: () => { if (this.lastPath === line) this.lastPath = null; line.destroy(); } });
+    }
 
     // Undo move goes back to where it stood at the start of the turn
     if (!unit.moveFrom) unit.moveFrom = { col: unit.col, row: unit.row, facing: unit.facing };
@@ -7757,8 +7770,8 @@ export default class BattleScene extends Phaser.Scene {
       const hh = TILE_HEIGHT / 2 - Math.max(3, TILE_HEIGHT * 0.06);
       const pts = [{ x, y: y - hh }, { x: x + hw, y }, { x, y: y + hh }, { x: x - hw, y }];
       const diamond = this.add.graphics().setDepth(depthFor(tile.col, tile.row) + 0.5);
-      diamond.fillStyle(color, alpha * 0.55).fillPoints(pts, true);
-      diamond.lineStyle(6, edge, 0.22).strokePoints(pts, true, true); // the glow round the edge
+      diamond.fillStyle(color, alpha * boardRules.tiles.fill).fillPoints(pts, true); // soft: the painted floor shows through (M10, 17.11)
+      diamond.lineStyle(7, edge, 0.3).strokePoints(pts, true, true); // the glow round the edge
       diamond.lineStyle(2.2, edge, 0.95).strokePoints(pts, true, true); // the bright edge
       this.highlights.push(diamond);
       added.push(diamond);
@@ -7766,7 +7779,36 @@ export default class BattleScene extends Phaser.Scene {
     if (added.length) this.tweens.add({ targets: added, alpha: 0.62, duration: 760, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
+  // On a computer, the walking line runs to the blue tile under the mouse (M10). A phone has
+  // no mouse: there the line shows as the walk starts (see moveUnit).
+  hoverPath() {
+    const unit = this.activeUnit;
+    const p = this.input.activePointer;
+    const can = this.mode === 'move' && unit && unit.side === 'hero' && !this.busy && !this.inCinematic && p && !p.wasTouch && !this.sys.game.device.input.touch;
+    let key = null, tile = null;
+    if (can) {
+      const world = this.cameras.main.getWorldPoint(p.x, p.y);
+      tile = this.tileAtPoint(world.x, world.y);
+      key = tile.col + ',' + tile.row;
+      if (!this.reachableKeys.has(key)) key = null;
+    }
+    if (key === this.pathKey) return;
+    this.clearPath();
+    if (!key) return;
+    const path = getPath(unit.col, unit.row, tile.col, tile.row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
+    if (path.length === 0) return;
+    this.pathKey = key;
+    this.pathLine = drawPath(this, { x: unit.view.x, y: unit.view.y }, path, 79);
+  }
+
+  clearPath() {
+    if (this.pathLine) this.pathLine.destroy();
+    this.pathLine = null;
+    this.pathKey = null;
+  }
+
   clearHighlights() {
+    this.clearPath();
     for (const diamond of this.highlights) {
       this.tweens.killTweensOf(diamond); // markers bob up and down
       diamond.destroy();
