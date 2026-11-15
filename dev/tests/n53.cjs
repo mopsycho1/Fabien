@@ -13,7 +13,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const b = await battle(game); await sleep(400);
   const G = w.__grid;
   const U = (l) => b.units.find((u) => u.label === l);
-  const N = process.env.FABIEN_MAP === 'cavern' ? 9 : 8;
+  const N = process.env.FABIEN_MAP === 'cavern' ? require('../../src/data/maps/cavern.json').board.size : 8; /* 11 since roadmap 14.2 */
   const victim = U('H2'), pusher = U('E1');
   const others = b.units.filter((u) => u !== victim && u !== pusher);
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); u.view.setDepth(G.depthFor(c, r) + 1); };

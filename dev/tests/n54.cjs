@@ -55,9 +55,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   fresh(bull); here(bull, 4, 1); here(gaha, 4, 2);
   t = AI.chooseAfterTile(bull, b.units.filter((u) => u.col >= 0), 3);
   check('rule: a close fighter with a foe next to it never leaves the fight', t === null);
-  put(gaha, 4, 6); put(bull, 4, 2);
+  put(gaha, 5, 7); put(bull, 5, 3); // (one tile further in on the 11 by 11 map, roadmap 14.2: the same ground as before)
   t = AI.chooseAfterTile(bull, b.units.filter((u) => u.col >= 0), 2);
   check('rule: a close fighter with nobody near walks up', t && dist(t, gaha) < 4, t && t.col + ',' + t.row);
+  if (process.env.FABIEN_MAP === 'cavern') {
+    // 14.2: enemies walk real routes. The bull stands in the spring pool below the west tower and
+    // the foe is on top. In a straight line he is 2 tiles away, but the tower is two levels up
+    // from the water: the way up is round by the lane (4 steps). He must climb out, not wait.
+    put(gaha, 0, 5); put(bull, 1, 4);
+    t = AI.chooseAfterTile(bull, b.units.filter((u) => u.col >= 0), 1);
+    check('14.2 a fighter in the pool below the tower climbs out towards the way up', t && G.getHeight(t.col, t.row) >= 1, t && t.col + ',' + t.row);
+  }
 
   // ---------- whole enemy turns ----------
   // the archer: shoots first (she has a shot from where she stands), then backs off

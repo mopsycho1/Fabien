@@ -1,7 +1,47 @@
 import { getReachableTiles } from './movement.js';
 import { distance, hasClearShot, shootsProjectiles } from './combat.js';
 import { moveOf, moveRules } from './status.js';
-import { getHeight } from './grid.js';
+import { getHeight, isInsideGrid } from './grid.js';
+import terrain from './data/terrain.json';
+
+// Walking distance to a foe (roadmap 14.2). On the wide cavern a foe can be 3 tiles away in a
+// straight line but 9 steps away on foot (round the water, up a bridge). Straight-line distance
+// sent enemies into the water below the platform. walkMapTo(foe) gives, for every tile, how
+// many steps it takes to walk from that tile to the foe, using the same climbing rule as
+// walking (stepping up at most "climb" levels, down is always fine). Fixed things that block
+// (pots, spikes) count; fighters do not, since they move. A tile with no way there is missing.
+function walkMapTo(foe, climb, blocked) {
+  const out = new Map([[foe.col + ',' + foe.row, 0]]);
+  let front = [foe];
+  for (let step = 1; front.length > 0 && step < 60; step++) {
+    const next = [];
+    for (const t of front) {
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const col = t.col + dc;
+        const row = t.row + dr;
+        const key = col + ',' + row;
+        if (!isInsideGrid(col, row) || out.has(key) || blocked(col, row)) continue;
+        // we are walking backwards from the foe: the step goes from (col, row) up to t
+        if (getHeight(t.col, t.row) - getHeight(col, row) > climb) continue;
+        out.set(key, step);
+        next.push({ col, row });
+      }
+    }
+    front = next;
+  }
+  return out;
+}
+
+// How many tiles short of reaching foe "o" a unit standing on tile t is. Inside its reach the
+// old straight-line rule holds; outside, the steps on foot count (with no way there at all,
+// the straight line plus a big penalty, so it still drifts the right way).
+function walkGap(t, o, range, walk) {
+  const d = Math.abs(t.col - o.col) + Math.abs(t.row - o.row);
+  if (d <= range) return 0;
+  const w = walk.get(t.col + ',' + t.row);
+  if (w === undefined) return d - range + 12;
+  return Math.max(1, w - range);
+}
 
 // Decides where an enemy should walk this turn.
 // It returns a tile like { col: 2, row: 4 }, or null if the enemy should
@@ -44,9 +84,13 @@ export function chooseMoveTile(unit, units, extraBlocked = () => false) {
   // 0 means we could attack someone from here; a caster counts as nearer.
   // An archer in range but behind a higher block has no shot: it counts as 1 short.
   const shooter = shootsProjectiles(unit);
+  // walking distances to every foe (roadmap 14.2); a flier (Swiftness) passes over what blocks
+  const rules = moveRules(unit);
+  const climb = rules.climb ?? terrain.climbLimit ?? Infinity;
+  const walks = new Map(opponents.map((o) => [o, walkMapTo(o, climb, rules.fly ? () => false : extraBlocked)]));
   const reachGap = (tile, o) => {
     const d = distance(tile, o);
-    const g = Math.max(0, d - unit.range);
+    const g = walkGap(tile, o, unit.range, walks.get(o));
     if (g === 0 && shooter && d > 1 && !hasClearShot(tile, o)) return 1;
     return g;
   };
@@ -123,7 +167,10 @@ export function chooseAfterTile(unit, units, steps, extraBlocked = () => false, 
     score = (t) => [-room(t), -getHeight(t.col, t.row), distance(unit, t)];
   } else {
     if (opponents.some((o) => distance(unit, o) <= 1)) return null; // already in the fight
-    const gap = (t) => Math.min(...opponents.map((o) => Math.max(0, distance(t, o) - unit.range) - (isCaster(o) ? CASTER_DETOUR : 0)));
+    const rules = moveRules(unit);
+    const climb = rules.climb ?? terrain.climbLimit ?? Infinity;
+    const walks = new Map(opponents.map((o) => [o, walkMapTo(o, climb, rules.fly ? () => false : extraBlocked)]));
+    const gap = (t) => Math.min(...opponents.map((o) => walkGap(t, o, unit.range, walks.get(o)) - (isCaster(o) ? CASTER_DETOUR : 0)));
     score = (t) => [gap(t), distance(unit, t)];
   }
   let best = null;

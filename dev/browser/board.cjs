@@ -17,13 +17,20 @@ const { openBattle } = require('./lib/play.cjs');
     const info = await page.evaluate(() => {
       const b = window.__game.scene.getScene('BattleScene');
       const cam = b.cameras.main;
-      if (b.follow && cam.zoom <= b.home.zoom * 1.04) return { zoom: cam.zoom, note: 'already whole' };
+      if (b.follow && cam.zoom <= b.home.zoom * 1.04) return { zoom: cam.zoom, note: "already whole" };
       b.toggleWholeBoard();
       return { zoom: b.home.zoom };
     });
+    // the whole board must fit across the screen (roadmap 14.2) and the turn view must keep tiles big
+    const fit = await page.evaluate(() => {
+      const b = window.__game.scene.getScene('BattleScene'); const bb = b.boardBounds();
+      const real = b.scale.displaySize.width / b.lay.W;
+      return { fits: (bb.x1 - bb.x0) * b.home.zoom <= b.lay.W + 1, tile: Math.round(112 * b.playZoom * real) };
+    });
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${out}/${prefix}_${view}_whole.png` });
-    const ok = errors.length === 0;
+    const ok = errors.length === 0 && fit.fits && fit.tile >= (view === 'phone' ? 88 : 125);
+    info.fit = fit;
     if (!ok) bad++;
     console.log((ok ? 'PASS ' : 'FAIL ') + view + ' ' + JSON.stringify(info) + (errors.length ? ' errors: ' + errors.join(' | ') : ''));
     await browser.close();

@@ -37,17 +37,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('13.4 Tayo has the skill; range 3, cooldown 3', tayo.spells.includes('elementBlast') && spell.range === 3 && spell.cooldown === 3);
 
   // the AI: needs an element, a straight line and a clear shot
-  reset([[tayo, 4, 3], [sudeen, 4, 6]]);
+  reset([[tayo, 5, 4], [sudeen, 5, 7]]);
   check('13.4 no element on him: no blast', b.blastTarget(tayo) === null);
   S.applyEnchant(tayo, 'enchant');
   check('13.4 Enchanted, foe 3 tiles down the line: he fires', b.blastTarget(tayo) === sudeen);
-  put(sudeen, 5, 6);
+  put(sudeen, 6, 7); /* 14.2: map one tile bigger each way */
   check('13.4 not in a line: no blast', b.blastTarget(tayo) === null);
-  put(sudeen, 4, 7);
+  put(sudeen, 5, 8);
   check('13.4 4 tiles away: out of range', b.blastTarget(tayo) === null);
 
   // fire
-  reset([[tayo, 4, 3], [sudeen, 4, 6]]);
+  reset([[tayo, 5, 4], [sudeen, 5, 7]]);
   S.applyEnchant(tayo, 'enchant');
   const hp0 = sudeen.hp;
   seen.clear();
@@ -56,13 +56,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('13.4 he shows wind-up, arms open and punch', ['blastWind', 'blastCharge', 'blastPunch'].every((p) => shown(tayo).some((k) => k.includes(p))), shown(tayo).slice(0, 5).join(','));
 
   // fire at a Drenched foe: no burn
-  reset([[tayo, 4, 3], [sudeen, 4, 5]]);
+  reset([[tayo, 5, 4], [sudeen, 5, 6]]);
   S.applyEnchant(tayo, 'enchant'); S.applyDrenched(sudeen, 2);
   await runCast(tayo, sudeen);
   check('13.4 fire at a Drenched foe does not burn', !S.isBurning(sudeen));
 
   // water
-  reset([[tayo, 4, 3], [sudeen, 4, 5]]);
+  reset([[tayo, 5, 4], [sudeen, 5, 6]]);
   S.applyDrenched(tayo, 2); S.applyBurn(sudeen, 'wildfire');
   const hp1 = sudeen.hp;
   await runCast(tayo, sudeen);

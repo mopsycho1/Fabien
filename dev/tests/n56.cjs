@@ -20,16 +20,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     const p = G.tileToScreen(c, r); const left = c2 === c && r2 === r + 1; const right = c2 === c + 1 && r2 === r;
     if (left || right) want.push({ x: p.x + (left ? -TW / 4 : TW / 4), y: p.y + TH / 4 - 2, len: (G.getHeight(c, r) - G.getHeight(c2, r2)) * LH + 6 });
   }
+  const F = want.length; // falls that face the camera: 4 on the 9 by 9 map, 8 on the 11 by 11 one (the tower springs, roadmap 14.2)
   const near = (f) => want.find((q) => Math.abs(q.x - f.x) < 0.5 && Math.abs(q.y - f.y) < 0.5);
   // The same checks for both styles. The game shows Suleiman's (his art comes first);
   // the Blender loops are the other style (window.__waterStyle = 'blender', or ?water=blender).
   //   key: the sheet a two-level drop uses; sheet: how long the fall is inside a frame; ringed: a ripple ring per fall
   const look = async (style, key, sheet, ringed) => {
-    const n = ringed ? 4 : 0;
-    check(style + ': 4 falls face the camera' + (ringed ? ', each with its ring of ripples' : ', with their own splash (no ripple rings)') + ', and the old code-drawn strips are gone', falls().length === 4 && rings().length === n && old().length === 0, falls().length + ' falls, ' + rings().length + ' rings, ' + old().length + ' old');
+    const n = ringed ? F : 0;
+    check(style + ': ' + F + ' falls face the camera' + (ringed ? ', each with its ring of ripples' : ', with their own splash (no ripple rings)') + ', and the old code-drawn strips are gone', falls().length === F && rings().length === n && old().length === 0, falls().length + ' falls, ' + rings().length + ' rings, ' + old().length + ' old');
     check(style + ': a two-level drop uses the tall sheet', falls().every((f) => f.texture.key === 'water:' + key), falls().map((f) => f.texture.key).join());
-    check(style + ': two are on left faces and two on right faces (mirrored)', falls().filter((f) => f.flipX).length === 2, falls().map((f) => f.flipX).join());
-    check(style + ': each fall hangs from the middle of its ledge edge', want.length === 4 && falls().every(near), falls().map((f) => Math.round(f.x) + ',' + Math.round(f.y)).join(' '));
+    check(style + ': half are on left faces and half on right faces (mirrored)', falls().filter((f) => f.flipX).length === F / 2, falls().map((f) => f.flipX).join());
+    check(style + ': each fall hangs from the middle of its ledge edge',  falls().every(near), falls().map((f) => Math.round(f.x) + ',' + Math.round(f.y)).join(' '));
     check(style + ': and is as long as the drop (' + sheet + ' frame pixels scaled to the drop, not squashed)', falls().every((f) => Math.abs(f.scaleY * sheet - near(f).len) < 0.5 && f.scaleX === f.scaleY), falls().map((f) => (f.scaleY * sheet).toFixed(1)).join());
     if (ringed) check(style + ': the ripples lie on the pool at the foot of each fall', rings().every((g) => falls().some((f) => Math.abs(f.x - g.x) < 0.5 && Math.abs(g.y - (f.y + near(f).len + 4)) < 1)));
     // it moves (not a whole loop later: his 6 frames come round every 720 ms)
@@ -45,15 +46,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await look('his waterfall', 'waterfall_s_tall', 228, false);
   // turning the camera: the falls on the faces now in front are drawn, none left over
   b.rotateCamera(1); await sleep(900);
-  check('his waterfall: after a quarter turn there are again 4 falls, nothing left over', falls().length === 4 && rings().length === 0, falls().length + ' / ' + rings().length);
+  check('his waterfall: after a quarter turn there are again all falls, nothing left over', falls().length === F && rings().length === 0, falls().length + ' / ' + rings().length);
   // the other style: the board is drawn again in it when the camera turns back
   w.__waterStyle = 'blender';
   b.rotateCamera(-1); await sleep(900);
   await look('Blender loops', 'waterfall_tall', 194, true);
   b.rotateCamera(1); await sleep(900);
-  check('Blender loops: after a quarter turn there are again 4 falls and 4 rings, nothing left over', falls().length === 4 && rings().length === 4, falls().length + ' / ' + rings().length);
+  check('Blender loops: after a quarter turn there are again all falls and rings, nothing left over', falls().length === F && rings().length === F, falls().length + ' / ' + rings().length);
   w.__waterStyle = null; b.rotateCamera(-1); await sleep(900);
-  check('back to his waterfall: 4 falls, no rings', falls().length === 4 && rings().length === 0 && falls().every((f) => f.texture.key === 'water:waterfall_s_tall'));
+  check('back to his waterfall: all falls, no rings', falls().length === F && rings().length === 0 && falls().every((f) => f.texture.key === 'water:waterfall_s_tall'));
   const real = errors.filter((e) => !e.includes('focus()'));
   check('no page errors', real.length === 0, real.slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

@@ -20,11 +20,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.runEnemyTurn = () => {}; b.endTurn = () => {};
 
   // ---------- 11.3 the layout ----------
-  check('11.3 the battle is on the Hidden Cavern (9 by 9)', b.mapName === 'cavern' && G.isInsideGrid(8, 8) && !G.isInsideGrid(9, 0), b.mapName);
+  check('11.3 the battle is on the Hidden Cavern (11 by 11 since roadmap 14.2)', b.mapName === 'cavern' && G.isInsideGrid(10, 10) && !G.isInsideGrid(11, 0), b.mapName);
   const startOk = Object.entries(map.starts).every(([id, [c, r]]) => { const u = b.units.find((v) => v.id === id); return !u || (u.col === c && u.row === r); });
   check('11.3 everyone starts where the map says', startOk, all.map((u) => u.label + '@' + u.col + ',' + u.row).join(' '));
-  check('11.3 the ritual platform is at mid height (2), the water at 0, the walkways at 1', G.getHeight(4, 4) === 2 && G.getHeight(2, 3) === 0 && G.getHeight(1, 4) === 1);
-  check('11.3 the bridges are at walkway height (1)', [[4, 2], [2, 4], [6, 4], [4, 6]].every(([c, r]) => G.getHeight(c, r) === 1));
+  check('11.3 the ritual platform is at mid height (2), the water at 0, the walkways at 1', G.getHeight(5, 5) === 2 && G.getHeight(3, 4) === 0 && G.getHeight(2, 5) === 1);
+  check('11.3 the bridges are at walkway height (1)', [[5, 3], [3, 5], [7, 5], [5, 7]].every(([c, r]) => G.getHeight(c, r) === 1));
   const tiles = b.children.list.filter((o) => o.type === 'Image' && o.texture && /^tile:cavern:112:/.test(o.texture.key));
   check('11.1 his ground pictures on the tiles (floor, sand, rubble, water, bridge planks)', ['floor', 'caveSand', 'rubble', 'water', 'bridge'].every((k) => tiles.some((o) => o.texture.key.includes(':' + k + ':'))), [...new Set(tiles.map((o) => o.texture.key.split(':')[3]))].join(','));
   check('11.1 his sigil ring laid across the platform', tiles.filter((o) => o.texture.key.includes(':ring:')).length === 9);
@@ -35,27 +35,27 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('11.6 his cavern painting behind', imgs.includes('terrain:caveBackdrop'));
   b.activeUnit = gaha; b.pendingTarget = null; b.approach = null;
   const put = (u, c, r) => { u.col = c; u.row = r; const p = G.tileToScreen(c, r); u.view.setPosition(p.x, p.y); };
-  put(gaha, 2, 3); b.refreshTileInfo();
+  put(gaha, 3, 4); b.refreshTileInfo();
   check('11.1 the tile in focus is named: Water', /^Water/.test(b.tileText.text), b.tileText.text);
 
   // the bridges are the way onto the platform
-  const PARK = [[0, 8], [1, 8], [8, 8], [0, 0], [8, 0], [7, 0]];
+  const PARK = [[0, 10], [1, 10], [10, 10], [0, 0], [10, 0], [9, 0]]; // corners (14.2: the map is 11 by 11; every tile below is one further in than on the 9 by 9 map)
   const reset = (placed) => {
     all.forEach((u, i) => { if (u.engagedWith) E.endDuel(u); u.status = null; u.hp = u.maxHp; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; u.hidden = false; put(u, ...PARK[i]); });
     for (const [u, c, r] of placed) put(u, c, r);
     b.busy = false; b.cancelMode(); b.refreshWater(); b.refreshStatusTags();
   };
-  reset([[gaha, 3, 2]]);
+  reset([[gaha, 4, 3]]);
   b.activeUnit = gaha; gaha.stepsUsed = S.moveOf(gaha) - 1; b.startMove(); // one step left
-  check('11.3 from the water you can\'t climb straight onto the platform (two levels up)', !b.reachableKeys.has('3,3'), [...b.reachableKeys].join(' '));
-  b.cancelMode(); reset([[gaha, 4, 2]]); b.activeUnit = gaha; gaha.stepsUsed = S.moveOf(gaha) - 1; b.startMove();
-  check('11.3 from a bridge you can step up onto it', b.reachableKeys.has('4,3'));
+  check('11.3 from the water you can\'t climb straight onto the platform (two levels up)', !b.reachableKeys.has('4,4'), [...b.reachableKeys].join(' '));
+  b.cancelMode(); reset([[gaha, 5, 3]]); b.activeUnit = gaha; gaha.stepsUsed = S.moveOf(gaha) - 1; b.startMove();
+  check('11.3 from a bridge you can step up onto it', b.reachableKeys.has('5,4'));
   b.cancelMode();
 
   // ---------- 11.4 water ----------
-  reset([[gaha, 1, 3]]);
-  await new Promise((res) => { b.activeUnit = gaha; b.moveUnit(gaha, 2, 3, res); });
-  check('11.4 a unit can wade into the water', gaha.col === 2 && gaha.row === 3);
+  reset([[gaha, 2, 4]]);
+  await new Promise((res) => { b.activeUnit = gaha; b.moveUnit(gaha, 3, 4, res); });
+  check('11.4 a unit can wade into the water', gaha.col === 3 && gaha.row === 4);
   check('11.4 in the water: Drenched', S.isDrenched(gaha) && S.statusTags(gaha).some((t) => t.icon === 'drenched'));
   check('11.4 it stands in the water up to its shins (feet hidden, rings round it)', gaha.wading && gaha.sprite.isCropped && gaha.wadeParts && gaha.wadeParts.length === 2);
   b.showPose(gaha, 'guard', 1);
@@ -65,7 +65,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const turnEnd = (u) => { b.activeUnit = u; const st = b.startTurn; b.startTurn = () => {}; realEnd.call(b); b.startTurn = st; };
   turnEnd(gaha);
   check('11.4 still in the water at the end of its turn: still Drenched', S.isDrenched(gaha));
-  await new Promise((res) => { b.activeUnit = gaha; gaha.stepsUsed = 0; b.moveUnit(gaha, 1, 3, res); });
+  await new Promise((res) => { b.activeUnit = gaha; gaha.stepsUsed = 0; b.moveUnit(gaha, 2, 4, res); });
   check('11.4 out of the water: no longer wading', !gaha.wading && !gaha.sprite.isCropped);
   check('11.4 but still Drenched after leaving', S.isDrenched(gaha));
   turnEnd(gaha);
@@ -73,7 +73,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   turnEnd(gaha);
   check('11.4 two turns out: dry', !S.isDrenched(gaha));
   // lightning and fire
-  reset([[layra, 1, 6], [rabdul, 1, 4], [bull, 7, 5]]); // (dry ground: row 4, column 1 is floor)
+  reset([[layra, 2, 7], [rabdul, 2, 5], [bull, 8, 6]]); // (dry ground: row 5, column 2 is sand)
   const Cb = w.__combat;
   const dry = Cb ? Cb.getDamage(layra, rabdul) : null;
   S.applyDrenched(rabdul, 2);
@@ -92,21 +92,21 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await new Promise((res) => { b.performAttack(layra, rabdul, res); setTimeout(res, 4000); });
   check('11.4 Wildfire can\'t set a Drenched unit alight', !S.isBurning(rabdul));
   // water puts out a burn
-  reset([[rabdul, 1, 3]]);
+  reset([[rabdul, 2, 4]]);
   S.applyBurn(rabdul, 'wildfire');
-  await new Promise((res) => { b.activeUnit = rabdul; b.moveUnit(rabdul, 2, 3, res); });
+  await new Promise((res) => { b.activeUnit = rabdul; b.moveUnit(rabdul, 3, 4, res); });
   check('11.4 wading into water puts out a burn', !S.isBurning(rabdul) && S.isDrenched(rabdul));
   // pushed into the water: Drenched when it lands
-  reset([[gaha, 1, 5], [bull, 2, 5]]);
-  b.pushLoser(bull, gaha, 1); // pushed from (2,5) away from Gaha... (3,5) is the platform: blocked, wall slam
-  reset([[gaha, 0, 3], [bull, 1, 3]]);
+  reset([[gaha, 2, 6], [bull, 3, 6]]);
+  b.pushLoser(bull, gaha, 1); // pushed from (3,6) away from Gaha... (4,6) is the platform: blocked, wall slam
+  reset([[gaha, 1, 4], [bull, 2, 4]]);
   const pushed = b.pushLoser(bull, gaha, 1);
   b.knockBack(bull, pushed, 1);
   await sleep(600);
-  check('11.4 a unit knocked into the water is Drenched', bull.col === 2 && bull.row === 3 && S.isDrenched(bull), bull.col + ',' + bull.row);
+  check('11.4 a unit knocked into the water is Drenched', bull.col === 3 && bull.row === 4 && S.isDrenched(bull), bull.col + ',' + bull.row);
 
   // ---------- 11.5 the camera ----------
-  reset([[gaha, 4, 7], [bull, 4, 1]]);
+  reset([[gaha, 5, 8], [bull, 5, 2]]);
   const cam = b.cameras.main;
   check('11.5 the cavern map follows the unit whose turn it is', b.follow === true);
   // (a phone-sized screen: the battle is played zoomed in)
@@ -117,7 +117,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('11.5 zoomed in on the active unit', cam.zoom > b.home.zoom * 1.4 && Math.abs(mid().x - gaha.view.x) < 60, cam.zoom.toFixed(2) + ' vs ' + b.home.zoom.toFixed(2));
   b.followUnit(bull, 1);
   await sleep(120);
-  check('11.5 and turns to the next one', Math.abs(mid().x - bull.view.x) < 60 && mid().y < G.tileToScreen(4, 4).y);
+  check('11.5 and turns to the next one', Math.abs(mid().x - bull.view.x) < 60 && mid().y < G.tileToScreen(5, 5).y);
   // drag to look around (no tap)
   b.activeUnit = gaha; gaha.hasMoved = false; gaha.stepsUsed = 0; b.cancelMode(); b.startMove(true);
   const before = { ...mid() };
@@ -131,13 +131,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('11.5 dragging moves the view', Math.abs(mid().x - before.x - 200 / cam.zoom) < 4 && Math.abs(mid().y - before.y - 80 / cam.zoom) < 4, Math.round(mid().x - before.x) + ',' + Math.round(mid().y - before.y));
   check('11.5 a drag is not a tap (nobody moved)', gaha.col + ',' + gaha.row === tapsBefore && !b.busy);
   // a tap is still a tap (on release)
-  const dest = G.tileToScreen(4, 6);
+  const dest = G.tileToScreen(5, 7);
   const sp = { x: (dest.x - cam.worldView.x) * cam.zoom, y: (dest.y - cam.worldView.y) * cam.zoom };
   b.boardDown(P(2, sp.x, sp.y));
   check('11.5 nothing happens yet when the finger goes down', !b.busy);
   b.boardUp(P(2, sp.x, sp.y, false));
   await sleep(700);
-  check('11.5 lifting it taps: he walks there', gaha.col === 4 && gaha.row === 6, gaha.col + ',' + gaha.row);
+  check('11.5 lifting it taps: he walks there', gaha.col === 5 && gaha.row === 7, gaha.col + ',' + gaha.row);
   // pinch and the wheel
   const z0 = cam.zoom;
   b.boardDown(P(3, 300, 600)); b.boardDown(P(4, 400, 600));
@@ -158,6 +158,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('11.5 the little map: the whole board', Math.abs(cam.zoom - b.home.zoom) < 0.01, cam.zoom.toFixed(2) + ' busy ' + b.busy + ' cine ' + b.inCinematic);
   b.toggleWholeBoard(); await sleep(400);
   check('11.5 tapped again: back to the unit, zoomed in', cam.zoom > b.home.zoom * 1.4 && !b.manualView);
+  // 14.2: the arrow keys look around (one step, a fifth of the screen), and the view then stays put
+  const k0 = { x: mid().x, y: mid().y };
+  b.panBy(-1, 0); await sleep(300);
+  check('14.2 the left arrow slides the view left', mid().x < k0.x - 20 && b.manualView, Math.round(k0.x) + ' -> ' + Math.round(mid().x));
+  b.panBy(0, -1); await sleep(300);
+  check('14.2 the up arrow slides it up', mid().y < k0.y - 20, Math.round(k0.y) + ' -> ' + Math.round(mid().y));
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
