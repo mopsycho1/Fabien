@@ -1,4 +1,4 @@
-import { buttonTip, showTip, TIP_HOLD_MS } from './tooltip.js';
+import { buttonTip, showTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from './tooltip.js';
 import Phaser from 'phaser';
 import { play } from './audio.js';
 
@@ -407,6 +407,7 @@ export class CommandButton {
       // when the button is greyed out. The tap itself still happens at once.
       this.stopHold();
       const at = pointer ? { x: pointer.x, y: pointer.y } : { x, y };
+      if (pointer && pointer.wasTouch === false) return; // a mouse gets its tooltip by resting on the button, not by holding it down
       this.holdTimer = setTimeout(() => {
         this.holdTimer = null;
         const tip = this.tip || buttonTip(this.label.text);
@@ -418,8 +419,15 @@ export class CommandButton {
       this.onTap();
     });
     this.hit.on('pointerup', () => this.stopHold());
-    this.hit.on('pointerover', () => this.draw(true));
-    this.hit.on('pointerout', () => { this.stopHold(); this.draw(false); });
+    // a mouse resting on the button for half a second shows its tooltip; leaving puts it away (15 Nov)
+    this.hit.on('pointerover', (pointer) => {
+      this.draw(true);
+      if (pointer && pointer.wasTouch === false) {
+        const at = { x: pointer.x, y: pointer.y };
+        hoverTipStart(scene, () => (this.view.visible ? this.tip || buttonTip(this.label.text) : null), at.x, at.y);
+      }
+    });
+    this.hit.on('pointerout', () => { this.stopHold(); hoverTipEnd(scene); this.draw(false); });
   }
 
   stopHold() {
@@ -566,6 +574,7 @@ export class MenuRow {
       // held for half a second: a tooltip (roadmap 13.49), as on CommandButton above
       this.stopHold();
       const at = pointer && pointer.x !== undefined ? { x: pointer.x, y: pointer.y } : { x: this.x || 0, y: this.y || 0 };
+      if (pointer && pointer.wasTouch === false) return; // a mouse gets its tooltip by resting on the button, not by holding it down
       this.holdTimer = setTimeout(() => {
         this.holdTimer = null;
         const tip = this.tip || buttonTip(this.label.text);
@@ -577,8 +586,15 @@ export class MenuRow {
       this.onTap();
     });
     this.hit.on('pointerup', () => this.stopHold());
-    this.hit.on('pointerover', () => this.draw(true));
-    this.hit.on('pointerout', () => { this.stopHold(); this.draw(false); });
+    // a mouse resting on the button for half a second shows its tooltip; leaving puts it away (15 Nov)
+    this.hit.on('pointerover', (pointer) => {
+      this.draw(true);
+      if (pointer && pointer.wasTouch === false) {
+        const at = { x: pointer.x, y: pointer.y };
+        hoverTipStart(scene, () => (this.view.visible ? this.tip || buttonTip(this.label.text) : null), at.x, at.y);
+      }
+    });
+    this.hit.on('pointerout', () => { this.stopHold(); hoverTipEnd(scene); this.draw(false); });
   }
 
   stopHold() {

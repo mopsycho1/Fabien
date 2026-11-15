@@ -15,6 +15,10 @@ const hex = (h) => Phaser.Display.Color.HexStringToColor(h).color;
 
 // A side's colour. ?enemy=white (or red, violet) in the address tries another enemy colour.
 export function teamColor(side) {
+  if (typeof window !== 'undefined') {
+    const set = window.__ringSet || new URLSearchParams(window.location.search).get('rings');
+    if (set && rules.ringSets[set]) return hex(rules.ringSets[set][side] || '#ffffff');
+  }
   if (side === 'enemy' && typeof window !== 'undefined') {
     const asked = window.__enemyColor || new URLSearchParams(window.location.search).get('enemy');
     if (asked && rules.enemyOptions[asked]) return hex(rules.enemyOptions[asked]);
@@ -33,6 +37,7 @@ export function figureShadows(scene) {
 // kept on the picture every frame by syncRims (the picture changes, breathes, squashes).
 const OFFSETS = [[-1, 0], [1, 0], [0, -1]];
 export function addRim(scene, view, sprite, color) {
+  if (!(rules.rim.alpha > 0)) return []; // off (15 Nov): the team shows as a ring on the floor only
   const at = view.getIndex(sprite);
   const rims = OFFSETS.map(() => scene.add.image(sprite.x, sprite.y, sprite.texture.key).setTintFill(color).setAlpha(rules.rim.alpha));
   rims.forEach((r) => view.addAt(r, at));

@@ -1,7 +1,7 @@
 import { writeSave, readSave, clearSave, applySave } from '../saveGame.js';
 import { endingRules, parFor, rateWin, recordBest, battleTally } from '../ending.js';
 import { teamColor, figureShadows, addRim, syncRims, drawPath, boardRules } from '../boardRead.js';
-import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
+import { spellTip, unitTip, buttonTip, showTip, hideTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from '../tooltip.js';
 import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode, drainChunk, clearChunk } from '../nameplate.js';
 import { damageSize, turnBanner, dropTurnBanner } from '../weight.js';
 import { staysOnUnit, placeLabel, laneCallout, resetCallouts } from '../callouts.js';
@@ -1507,7 +1507,7 @@ export default class BattleScene extends Phaser.Scene {
 
       // A ring on the ground in the side's color. It turns gold on this unit's turn.
       ringColor = teamColor(data.side); // (M10: the side's colour from board.json, also the rim round the figure)
-      body = this.add.ellipse(0, 2, 62, 28, ringColor, 0.14).setStrokeStyle(3, ringColor);
+      body = this.add.ellipse(0, 2, 62, 28, ringColor, boardRules.ring.fill).setStrokeStyle(boardRules.ring.width, ringColor, boardRules.ring.alpha); // thin and soft (15 Nov)
 
       // The picture stands on the tile: its feet are at the tile's middle
       sprite = this.add.image(0, 6, frame.key).setOrigin(frame.originX, frame.originY || 1);
@@ -1887,7 +1887,7 @@ export default class BattleScene extends Phaser.Scene {
       } else if (unit === this.activeUnit) {
         unit.body.setStrokeStyle(6, GOLD);
       } else {
-        unit.body.setStrokeStyle(3, unit.ringColor);
+        unit.body.setStrokeStyle(boardRules.ring.width, unit.ringColor, boardRules.ring.alpha);
       }
     }
   }
@@ -7983,6 +7983,7 @@ export default class BattleScene extends Phaser.Scene {
     const key = tile ? tile.col + ',' + tile.row : null;
     if (key === this.hoverKey) return;
     this.hoverKey = key;
+    hoverTipEnd(this); // the mouse moved to another tile: any tooltip goes
     if (this.hoverMark) this.hoverMark.destroy();
     this.hoverMark = null;
     this.hoverTile = tile;
@@ -7996,6 +7997,7 @@ export default class BattleScene extends Phaser.Scene {
       const unit = this.getUnitAt(tile.col, tile.row);
       if (unit && unit.alive && !(unit.hidden && unit.side !== 'hero')) {
         this.hoverUnit = unit;
+        hoverTipStart(this, () => (this.hoverUnit === unit && unit.alive ? unitTip(unit) : null), p.x, p.y); // after half a second
         flashPlate(this, unit, 1500);
         if (!this.busy) this.refreshCard(unit, unit !== this.activeUnit);
       }

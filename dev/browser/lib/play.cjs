@@ -17,6 +17,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
     : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   if (opts.everyone) await page.addInitScript(() => { window.__bench = []; });
+  if (opts.ringSet) await page.addInitScript((r) => { window.__ringSet = r; }, opts.ringSet); // team ring colours to try (boardRead.js)
   if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)
   const errors = [];
   page.on('pageerror', (e) => errors.push((e.stack || e.message).split('\n').slice(0, 4).join(' | ')));

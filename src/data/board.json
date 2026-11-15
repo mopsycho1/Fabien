@@ -1,8 +1,47 @@
 {
-  "note": "Reading the board (roadmap 18.10, M10; 17.6 and 17.11). 'teamColors': the colour of each side's ring on the ground and the rim of light round its figures. Enemy options tried on one sheet (15 Nov): white (Suleiman's idea, 11 Nov), red, violet. To try one without changing this file, add ?enemy=white (or red, violet) to the game's address. 'rim': how thick the coloured edge round a figure is, in game pixels, and how strong (0 to 1). 'shadow': the dark under a figure: 'contact' is the small dark patch at the feet, 'floor' the wide soft one that darkens the floor a little. 'tiles': 'fill' is how solid a move or target tile is (lower shows more floor), 'path' the walking line.",
-  "teamColors": { "hero": "#3fd0c4", "enemy": "#f4f1e8" },
-  "enemyOptions": { "white": "#f4f1e8", "red": "#ff5a44", "violet": "#b98cff" },
-  "rim": { "width": 2, "alpha": 0.85 },
-  "shadow": { "contact": 0.5, "floor": 0.22 },
-  "tiles": { "fill": 0.3, "path": { "width": 5, "color": "#ffe08a", "alpha": 0.95 } }
+  "note": "Reading the board (roadmap 18.10, M10; 17.6 and 17.11). 'teamColors': the colour of each side's ring on the ground and the rim of light round its figures. Enemy options tried on one sheet (15 Nov): white (Suleiman's idea, 11 Nov), red, violet. To try one without changing this file, add ?enemy=white (or red, violet) to the game's address. 'rim': how thick the coloured edge round a figure is, in game pixels, and how strong (0 to 1). 'shadow': the dark under a figure: 'contact' is the small dark patch at the feet, 'floor' the wide soft one that darkens the floor a little. 'tiles': 'fill' is how solid a move or target tile is (lower shows more floor), 'path' the walking line. 15 Nov (Baiyee): the coloured edge round the bodies is OFF (rim alpha 0); the team shows only as a thin soft ring on the floor ('ring': its line width, strength and fill). To try a colour pair add ?rings=tealwhite, tealred or goldred to the address ('ringSets').",
+  "teamColors": {
+    "hero": "#3fd0c4",
+    "enemy": "#f4f1e8"
+  },
+  "enemyOptions": {
+    "white": "#f4f1e8",
+    "red": "#ff5a44",
+    "violet": "#b98cff"
+  },
+  "rim": {
+    "width": 2,
+    "alpha": 0
+  },
+  "shadow": {
+    "contact": 0.5,
+    "floor": 0.22
+  },
+  "tiles": {
+    "fill": 0.3,
+    "path": {
+      "width": 5,
+      "color": "#ffe08a",
+      "alpha": 0.95
+    }
+  },
+  "ring": {
+    "width": 2,
+    "alpha": 0.8,
+    "fill": 0.08
+  },
+  "ringSets": {
+    "tealwhite": {
+      "hero": "#3fd0c4",
+      "enemy": "#f4f1e8"
+    },
+    "tealred": {
+      "hero": "#3fd0c4",
+      "enemy": "#ff5a44"
+    },
+    "goldred": {
+      "hero": "#e8b84a",
+      "enemy": "#ff5a44"
+    }
+  }
 }

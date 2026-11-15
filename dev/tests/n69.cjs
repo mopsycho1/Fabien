@@ -14,18 +14,14 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const num = (h) => parseInt(h.slice(1), 16);
   b.endTurn = () => {};
 
-  check('D6 every figure has a rim: three copies of its picture just behind it', b.units.every((u) => u.rims && u.rims.length === 3 && u.rims.every((r) => u.view.getIndex(r) < u.view.getIndex(u.sprite))));
-  check('D6 heroes\' rims are the hero colour, enemies\' the enemy colour (white)', b.units.every((u) => u.rims.every((r) => r.tintTopLeft === num(rules.teamColors[u.side]) && r.tintFill === true)) && rules.teamColors.enemy === rules.enemyOptions.white, gaha.rims[0].tintTopLeft.toString(16) + ' ' + rabdul.rims[0].tintTopLeft.toString(16));
+  check('D6 (15 Nov) no coloured edge round the bodies: the rims are off, the team shows as a thin ring on the floor', b.units.every((u) => !u.rims || u.rims.length === 0) && b.units.filter((u) => u !== b.activeUnit).every((u) => u.body.lineWidth === rules.ring.width), b.units.map((u) => u.body.lineWidth).join(','));
+  check('D6 the ring colours are the hero colour and the enemy colour', gaha.ringColor === num(rules.teamColors.hero) && rabdul.ringColor === num(rules.teamColors.enemy));
   check('D6 the ring on the ground is in the same colour', gaha.ringColor === num(rules.teamColors.hero) && rabdul.ringColor === num(rules.teamColors.enemy));
   check('D6 every figure stands on two shadows: a wide soft one and a small dark one', b.units.every((u) => { const [a, c] = u.view.list; return a.type === 'Ellipse' && c.type === 'Ellipse' && a.width > c.width && c.fillAlpha > a.fillAlpha; }));
   await sleep(300);
-  const onPicture = (u) => u.rims.every((r) => r.texture.key === u.sprite.texture.key && r.flipX === u.sprite.flipX && Math.abs(r.scaleX - u.sprite.scaleX) < 1e-6 && Math.abs(r.x - u.sprite.x) <= rules.rim.width && Math.abs(r.y - u.sprite.y) <= rules.rim.width);
-  check('the rims sit on the pictures (same picture, size and side), a couple of pixels out', b.units.every(onPicture));
   b.showPose(gaha, 'hurt', 1); await sleep(120);
-  check('when the picture changes (hurt), the rim changes with it', onPicture(gaha), gaha.sprite.texture.key + ' / ' + gaha.rims[0].texture.key);
   b.showStanding(gaha); await sleep(120);
   gaha.alive = false; await sleep(80);
-  check('a fallen fighter has no rim', gaha.rims.every((r) => !r.visible));
   gaha.alive = true; await sleep(80);
 
   // ---------- tiles and the path ----------

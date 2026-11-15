@@ -36,9 +36,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 8.3 the menu beside the unit ----------
   await sleep(50);
-  check('8.3 the menu shows on a hero\'s turn, beside the unit', b.menu.visible && Math.abs(b.menu.x - (gaha.view.x - b.cameras.main.worldView.x) * b.cameras.main.zoom) < 320, b.menu.x + ',' + b.menu.y);
+  check('8.3 the menu shows on a hero\'s turn, a slim column on the right edge', b.menu.visible && b.menu.x + b.menuSize.w > 720 - 2 * b.lay.m && b.menuSize.w <= b.lay.minTap + 2 * b.lay.m, b.menu.x + ',' + b.menu.y);
   check('8.3 its rows: Thrust, Engage, Skills, Items, End turn', b.menuRows.map((r) => r.label.text).join('|') === 'Move|Thrust|Engage|Skills|Items|End turn' || b.menuRows.map((r) => r.label.text).join('|') === 'Thrust|Engage|Skills|Items|End turn', b.menuRows.map((r) => r.label.text).join('|'));
-  check('8.3 the menu stays on screen', inside(b.menu, 720, 1280));
+  check('8.3 the menu stays on screen', b.menu.x >= 0 && b.menu.y >= 0 && b.menu.x + b.menuSize.w <= 721 && b.menu.y + b.menuSize.h <= 1281);
   reset([[layra, 2, 5], [rabdul, 2, 1]], layra);
   layra.mp = layra.maxMp; b.onSpellButton(); await sleep(50);
   const costs = b.menuRows.filter((r) => r.cost.text).map((r) => r.word.text + '=' + r.cost.text);
@@ -152,7 +152,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const cb2 = cardBox();
   check('8.1 sideways: the card is bottom left, inside 1280 by 720', cb2.x < 40 && cb2.bottom <= 721 && cb2.bottom > 650, Math.round(cb2.x) + ',' + Math.round(cb2.y) + ',' + Math.round(cb2.bottom));
   check('8.1 sideways: the turn box is top right', b.turnText.x > 1000 && b.turnText.y < 60);
-  check('8.1 sideways: the menu stays on screen', b.menu.visible && inside(b.menu, 1280, 720));
+  check('8.1 sideways: the menu stays on screen', b.menu.visible && b.menu.x >= 0 && b.menu.y >= 0 && b.menu.x + b.menuSize.w <= 1281 && b.menu.y + b.menuSize.h <= 721);
   const cam = b.cameras.main;
   const corner = (c, r) => { const p = G.tileToScreen(c, r); return { x: (p.x - cam.worldView.x) * cam.zoom, y: (p.y - cam.worldView.y) * cam.zoom }; };
   const ends = [corner(0, 0), corner(7, 7), corner(0, 7), corner(7, 0)];

@@ -19,15 +19,16 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- the card ----------
   b.cardOpen = false; turnOf(gaha);
-  check('closed, the card shows four numbers: ATK, DEF, SPD, MOV', ['ATK', 'DEF', 'SPD', 'MOV'].every((x) => num(x)) && !num('MDF') && !num('RNG'), cardWords().join(' '));
-  const h1 = b.cardHeight, top1 = b.cardTop;
+  check('closed, the card is a slim bar: name and a thin HP bar, no stat numbers', !num('ATK') && cardWords().includes('Gaha') && cardWords().includes('36/36'), cardWords().join(' '));
+  const h1 = b.cardHeight;
+  check('the slim bar is at least a finger tall', h1 >= b.lay.minTap, h1 + ' ' + b.lay.minTap);
   b.cardHit.emit('pointerdown');
-  check('a tap turns the page: MAG, MDF, RNG, POISE', ['MAG', 'MDF', 'RNG', 'POISE'].every((x) => num(x)) && !num('ATK'), cardWords().join(' '));
-  check('the card is the same height on both pages', b.cardHeight === h1 && b.cardTop === top1, h1 + ' ' + b.cardHeight);
+  check('a tap opens the full stats: ATK, DEF, SPD, MOV, MAG, MDF, RNG, POISE', ['ATK', 'DEF', 'SPD', 'MOV', 'MAG', 'MDF', 'RNG', 'POISE'].every((x) => num(x)), cardWords().join(' '));
   b.cardHit.emit('pointerdown');
-  check('a second tap turns it back', !!num('ATK') && !num('MDF'));
+  check('a second tap closes it again, to the slim bar', !num('ATK') && b.cardHeight === h1 && b.cardOpen === false, h1 + ' ' + b.cardHeight);
+  b.cardOpen = true; turnOf(gaha); /* (the rest of this test reads the numbers, so the card stays open) */
   turnOf(layra);
-  check('a caster\'s first number is MAG', !!num('MAG') && !num('ATK'));
+  check('a caster\'s first number is MAG', b.cardLayer.list.filter((o) => o.statWord).map((o) => o.statWord)[0] === 'MAG');
   // 1.44: a buffed number shows on the card
   turnOf(gaha);
   const plain = num('ATK').text, plainColor = num('ATK').style.color;
@@ -41,6 +42,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('with nothing on him the numbers are plain again', num('ATK').text === plain && num('SPD').text === String(gaha.speed));
 
   // ---------- the menu's home ----------
+  b.cardOpen = false; /* (an open card hides the menu) */
   const corner = () => Math.round(b.menu.x + b.menuSize.w) + ',' + Math.round(b.menu.y + b.menuSize.h);
   const seen = new Set();
   for (const u of b.units.filter((x) => x.side === 'hero')) { turnOf(u); b.placeMenu(); seen.add(corner()); b.onSpellButton(); b.layoutMenu(); seen.add(corner()); b.cancelMode(); }

@@ -59,11 +59,36 @@ export function showTip(scene, tip, sx, sy) {
   const y = sy - h - 30 * s >= m ? sy - h - 30 * s : Math.min(H - m - h, sy + 40 * s);
   const panel = scene.add.container(x, Math.max(m, y), [back, title, body]).setDepth(400);
   panel.tipW = width; panel.tipH = h; panel.tip = tip;
+  // never over the action menu (15 Nov): if it would cover it, it stands to the left of it
+  if (scene.menu && scene.menu.visible && scene.menuSize) {
+    const mx = scene.menu.x, my = scene.menu.y, mw = scene.menuSize.w, mh = scene.menuSize.h;
+    if (panel.x < mx + mw && panel.x + width > mx && panel.y < my + mh && panel.y + h > my) panel.x = Math.max(m, mx - width - 8 * s);
+  }
   scene.ui(panel);
   scene.tip = panel;
+  panel.hideTimer = setTimeout(() => { if (scene.tip === panel) hideTip(scene); }, TIP_MAX_MS); // at most 3 seconds
   return panel;
 }
 
 export function hideTip(scene) {
-  if (scene.tip) { scene.tip.destroy(); scene.tip = null; }
+  if (scene.tip) { clearTimeout(scene.tip.hideTimer); scene.tip.destroy(); scene.tip = null; }
+}
+
+// On a computer: a tooltip comes only after the mouse has rested on something for half a second,
+// and goes the moment the mouse leaves (15 Nov). Call hoverTipStart on mouse-over and hoverTipEnd on
+// mouse-out. "get" gives the tip's { title, body } when the time is up.
+export const TIP_HOVER_MS = 500;
+export const TIP_MAX_MS = 3000;
+export function hoverTipStart(scene, get, x, y) {
+  hoverTipEnd(scene);
+  scene.hoverTipTimer = setTimeout(() => {
+    scene.hoverTipTimer = null;
+    const tip = get();
+    if (tip && scene.lay && !scene.battleOver) showTip(scene, tip, x, y);
+  }, TIP_HOVER_MS);
+}
+export function hoverTipEnd(scene) {
+  if (scene.hoverTipTimer) clearTimeout(scene.hoverTipTimer);
+  scene.hoverTipTimer = null;
+  hideTip(scene);
 }

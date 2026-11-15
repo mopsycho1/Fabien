@@ -19,6 +19,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const T = w.__tooltip;
   const show = () => { T.showTip(b, { title: 'Press', body: 'test' }, 300, 400); return !!b.tip; };
   check('a tooltip shows in a normal turn', show());
+  await sleep(3200);
+  check('a tooltip goes by itself after 3 seconds at most', !b.tip);
+  T.hoverTipStart(b, () => ({ title: 'Hover', body: 'x' }), 300, 400); await sleep(300);
+  check('a hover tooltip does not show before half a second', !b.tip);
+  await sleep(350);
+  check('...and shows after it', !!b.tip);
+  T.hoverTipEnd(b);
+  check('the mouse leaving puts it away at once', !b.tip);
+  show();
   b.runEnemyTurn = () => {}; b.busy = false; b.endTurn(); await sleep(400);
   check('ending the turn closes the tooltip', !b.tip);
   b.openSettings(true); check('opening settings closes a tooltip', (b.tip === null || !b.tip)); 

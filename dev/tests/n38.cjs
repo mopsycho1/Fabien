@@ -96,15 +96,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 8.16 the menu can be moved ----------
   reset([[gaha, 3, 6], [bull, 3, 2]]);
-  b.activeUnit = gaha; b.busy = false; b.refreshButtons(); b.placeMenu();
+  b.activeUnit = gaha; b.busy = false; b.spellGroup = 'Skills'; b.refreshButtons(); b.layoutMenu(); /* (the slim column has no grip; the skills list does) */ b.placeMenu();
   check('8.16 the menu has a grip along its top', b.menuGripHit && b.menuGripHit.input && b.menuGripHit.input.enabled && b.menuGripHit.width >= b.menuSize.w - 1);
   const m0 = { x: b.menu.x, y: b.menu.y };
   const press = { x: m0.x + 20, y: m0.y + 6, isDown: true };
   b.grabMenu(press);
-  b.dragMenu({ x: press.x - 140, y: press.y + 60, isDown: true });
+  b.dragMenu({ x: press.x - 140, y: press.y - 60, isDown: true });
   b.input.emit('pointerup', press);
   b.placeMenu();
-  check('8.16 dragging the grip moves the menu', Math.abs(b.menu.x - (m0.x - 140)) <= 1 && Math.abs(b.menu.y - (m0.y + 60)) <= 1, m0.x + ',' + m0.y + ' -> ' + b.menu.x + ',' + b.menu.y);
+  check('8.16 dragging the grip moves the menu', Math.abs(b.menu.x - (m0.x - 140)) <= 1 && Math.abs(b.menu.y - (m0.y - 60)) <= 1, m0.x + ',' + m0.y + ' -> ' + b.menu.x + ',' + b.menu.y);
   const pinned = { x: b.menu.x, y: b.menu.y };
   put(gaha, 5, 5); b.update(); b.placeMenu();
   check('8.16 it stays where it was put when the unit moves', b.menu.x === pinned.x && b.menu.y === pinned.y);
