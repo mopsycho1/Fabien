@@ -7,6 +7,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const { w, game, errors } = await start();
   const t0 = Date.now(); while (Date.now() - t0 < 8000 && !game.textures.exists('card:empower')) await sleep(50);
   const b = await battle(game); await sleep(800);
+  /* 15 Nov: this test is about the game's own looks, which stay as the fallback whenever Suleiman's GIF frames are missing: take his frames out (n74 tests his frames) */ for (const k of game.textures.getTextureKeys().filter((k) => /^fx:(buff|sfx)_/.test(k))) game.textures.remove(k);
   const U = (l) => b.units.find((u) => u.label === l);
   const [sudeen, gaha, layra, rabdul] = ['H1', 'H2', 'H3', 'E1'].map(U);
   b.runEnemyTurn = () => {}; b.endTurn = () => {};

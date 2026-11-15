@@ -74,6 +74,7 @@ export const CARDS = ['offbalance', 'swiftness', 'fury', 'stone', 'press', 'empo
 export function preloadSpellArt(scene) {
   for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
   for (const f of buffFxFiles()) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
+  for (const f of sfxFiles()) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
   scene.load.image('fx:empower_aura', './art/fx/empower_aura.jpg'); // drawn on black: it glows (added light)
   for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
   for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
@@ -137,18 +138,34 @@ const has = (scene, keys) => keys.every((k) => scene.textures.exists('fx:' + k))
 
 // Plays pictures one after another at (x, y), standing on that point.
 // hold: how long the last picture stays before it fades; fade: how long the fade takes.
-// ---------- Room for Suleiman's drawn buff effects (roadmap 13.46) ----------
-// src/data/fxSlots.json says, per Verse, how many "cast" frames (played once
-// where it lands) and "loop" frames (played round the unit while it lasts) he
-// has sent. Nothing is drawn from here until a number there is above 0.
+// ---------- Room for Suleiman's drawn buff effects (roadmap 13.46, GIF frames 15 Nov: 6.58) ----------
+// src/data/fxSlots.json says, per Verse, how many frames he has sent for each part, and how long each frame shows:
+//   cast   played once where the Verse lands (a slot with "castUses": "loop" plays its loop frames once)
+//   loop   played round the unit while the Verse lasts
+//   move   played on the unit while it walks under the Verse
+//   rooted played on the unit instead of the loop while it stands its ground (Gaha, Earth's Bulwark: roadmap 3.12)
+// <part>Ms is that part's frame time (taken from his GIF; frameMs is the fallback). Nothing is drawn for a part until its
+// number is above 0. They are made by dev/tools/make_gif_fx.py.
 const BUFF_FX = fxSlots.buffs || {};
-const buffFrames = (id, part) => range('buff_' + id + '_' + part, (BUFF_FX[id] && BUFF_FX[id][part]) || 0);
+const BUFF_PARTS = ['cast', 'loop', 'move', 'rooted'];
+const slotCount = (id, part) => (BUFF_FX[id] && BUFF_FX[id][part]) || 0;
+const slotMs = (id, part) => (BUFF_FX[id] && (BUFF_FX[id][part + 'Ms'] || BUFF_FX[id].frameMs)) || 80;
+const buffFrames = (id, part) => {
+  const slot = BUFF_FX[id];
+  if (part === 'cast' && slot && slot.castUses === 'loop' && !slotCount(id, 'cast')) part = 'loop';
+  return range('buff_' + id + '_' + part, slotCount(id, part));
+};
 function buffFxFiles() {
-  return Object.keys(BUFF_FX).flatMap((id) => [...buffFrames(id, 'cast'), ...buffFrames(id, 'loop')]);
+  return Object.keys(BUFF_FX).flatMap((id) => BUFF_PARTS.flatMap((part) => buffFrames(id, part)));
 }
 // True if his looping frames for this Verse are loaded (then ours step aside).
 export function hasBuffLoop(scene, id) {
   const keys = buffFrames(id, 'loop');
+  return keys.length > 0 && has(scene, keys);
+}
+// True if he has drawn the Verse for a unit that is walking (move) or standing its ground (rooted).
+export function hasBuffPart(scene, id, part) {
+  const keys = buffFrames(id, part);
   return keys.length > 0 && has(scene, keys);
 }
 // His cast effect where a Verse lands. Returns true if it was drawn.
@@ -156,22 +173,79 @@ export function buffCastFx(scene, x, y, id) {
   const keys = buffFrames(id, 'cast');
   if (!keys.length || !has(scene, keys)) return false;
   const slot = BUFF_FX[id];
-  const img = flipbook(scene, keys, x, y, { frameMs: slot.frameMs, scale: slot.scale, depth: 81, originY: 0.5 + slot.feetY });
+  const img = flipbook(scene, keys, x, y, { frameMs: slotMs(id, 'cast'), scale: slot.scale, depth: 81, originY: 0.5 + slot.feetY });
   img.setBlendMode(Phaser.BlendModes.ADD); // drawn on black: added as light
   return true;
 }
-// His looping effect round a unit, inside the unit's own container (it walks with it).
-// Returns { objects, tweens } for BattleScene.keepAura, or null.
-export function buffLoopFx(scene, unit, id) {
-  if (!hasBuffLoop(scene, id)) return null;
-  const keys = buffFrames(id, 'loop');
+// His looping effect round a unit, inside the unit's own container (it walks with it): the loop frames, or for
+// part "rooted" the standing-his-ground frames. Returns { objects, tweens } for BattleScene.keepAura, or null.
+export function buffLoopFx(scene, unit, id, part = 'loop') {
+  if (!hasBuffPart(scene, id, part)) return null;
+  const keys = buffFrames(id, part);
   const slot = BUFF_FX[id];
-  const anim = 'buffLoop-' + id;
-  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slot.frameMs, repeat: -1 });
+  const anim = 'buff' + part + '-' + id;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slotMs(id, part), repeat: -1 });
   const sprite = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(0.5, 0.5 + slot.feetY).setScale(slot.scale).setBlendMode(Phaser.BlendModes.ADD);
   sprite.play(anim);
   behind(unit, sprite);
   return { objects: [sprite], tweens: [] };
+}
+// His "in motion" effect on a unit while it walks under a Verse. It sits on the unit's body (inside its container, so it
+// goes with it) and is drawn facing right; dx says which way the unit goes now. Returns { objects, tweens } or null.
+export function buffMoveFx(scene, unit, id, dx) {
+  if (!hasBuffPart(scene, id, 'move')) return null;
+  const keys = buffFrames(id, 'move');
+  const slot = BUFF_FX[id];
+  const anim = 'buffmove-' + id;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slotMs(id, 'move'), repeat: -1 });
+  const sprite = scene.add.sprite(0, -unit.centerY, 'fx:' + keys[0]).setScale(slot.moveScale || slot.scale).setBlendMode(Phaser.BlendModes.ADD).setFlipX(dx < 0);
+  sprite.play(anim);
+  behind(unit, sprite);
+  return { objects: [sprite], tweens: [] };
+}
+
+// ---------- His drawn spell effects: Lightning and Wildfire (GIF frames, 15 Nov: roadmap 6.58) ----------
+// "spells" in fxSlots.json: frames, frameMs (his GIF's own), where the effect is anchored (originX, originY, shares of the
+// frame), and for a beam (the bolt, the lance) "reach": how far along the frame it runs, so it can be aimed and stretched
+// at a target. "lead" (orb) is how long Layra gathers it at her hands before it goes; "hitMs" (beam) is when it reaches the
+// target, counted from the start of the beam. Made by dev/tools/make_gif_fx.py.
+const SFX = fxSlots.spells || {};
+const sfxKeys = (name) => range('sfx_' + name, (SFX[name] && SFX[name].frames) || 0);
+function sfxFiles() {
+  return Object.keys(SFX).flatMap((name) => sfxKeys(name));
+}
+export function sfxHas(scene, ...names) {
+  return names.every((n) => sfxKeys(n).length > 0 && has(scene, sfxKeys(n)));
+}
+export function sfxInfo(name) {
+  return SFX[name] || null;
+}
+// Plays his frames once at (x, y), anchored on his point of the picture, then they fade. rotation turns it about that point.
+function sfxPlay(scene, name, x, y, { scale = 1, rotation = 0, depth = 81, fade = 160 } = {}) {
+  const info = SFX[name];
+  const keys = sfxKeys(name);
+  const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setRotation(rotation).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  keys.forEach((k, i) => scene.time.delayedCall(i * info.frameMs, () => img.active && img.setTexture('fx:' + k)));
+  scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * info.frameMs, duration: fade, onComplete: () => img.destroy() });
+  return img;
+}
+// The orb she gathers at her hands (Lightning's vortex, Wildfire's fireball forming).
+export function sfxChannel(scene, name, x, y, { depth = 81, scale = 0.9 } = {}) {
+  return sfxPlay(scene, name, x, y, { scale, depth });
+}
+// The beam from her hands to the target: the orb sits on (x0, y0) and the beam is turned and stretched so its far end
+// reaches (x1, y1) when it is at full length.
+export function sfxBeam(scene, name, x0, y0, x1, y1, { depth = 80 } = {}) {
+  const info = SFX[name];
+  const w = info.size[0];
+  const length = Math.max(20, (info.reach - info.originX) * w);
+  const dist = Math.hypot(x1 - x0, y1 - y0);
+  const scale = Math.min(1.6, Math.max(0.3, dist / length));
+  return sfxPlay(scene, name, x0, y0, { scale, rotation: Math.atan2(y1 - y0, x1 - x0), depth });
+}
+// The strike that comes down on the target's feet (x, y).
+export function sfxStrike(scene, name, x, y, { big = false } = {}) {
+  return sfxPlay(scene, name, x, y + 8, { scale: big ? 1.15 : 0.95, depth: 82 });
 }
 
 function flipbook(scene, keys, x, y, { frameMs = 55, scale = 1, depth = 79, originY = 1, flip = false, hold = 0, fade = 220 } = {}) {

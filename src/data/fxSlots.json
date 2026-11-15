@@ -1,10 +1,108 @@
 {
-  "note": "Room for Suleiman's own buff effects (roadmap 13.46, approved 13 Nov). He sends frame sequences on pure black, equal cells, centred on one point. Put the frames in public/art/fx as buff_<verse>_cast_0.png, _1 ... (played once when the Verse lands) and buff_<verse>_loop_0.png, _1 ... (played round the unit while the Verse lasts), run dev/tools/align_fx.py after adding the family to fx_anchors.json, then write how many frames there are below. 0 = no drawn effect yet: the game uses the look it has today. As soon as a number is above 0 his frames replace ours for that Verse, with no code change. frameMs = how long each frame shows. scale = size on the board (1 = the picture's own pixels). feetY = how far below the middle of the picture the unit's feet are, as a share of its height (0.5 = the feet are at the bottom edge).",
+  "note": "Suleiman's drawn effects (roadmap 13.46, 6.58). He sends them as GIFs, one folder per spell; dev/tools/make_gif_fx.py turns the frames into pictures in public/art/fx (the black ground becomes see-through, half size) and fills this file in: \"buffs\" per Verse: cast (played once where it lands; \"castUses\": \"loop\" plays the loop frames once), loop (round the unit while it lasts), move (on the unit while it walks) and rooted (instead of the loop while Gaha stands his ground), each as a number of frames (0 = none drawn yet: the game uses its own look) with <part>Ms the frame time of his GIF; scale = size on the board (1 = the picture's own pixels, which are half of his 439); feetY = how far below the middle of the picture the unit's feet are, as a share of its height (0.5 = the feet are at the bottom edge); moveScale = the size of the move effect, if not scale. \"spells\": Lightning and Wildfire pieces (orb, bolt, strike, lance) with where each is anchored; lead = ms she gathers an orb before it goes, hitMs = ms from the start of a beam until it reaches the target, reach = how far along its frame a beam runs. Run dev/tools/align_fx.py after adding a family to dev/tools/fx_anchors.json.",
   "buffs": {
-    "swiftness": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
-    "fury": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
-    "stone": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
-    "slow": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 },
-    "enchant": { "cast": 0, "loop": 0, "frameMs": 80, "scale": 0.5, "feetY": 0.4 }
+    "swiftness": {
+      "cast": 0,
+      "loop": 8,
+      "frameMs": 80,
+      "scale": 1.0,
+      "feetY": 0.4,
+      "loopMs": 140,
+      "move": 8,
+      "moveMs": 110
+    },
+    "fury": {
+      "cast": 0,
+      "loop": 8,
+      "frameMs": 80,
+      "scale": 1.0,
+      "feetY": 0.4,
+      "loopMs": 130,
+      "move": 8,
+      "moveMs": 110
+    },
+    "stone": {
+      "cast": 0,
+      "loop": 8,
+      "frameMs": 80,
+      "scale": 1.0,
+      "feetY": 0.4,
+      "loopMs": 140,
+      "rooted": 8,
+      "rootedMs": 130,
+      "castUses": "loop"
+    },
+    "slow": {
+      "cast": 0,
+      "loop": 0,
+      "frameMs": 80,
+      "scale": 0.5,
+      "feetY": 0.4
+    },
+    "enchant": {
+      "cast": 0,
+      "loop": 0,
+      "frameMs": 80,
+      "scale": 0.5,
+      "feetY": 0.4
+    }
+  },
+  "spells": {
+    "lightning_orb": {
+      "frames": 8,
+      "frameMs": 110,
+      "originX": 0.5,
+      "originY": 0.5,
+      "size": [
+        220,
+        220
+      ],
+      "lead": 440
+    },
+    "lightning_bolt": {
+      "frames": 8,
+      "frameMs": 110,
+      "originX": 0.244,
+      "originY": 0.522,
+      "reach": 0.995,
+      "size": [
+        220,
+        220
+      ],
+      "hitMs": 330
+    },
+    "lightning_strike": {
+      "frames": 8,
+      "frameMs": 120,
+      "originX": 0.506,
+      "originY": 0.995,
+      "size": [
+        220,
+        220
+      ]
+    },
+    "wildfire_orb": {
+      "frames": 8,
+      "frameMs": 140,
+      "originX": 0.5,
+      "originY": 0.5,
+      "size": [
+        220,
+        220
+      ],
+      "lead": 560
+    },
+    "wildfire_lance": {
+      "frames": 8,
+      "frameMs": 100,
+      "originX": 0.384,
+      "originY": 0.551,
+      "reach": 0.995,
+      "size": [
+        220,
+        220
+      ],
+      "hitMs": 400
+    }
   }
 }

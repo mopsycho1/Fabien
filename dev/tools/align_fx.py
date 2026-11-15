@@ -26,6 +26,8 @@ def files(name, folder=FX):
     c = CFG[name]; first = c.get('first', 0); sep = c.get('sep', '_')
     return [os.path.join(folder, '%s%s%d.png' % (name, sep, first + i)) for i in range(c['frames'])]
 
+CFG_NOW = None   # the family being measured (the 'keep' anchor needs its origin)
+
 def anchor_point(im, kind):
     """The anchor of one frame, in its own pixels (x, y)."""
     px = np.asarray(im.convert('RGBA')).astype(float)
@@ -35,6 +37,10 @@ def anchor_point(im, kind):
     if (a > 250).mean() > 0.95:
         a = bright          # drawn on solid black (the game adds it as light): what counts is how bright a pixel is
     solid = a > 40
+    if kind == 'keep':
+        # left as drawn (his GIF frames are one canvas from one camera; a beam's or a streak's own shape is the point):
+        # the anchor is the place the family says, so nothing counts as drift
+        return CFG_NOW['originX'] * W, CFG_NOW['originY'] * H
     if kind == 'core':
         # the bright heart of an orb or a burning symbol: the middle of the brightest tenth of its pixels
         lum = bright * (px[..., 3] / 255.0)
@@ -72,7 +78,8 @@ def anchor_point(im, kind):
 def drift(name, folder=FX):
     """How far the anchor moves across the frames, as the game draws them: (percent of width sideways,
     percent of width up and down, True if all frames are one size)."""
-    c = CFG[name]; pts = []; sizes = set()
+    global CFG_NOW
+    c = CFG[name]; pts = []; sizes = set(); CFG_NOW = c
     for f in files(name, folder):
         im = Image.open(f); sizes.add(im.size)
         x, y = anchor_point(im, c['anchor'])
@@ -94,8 +101,11 @@ def cmd_audit(names):
     return 1 if bad else 0
 
 def cmd_fix(names, src=FX):
+    global CFG_NOW
     for name in names or CFG:
-        c = CFG[name]
+        c = CFG[name]; CFG_NOW = c
+        if c['anchor'] == 'keep':
+            print('%-14s kept as drawn' % name); continue
         frames = [Image.open(f).convert('RGBA') for f in files(name, src)]
         pts = [anchor_point(im, c['anchor']) for im in frames]
         # room needed on each side of the anchor, over all frames
@@ -115,9 +125,10 @@ def cmd_fix(names, src=FX):
         print('%-14s %d frames on one %d x %d canvas' % (name, len(frames), W, H))
 
 def cmd_sheet(out, names, folder=FX):
+    global CFG_NOW
     rows = []
     for name in names or CFG:
-        c = CFG[name]
+        c = CFG[name]; CFG_NOW = c
         frames = [Image.open(f).convert('RGBA') for f in files(name, folder)]
         k = 150 / max(max(im.width, im.height) for im in frames)
         cell = 170

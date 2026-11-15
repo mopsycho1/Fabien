@@ -49,6 +49,14 @@ const EFFECTS = {
   husk: { who: 'h3', at: [3, 7], foe: 'e1', foeAt: [4, 7], cast: 'husk', tile: [1, 7] },
   meditate: { who: 'h3', at: [3, 7], foe: 'h2', foeAt: [5, 7], cast: 'meditate' },
   herbs: { who: 'h1', at: [3, 7], foe: 'h2', foeAt: [4, 7], cast: 'herbs', before: 'foe.hp = 12; b.updateHpBar(foe);' },
+  // 15 Nov (roadmap 6.58): Suleiman's GIF effects. The Verse lasts on Gaha (cast by Layra first): standing still, walking 3 tiles, and (Stone) Rooted.
+  aura_swiftness: { who: 'h2', verse: 'swiftness', at: [3, 7], foe: 'e1', foeAt: [7, 7], wide: 300, js: 'setTimeout(done, 1600);' },
+  aura_fury: { who: 'h2', verse: 'fury', at: [3, 7], foe: 'e1', foeAt: [7, 7], wide: 300, js: 'setTimeout(done, 1600);' },
+  aura_stone: { who: 'h2', verse: 'stone', at: [3, 7], foe: 'e1', foeAt: [7, 7], wide: 300, js: 'setTimeout(done, 1600);' },
+  rooted_stone: { who: 'h2', verse: 'stone', at: [3, 7], foe: 'e1', foeAt: [7, 7], wide: 300, js: 'who.status.rooted = true; b.refreshStatusTags(); b.showStanding(who); setTimeout(done, 2200);' },
+  move_swiftness: { who: 'h2', verse: 'swiftness', at: [2, 7], foe: 'e1', foeAt: [8, 6], wide: 380, centre: [4, 7], js: 'who.stepsUsed = 0; who.hasMoved = false; b.busy = false; b.activeUnit = who; b.moveUnit(who, 5, 7, () => setTimeout(done, 500));' },
+  move_fury: { who: 'h2', verse: 'fury', at: [2, 7], foe: 'e1', foeAt: [8, 6], wide: 380, centre: [4, 7], js: 'who.stepsUsed = 0; who.hasMoved = false; b.busy = false; b.activeUnit = who; b.moveUnit(who, 5, 7, () => setTimeout(done, 500));' },
+  move_stone: { who: 'h2', verse: 'stone', at: [2, 7], foe: 'e1', foeAt: [8, 6], wide: 380, centre: [4, 7], js: 'who.stepsUsed = 0; who.hasMoved = false; b.busy = false; b.activeUnit = who; b.moveUnit(who, 5, 7, () => setTimeout(done, 500));' },
   spear_throw: { who: 'h2', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'spearThrow' },
   fury_dive: { who: 'h2', verse: 'fury', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'furyDive' },
   intercept: { who: 'h1', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'intercept' },
@@ -129,7 +137,7 @@ const FIXES = {
       for (const u of b.units) {
         if (!u.alive) continue;
         u.hp = u.maxHp; u.engagedWith = null; u.engagement = null; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; u.moveFrom = null;
-        u.status.buff = null; u.status.offBalance = false; u.status.cooldowns = {}; u.aiming = null; u.markedBy = null; u.knockPending = false;
+        u.status.buff = null; u.status.rooted = false; u.status.offBalance = false; u.status.cooldowns = {}; u.aiming = null; u.markedBy = null; u.knockPending = false;
         const at = u === who ? move.at : u === foe ? move.foeAt : spots[k++];
         b.placeUnit(u, at[0], at[1]);
       }

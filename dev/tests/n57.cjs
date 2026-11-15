@@ -90,11 +90,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 13.46: room for his buff effects ----------
   const slots = JSON.parse(fs.readFileSync(path.join(__dirname, '../../src/data/fxSlots.json'), 'utf8')).buffs;
-  check('fxSlots.json has a slot for each Verse, Slow and Enchant, all empty for now', ['swiftness', 'fury', 'stone', 'slow', 'enchant'].every((id) => slots[id] && slots[id].cast === 0 && slots[id].loop === 0));
-  check('with a slot empty the game keeps the looks it has', !FX.hasBuffLoop(b, 'fury') && FX.buffLoopFx(b, hero, 'fury') === null && FX.buffCastFx(b, 0, 0, 'fury') === false);
-  hero.status.buff = { id: 'fury', turnsLeft: 3, power: 1 }; b.refreshStatusTags();
-  check('Fury still shows its own aura', !!hero.furyAura && hero.furyAura.objects.length > 0);
-  hero.status.buff = null; b.refreshStatusTags();
+  check('fxSlots.json has a slot for each Verse, Slow and Enchant; Slow and Enchant are empty, the three Verses have his GIF loops (15 Nov, 6.58)', ['swiftness', 'fury', 'stone', 'slow', 'enchant'].every((id) => slots[id]) && ['slow', 'enchant'].every((id) => slots[id].cast === 0 && slots[id].loop === 0) && ['swiftness', 'fury', 'stone'].every((id) => slots[id].loop === 8), JSON.stringify(slots).slice(0, 120));
+  check('with a slot empty the game keeps the looks it has (Slow, Enchant)', !FX.hasBuffLoop(b, 'slow') && FX.buffLoopFx(b, hero, 'enchant') === null && FX.buffCastFx(b, 0, 0, 'slow') === false);
+  check('with a slot filled his frames replace ours: Fury shows his loop and not its own aura', (() => { hero.status.buff = { id: 'fury', turnsLeft: 3, power: 1 }; b.refreshStatusTags(); const ok = FX.hasBuffLoop(b, 'fury') && !!hero.drawnAura_fury && !hero.furyAura; hero.status.buff = null; b.refreshStatusTags(); return ok; })());
+  // and without his frames loaded the game's own look comes back
+  for (const k of game.textures.getTextureKeys().filter((k) => /^fx:buff_fury_/.test(k))) game.textures.remove(k);
+  check('with his frames missing, Fury still shows its own aura', !FX.hasBuffLoop(b, 'fury') && (() => { hero.status.buff = { id: 'fury', turnsLeft: 3, power: 1 }; b.refreshStatusTags(); const ok = !!hero.furyAura && hero.furyAura.objects.length > 0; hero.status.buff = null; b.refreshStatusTags(); return ok; })());
 
   const real = errors.filter((e) => !e.includes('focus()'));
   check('no page errors', real.length === 0, real.slice(0, 2).join(' | '));

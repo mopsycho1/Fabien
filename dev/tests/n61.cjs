@@ -90,7 +90,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- channel, then cast (13.10) ----------
   park(); put(layra, 3, 5); put(tayo, 3, 2);
-  check('Layra channels her Lightning for a moment; a fighter and the archer do not', b.channelLead(layra, tayo) > 200 && b.channelLead(layra, tayo) < 400 && b.channelLead(gaha, tayo) === 0 && b.channelLead(archer, gaha) === 0, b.channelLead(layra, tayo));
+  check('Layra channels her Lightning for a moment; a fighter and the archer do not', b.channelLead(layra, tayo) > 200 && b.channelLead(layra, tayo) < 600 /* 280 on the game's own orb, 440 with his drawn one (15 Nov) */ && b.channelLead(gaha, tayo) === 0 && b.channelLead(archer, gaha) === 0, b.channelLead(layra, tayo));
   const order = []; const shown = b.showFrame.bind(b);
   b.showFrame = (u, f) => { const ok = shown(u, f); if (u === layra && ok) order.push({ key: f.key, at: Date.now() }); return ok; };
   const real = w.Math.random; w.Math.random = () => (/rollAttack/.test(new Error().stack) ? 0.01 : real());

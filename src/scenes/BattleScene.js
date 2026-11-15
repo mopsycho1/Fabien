@@ -31,7 +31,7 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { hasBuffLoop, buffLoopFx, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -3150,10 +3150,17 @@ export default class BattleScene extends Phaser.Scene {
           else if (walkStyle(unit.id) === 'sand') sandStep(this, unit, { dx: p.x - fromPoint.x, ground });
           else codeStep(this, unit, { dx: p.x - fromPoint.x, ms: STEP_MS, ground });
           const buff = buffOf(unit);
+          // his "in motion" effect (GIF frames, 15 Nov) goes with the unit for the whole walk, facing the way it goes now;
+          // while it plays it replaces the Verse's own step marks
+          const motionFx = buff && hasBuffPart(this, buff.id, 'move');
+          if (motionFx) {
+            if (!unit.moveFx) unit.moveFx = buffMoveFx(this, unit, buff.id, p.x - fromPoint.x);
+            else if (unit.moveFx.objects[0] && unit.moveFx.objects[0].active) unit.moveFx.objects[0].setFlipX(p.x - fromPoint.x < 0);
+          }
           // wind and feathers where it was, under Swiftness (his trail sheet; the older streak without it)
-          if (buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
+          if (!motionFx && buff && buff.id === 'swiftness' && !swiftTrail(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x)) speedStreak(this, fromPoint.x, fromPoint.y, p.x - fromPoint.x);
           // the Verses leave a mark on the tile it leaves (16.1 step 6)
-          const kinds = verseKinds(unit);
+          const kinds = motionFx ? [] : verseKinds(unit);
           if (kinds.length) { const left = fromTile || startTile; stepEffect(this, kinds, fromPoint.x, fromPoint.y, p.x - fromPoint.x, depthFor(left.col, left.row)); }
           play('step');
         },
@@ -3163,6 +3170,7 @@ export default class BattleScene extends Phaser.Scene {
       targets: unit.view,
       tweens: steps,
       onComplete: () => {
+        if (unit.moveFx) { for (const o of unit.moveFx.objects) o.destroy(); unit.moveFx = null; } // his in-motion effect ends with the walk
         unit.view.setDepth(depthFor(col, row) + 1); // settle into its new place in the drawing order
         settle(this, unit); // the code walk ends: it straightens up and sinks a touch (18.13)
         if (this.inWater(unit)) splash(this, unit.view.x, unit.view.y);
@@ -3483,7 +3491,7 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
     // a caster gathers her spell first (channel, then cast: 13.10), so everything after it waits that long
-    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target);
+    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target, variant);
     const playEcho = () => {
       if (!echo) return;
       this.time.delayedCall(lead + (jump ? 820 : 420), () => {
@@ -3868,10 +3876,20 @@ export default class BattleScene extends Phaser.Scene {
   // Channel, then cast (roadmap 13.10): how long a caster gathers a spell at her hands
   // before she lets it go, in milliseconds. 0 for anyone who is not casting (a fighter, an
   // archer) or has no "chant" picture. Short, because Lightning is cast every turn.
-  channelLead(attacker, target) {
+  channelLead(attacker, target, variant = null) {
     if (attacker.attackEffect !== 'spark' || !this.hasPose(attacker, 'chant')) return 0;
     if (target && usesCloseWeapon(attacker, target)) return 0;
-    return CHANNEL_MS;
+    // with Suleiman's drawn orb (15 Nov) she gathers it for as long as he chose (fxSlots.json "lead")
+    const drawn = this.drawnSpell(variant);
+    return drawn ? sfxInfo(drawn.orb).lead : CHANNEL_MS;
+  }
+
+  // His drawn Lightning (or Wildfire, for the fire variant) pieces, if all of them are loaded: { orb, beam, strike }
+  // (strike is null for Wildfire: the lance lands on the target by itself), else null.
+  drawnSpell(variant = null) {
+    const fire = !!(variant && variant.element === 'fire');
+    const names = fire ? { orb: 'wildfire_orb', beam: 'wildfire_lance', strike: null } : { orb: 'lightning_orb', beam: 'lightning_bolt', strike: 'lightning_strike' };
+    return sfxHas(this, ...Object.values(names).filter(Boolean)) ? names : null;
   }
 
   // The attack picture, if the unit has one. dx says which way it is swinging.
@@ -3911,11 +3929,14 @@ export default class BattleScene extends Phaser.Scene {
     const aimFirst = style === 'arrow' && this.hasPose(attacker, 'windup');
     // a caster channels first, like Slow (13.10): hands together and the spell gathering at
     // them, then she lets it go. "lead" is how long; every later moment waits for it.
-    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target);
+    const lead = target.isDecoy ? 0 : this.channelLead(attacker, target, variant);
+    const drawn = target.isDecoy ? null : this.drawnSpell(variant); // his drawn orb, beam and strike (15 Nov), or null
     if (lead) {
       const fire = variant && variant.element === 'fire';
       this.showPose(attacker, 'chant', dx);
-      chargeUp(this, attacker.view.x + Math.sign(dx || 1) * 10, attacker.view.y - attacker.topY * 0.72, (variant && variant.element) || (fire ? 'fire' : 'lightning'), { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
+      const hands = { x: attacker.view.x + Math.sign(dx || 1) * 10, y: attacker.view.y - attacker.topY * 0.72 };
+      if (drawn) sfxChannel(this, drawn.orb, hands.x, hands.y, { depth: attacker.view.depth + 2 });
+      else chargeUp(this, hands.x, hands.y, (variant && variant.element) || (fire ? 'fire' : 'lightning'), { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
       play('select');
       this.time.delayedCall(lead, () => attacker.alive && this.showPose(attacker, strikePose, dx));
     } else this.showPose(attacker, aimFirst ? 'windup' : strikePose, dx);
@@ -3928,6 +3949,21 @@ export default class BattleScene extends Phaser.Scene {
       // Wildfire: a ball of fire, and flames burst up where it lands
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
+      if (drawn) {
+        // his fireball turns into a lance and flies to the target (it arrives hitMs after it starts)
+        const hit = sfxInfo(drawn.beam).hitMs;
+        this.time.delayedCall(lead, () => {
+          play('whoosh');
+          sfxBeam(this, drawn.beam, start.x, start.y - 20, end.x, end.y);
+          this.time.delayedCall(hit, () => {
+            if (!target.isDecoy) flameBurst(this, target.view.x, target.view.y);
+            play('crash');
+            impact();
+          });
+        });
+        this.time.delayedCall(lead + hit + 450, () => this.showStanding(attacker));
+        return;
+      }
       this.time.delayedCall(lead + 120, () => {
         play('whoosh');
         fireball(this, start.x, start.y - 20, end.x, end.y, () => {
@@ -3943,6 +3979,18 @@ export default class BattleScene extends Phaser.Scene {
     if (style === 'spark') {
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
+      if (drawn) {
+        // his bolt leaves her hands and his strike comes down on the target; the blow lands when the bolt gets there
+        const hit = sfxInfo(drawn.beam).hitMs;
+        this.time.delayedCall(lead, () => {
+          sfxBeam(this, drawn.beam, start.x, start.y - 20, end.x, end.y);
+          if (!target.isDecoy) sfxStrike(this, drawn.strike, target.view.x, target.view.y, { big: lethal });
+          play('spark');
+        });
+        this.time.delayedCall(lead + hit, impact);
+        this.time.delayedCall(lead + hit + 300, () => this.showStanding(attacker));
+        return;
+      }
       this.time.delayedCall(lead + 140, () => {
         lightning(this, start.x, start.y - 20, end.x, end.y);
         // a bolt crashes down on the target (from Layra's effect sheet)
@@ -7417,7 +7465,10 @@ export default class BattleScene extends Phaser.Scene {
       // under Swiftness, wind and feathers swirl at its feet (roadmap 3.10)
       // his own looping buff effects, once he sends them (13.46): they replace ours below
       const verseNow = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
-      for (const id of ['swiftness', 'fury', 'stone']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id), () => buffLoopFx(this, unit, id));
+      // Gaha standing his ground under Earth's Bulwark (Rooted) shows the dome he drew for it in place of the orbiting stones
+      const rootedNow = verseNow === 'stone' && isRooted(unit) && hasBuffPart(this, 'stone', 'rooted');
+      for (const id of ['swiftness', 'fury', 'stone']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id) && !(id === 'stone' && rootedNow), () => buffLoopFx(this, unit, id));
+      this.keepAura(unit, 'drawnAura_stoneRooted', unit.alive && rootedNow, () => buffLoopFx(this, unit, 'stone', 'rooted'));
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
