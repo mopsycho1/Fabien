@@ -44,7 +44,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); put(kofi, 1, 8); // rubble at (0,8),(1,8), sand at (1,7)
   r = b.reading(kofi);
   check('on rubble and sand he reads Earth', r.element === 'earth', JSON.stringify(r.all));
-  park(); put(kofi, 7, 6); put(layra, 7, 7); put(gaha, 8, 6); St.applyBuff(gaha, 'swiftness');
+  park(); put(kofi, 8, 1); put(layra, 8, 2); put(gaha, 9, 1); /* a dry spot on the 11 by 11 cavern (14.2): no water within 2 tiles */ St.applyBuff(gaha, 'swiftness');
   r = b.reading(kofi);
   check('beside Layra (lightning) and an ally under Swiftness he reads Storm', r.element === 'storm' && r.all.storm >= 4, JSON.stringify(r.all));
   // a bare spot, if the cavern has one: nothing to read
@@ -77,7 +77,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('Tide Bolt (Water): it hurts and leaves the target Drenched; the foe next to it is not struck', out.hurt && St.isDrenched(tayo) && !out.othersHurt, JSON.stringify(out));
   out = await bolt(() => { put(kofi, 1, 8); put(tayo, 4, 8); }, tayo);
   check('Stone Bolt (Earth): it hurts and knocks the target a tile back', out.hurt && out.moved && tayo.col === 5 && tayo.row === 8, tayo.col + ',' + tayo.row);
-  out = await bolt(() => { put(kofi, 7, 6); put(layra, 7, 7); put(gaha, 8, 6); St.applyBuff(gaha, 'swiftness'); put(tayo, 7, 3); put(bull, 7, 2); }, tayo);
+  out = await bolt(() => { put(kofi, 8, 1); put(layra, 8, 2); put(gaha, 9, 1); St.applyBuff(gaha, 'swiftness'); put(tayo, 8, 4); put(bull, 8, 5); }, tayo);
   check('Gale Bolt (Storm): it hurts, and it is the one bolt that can jump to the foe beside the target', out.hurt && b.readingMove(kofi) === 'spiritBoltStorm' && combat.chainTarget(kofi, tayo, b.units) === bull && w.__game && true, JSON.stringify(out));
 
   // ---------- Haunt ----------

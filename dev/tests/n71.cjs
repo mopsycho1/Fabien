@@ -22,7 +22,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   hit(gaha, 11); hit(tayo, 20); archer.hp = 0; b.damageTaken.e3 = archer.maxHp; b.defeat(archer); b.playDefeat(archer, 1);
   St.applyBuff(gaha, 'fury'); St.applyPoison(sudeen, 'poisonArrow'); St.startCooldown(sudeen, 'herbs'); layra.mp = 4; kofi.bag = { spiritWater: 2 };
   E.startDuel(gaha, rabdul); E.shiftMomentum(gaha, 2); gaha.poise = 1;
-  const site = b.sites.find((s) => s.col === 1 && s.row === 3); b.activeUnit = sudeen; b.digUp(sudeen, site, () => {});
+  const site = b.sites.find((s) => s.col === 1 && s.row === 2); b.activeUnit = sudeen; b.digUp(sudeen, site, () => {});
   b.spikes.push({ col: 6, row: 3, owner: tayo, turnsLeft: 2, view: null });
   b.turnCount = 37; b.lastEnemyClashTurn = 30;
   await sleep(1200); b.busy = false;
@@ -43,7 +43,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('fighters stand where they stood', gaha.col === 4 && gaha.row === 4 && rabdul.row === 3 && tayo.col === 6 && Math.abs(gaha.view.x - w.__grid.tileToScreen(4, 4).x) < 1);
   check('Verses, poison, cooldowns, MP and bags are back', !!St.buffOf(gaha) && St.buffOf(gaha).id === 'fury' && St.isPoisoned(sudeen) && St.cooldownOf(sudeen, 'herbs') > 0 && layra.mp >= 4 && layra.mp <= 5 && kofi.bag.spiritWater === 2 && JSON.stringify(sudeen.bag) === want.sudeenBag, [St.buffOf(gaha) && St.buffOf(gaha).id, St.isPoisoned(sudeen), St.cooldownOf(sudeen, 'herbs'), layra.mp, JSON.stringify(kofi.bag), JSON.stringify(sudeen.bag)].join(' / '));
   check('the clash is back: the same two, one shared momentum track, Poise', gaha.engagedWith === rabdul && rabdul.engagedWith === gaha && gaha.engagement === rabdul.engagement && gaha.engagement.track === want.track && E.momentumOf(gaha) === 2 && gaha.poise === 1, gaha.engagement && gaha.engagement.track);
-  check('the dug pot stays dug, the others are still there', b.sites.find((s) => s.col === 1 && s.row === 3).dug === true && b.sites.filter((s) => !s.dug && s.prop !== 'bag').length === 3);
+  check('the dug pot stays dug, the others are still there', b.sites.find((s) => s.col === 1 && s.row === 2).dug === true && b.sites.filter((s) => !s.dug && s.prop !== 'bag').length === 3);
   check('the fallen archer\'s satchel is on the board', b.sites.some((s) => s.prop === 'bag' && !s.dug && s.items.includes('bitterLeaf')));
   check('Tayo\'s rock stands again, with its owner and its turns', b.spikes.length === 1 && b.spikes[0].owner === tayo && b.spikes[0].turnsLeft >= 1 && !!b.spikes[0].view && !!b.spikeAt(6, 3));
   check('the damage count for the result screen carried over', Object.keys(b.damageTaken).length >= 3 && b.damageTaken.e3 === JSON.parse(want.dmg).e3, JSON.stringify(b.damageTaken));

@@ -14,38 +14,38 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.endTurn = () => {}; b.enemySecondWalk = false;
   const park = () => {
     for (const u of b.units) { u.engagedWith = null; u.hp = u.maxHp; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; }
-    put(sudeen, 0, 8); put(gaha, 1, 8); put(layra, 2, 8); put(kofi, 3, 8); put(tayo, 8, 0); put(bull, 7, 0); put(archer, 6, 0); put(rabdul, 5, 0);
+    put(sudeen, 0, 10); put(gaha, 1, 10); put(layra, 2, 10); put(kofi, 3, 10); put(tayo, 10, 0); put(bull, 9, 0); put(archer, 8, 0); put(rabdul, 7, 0); // (the 11 by 11 cavern, roadmap 14.2)
     b.busy = false; b.cancelMode();
   };
   const turn = async (u) => { b.activeUnit = u; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; b.runEnemyTurn(); await sleep(700); await idle(); await sleep(1200); await idle(); };
   const site = (c, r) => b.sites.find((st) => st.col === c && st.row === r);
-  const balm = site(1, 3), water = site(7, 3), leaf = site(7, 5), kola = site(1, 5);
+  const balm = site(1, 2), water = site(9, 2), leaf = site(9, 8), kola = site(1, 8); // (14.2: in the quiet corners off the lanes)
   check('the cavern has its four buried things', !!balm && !!water && !!leaf && !!kola);
 
   // beside a pot, no hero near: it digs
-  park(); put(bull, 1, 2);
+  park(); put(bull, 1, 1);
   const had = bull.bag.sheaBalm || 0;
   check('the rule: the bull beside the balm pot, heroes far away, chooses to dig it', (() => { const f = b.forageChoice(bull); return f && f.site === balm && f.tile === null; })());
   await turn(bull);
   check('on his turn he digs it up: the pot is gone, the balm is in his bag, it was his action', balm.dug && bull.bag.sheaBalm === had + 1 && bull.hasActed, JSON.stringify(bull.bag));
 
   // a pot within a walk: it walks there, then digs
-  park(); put(rabdul, 7, 1);
+  park(); put(rabdul, 7, 2);
   const f2 = b.forageChoice(rabdul);
-  check('Rabdul (he has MP) two steps from the spirit water chooses to walk beside it', !!f2 && f2.site === water && !!f2.tile && Math.abs(f2.tile.col - 7) + Math.abs(f2.tile.row - 3) === 1, f2 && f2.tile && f2.tile.col + ',' + f2.tile.row);
+  check('Rabdul (he has MP) two steps from the spirit water chooses to walk beside it', !!f2 && f2.site === water && !!f2.tile && Math.abs(f2.tile.col - 9) + Math.abs(f2.tile.row - 2) === 1, f2 && f2.tile && f2.tile.col + ',' + f2.tile.row);
   await turn(rabdul);
-  check('he walks there and digs: spirit water in his bag', water.dug && rabdul.bag.spiritWater === 1 && Math.abs(rabdul.col - 7) + Math.abs(rabdul.row - 3) === 1, rabdul.col + ',' + rabdul.row + ' ' + JSON.stringify(rabdul.bag));
+  check('he walks there and digs: spirit water in his bag', water.dug && rabdul.bag.spiritWater === 1 && Math.abs(rabdul.col - 9) + Math.abs(rabdul.row - 2) === 1, rabdul.col + ',' + rabdul.row + ' ' + JSON.stringify(rabdul.bag));
 
   // a hero in reach: the fight comes first
-  park(); put(tayo, 7, 4); put(gaha, 5, 4);
+  park(); put(tayo, 9, 7); put(gaha, 7, 8);
   check('with a hero he can reach this turn, Tayo does not forage (the bitter leaf is beside him)', b.forageChoice(tayo) === null);
   // something it cannot use is left alone
-  park(); water.dug = false; balm.dug = true; put(bull, 7, 2);
+  park(); water.dug = false; balm.dug = true; put(bull, 9, 1);
   check('the bull has no MP: he leaves the spirit water alone', b.forageChoice(bull) === null);
-  put(bull, 8, 0); put(rabdul, 7, 2);
+  put(bull, 10, 0); put(rabdul, 9, 1);
   check('Rabdul, who has MP, would take it', (() => { const f = b.forageChoice(rabdul); return f && f.site === water; })());
   water.dug = true;
-  park(); kola.dug = true; leaf.dug = true; put(bull, 6, 2);
+  park(); kola.dug = true; leaf.dug = true; put(bull, 6, 1);
   check('nothing left that helps: no foraging', b.forageChoice(bull) === null);
   // a fallen fighter's satchel is foraged too
   park(); b.sites.push({ col: 4, row: 2, prop: 'bag', items: ['sheaBalm'], blocking: false, dug: false, sprite: null });

@@ -42,7 +42,18 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     while (!b.battleOver && Date.now() - t0 < 400000) {
       const u = b.activeUnit;
       const sig = u.label + b.turnCount + b.busy + b.mode + b.inCinematic;
-      if (sig !== lastSig) { lastSig = sig; lastChange = Date.now(); }
+      if (sig !== lastSig) {
+        // where fighters stand once per turn (roadmap 14.2, the wide cavern): flank lanes, the side towers,
+        // and the height a shooter or caster stands on. Keys: enemyFlank, heroTower, enemyRangedH2 and so on.
+        if (process.env.FABIEN_MAP === 'cavern' && u.label + b.turnCount !== b.__posSeen) {
+          b.__posSeen = u.label + b.turnCount;
+          const side = u.side === 'hero' ? 'hero' : 'enemy', G = w.__grid, h = G.getHeight(u.col, u.row);
+          if ((u.col <= 2 || u.col >= 8) && u.row >= 3 && u.row <= 7) tally[side + 'Flank'] = (tally[side + 'Flank'] || 0) + 1;
+          if (h === 3 && u.row >= 3 && u.row <= 7) tally[side + 'Tower'] = (tally[side + 'Tower'] || 0) + 1;
+          if (u.range > 1) tally[side + 'RangedH' + h] = (tally[side + 'RangedH' + h] || 0) + 1;
+        }
+        lastSig = sig; lastChange = Date.now();
+      }
       if (Date.now() - lastChange > 7000) { stuck = true; console.log('STUCK', u.label, 'busy', b.busy, 'mode', b.mode, 'cine', b.inCinematic); break; }
       if (u.side === 'hero' && !b.busy && !b.inCinematic) {
         // every figure must be standing on the middle of its tile (roadmap 13.47): checked twice,

@@ -16,7 +16,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   for (const st of b.sites || []) st.dug = true;
   const put = (u, c, r) => b.placeUnit(u, c, r);
   const idle = async (max = 12000) => { const t = Date.now(); await sleep(150); while ((b.busy || b.inCinematic || b.units.some((u) => u.knock)) && Date.now() - t < max) await sleep(30); await sleep(250); };
-  const spots = [[0, 0], [8, 0], [0, 2], [8, 2], [0, 4], [8, 4], [1, 1]];
+  const spots = [[0, 0], [10, 0], [0, 2], [10, 2], [0, 3], [10, 3], [1, 1]]; // out of the way (the 11 by 11 cavern, roadmap 14.2; every stage below is one tile further in than on the 9 by 9 map)
   const stage = async (who, at, foe, foeAt, verse) => {
     let k = 0;
     for (const u of b.units) {
@@ -57,50 +57,50 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   };
 
   // ---------- Sonic Javelin: three forms, named on the board ----------
-  await stage(gaha, [2, 7], tayo, [6, 7], 'swiftness');
+  await stage(gaha, [3, 8], tayo, [7, 8], 'swiftness');
   await run('Sonic Javelin, far', gaha, tayo, 'sonicJavelin', { label: 'Throw' });
-  await stage(gaha, [3, 7], tayo, [5, 7], 'swiftness');
+  await stage(gaha, [4, 8], tayo, [6, 8], 'swiftness');
   await run('Sonic Javelin, close', gaha, tayo, 'sonicJavelin', { label: 'Whirl', ghost: true });
-  await stage(gaha, [2, 7], tayo, [5, 7], 'swiftness'); tayo.status.offBalance = true;
+  await stage(gaha, [3, 8], tayo, [6, 8], 'swiftness'); tayo.status.offBalance = true;
   await run('Sonic Javelin, reeling foe', gaha, tayo, 'sonicJavelin', { label: 'Sweep', ghost: true });
   // ---------- the charges ----------
-  await stage(sudeen, [2, 7], tayo, [5, 7], 'stone');
+  await stage(sudeen, [3, 8], tayo, [6, 8], 'stone');
   await run('Shield Ram', sudeen, tayo, 'shieldRam', { ghost: true });
-  await stage(sudeen, [2, 7], tayo, [5, 7], 'swiftness');
+  await stage(sudeen, [3, 8], tayo, [6, 8], 'swiftness');
   await run('Blitz', sudeen, tayo, 'blitz', { ghost: true });
-  await stage(sudeen, [2, 7], tayo, [5, 7], 'fury');
+  await stage(sudeen, [3, 8], tayo, [6, 8], 'fury');
   await run('Furious Charge', sudeen, tayo, 'furyCharge', { ghost: true });
-  await stage(sudeen, [2, 7], tayo, [5, 7]);
+  await stage(sudeen, [3, 8], tayo, [6, 8]);
   await run('Intercept', sudeen, tayo, 'intercept', { ghost: true });
   // a Shield Ram off the platform: the fall is shown (the bridge beside it is 1 level lower)
-  await stage(sudeen, [3, 4], tayo, [5, 4], 'stone');
+  await stage(sudeen, [4, 5], tayo, [6, 5], 'stone');
   await run('Shield Ram off the platform onto the bridge', sudeen, tayo, 'shieldRam', { ghost: true, fall: 1 });
   // a Shield Ram into the wall of the board: the slam is shown
-  await stage(sudeen, [4, 7], tayo, [7, 7], 'stone');
+  await stage(sudeen, [6, 8], tayo, [9, 8], 'stone'); /* 14.2: the edge is now column 10 */
   await run('Shield Ram into the edge', sudeen, tayo, 'shieldRam', { ghost: true });
   // ---------- Fury Dive and Spear Throw ----------
-  await stage(gaha, [2, 7], tayo, [5, 7], 'fury');
+  await stage(gaha, [3, 8], tayo, [6, 8], 'fury');
   await run('Fury Dive', gaha, tayo, 'furyDive', { ghost: true });
-  await stage(gaha, [2, 7], tayo, [5, 7]);
+  await stage(gaha, [3, 8], tayo, [6, 8]);
   { // Spear Throw can miss: the push only happens on a hit, so only the plan is checked
     b.onSpellButton(); b.chooseSpell('spearThrow'); b.handleTap(tayo.col, tayo.row);
     const plan = b.previewPlan;
-    check('Spear Throw: the arrow points one tile behind the foe', !!plan && plan.pushes.length === 1 && tile(plan.pushes[0].to) === '6,7' && !plan.end, plan && tile(plan.pushes[0].to));
+    check('Spear Throw: the arrow points one tile behind the foe', !!plan && plan.pushes.length === 1 && tile(plan.pushes[0].to) === '7,8' && !plan.end, plan && tile(plan.pushes[0].to));
     b.cancelMode();
     check('cancelling removes the preview', b.previewItems.length === 0 && !b.previewPlan);
   }
   // ---------- Thunderclap (a plain attack changed by a Verse) ----------
-  await stage(layra, [3, 7], tayo, [6, 7]);
+  await stage(layra, [4, 8], tayo, [7, 8]);
   layra.status.buff = { id: 'stone', turnsLeft: 3, power: 1 }; b.refreshButtons();
   b.onAttackButton(); b.handleTap(tayo.col, tayo.row);
-  check('Thunderclap: the attack preview shows where the bolt will knock the foe', !!b.previewPlan && b.previewPlan.pushes.length === 1 && tile(b.previewPlan.pushes[0].to) === '7,7', b.previewPlan && JSON.stringify(b.previewPlan.pushes.map((p) => p.to)));
+  check('Thunderclap: the attack preview shows where the bolt will knock the foe', !!b.previewPlan && b.previewPlan.pushes.length === 1 && tile(b.previewPlan.pushes[0].to) === '8,8', b.previewPlan && JSON.stringify(b.previewPlan.pushes.map((p) => p.to)));
   b.cancelMode();
   layra.status.buff = null; b.refreshButtons();
   b.onAttackButton(); b.handleTap(tayo.col, tayo.row);
   check('a plain attack that moves nobody draws no plan', !b.previewPlan && b.previewItems.length === 0);
   b.cancelMode();
   // ---------- Husk ----------
-  await stage(layra, [3, 7], tayo, [4, 7]);
+  await stage(layra, [4, 8], tayo, [5, 8]);
   layra.mp = layra.maxMp;
   b.onSpellButton(); b.chooseSpell('husk');
   const spot = [...b.reachableKeys].map((k) => k.split(',').map(Number))[0];

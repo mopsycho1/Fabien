@@ -41,12 +41,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 13.38: the rock combo ----------
   check('Sonic Burst names its rock damage (4) and says so in its text', spells.clap.rockDamage === 4 && /rock/i.test(spells.clap.text));
-  park(); put(tayo, 3, 7); put(gaha, 4, 7); /* flat ground along the near wall */ put(sudeen, 8, 4); put(layra, 8, 5); put(kofi, 8, 6); /* the other heroes far away */
+  park(); put(tayo, 4, 9); put(gaha, 5, 9); /* flat ground along the near wall (row 9 on the 11 by 11 cavern, roadmap 14.2) */ put(sudeen, 8, 4); put(layra, 8, 5); put(kofi, 8, 6); /* the other heroes far away */
   // Earth Drive first: Gaha is thrown back a tile and a rock stands where he was
   await new Promise((res) => { b.busy = true; b.castSpell(tayo, gaha, 'earthDrive', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
   await sleep(900);
   const rock = b.spikes.find((sp) => sp.owner === tayo);
-  check('Earth Drive leaves a rock next to Tayo and throws Gaha a tile back, beside it', !!rock && rock.col === 4 && rock.row === 7 && gaha.col === 5 && gaha.row === 7, rock && rock.col + ',' + rock.row + ' gaha ' + gaha.col + ',' + gaha.row);
+  check('Earth Drive leaves a rock next to Tayo and throws Gaha a tile back, beside it', !!rock && rock.col === 5 && rock.row === 9 && gaha.col === 6 && gaha.row === 9, rock && rock.col + ',' + rock.row + ' gaha ' + gaha.col + ',' + gaha.row);
   tayo.status.cooldowns = {}; tayo.hasActed = false;
   check('his AI sees the combo: a rock in reach with a foe beside it', b.clapCombo(tayo) === true && b.clapFoes(tayo).length === 1);
   const plain = Math.max(1, Math.round(combat.getDamage(tayo, gaha) * spells.clap.damageShare));

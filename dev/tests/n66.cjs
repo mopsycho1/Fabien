@@ -41,7 +41,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const icons = gaha.tagRow.list.filter((o) => o.type === 'Image').length;
   check('five statuses on Gaha: two icons and "+3"', icons === 2 && rowTexts.includes('+3'), icons + ' ' + rowTexts.join());
   // everyone packed together, everyone with statuses
-  const spots = [[3, 3], [4, 3], [5, 3], [3, 4], [4, 4], [5, 4], [3, 5], [4, 5]];
+  const spots = [[4, 4], [5, 4], [6, 4], [4, 5], [5, 5], [6, 5], [4, 6], [5, 6]]; // the platform (one tile further in on the 11 by 11 cavern, roadmap 14.2)
   b.units.forEach((u, i) => { put(u, spots[i][0], spots[i][1]); St.applyPoison(u, 'poisonArrow'); St.applyBurn(u, 'wildfire'); St.applyOffBalance(u); });
   b.refreshStatusTags();
   const N = w.Phaser ? null : null;
@@ -61,7 +61,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const live = b.liveLabels.filter((l) => l.active);
   let sit = 0; for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) { const p = live[i], q = live[j]; if (Math.abs(p.x - q.x) < (p.width + q.width) / 2 - 2 && Math.abs(p.y - q.y) < (p.height + q.height) / 2 - 6) sit++; }
   check('D2: four words on one fighter at once: none sits on another', live.length === 4 && sit === 0, live.length + ' words, ' + sit + ' overlaps');
-  put(layra, 0, 0); put(kofi, 8, 8);
+  put(layra, 0, 0); put(kofi, 10, 10);
   b.floatText(layra, 'Cured', '#9fdc8a'); b.floatText(kofi, '+10', '#9fdc8a', { pop: true });
   const edge = b.liveLabels.slice(-2);
   check('D2: words at the board\'s edges stay inside the screen', edge.every((l) => l.x - l.width / 2 >= cam.x && l.x + l.width / 2 <= cam.right && l.y - l.height / 2 >= cam.y && l.y + l.height / 2 <= cam.bottom));
@@ -81,7 +81,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- tooltips (13.49) ----------
   const T = require('../../src/data/tooltips.json');
   St.applyBuff(gaha, 'fury'); St.applyPoison(gaha, 'poisonArrow'); b.refreshStatusTags();
-  put(gaha, 4, 4); b.activeUnit = gaha; gaha.hasActed = false; b.busy = false; b.cancelMode(); b.refreshStatus();
+  put(gaha, 5, 5); b.activeUnit = gaha; gaha.hasActed = false; b.busy = false; b.cancelMode(); b.refreshStatus();
   const pt = { x: 200, y: 600, id: 1 };
   b.attackButton.hit.emit('pointerdown', pt); await sleep(T.holdMs + 200);
   check('holding the attack button: a tooltip opens', !!b.tip && b.tip.active && /Strike a foe/.test(b.tip.tip.body), b.tip && b.tip.tip.title);
