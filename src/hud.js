@@ -312,9 +312,9 @@ export function roundPortrait(scene, unit, portraitKey, size) {
     c.font = 'bold ' + Math.round(size * 0.46) + 'px Georgia, serif';
     c.textAlign = 'center';
     c.textBaseline = 'middle';
-    c.fillText(unit.badge || '?', r, r * 0.9);
-    c.font = Math.round(size * 0.2) + 'px Georgia, serif';
-    c.fillText(unit.label, r, size * 0.8);
+    // No picture: show the NAME, never a letter or an ID (M16 follow-up). Every unit has a portrait now.
+    c.font = 'bold ' + Math.round(size * 0.22) + 'px Georgia, serif';
+    c.fillText(unit.name || unit.jobName || '', r, r, size * 0.9);
   }
   c.restore();
   tex.refresh();

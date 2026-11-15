@@ -1,14 +1,14 @@
 # Fabien: where we are
 
-For Suleiman. Written 14 Nov from the roadmap and the Battle 1.0 plan. Plain words, no code names.
+For Suleiman. Updated 15 Nov from the roadmap and the Battle 1.0 plan. Plain words, no code names.
 "needs your art" marks the things that wait on a picture or a list from you.
 
 ## Overview
 
 - **Done:** the battle screen restyle (Phase 2), Intercept and the Verse moves (3), enemy skills (4), items (5), the new battle screen (8), the Hidden Cavern (11), the effects flair pass (16), your music.
 - **Almost done:** the fixes list (Phase 1), the isometric look and animations (9), the art wiring (6: most of your sheets are in the game; a few wait on files).
-- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 16 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
-- **Next, in order:** the desktop layout, saving, sounds, and the board's edges.
+- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 19 are done, counting save and resume. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
+- **Next, in order:** the sound pass, the board's edges, then the front door and the phone check. The lighting is being looked at again (Baiyee will choose from a test sheet).
 - **After Battle 1.0:** the kings (Phase 10), finishers (7), slopes (12), the camp and town (15).
 
 ---
@@ -328,7 +328,7 @@ What an art director would fix after watching one battle on a phone. Most of it 
 - [ ] Story scenes are a text box on brown (needs your art: scene pictures and portraits)
 - [x] Victory and Defeat build up: slow last blow, dim board, the word sweeps in, then the numbers and faces (15 Nov; a banner picture is optional art)
 - [x] Move tiles let the floor show, and a walk draws its path (15 Nov)
-- [ ] The archer's placeholder name "Enemy 3" (she will show as "Archer"; no art needed)
+- [x] The archer's placeholder name "Enemy 3" is now "Archer" (15 Nov)
 - [x] Hits have weight: white flash, the lost health drains as a pale chunk, bigger numbers for bigger hits (15 Nov)
 - [ ] The board ends in a black void (code fog first; the cave backdrop needs your art)
 - [x] A new turn opens with a banner in the side's colour (15 Nov)
@@ -354,7 +354,7 @@ One battle that feels finished. The steps are the milestones at the bottom.
 - [x] The ending (15 Nov)
 - [ ] Sound pass
 - [x] Enemy play and balance: enemies heal and forage; over 40 test battles each side won 20 (14 Nov)
-- [ ] Save and resume, loading bar
+- [x] Save and resume, loading bar: closing the page keeps your battle, and the title shows at once while the pictures load (15 Nov)
 - [ ] Edges and names: fog, the archer as "Archer" (the backdrop needs your art)
 - [ ] Art drops: walk sheets, fall sets, redraws, the archer at full size (needs your art; Gaha's, Sudeen's falls and the dodges are in)
 - [ ] Front door: title and story scenes (needs your art)
@@ -389,7 +389,7 @@ Moving characters from a skeleton instead of drawn frames.
 8. Your looping buff effects and Rabdul's flame frames.
 9. Your enemy team list and cavern layout changes.
 
-None of this blocks the next steps (M7 to M16). They are all code.
+None of this blocks the next steps (M7 to M16). They are all code. Kofi's face and clash pictures are stand-ins cut from his other pictures (needs your art: a portrait and his own clash poses).
 
 ---
 
@@ -414,7 +414,7 @@ None of this blocks the next steps (M7 to M16). They are all code.
 | M13 | Movement life: a walk for everyone, Layra's sand | Done |
 | M14 | Sound pass | Not done |
 | M15 | Enemy play and balance | Done (14 Nov): each side won 20 of 40 test battles |
-| M16 | Save, load, speed | Not done |
+| M16 | Save, load, speed | Done (15 Nov) |
 | M17 | Edges and names: fog, "Archer" | Not done (backdrop needs your art) |
 | M18 | Art drops | Ongoing, as your sheets arrive (needs your art) |
 | M19 | Front door: title and story scenes | Not done (needs your art) |

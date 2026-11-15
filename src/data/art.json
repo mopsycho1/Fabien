@@ -4058,6 +4058,96 @@
           "file": "kofi_water_cast_f4.png",
           "originX": 0.468
         }
+      },
+      "clashPress": {
+        "upLeft": {
+          "file": "kofi_cast_f1.png",
+          "originX": 0.163
+        },
+        "upRight": {
+          "file": "kofi_cast_f2.png",
+          "originX": 0.83
+        },
+        "downRight": {
+          "file": "kofi_cast_f3.png",
+          "originX": 0.497
+        },
+        "downLeft": {
+          "file": "kofi_cast_f4.png",
+          "originX": 0.497
+        }
+      },
+      "clashGuard": {
+        "upLeft": {
+          "file": "kofi_battle_f1.png",
+          "originX": 0.307
+        },
+        "upRight": {
+          "file": "kofi_battle_f2.png",
+          "originX": 0.679
+        },
+        "downRight": {
+          "file": "kofi_battle_f3.png",
+          "originX": 0.768
+        },
+        "downLeft": {
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776
+        }
+      },
+      "clashSlip": {
+        "upLeft": {
+          "file": "kofi_battle_f1.png",
+          "originX": 0.307
+        },
+        "upRight": {
+          "file": "kofi_battle_f2.png",
+          "originX": 0.679
+        },
+        "downRight": {
+          "file": "kofi_battle_f3.png",
+          "originX": 0.768
+        },
+        "downLeft": {
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776
+        }
+      },
+      "guard": {
+        "upLeft": {
+          "file": "kofi_battle_f1.png",
+          "originX": 0.307
+        },
+        "upRight": {
+          "file": "kofi_battle_f2.png",
+          "originX": 0.679
+        },
+        "downRight": {
+          "file": "kofi_battle_f3.png",
+          "originX": 0.768
+        },
+        "downLeft": {
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776
+        }
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "kofi_battle_f1.png",
+          "originX": 0.307
+        },
+        "upRight": {
+          "file": "kofi_battle_f2.png",
+          "originX": 0.679
+        },
+        "downRight": {
+          "file": "kofi_battle_f3.png",
+          "originX": 0.768
+        },
+        "downLeft": {
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776
+        }
       }
     },
     "elementPoses": {
@@ -4442,6 +4532,10 @@
         "footX": 0.406
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "portrait": "kofi_face.png",
+    "shout": "kofi_face.png",
+    "note_portrait": "Placeholder: his head cropped from the standing picture (15 Nov). Replace when Suleiman sends a portrait.",
+    "note_clash": "Placeholders (15 Nov): his clash poses reuse the casting pose (Press) and the battle-ready pose (Guard, Slip, dodge) until Suleiman draws his own."
   }
 }

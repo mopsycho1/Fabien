@@ -713,6 +713,7 @@ export default class BattleScene extends Phaser.Scene {
     sheet.add([veil, panel, this.add.text(W / 2, sy0 + S(28), 'SETTINGS', textStyle(T(15), '#e4c27c')).setOrigin(0.5).setLetterSpacing(2)]);
     const openSheet = (on) => {
       sheet.setVisible(on);
+      if (on) hideTip(this); // a menu opening puts the tooltip away
       for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = on;
       play('click');
     };
@@ -1558,6 +1559,7 @@ export default class BattleScene extends Phaser.Scene {
   // Works out who acts next and sets up the screen for their turn.
   startTurn() {
     if (this.battleOver) return;
+    hideTip(this);
     // Saved on the device between turns (M16, checklist H2): closing the page loses at most
     // the turn being played. (Tests switch it off with window.__noSave.)
     if (!(typeof window !== 'undefined' && window.__noSave)) writeSave(this);
@@ -1703,6 +1705,7 @@ export default class BattleScene extends Phaser.Scene {
   // Finishes the current turn and starts the next one.
   endTurn() {
     if (this.battleOver) return;
+    this.stopUnitHold(); hideTip(this); // a turn ending puts any tooltip away
     // a pushed unit is still flying or getting up: the turn ends when it has come to rest
     const wait = (this.knockUntil || 0) - this.time.now;
     if (wait > 0) {
@@ -4267,7 +4270,7 @@ export default class BattleScene extends Phaser.Scene {
   showResult(outcome) {
     clearSave(); // the battle is over: nothing to come back to (M16)
     dropTurnBanner(this);
-    hideTip(this);
+    this.resultShown = true; this.stopUnitHold(); hideTip(this);
     this.setSpeed('enemy', 1); // the ending always plays at normal speed
     const won = outcome === 'victory';
     stopMusic();

@@ -43,6 +43,8 @@ export function unitTip(unit) {
 export function showTip(scene, tip, sx, sy) {
   hideTip(scene);
   if (!tip || !scene.lay) return null;
+  // Never over a result screen or the settings sheet (M16 follow-up): a late hold or hover lands here
+  if (scene.battleOver || scene.resultShown || (scene.settingsSheet && scene.settingsSheet.visible)) return null;
   const { W, H, s, m } = scene.lay;
   const width = Math.min(W - 2 * m, Math.round(430 * s));
   const pad = Math.round(12 * s);
