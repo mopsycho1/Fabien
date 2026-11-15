@@ -7,11 +7,13 @@
       "gaha_iso_walk2.png": "gaha_iso_walk"
     },
     "scale": {
-      "gaha_n6_victory": 1.0,
-      "gaha_n6_down": 0.8,
       "gaha_fall_air": 1.0,
       "gaha_fall_land": 1.0,
-      "gaha_fall_rise": 1.0
+      "gaha_fall_rise": 1.0,
+      "gaha_n6_down": 0.8,
+      "gaha_n6_victory": 1.0,
+      "gaha_release": 1.0,
+      "gaha_wind": 1.0
     },
     "feet": {
       "gaha_rooted": 0.94

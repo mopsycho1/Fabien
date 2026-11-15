@@ -768,8 +768,23 @@
         }
       },
       "throw": {
-        "file": "gaha_iso_throw_downRight.png",
-        "originX": 0.366
+        "downLeft": {
+          "file": "gaha_wind_downLeft.png",
+          "originX": 0.259
+        },
+        "upLeft": {
+          "file": "gaha_wind_upLeft.png",
+          "originX": 0.86
+        },
+        "upRight": {
+          "file": "gaha_wind_upRight.png",
+          "originX": 0.781
+        },
+        "downRight": {
+          "file": "gaha_wind_downRight.png",
+          "originX": 0.741,
+          "flip": true
+        }
       },
       "hurt": {
         "upLeft": {
@@ -824,8 +839,23 @@
         "originX": 0.538
       },
       "throwRelease": {
-        "file": "gaha_iso_release_downRight.png",
-        "originX": 0.248
+        "downLeft": {
+          "file": "gaha_release_downLeft.png",
+          "originX": 0.328
+        },
+        "upLeft": {
+          "file": "gaha_release_upLeft.png",
+          "originX": 0.866
+        },
+        "upRight": {
+          "file": "gaha_release_upRight.png",
+          "originX": 0.125
+        },
+        "downRight": {
+          "file": "gaha_release_downRight.png",
+          "originX": 0.672,
+          "flip": true
+        }
       },
       "clashPress": {
         "upRight": {
@@ -909,6 +939,25 @@
         "downRight": {
           "file": "gaha_n6_sonicThrow_downRight.png",
           "originX": 0.797
+        }
+      },
+      "strikeWindup": {
+        "downLeft": {
+          "file": "gaha_wind_downLeft.png",
+          "originX": 0.259
+        },
+        "upLeft": {
+          "file": "gaha_wind_upLeft.png",
+          "originX": 0.86
+        },
+        "upRight": {
+          "file": "gaha_wind_upRight.png",
+          "originX": 0.781
+        },
+        "downRight": {
+          "file": "gaha_wind_downRight.png",
+          "originX": 0.741,
+          "flip": true
         }
       }
     },
@@ -1260,6 +1309,7 @@
     "note_sonic": "Sonic Javelin throw (roadmap 6.28, 9.16): his 5 Nov 15:38 release pictures in four facings; the spear has left his hand (the flying spear and the 15:41 fire trail are effects).",
     "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his in-the-air fall picture. The game leans the picture back itself.",
+    "note_windup": "15 Nov (roadmap 6.52, 18.29): his drawn wind-up and release, four views each (dev/tools/make_gaha_windup.py). throw = the wind-up before Spear Throw, throwRelease = the release, strikeWindup = the same wind-up shown before his melee strike. Down-right is the down-left picture flipped.",
     "ruler": {
       "gaha_iso_stand_upRight.png": {
         "footX": 0.564
@@ -1349,9 +1399,17 @@
         "scale": 1.13,
         "footX": 0.466
       },
-      "gaha_iso_throw_downRight.png": {
-        "scale": 0.89,
-        "footX": 0.539
+      "gaha_wind_downLeft.png": {
+        "footX": 0.495
+      },
+      "gaha_wind_upLeft.png": {
+        "footX": 0.642
+      },
+      "gaha_wind_upRight.png": {
+        "footX": 0.551
+      },
+      "gaha_wind_downRight.png": {
+        "footX": 0.495
       },
       "gaha_iso_hurt_upLeft.png": {
         "scale": 1.13,
@@ -1383,8 +1441,17 @@
       "gaha_fall_rise_upRight.png": {
         "footX": 0.363
       },
-      "gaha_iso_release_downRight.png": {
-        "footX": 0.478
+      "gaha_release_downLeft.png": {
+        "footX": 0.59
+      },
+      "gaha_release_upLeft.png": {
+        "footX": 0.697
+      },
+      "gaha_release_upRight.png": {
+        "footX": 0.37
+      },
+      "gaha_release_downRight.png": {
+        "footX": 0.59
       },
       "gaha_cu_clashSlip_upRight.png": {
         "footX": 0.501

@@ -119,6 +119,8 @@ const ENEMY_THINK_MS = 400; // the pause before an enemy acts
 const PACE_KEY = 'fabien.enemyPace';
 const READ_NAMES = { fire: 'Fire', water: 'Water', earth: 'Earth', storm: 'Storm' }; // Kofi's four elements (6.38)
 const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
+const DOUBLE_WINDUP_MS = 110; // the lean before each of Rabdul's two strikes (18.29)
+const WINDUP_LEAN_DEG = 6; // how far a melee fighter leans back in the wind-up before the blow, when it has no drawn wind-up (18.29)
 const HIDDEN_ALPHA = 0.6;
 const HIDDEN_ALPHA_FOE = 0.3; // a hidden enemy: only a faint shape (roadmap 1.47)
 const HIDDEN_GREY = 0x8f9bb0;
@@ -3866,6 +3868,20 @@ export default class BattleScene extends Phaser.Scene {
     this.showPose(unit, 'attack', dx);
   }
 
+  // The code wind-up (roadmap 18.29): the figure leans back about its feet, away from the target (dx says
+  // where it is), for `ms`. Returns the sprite to hand to unlean() when the blow goes in, or null if there is none.
+  // Clockwise is positive, so a target on the right means anticlockwise.
+  leanBack(unit, dx, ms = 150) {
+    const sprite = unit.sprite && unit.sprite.active ? unit.sprite : null;
+    if (sprite) this.tweens.add({ targets: sprite, angle: (dx >= 0 ? -1 : 1) * WINDUP_LEAN_DEG, duration: ms, ease: 'Quad.easeOut' });
+    return sprite;
+  }
+
+  // The lean snaps forward into the blow (ms), and the angle is always back to 0 at the end.
+  unlean(sprite, ms = 70) {
+    if (sprite && sprite.active) this.tweens.add({ targets: sprite, angle: 0, duration: ms, ease: 'Quad.easeIn', onComplete: () => { if (sprite.active) sprite.angle = 0; } });
+  }
+
   // Plays an attack. Close fighters lunge into the target. Archers loose an arrow.
   // variant: a Verse-changed attack from spells.json (Wildfire throws fire).
   playAttack(attacker, target, result, lethal = false, variant = null) {
@@ -3944,8 +3960,13 @@ export default class BattleScene extends Phaser.Scene {
     // 3 is the full thrust as the blow lands, 4 and 5 bring the spear home
     const up = attacker.facing && attacker.facing.startsWith('up');
     const thrust = !close && moveFrames(attacker.id, up ? 'thrustUp' : 'thrust', 'right') ? (up ? 'thrustUp' : 'thrust') : null;
-    if (thrust) this.playMove(attacker, thrust, dx, { to: 3 });
+    // The wind-up before the blow (roadmap 18.29). A fighter with a drawn wind-up ("strikeWindup" in art.json: Gaha,
+    // 15 Nov) shows that picture for the draw back; every other melee fighter leans back in code until its frames come.
+    const drawnWindup = !close && this.hasPose(attacker, 'strikeWindup');
+    if (drawnWindup) this.showPose(attacker, 'strikeWindup', dx);
+    else if (thrust) this.playMove(attacker, thrust, dx, { to: 3 });
     else this.showPose(attacker, readyPose, dx);
+    const leanSprite = drawnWindup ? null : this.leanBack(attacker, dx, 150); // her dagger stab leans too
     this.tweens.add({
       targets: attacker.view,
       x: from.x - (dx / dist) * 8, // draw back a little first
@@ -3955,6 +3976,7 @@ export default class BattleScene extends Phaser.Scene {
       ease: 'Quad.easeOut',
       onComplete: () => {
         play('whoosh');
+        this.unlean(leanSprite); // the lean snaps forward into the blow
         if (thrust) this.playMove(attacker, thrust, dx, { from: 3, to: 4 });
         else this.showPose(attacker, strikePose, dx);
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
@@ -3974,7 +3996,10 @@ export default class BattleScene extends Phaser.Scene {
               delay: 140,
               duration: 220,
               ease: 'Quad.easeOut',
-              onComplete: () => this.showStanding(attacker),
+              onComplete: () => {
+                if (leanSprite && leanSprite.active) leanSprite.angle = 0; // never leave the lean on
+                this.showStanding(attacker);
+              },
             });
           },
         });
@@ -6684,19 +6709,25 @@ export default class BattleScene extends Phaser.Scene {
     const dist = Math.hypot(dx, dy) || 1;
     this.faceToward(user, dx, dy);
     this.floatText(user, spell.name, spell.color);
+    // each strike has its own wind-up (18.29): he leans back for DOUBLE_WINDUP_MS, then the blow goes in
     strikes.forEach((strike, i) => {
       this.time.delayedCall(i * 420, () => {
         if (!user.view || !user.view.active) return;
-        play('whoosh');
-        const dh = moveFrames(user.id, 'doubleHit', dx >= 0 ? 'right' : 'left'); // one head, then the other (4.6)
-        if (!(dh && dh.frames[i] && this.showFrame(user, dh.frames[i]))) this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
-        this.afterimage(user);
-        const home = tileToScreen(user.col, user.row); // its tile, not where it happens to be (13.47)
-        this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });
-        this.time.delayedCall(100, () => this.showImpact(user, target, strike, dx, strike.lethal));
+        const lean = this.leanBack(user, dx, DOUBLE_WINDUP_MS);
+        this.time.delayedCall(DOUBLE_WINDUP_MS, () => {
+          this.unlean(lean);
+          if (!user.view || !user.view.active) return;
+          play('whoosh');
+          const dh = moveFrames(user.id, 'doubleHit', dx >= 0 ? 'right' : 'left'); // one head, then the other (4.6)
+          if (!(dh && dh.frames[i] && this.showFrame(user, dh.frames[i]))) this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
+          this.afterimage(user);
+          const home = tileToScreen(user.col, user.row); // its tile, not where it happens to be (13.47)
+          this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });
+          this.time.delayedCall(100, () => this.showImpact(user, target, strike, dx, strike.lethal));
+        });
       });
     });
-    const end = strikes.length * 420 + 650;
+    const end = strikes.length * 420 + DOUBLE_WINDUP_MS + 650;
     this.time.delayedCall(end - 250, () => user.alive && this.showStanding(user));
     this.time.delayedCall(end, () => {
       if (outcome) {

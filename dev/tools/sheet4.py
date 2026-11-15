@@ -47,11 +47,12 @@ def sheet_heads(raw, stand, head_boxes):
         out[name] = (float(np.median(vals)) if vals else 1.0, [round(v, 2) for v in vals])
     return out
 
-def final_cut(cl, box, out, scale, keep=0.15):
+def final_cut(cl, box, out, scale, keep=0.15, erase=()):
     """One figure at its final size, saved small (255 colours). Returns originX (where the feet are across it).
     keep: pieces smaller than this share of the biggest piece are dropped (a weapon lying on the ground, apart
-    from the body, needs a small number such as 0.02)."""
-    ox, size = cut(cl, box, out, scale, strokes=False, keep=keep, floor=True)
+    from the body, needs a small number such as 0.02).
+    erase: boxes (x0, y0, x1, y1) in the sheet's own pixels to wipe first (a neighbour's flame reaching over the cell edge)."""
+    ox, size = cut(cl, box, out, scale, strokes=False, keep=keep, floor=True, erase=erase)
     im = Image.open(out).convert('RGBA'); a = im.getchannel('A')
     q = im.convert('RGB').quantize(255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert('RGBA')
     q.putalpha(a); q.save(out, optimize=True)

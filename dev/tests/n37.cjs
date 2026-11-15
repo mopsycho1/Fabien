@@ -91,7 +91,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   seen = []; watch = setInterval(() => seen.push(key(gaha)), 15);
   await new Promise((res) => { b.activeUnit = gaha; b.castSpell(gaha, bull, 'spearThrow', res); setTimeout(res, 4000); });
   clearInterval(watch);
-  check('9.13 Spear Throw: his wind-up, then the release', seen.some((k) => /gaha_iso_throw_/.test(k)) && seen.some((k) => /gaha_iso_release_/.test(k)));
+  check('9.13 Spear Throw: his wind-up, then the release', seen.some((k) => /gaha_wind_/.test(k)) && seen.some((k) => /gaha_release_/.test(k)));
 
   // ---------- 9.2 Layra casts in two steps ----------
   reset([[layra, 3, 6], [sudeen, 4, 6]]);

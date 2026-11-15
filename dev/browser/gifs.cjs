@@ -29,6 +29,10 @@ const MOVES = {
   furious_charge: { who: 'h1', verse: 'fury', at: [2, 7], foe: 'e1', foeAt: [5, 7], skill: 'furyCharge' },
   tayo_punch: { who: 'e1', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   tayo_earth_drive: { who: 'e1', at: [4, 7], foe: 'h2', foeAt: [3, 7], cast: 'earthDrive' },
+  gaha_melee: { who: 'h2', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // his drawn wind-up (18.29), then the thrust
+  gaha_spear_throw: { who: 'h2', at: [2, 7], foe: 'e1', foeAt: [6, 7], skill: 'spearThrow' }, // his drawn wind-up and release (15 Nov)
+  sudeen_melee: { who: 'h1', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // the code lean-back (18.29)
+  bull_melee: { who: 'e2', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },
   archer_shot_away: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [4, 4], attack: true },
 };
