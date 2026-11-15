@@ -76,11 +76,19 @@ export function tryFullscreen(scene) {
 // is (in landscape it sits in the middle, a little smaller), and refits it
 // when the phone is turned. The story scenes get their own landscape look
 // with the painted stills later (roadmap, Later).
-export function fitDesign(scene, designW = 720, designH = 1280) {
+export function fitDesign(scene, designW = 720, designH = 1280, band = null) {
   const fit = () => {
     const cam = scene.cameras.main;
-    cam.setSize(scene.scale.width, scene.scale.height);
-    cam.setZoom(Math.min(scene.scale.width / designW, scene.scale.height / designH));
+    const W = scene.scale.width, H = scene.scale.height;
+    cam.setSize(W, H);
+    // band = [top, bottom]: the part of the design that holds everything. On a wide screen the
+    // view closes in on that band, so a title is not a small box in a black field (M8, E2).
+    if (band && W > H) {
+      cam.setZoom(Math.min(W / designW, H / (band[1] - band[0])));
+      cam.centerOn(designW / 2, (band[0] + band[1]) / 2);
+      return;
+    }
+    cam.setZoom(Math.min(W / designW, H / designH));
     cam.centerOn(designW / 2, designH / 2);
   };
   fit();

@@ -56,9 +56,9 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 - [x] D7. (15 Nov, n69 and the team colour sheet.) Move and target tiles show the floor through them and show the path (17.11). Test: sheet.
 
 ### E. Desktop (1440 x 900)
-- [ ] E1. A standing fighter is 90 pixels tall or more at rest. Today it is about 45. Test: measured in the browser.
-- [ ] E2. The title, story box and result panel scale with the screen (no small box in a black field). Test: sheet.
-- [ ] E3. Mouse hover shows the tile and unit under the pointer; keyboard: Esc cancels, Enter confirms, Space ends the turn. Test: Playwright key presses.
+- [x] E1. (15 Nov, `node dev/browser/desktop.cjs`: 99 to 127 pixels.) A standing fighter is 90 pixels tall or more at rest. Today it is about 45. Test: measured in the browser.
+- [x] E2. (15 Nov, desktop.cjs: title, story and result pictures and sizes.) The title, story box and result panel scale with the screen (no small box in a black field). Test: sheet.
+- [x] E3. (15 Nov, desktop.cjs: hover, Esc, Enter, Space pressed in a real browser.) Mouse hover shows the tile and unit under the pointer; keyboard: Esc cancels, Enter confirms, Space ends the turn. Test: Playwright key presses.
 
 ### F. Feel
 - [x] F1. (15 Nov, n68 and `node dev/browser/weight.cjs`: a small and a big hit, 3 frames each.) Every hit: white flash on the target, hit stop, the HP bar keeps a pale chunk then drains, bigger numbers for bigger hits (17.13). Test: sheet of 3 frames of a hit.
@@ -220,7 +220,7 @@ One session each: build, test, tick the roadmap, push, stop. Roadmap numbers are
 | M5 (done 12 Nov) | **Steady tests.** Run the suite 3 times; fix anything that changes between runs (sage-l and story-smoke first) and cut the run time (it took over 20 minutes). Add the 60 frames a second jump logger and the page-error battle run to dev/browser. | Gap 15, rest of gap 10 | checklist H1, H3, A5 pass. | None. |
 | M6 (done 14 Nov) | **Nameplates and one callout lane.** One small plate per unit, 2 icons then "+2", stance word and pips only for the two in the clash. All floating words go through a queue in a lane under the turn strip, clamped to the screen. Real names in the score line. | 17.2, 17.3 | D1, D2, D3 pass. | ART8 helps (small icons). |
 | M7 (done 14 Nov) | **Card, menu, top strip.** Full-width card with 4 readable stats, rest behind a tap. Action menu fixed bottom right, 44 pixel rows. Title line gone, bigger turn faces with a "now" marker, no repeats of one face, Effects moved into a settings sheet. | 17.4, 17.5, 17.7 | D4, D5 pass. | None. |
-| M8 | **Desktop layout.** Bigger figures at rest on wide screens, title, story and result scale with the screen, hover and keyboard. | Gap 6 | E1, E2, E3 pass. | None. |
+| M8 (done 15 Nov) | **Desktop layout.** Bigger figures at rest on wide screens, title, story and result scale with the screen, hover and keyboard. | Gap 6 | E1, E2, E3 pass. | None. |
 | M9 (done 15 Nov) | **Weight.** White flash, pale HP chunk that drains, number size by damage, turn banner in the side's colour. | 17.13, 17.15 | F1, F2 pass. | None. |
 | M10 (done 15 Nov) | **Reading the board.** Contact shadow and team-colour rim on every figure, floor a little darker under them. Soft tiles with a bright pulsing edge, path line to the finger, red targets in the same style. | 17.6 (code part), 17.11 | D6, D7 pass. | ART7 later. |
 | M10b | **4 v 4.** A 4th fighter on each side (roadmap 14.1; 14.2, the wider cavern, only if 8 figures are too tight on the 9 by 9 board). It sits here so the pace and balance work in M11 and M15 is done once, for 4 v 4. Enemy side: the bull comes back (take him out of `sittingOut` in cavern.json; his art is complete and he already has a start tile). Hero side: **Kofi** (Baiyee, 12 Nov). His own kit arrived 12 Nov (roadmap 6.38), so the borrowed Sage kit is not needed; see "The 4th hero: art check" below. | Phase 14, roadmap 18.22 | A 4 v 4 battle plays to the end on phone and desktop with no figure covering another at the start; the 3 v 3 tests still pass; bot battles run 4 v 4. | Nothing blocks the first version. Kofi's kit is in; his missing pictures (listed below) finish him. |

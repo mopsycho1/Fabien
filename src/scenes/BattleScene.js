@@ -768,6 +768,10 @@ export default class BattleScene extends Phaser.Scene {
       this.keysBound = true;
       this.input.keyboard?.on('keydown-Q', () => this.rotateCamera(-1));
       this.input.keyboard?.on('keydown-E', () => this.rotateCamera(1));
+      // M8 (checklist E3): Esc cancels, Enter confirms, Space ends the turn
+      this.input.keyboard?.on('keydown-ESC', () => this.keyCancel());
+      this.input.keyboard?.on('keydown-ENTER', () => this.keyConfirm());
+      this.input.keyboard?.on('keydown-SPACE', () => this.keyEndTurn());
     }
 
     // Bottom left: the unit's profile (see refreshCard)
@@ -991,6 +995,7 @@ export default class BattleScene extends Phaser.Scene {
     if (!this.lay) return;
     syncRims(this.units); // the coloured rims stay on their figures (M10)
     this.hoverPath();     // on a computer: the walking line to the tile under the mouse (M10)
+    this.hoverBoard();    // ...and the tile and the fighter under it (M8)
     if (this.statusText && this.statusText.text !== this.infoText) this.fitStatus();
     this.placeMenu();
     const u = this.activeUnit;
@@ -1792,7 +1797,7 @@ export default class BattleScene extends Phaser.Scene {
   // looked at, else the unit whose turn it is), as in his mockup.
   refreshTileInfo() {
     if (!this.tileText || !this.activeUnit) return;
-    const t = this.pendingTarget || (this.approach && this.approach.tile) || this.activeUnit;
+    const t = this.hoverTile || this.pendingTarget || (this.approach && this.approach.tile) || this.activeUnit; // (the tile under the mouse first, M8)
     const ground = groundName(terrainAt(mapData, t.col, t.row));
     this.tileText.setText(ground + '   ·   ELEV ' + getHeight(t.col, t.row));
   }
@@ -4290,7 +4295,11 @@ export default class BattleScene extends Phaser.Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     const least = this.lay ? this.lay.minText : 11;
-    const F = (n) => Math.max(n, least); // letters never under 11 real pixels
+    // On a wide screen (720 game pixels tall) the whole panel is drawn smaller so it fits: k (M8, E2)
+    const linesTall = 170 + 45 + 36 + (won ? 58 + 36 + 60 : 30) + 30 + 36 + 33 + 102 + (won && this.stepIndex !== null ? 2 : 1) * 92 + 24;
+    const k = Math.min(1, (H - 28) / linesTall);
+    const K = (n) => Math.round(n * k);
+    const F = (n) => Math.max(K(n), least); // letters never under 11 real pixels
     const cover = this.ui(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(300));
     this.tweens.add({ targets: cover, fillAlpha: 0.55, duration: 300 });
 
@@ -4306,26 +4315,26 @@ export default class BattleScene extends Phaser.Scene {
     const buttons = won && this.stepIndex !== null ? 2 : 1;
     const lh = (n) => Math.round(F(n) * 1.5);
     const pw = Math.min(620, W - 60);
-    const ph = 170 + lh(30) + lh(24) + (rating ? (rating.banner ? 58 : 0) + lh(24) + 2 * lh(20) : lh(20)) + 30 + lh(24) + lh(22) + 102 + buttons * 92 + 24;
+    const ph = Math.min(H - 16, K(170) + lh(30) + lh(24) + (rating ? (rating.banner ? K(58) : 0) + lh(24) + 2 * lh(20) : lh(20)) + K(30) + lh(24) + lh(22) + K(102) + buttons * K(92) + K(24));
     const px = W / 2 - pw / 2, py = Math.round(H / 2 - ph / 2);
     const parts = [];
     const add = (o) => { this.ui(o); parts.push(o); return o; };
     add(bronzePanel(this, px, py, pw, ph).setDepth(301));
     // the word sweeps in from the side, over a streak of light
-    const streak = add(this.add.rectangle(-W, py + 96, W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
-    const title = add(this.add.text(-W / 2, py + 96, won ? 'Victory' : 'Defeat', textStyle(96, won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
+    const streak = add(this.add.rectangle(-W, py + K(96), W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
+    const title = add(this.add.text(-W / 2, py + K(96), won ? 'Victory' : 'Defeat', textStyle(K(96), won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
     this.tweens.add({ targets: title, x: W / 2, duration: 320, ease: 'Cubic.easeOut' });
     this.tweens.add({ targets: streak, x: W * 1.6, duration: 520, ease: 'Cubic.easeOut', onComplete: () => streak.setVisible(false) });
     screenShake(this, 0.004, 140);
-    let y = py + 170;
+    let y = py + K(170);
     const line = (text, size, color = '#f1e6c8', extra = {}) => { const t = add(this.add.text(W / 2, y, text, textStyle(F(size), color, extra)).setOrigin(0.5).setDepth(302).setAlpha(0)); y += Math.round(F(size) * 1.5); return t; };
     const rows = [];
     rows.push(line(won ? 'All enemies defeated.' : 'All heroes have fallen.', 30));
     // a Swift win: the gold banner (the bonus for beating par, 13.45)
     if (rating && rating.banner) {
-      const band = add(this.add.rectangle(W / 2, y + 16, pw - 80, 44, 0xb8860b, 0.95).setStrokeStyle(2, 0xffe08a).setDepth(302).setAlpha(0));
-      const word = add(this.add.text(W / 2, y + 16, rating.banner, textStyle(F(24), '#fff4d6', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setAlpha(0).setLetterSpacing(3));
-      rows.push(band, word); y += 58;
+      const band = add(this.add.rectangle(W / 2, y + K(16), pw - 80, K(44), 0xb8860b, 0.95).setStrokeStyle(2, 0xffe08a).setDepth(302).setAlpha(0));
+      const word = add(this.add.text(W / 2, y + K(16), rating.banner, textStyle(F(24), '#fff4d6', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setAlpha(0).setLetterSpacing(3));
+      rows.push(band, word); y += K(58);
     }
     rows.push(line('Turns played: ' + this.turnCount, 24, '#e8d5a8'));
     if (rating) {
@@ -4335,29 +4344,29 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       rows.push(line('Par for a win here: ' + par + ' turns', 20, '#a89a78'));
     }
-    rows.push(add(this.add.tileSprite(W / 2, y + 4, 420, 18, 'ui-woven').setDepth(302).setAlpha(0))); y += 30;
+    rows.push(add(this.add.tileSprite(W / 2, y + 4, 420, 18, 'ui-woven').setDepth(302).setAlpha(0))); y += K(30);
     rows.push(line('Damage dealt ' + tally.dealt + '   ·   taken ' + tally.taken, 24));
     rows.push(line(tally.fallenHeroes.length ? 'Fell: ' + tally.fallenHeroes.join(', ') : 'No hero fell.', 22, tally.fallenHeroes.length ? '#ff9a8a' : '#9fdc8a'));
     // the heroes' faces: bright if standing, dark if fallen
-    const r = 30, gap = 78, x0 = W / 2 - ((tally.heroes.length - 1) * gap) / 2;
-    y += r + 6;
+    const r = K(30), gap = K(78), x0 = W / 2 - ((tally.heroes.length - 1) * gap) / 2;
+    y += r + K(6);
     tally.heroes.forEach((u, i) => {
       const face = add(portraitMedallion(this, x0 + i * gap, y, r, u, portraitKey(u.id, u), { active: u.alive }).setDepth(302).setAlpha(0));
       face.fallen = !u.alive;
       rows.push(face);
     });
-    y += r + 30;
+    y += r + K(30);
     // one after another, like a roll being read out
     rows.forEach((o, i) => this.tweens.add({ targets: o, alpha: o.fallen ? 0.35 : 1, delay: 260 + i * 90, duration: 200 }));
     this.resultRows = rows;
 
     const addButton = (label, icon, onTap) => {
-      const button = new CommandButton(this, W / 2, y + 30, 420, 76);
+      const button = new CommandButton(this, W / 2, y + K(30), K(420), K(76));
       button.set(label, icon, true, onTap);
       button.view.setDepth(303);
       this.ui(button.view);
       this.resultButtons.push(button);
-      y += 92;
+      y += K(92);
     };
 
     // After a win, "Continue" moves the story on to the next step
@@ -7834,6 +7843,75 @@ export default class BattleScene extends Phaser.Scene {
       added.push(diamond);
     }
     if (added.length) this.tweens.add({ targets: added, alpha: 0.62, duration: 760, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  // ---------- Mouse and keyboard on a computer (M8, checklist E3) ----------
+
+  // The tile under the mouse gets a thin outline and is named top right (ground and height);
+  // a fighter under it shows its card and its health, until the mouse moves off.
+  hoverBoard() {
+    const p = this.input.activePointer;
+    const mouse = p && !p.wasTouch && !this.sys.game.device.input.touch;
+    let tile = null;
+    if (mouse && !this.battleOver && !this.inCinematic && !this.rotating && !(this.settingsSheet && this.settingsSheet.visible) && this.input.hitTestPointer(p).length === 0) {
+      const world = this.cameras.main.getWorldPoint(p.x, p.y);
+      const t = this.tileAtPoint(world.x, world.y);
+      if (isInsideGrid(t.col, t.row)) tile = t;
+    }
+    const key = tile ? tile.col + ',' + tile.row : null;
+    if (key === this.hoverKey) return;
+    this.hoverKey = key;
+    if (this.hoverMark) this.hoverMark.destroy();
+    this.hoverMark = null;
+    this.hoverTile = tile;
+    const was = this.hoverUnit;
+    this.hoverUnit = null;
+    if (tile) {
+      const { x, y } = tileToScreen(tile.col, tile.row);
+      const hw = TILE_WIDTH / 2 - 3, hh = TILE_HEIGHT / 2 - 2;
+      this.hoverMark = this.add.graphics().setDepth(depthFor(tile.col, tile.row) + 0.55);
+      this.hoverMark.lineStyle(2, 0xfff4d6, 0.85).strokePoints([{ x, y: y - hh }, { x: x + hw, y }, { x, y: y + hh }, { x: x - hw, y }], true, true);
+      const unit = this.getUnitAt(tile.col, tile.row);
+      if (unit && unit.alive && !(unit.hidden && unit.side !== 'hero')) {
+        this.hoverUnit = unit;
+        flashPlate(this, unit, 1500);
+        if (!this.busy) this.refreshCard(unit, unit !== this.activeUnit);
+      }
+    }
+    if (was && !this.hoverUnit && !this.busy) this.refreshCard(this.viewing || this.activeUnit, !!this.viewing);
+    this.refreshTileInfo();
+  }
+
+  // Esc: put away a tooltip or the settings, or cancel the choice being made.
+  keyCancel() {
+    if (this.tip) return hideTip(this);
+    if (this.settingsSheet && this.settingsSheet.visible) return this.openSettings(false);
+    if (this.battleOver || this.busy || this.inCinematic || !this.activeUnit || this.activeUnit.side !== 'hero') return;
+    if (this.mode === 'spell' || this.mode === 'spellTarget' || this.mode === 'huskTile') return this.spellBack();
+    if (this.mode === 'item' || this.mode === 'itemTarget') return this.itemBack();
+    this.cancelMode();
+  }
+
+  // Enter: confirm what is picked (the same as tapping the picked target or tile again).
+  // On the result screen it presses the first button.
+  keyConfirm() {
+    if (this.battleOver) {
+      const first = this.resultButtons && this.resultButtons[0];
+      if (first) first.hit.emit('pointerdown');
+      return;
+    }
+    if (this.busy || this.inCinematic || !this.activeUnit || this.activeUnit.side !== 'hero') return;
+    if (this.mode === 'approach' && this.approach) return this.confirmApproach();
+    const t = this.pendingTarget || this.pendingTile;
+    if (t) return this.handleTap(t.col, t.row);
+    if (this.mode === 'rest' && this.selectedSpell) return this.chooseSpell(this.selectedSpell);
+  }
+
+  // Space: end the turn.
+  keyEndTurn() {
+    if (this.battleOver || this.busy || this.inCinematic || !this.activeUnit || this.activeUnit.side !== 'hero') return;
+    if (this.settingsSheet && this.settingsSheet.visible) return;
+    this.onEndButton();
   }
 
   // On a computer, the walking line runs to the blue tile under the mouse (M10). A phone has

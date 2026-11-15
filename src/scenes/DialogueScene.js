@@ -30,7 +30,18 @@ export default class DialogueScene extends Phaser.Scene {
   }
 
   create() {
-    fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
+    // Two layouts (M8, checklist E2): upright (720 by 1280, as before) and wide (1280 by 720:
+    // the speaker on the left, the text box along the bottom, the full width of the screen).
+    const wide = this.scale.width > this.scale.height;
+    const L = wide
+      ? { w: 1280, h: 720, place: [640, 50, 800], face: [640, 230, 110], box: [50, 400, 1180, 290], name: [90, 425], text: [90, 480, 1100, 185], arrow: [1195, 662], skip: [1195, 50] }
+      : { w: 720, h: 1280, place: [330, 70, 460], face: [GAME_WIDTH / 2, 400, 120], box: [40, BOX_TOP, 640, 500], name: [TEXT_LEFT, BOX_TOP + 35], text: [TEXT_LEFT, TEXT_TOP, TEXT_WIDTH, TEXT_MAX_HEIGHT], arrow: [650, 1165], skip: [645, 70] };
+    this.L = L;
+    fitDesign(this, L.w, L.h);
+    // the phone is turned mid-scene: lay the scene out again for the new shape
+    const onTurn = () => { if ((this.scale.width > this.scale.height) !== wide) this.scene.restart({ stepIndex: this.stepIndex, sceneId: this.sceneId }); };
+    this.events.on('layout', onTurn);
+    this.events.once('shutdown', () => this.events.off('layout', onTurn));
     playTrack('theme'); // Suleiman's theme carries on through the story (roadmap A.1)
     const sceneData = dialogue[this.sceneId];
 
@@ -54,23 +65,23 @@ export default class DialogueScene extends Phaser.Scene {
 
     // The place name at the top
     this.placeText = this.add
-      .text(330, 70, sceneData.place || '', {
+      .text(L.place[0], L.place[1], sceneData.place || '', {
         fontFamily: 'Georgia, serif',
         fontSize: '26px',
         color: '#c9b98f',
         align: 'center',
-        wordWrap: { width: 460 }, // long place names wrap instead of running under Skip
+        wordWrap: { width: L.place[2] }, // long place names wrap instead of running under Skip
       })
       .setOrigin(0.5);
 
     // Placeholder portrait: a colored circle with the speaker's first letter.
     // Real art can replace this later.
     this.portrait = this.add
-      .circle(GAME_WIDTH / 2, 400, 120, 0x666666)
+      .circle(L.face[0], L.face[1], L.face[2], 0x666666)
       .setStrokeStyle(6, 0xe8d5a8)
       .setVisible(false);
     this.portraitLetter = this.add
-      .text(GAME_WIDTH / 2, 400, '', {
+      .text(L.face[0], L.face[1], '', {
         fontFamily: 'Georgia, serif',
         fontSize: '110px',
         color: '#ffffff',
@@ -80,32 +91,32 @@ export default class DialogueScene extends Phaser.Scene {
 
     // The text box
     createHudTextures(this);
-    bronzePanel(this, 40, BOX_TOP, 640, 500);
+    bronzePanel(this, L.box[0], L.box[1], L.box[2], L.box[3]);
 
-    this.nameText = this.add.text(TEXT_LEFT, BOX_TOP + 35, '', {
+    this.nameText = this.add.text(L.name[0], L.name[1], '', {
       fontFamily: 'Georgia, serif',
       fontSize: '32px',
       color: '#ffe08a',
     });
 
-    this.bodyText = this.add.text(TEXT_LEFT, TEXT_TOP, '', {
+    this.bodyText = this.add.text(L.text[0], L.text[1], '', {
       fontFamily: 'Georgia, serif',
       fontSize: BASE_FONT_SIZE + 'px',
       color: '#f1e6c8',
-      wordWrap: { width: TEXT_WIDTH },
+      wordWrap: { width: L.text[2] },
     });
 
     // A little triangle in the corner that pulses to say "tap to continue"
-    const arrow = this.add.triangle(650, 1165, 0, 0, 26, 0, 13, 18, 0xe8d5a8);
+    const arrow = this.add.triangle(L.arrow[0], L.arrow[1], 0, 0, 26, 0, 13, 18, 0xe8d5a8);
     this.tweens.add({ targets: arrow, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
 
     // Skip button: jumps past the rest of this scene
     const skipRect = this.add
-      .rectangle(645, 70, 110, 56, 0x3a2a18)
+      .rectangle(L.skip[0], L.skip[1], 110, 56, 0x3a2a18)
       .setStrokeStyle(3, 0xe8d5a8)
       .setInteractive({ useHandCursor: true });
     this.add
-      .text(645, 70, 'Skip', { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#e8d5a8' })
+      .text(L.skip[0], L.skip[1], 'Skip', { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#e8d5a8' })
       .setOrigin(0.5);
     skipRect.on('pointerdown', () => this.leave());
 
@@ -116,6 +127,8 @@ export default class DialogueScene extends Phaser.Scene {
       this.advance();
     });
 
+    // keyboard on a computer (M8): Enter or Space does what a tap does
+    for (const k of ['ENTER', 'SPACE']) { const key = 'keydown-' + k; const fn = () => this.advance(); this.input.keyboard?.on(key, fn); this.events.once('shutdown', () => this.input.keyboard?.off(key, fn)); }
     // Fade up from black, then start the first line once the screen is clear
     this.cameras.main.fadeIn(600, 0, 0, 0);
     this.time.delayedCall(700, () => {
@@ -166,7 +179,7 @@ export default class DialogueScene extends Phaser.Scene {
     let size = BASE_FONT_SIZE;
     this.bodyText.setFontSize(size + 'px');
     this.bodyText.setText(text);
-    while (this.bodyText.height > TEXT_MAX_HEIGHT && size > 20) {
+    while (this.bodyText.height > this.L.text[3] && size > 20) {
       size -= 2;
       this.bodyText.setFontSize(size + 'px');
     }

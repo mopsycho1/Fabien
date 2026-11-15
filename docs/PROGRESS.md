@@ -7,7 +7,7 @@ For Suleiman. Written 14 Nov from the roadmap and the Battle 1.0 plan. Plain wor
 
 - **Done:** the battle screen restyle (Phase 2), Intercept and the Verse moves (3), enemy skills (4), items (5), the new battle screen (8), the Hidden Cavern (11), the effects flair pass (16), your music.
 - **Almost done:** the fixes list (Phase 1), the isometric look and animations (9), the art wiring (6: most of your sheets are in the game; a few wait on files).
-- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 15 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
+- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 16 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
 - **Next, in order:** the desktop layout, saving, sounds, and the board's edges.
 - **After Battle 1.0:** the kings (Phase 10), finishers (7), slopes (12), the camp and town (15).
 
@@ -348,7 +348,7 @@ One battle that feels finished. The steps are the milestones at the bottom.
 - [x] The kings and the archer: decided (kings wait for Phase 10, the archer is a generic unit)
 - [ ] Effects to studio quality: first pass built, waiting for Baiyee to sign off
 - [x] Card, action menu, top strip (14 Nov)
-- [ ] Desktop layout
+- [x] Desktop layout: big title and story box, mouse hover, keyboard (15 Nov)
 - [x] Weight: hit flash, health chunk, turn banner (15 Nov)
 - [x] Reading the board: shadow, team colour rim, tiles, path (15 Nov; white for the enemy team)
 - [x] The ending (15 Nov)
@@ -405,7 +405,7 @@ None of this blocks the next steps (M7 to M16). They are all code.
 | M5 | Steady tests | Done |
 | M6 | Nameplates, callout lane, tooltips | Done (14 Nov) |
 | M7 | Card, menu, top strip | Done (14 Nov) |
-| M8 | Desktop layout | Not done |
+| M8 | Desktop layout | Done (15 Nov) |
 | M9 | Weight: hit flash, health chunk, turn banner | Done (15 Nov) |
 | M10 | Reading the board: shadow, team colour, tiles, path | Done (15 Nov) |
 | M10b | 4 against 4 with Kofi | Done (first version of Kofi's kit) |

@@ -30,7 +30,7 @@ export default class StartScene extends Phaser.Scene {
   }
 
   create() {
-    fitDesign(this); // laid out for a 720 by 1280 screen, fitted to any shape (layout.js)
+    fitDesign(this, 720, 1280, [380, 980]); // laid out for a 720 by 1280 screen; a wide screen closes in on the part that is used (M8)
     this.cameras.main.setBackgroundColor('#0d0907');
     this.cameras.main.fadeIn(900, 0, 0, 0); // fade up from black
     this.starting = false;
@@ -68,6 +68,9 @@ export default class StartScene extends Phaser.Scene {
 
     // First tap: fade to black, then start the story
     this.input.on('pointerdown', () => this.begin());
+    // keyboard on a computer (M8): Enter or Space does what a tap does
+    for (const k of ['ENTER', 'SPACE']) { const key = 'keydown-' + k; const fn = () => this.begin(); this.input.keyboard?.on(key, fn); this.events.once('shutdown', () => this.input.keyboard?.off(key, fn)); }
+
   }
 
   begin() {
