@@ -22,7 +22,7 @@ exports.start = async function start() {
   const t0 = Date.now();
   while (Date.now() - t0 < 30000) {
     const g = w.__game; const s = g && g.scene && g.scene.getScene('StartScene');
-    if (s && s.titleText) break;
+    if (s && s.titleText && s.artReady) break; // (M16: the title shows at once and the pictures load behind it; artReady says they are in)
     await new Promise((r) => setTimeout(r, 50));
   }
   // Warm-up (roadmap 18.5). The pictures are all loaded by now (the title only appears

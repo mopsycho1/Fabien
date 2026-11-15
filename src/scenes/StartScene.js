@@ -1,3 +1,4 @@
+import { readSave } from '../saveGame.js';
 import { classPlateFiles } from '../nameplate.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
@@ -18,9 +19,10 @@ export default class StartScene extends Phaser.Scene {
     super('StartScene');
   }
 
-  // Phaser calls preload() first. We load every character and terrain picture
-  // here, once, so they are ready for all the scenes that follow.
-  preload() {
+  // Nothing is loaded before the title shows (M16, checklist H4): the title is words only, so
+  // it is on screen at once, and the battle's pictures (about 860 files, 38 MB) load behind
+  // it with a progress bar. "Tap to begin" appears when they are all in.
+  loadEverything() {
     preloadArt(this);
     preloadBoardArt(this);
     preloadNormals(this); // bump pictures for the ?light test
@@ -64,17 +66,61 @@ export default class StartScene extends Phaser.Scene {
         color: '#a89a78',
       })
       .setOrigin(0.5);
-    this.tweens.add({ targets: prompt, alpha: 0.25, duration: 900, yoyo: true, repeat: -1 });
+    const pulse = this.tweens.add({ targets: prompt, alpha: 0.25, duration: 900, yoyo: true, repeat: -1, paused: true });
 
-    // First tap: fade to black, then start the story
-    this.input.on('pointerdown', () => this.begin());
+    // The pictures load now, behind the title, with a bar (M16). Coming back to the title
+    // later in the same visit, they are already there.
+    this.artReady = false;
+    const ready = () => {
+      this.artReady = true;
+      this.registry.set('artLoaded', true);
+      this.loadSeconds = (performance.now() - this.loadStart) / 1000;
+      prompt.setText('Tap to begin');
+      pulse.resume();
+      if (this.loadBar) { this.loadBar.destroy(); this.loadBack.destroy(); }
+      if (this.offerContinue()) prompt.setText('or tap anywhere else for a new game');
+    };
+    this.loadStart = performance.now();
+    if (this.registry.get('artLoaded')) ready();
+    else {
+      prompt.setText('Loading  0%');
+      this.loadBack = this.add.rectangle(GAME_WIDTH / 2, 950, 404, 16, 0x2a1d12).setStrokeStyle(2, 0xb88a4a);
+      this.loadBar = this.add.rectangle(GAME_WIDTH / 2 - 200, 950, 400, 12, 0xffe08a).setOrigin(0, 0.5).setScale(0, 1);
+      this.load.on('progress', (v) => { this.loadProgress = v; if (this.loadBar.active) this.loadBar.setScale(v, 1); prompt.setText('Loading  ' + Math.round(v * 100) + '%'); });
+      this.load.once('complete', ready);
+      this.loadEverything();
+      this.load.start();
+    }
+
+    // First tap: fade to black, then start the story (taps on the Continue button are its own)
+    this.input.on('pointerdown', (pointer, over) => { if (!over || over.length === 0) this.begin(); });
     // keyboard on a computer (M8): Enter or Space does what a tap does
     for (const k of ['ENTER', 'SPACE']) { const key = 'keydown-' + k; const fn = () => this.begin(); this.input.keyboard?.on(key, fn); this.events.once('shutdown', () => this.input.keyboard?.off(key, fn)); }
 
   }
 
+  // A battle saved on this device (M16): a button to go straight back into it, at the start
+  // of the turn that was being played. A plain tap anywhere else starts a new game.
+  offerContinue() {
+    const save = readSave();
+    if (!save) return false;
+    const back = this.add.rectangle(GAME_WIDTH / 2, 800, 470, 70, 0x3a2a18).setStrokeStyle(3, 0xffe08a).setInteractive({ useHandCursor: true });
+    this.add.text(GAME_WIDTH / 2, 800, 'Continue the battle  (turn ' + (save.turnCount + 1) + ')', { fontFamily: 'Georgia, serif', fontSize: '28px', color: '#ffe08a' }).setOrigin(0.5);
+    this.continueButton = back;
+    back.on('pointerdown', () => {
+      if (this.starting) return;
+      this.starting = true;
+      startAudio();
+      tryFullscreen(this);
+      play('drum');
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('BattleScene', { stepIndex: save.stepIndex, map: save.map, resume: true }));
+    });
+    return true;
+  }
+
   begin() {
-    if (this.starting) return;
+    if (this.starting || !this.artReady) return; // (not while the pictures are still loading)
     this.starting = true;
     startAudio(); // browsers only allow sound after a tap
     playTrack('theme'); // Suleiman's theme (roadmap A.1)

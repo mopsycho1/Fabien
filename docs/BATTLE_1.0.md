@@ -76,9 +76,9 @@ Battle 1.0 is done when every line below passes. Each line says how it is tested
 
 ### H. Solid ground
 - [x] H1. The full test suite passes 3 runs in a row with the same result. Test: run_all.sh three times.
-- [ ] H2. Closing the page mid-battle and coming back resumes at the start of the current turn. Test: Playwright reload.
+- [x] H2. Closing the page mid-battle and coming back resumes at the start of the current turn. Test: Playwright reload.
 - [x] H3. No page error in 5 full battles on each screen size. Test: browser script.
-- [ ] H4. First load on a phone connection shows a progress bar and reaches the title in under 10 seconds. Today the build is 42 MB (27 MB of pictures). Test: throttled load in the browser.
+- [x] H4. First load on a phone connection shows a progress bar and reaches the title in under 10 seconds. Today the build is 42 MB (27 MB of pictures). Test: throttled load in the browser.
 
 ---
 

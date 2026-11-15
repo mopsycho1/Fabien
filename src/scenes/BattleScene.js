@@ -1,3 +1,4 @@
+import { writeSave, readSave, clearSave, applySave } from '../saveGame.js';
 import { endingRules, parFor, rateWin, recordBest, battleTally } from '../ending.js';
 import { teamColor, figureShadows, addRim, syncRims, drawPath, boardRules } from '../boardRead.js';
 import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
@@ -142,6 +143,7 @@ export default class BattleScene extends Phaser.Scene {
     // test scripts can ask for another one (window.__mapName)
     const asked = (data && data.map) || (typeof window !== 'undefined' && window.__mapName) || 'cavern';
     this.mapName = MAPS[asked] ? asked : 'cavern';
+    this.resumeAsked = !!(data && data.resume); // "Continue the battle" on the title screen (M16)
   }
 
   // Phaser calls create() once, when the scene starts.
@@ -329,7 +331,9 @@ export default class BattleScene extends Phaser.Scene {
     startBattleMusic();
     this.startIdleLife();
 
-    // Start the battle: work out who goes first
+    // Start the battle: work out who goes first. Coming back to a saved battle (M16), the
+    // fighters first get their saved numbers back, then the turn that was being played starts again.
+    if (this.resumeAsked) this.resumeBattle();
     this.startTurn();
   }
 
@@ -1554,6 +1558,9 @@ export default class BattleScene extends Phaser.Scene {
   // Works out who acts next and sets up the screen for their turn.
   startTurn() {
     if (this.battleOver) return;
+    // Saved on the device between turns (M16, checklist H2): closing the page loses at most
+    // the turn being played. (Tests switch it off with window.__noSave.)
+    if (!(typeof window !== 'undefined' && window.__noSave)) writeSave(this);
 
     this.turnCount++;
     this.activeUnit = startNextTurn(this.units);
@@ -4258,6 +4265,7 @@ export default class BattleScene extends Phaser.Scene {
   // dims, the side still standing celebrates, the word sweeps in with its sting of music,
   // then the numbers: turns against par with a rating (13.45), damage, who fell, the faces.
   showResult(outcome) {
+    clearSave(); // the battle is over: nothing to come back to (M16)
     dropTurnBanner(this);
     hideTip(this);
     this.setSpeed('enemy', 1); // the ending always plays at normal speed
@@ -7843,6 +7851,36 @@ export default class BattleScene extends Phaser.Scene {
       added.push(diamond);
     }
     if (added.length) this.tweens.add({ targets: added, alpha: 0.62, duration: 760, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
+  // Coming back to a saved battle (M16): the saved numbers go back on the fighters, and
+  // the board is drawn to match: who stands where, who has fallen, what was dug up, Tayo's
+  // rocks. Returns false if there was nothing (matching) to come back to.
+  resumeBattle() {
+    const save = readSave();
+    if (!save || save.map !== this.mapName || !applySave(this, save)) return false;
+    for (const u of this.units) {
+      this.placeUnit(u, u.col, u.row);
+      u.shownHp = u.hp; // (no flash: nothing just happened)
+      this.updateHpBar(u);
+      if (!u.alive) u.view.setVisible(false);
+      else this.showStanding(u);
+    }
+    // dug sites, and satchels dropped by the fallen
+    for (const s of save.sites || []) {
+      let site = this.sites.find((x) => x.col === s.col && x.row === s.row && x.prop === s.prop);
+      if (!site) { site = { ...s, sprite: null }; this.sites.push(site); if (!site.dug) { drawSite(this, site); if (site.sprite) this.boardObjects.push(site.sprite); } }
+      site.items = s.items.slice();
+      if (s.dug && !site.dug) { site.dug = true; if (site.sprite) site.sprite.destroy(); site.sprite = null; }
+    }
+    for (const s of save.spikes || []) {
+      const p = tileToScreen(s.col, s.row);
+      this.spikes.push({ col: s.col, row: s.row, owner: this.units.find((u) => u.id === s.owner) || null, turnsLeft: s.turnsLeft, view: raiseSpike(this, p.x, p.y, depthFor(s.col, s.row) + 1.2, TILE_WIDTH * 1.05) });
+    }
+    this.refreshEngagementMarks();
+    this.refreshStatusTags();
+    this.resumed = true;
+    return true;
   }
 
   // ---------- Mouse and keyboard on a computer (M8, checklist E3) ----------
