@@ -35,7 +35,11 @@ export function buildPlate(scene, { topY, barBack, hpFill, job, hp, maxHp }) {
   const number = scene.add
     .text(BAR_SIDE, -topY, hp + '/' + maxHp, { fontFamily: 'Georgia, serif', fontSize: '16px', fontStyle: 'bold', color: '#f1e6c8', stroke: '#1a1410', strokeThickness: 4 })
     .setOrigin(0, 0.5); // to the right of the bar, so the status icons above stay clear
-  const parts = [barBack, hpFill, number];
+  // The pale chunk (M9, 17.13): the health just lost stays for a moment as a pale piece of
+  // bar, then drains away, so the eye sees how much the hit took.
+  const ghost = scene.add.rectangle(barBack.x, barBack.y, barBack.width, barBack.height, 0xfff1c9).setOrigin(0, 0.5);
+  ghost.setScale(0, 1);
+  const parts = [barBack, ghost, hpFill, number];
   // Suleiman's class plate, when its picture is there (the slot)
   const slot = rules.classPlates;
   if (scene.textures.exists('plate:' + job)) {
@@ -45,10 +49,12 @@ export function buildPlate(scene, { topY, barBack, hpFill, job, hp, maxHp }) {
     const w = art.width * k * slot.barWidth;
     barBack.setPosition(-w / 2, -topY).setSize(w, barBack.height);
     hpFill.setPosition(-w / 2, -topY).setSize(w, hpFill.height);
+    ghost.setPosition(-w / 2, -topY).setSize(w, ghost.height);
     parts.unshift(art);
   }
   const plate = scene.add.container(0, 0, parts);
   plate.number = number;
+  plate.ghost = ghost;
   plate.setAlpha(plateMode() === 'always' ? 1 : 0);
   return plate;
 }
@@ -111,4 +117,22 @@ export function spreadTagRows(units) {
     const box = tagBox(u);
     if (box) placed.push(box);
   }
+}
+
+// A hit: the bar drops at once, the lost piece stays pale for "hold" ms, then drains (M9).
+//   from, to: the health before and after, as a share of the whole bar (0 to 1)
+export function drainChunk(scene, unit, from, to, hold = 320, drain = 380) {
+  const g = unit.plate && unit.plate.ghost;
+  if (!g || !g.active) return;
+  if (g.drain) g.drain.stop();
+  g.setScale(Math.max(from, g.scaleX), 1); // a second hit before the first has drained keeps the whole piece
+  g.drain = scene.tweens.add({ targets: g, scaleX: to, delay: hold, duration: drain, ease: 'Quad.easeIn' });
+}
+
+// Healed (or the battle starts): no pale piece.
+export function clearChunk(unit) {
+  const g = unit.plate && unit.plate.ghost;
+  if (!g || !g.active) return;
+  if (g.drain) g.drain.stop();
+  g.setScale(0, 1);
 }

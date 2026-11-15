@@ -1,5 +1,6 @@
 import { spellTip, unitTip, buttonTip, showTip, hideTip, TIP_HOLD_MS } from '../tooltip.js';
-import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode } from '../nameplate.js';
+import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode, drainChunk, clearChunk } from '../nameplate.js';
+import { damageSize, turnBanner, dropTurnBanner } from '../weight.js';
 import { staysOnUnit, placeLabel, laneCallout, resetCallouts } from '../callouts.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, setBoardShape } from '../config.js';
@@ -279,6 +280,7 @@ export default class BattleScene extends Phaser.Scene {
     // the button handles the tap, so we skip it here.
     this.input.on('pointerdown', (pointer, currentlyOver) => {
       hideTip(this); // any new press puts the last tooltip away
+      dropTurnBanner(this); // and the turn banner (M9)
       this.startUnitHold(pointer, currentlyOver);
       // During a cut-in or clash, any tap speeds it up
       if (this.inCinematic) {
@@ -1585,6 +1587,7 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode(); // clears any leftover choice and refreshes the screen
     this.refreshTurnStrip();
     this.markActive();
+    turnBanner(this, this.activeUnit); // a short sweep in the side's colour: whose turn it is (M9, 17.15)
 
     // A stunned unit loses this turn (Shield Toss, Intercept)
     const dazed = this.activeUnit;
@@ -3418,7 +3421,11 @@ export default class BattleScene extends Phaser.Scene {
     unit.hpFill.setScale(fraction, 1);
     // the plate shows for a moment whenever the health changes (M6: the bars are hidden otherwise)
     setPlateNumber(unit);
-    if ((unit.shownHp === undefined ? unit.maxHp : unit.shownHp) !== unit.hp) flashPlate(this, unit);
+    const before = unit.shownHp === undefined ? unit.maxHp : unit.shownHp;
+    if (before !== unit.hp) flashPlate(this, unit);
+    // a hit leaves the lost health as a pale piece of bar that drains (M9); a heal clears it
+    if (unit.hp < before) drainChunk(this, unit, before / unit.maxHp, fraction);
+    else if (unit.hp > before) clearChunk(unit);
     unit.shownHp = unit.hp;
     unit.hpFill.setFillStyle(fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f); // red when low
     if (fraction > 0 && fraction <= 0.3 && !unit.lowGlow && unit.view.active) {
@@ -3960,7 +3967,8 @@ export default class BattleScene extends Phaser.Scene {
 
     this.flashUnit(target);
     this.updateHpBar(target);
-    this.floatText(target, result.damage > 0 ? '-' + result.damage : 'Blocked', result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9 });
+    // the number is as big as the hit (M9, 17.13)
+    this.floatText(target, result.damage > 0 ? '-' + result.damage : 'Blocked', result.damage >= 9 ? '#ffcf5a' : '#ff6b5a', { pop: true, big: result.damage >= 9, size: result.damage > 0 ? damageSize(result.damage) : 0 });
     if (result.note) this.floatText(target, result.note, '#ffd27a', { rise: 52 }); // a signature stance at work
     this.refreshStatusTags(); // stacks and Charge may have changed
     this.cameraPunch(feel.zoom);
@@ -4173,7 +4181,7 @@ export default class BattleScene extends Phaser.Scene {
     const label = this.add
       .text(unit.view.x, unit.view.y - unit.topY - 20 - (options.rise || 0), text, {
         fontFamily: 'Georgia, serif',
-        fontSize: big ? '54px' : '40px',
+        fontSize: options.size ? options.size + 'px' : big ? '54px' : '40px',
         fontStyle: 'bold',
         color,
         stroke: '#1a1410',
@@ -4228,6 +4236,7 @@ export default class BattleScene extends Phaser.Scene {
   // The end of the battle. The side still standing celebrates for a moment,
   // then the result panel appears.
   showResult(outcome) {
+    dropTurnBanner(this);
     this.setSpeed('enemy', 1); // the ending always plays at normal speed
     const won = outcome === 'victory';
     stopMusic();
@@ -7276,6 +7285,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // While a cut-in or clash plays, taps speed it up instead of doing anything else.
   beginCinematic() {
+    dropTurnBanner(this);
     if (this.inCinematic) return;
     this.inCinematic = true;
     this.skipped = false;
