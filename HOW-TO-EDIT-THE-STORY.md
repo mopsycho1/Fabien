@@ -543,3 +543,9 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Enemies heal an ally: the rule is `enemyAllyItemChoice` in `src/items.js` (an ally next to it at 40 percent health or less gets its healing item; a poisoned or burning ally gets its cure). What each class carries is `start` in `src/data/items.json`.
 - The rock combo: `rockDamage` under `clap` in `src/data/spells.json` (4 = each foe next to a burst rock takes 4 more).
 
+## 15 Nov batch: the wider cavern (roadmap 14.2, Phase 14)
+- The battle map is src/data/maps/cavern.json. "board" then "size" is how many columns and rows (11 now; it must stay square).
+- "heights" is one row of numbers per board row (0 water, 1 low, 2 mid, 3 high), "terrain" one letter per tile (F floor, S sand, R rubble, G sigil stone, W water, B bridge). A unit steps up at most one level, so a level 3 tower needs level 2 steps beside it.
+- "starts" says where each fighter stands at the start; "digsites" where pots and bones are buried; "waterfalls" and "lamps" are by [column, row].
+- If you change the map, the cavern tests that stand fighters on certain tiles may need new tiles (see the 14.2 note in the roadmap).
+
