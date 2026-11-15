@@ -1670,6 +1670,27 @@ export default class BattleScene extends Phaser.Scene {
 
   // ---------- Turns ----------
 
+  // Kofi's Renewal (Infuse in Water, 1.49, 1.51): at the start of the blessed unit's turn it heals a little and
+  // loses one weak status. It used to show only a small "+2" word, so it read as "heals nobody"; now it
+  // lights the ground and the unit like the herb heal does, and says "Renewal". "wait" delays it past a poison or burn word.
+  renewalTick(unit, wait = 0) {
+    const renewed = tickRenewal(unit);
+    if (!(renewed.heal > 0 || renewed.cured)) return renewed;
+    this.updateHpBar(unit);
+    this.time.delayedCall(wait, () => {
+      if (!unit.alive) return;
+      if (renewed.heal > 0) {
+        const glow = elementOf('heal').glow;
+        floorLight(this, unit.view.x, unit.view.y, glow, { size: 1.4, peak: 0.6, ms: 800 });
+        lightNearby(this, unit.view.x, unit.view.y - unit.centerY, glow, { radius: 70, peak: 0.6, ms: 600 });
+        afterglow(this, unit.view.x, unit.view.y - 8, 'heal', { level: 3, depth: unit.view.depth + 2 });
+        this.floatText(unit, '+' + renewed.heal + ' Renewal', '#7fd6c4', { pop: true });
+      }
+      if (renewed.cured) this.time.delayedCall(350, () => unit.alive && this.floatText(unit, 'Cured', '#9fdc6a', { rise: 46 }));
+    });
+    return renewed;
+  }
+
   // Works out who acts next and sets up the screen for their turn.
   startTurn() {
     if (this.battleOver) return;
@@ -1695,16 +1716,7 @@ export default class BattleScene extends Phaser.Scene {
       const burnt = this.activeUnit;
       this.time.delayedCall(poisoned > 0 ? 450 : 0, () => this.floatText(burnt, 'Burn -' + burned, '#ff8a3c', { pop: true }));
     }
-    // Kofi's Renewal (Infuse in Water, 1.49): a little health back and one weak status lifted at the start of its turn
-    const renewed = tickRenewal(this.activeUnit);
-    if (renewed.heal > 0 || renewed.cured) {
-      const blessed = this.activeUnit;
-      this.updateHpBar(blessed);
-      this.time.delayedCall(poisoned > 0 || burned > 0 ? 900 : 0, () => {
-        if (renewed.heal > 0) this.floatText(blessed, '+' + renewed.heal, '#7fd6c4', { pop: true });
-        if (renewed.cured) this.time.delayedCall(350, () => this.floatText(blessed, 'Cured', '#9fdc6a', { rise: 46 }));
-      });
-    }
+    this.renewalTick(this.activeUnit, poisoned > 0 || burned > 0 ? 900 : 0); // Kofi's Renewal heals at the start of the turn (1.49, 1.51)
     this.refreshWater(); // anyone standing in the water is Drenched (roadmap 11.4)
     // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
     this.tickSpikes(this.activeUnit);

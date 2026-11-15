@@ -157,9 +157,10 @@
     "range": 3,
     "turns": 3,
     "regen": 0.05,
+    "minHeal": 3,
     "cleanse": 1,
     "boosts": {},
-    "text": "Kofi's Water blessing (only through Infuse, roadmap 1.49, 6.38). At the start of each of its turns the unit heals about 5% of its health and loses one weak status (poison, burn, blinded or disoriented). Lasts 3 turns.",
+    "text": "Kofi's Water blessing (only through Infuse, roadmap 1.49, 6.38). At the start of each of its turns the unit heals about 5% of its health (at least 3 points) and loses one weak status (poison, burn, blinded or disoriented). Lasts 3 turns.",
     "mp": 0,
     "use": "both"
   },

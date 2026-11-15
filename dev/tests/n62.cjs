@@ -114,8 +114,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('1.49 read in Water, Infuse is the Renewal Verse on the ally: 3 turns, no herb pouch thrown', St.buffOf(gaha) && St.buffOf(gaha).id === 'renewal' && St.buffOf(gaha).turnsLeft === 3 && !pouched && pouchesSeen.size === 0, (St.buffOf(gaha) || {}).id + ' pouched ' + pouched + ' pouches ' + pouchesSeen.size);
   check('1.49 and it heals nothing at once (the healing comes at the start of its turns)', gaha.hp === 10 && St.isPoisoned(gaha), gaha.hp);
   const rn = St.tickRenewal(gaha);
-  check('1.49 at the start of its turn: about 5 percent of its health back and one weak status lifted (the poison)', rn.heal === Math.max(1, Math.round(gaha.maxHp * 0.05)) && gaha.hp === 10 + rn.heal && rn.cured === 'poison' && !St.isPoisoned(gaha), JSON.stringify(rn) + ' hp ' + gaha.hp);
+  check('1.49 at the start of its turn: about 5 percent of its health back and one weak status lifted (the poison)', rn.heal === Math.max(3, Math.round(gaha.maxHp * 0.05)) && gaha.hp === 10 + rn.heal && rn.cured === 'poison' && !St.isPoisoned(gaha), JSON.stringify(rn) + ' hp ' + gaha.hp);
   gaha.hp = gaha.maxHp; check('1.49 a full-health unit heals nothing more', St.tickRenewal(gaha).heal === 0);
+  // 1.51: the start of the blessed unit's turn really heals (at least 3 points) and says so on screen
+  gaha.hp = 20; const words = []; const realFloat = b.floatText.bind(b); b.floatText = (u, t, ...r) => { words.push(u.id + ':' + t); return realFloat(u, t, ...r); };
+  const rt = b.renewalTick(gaha); await sleep(200); b.floatText = realFloat;
+  check('1.51 the turn-start tick heals at least 3 points and shows "+3 Renewal" on the unit', rt.heal >= 3 && gaha.hp === 20 + rt.heal && words.includes('h2:+' + rt.heal + ' Renewal'), JSON.stringify(rt) + ' ' + words.join());
   St.tickBuff(gaha); St.tickBuff(gaha); St.tickBuff(gaha);
   check('1.49 Renewal ends after 3 turns', !St.buffOf(gaha));
 

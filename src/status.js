@@ -345,13 +345,13 @@ export function tickPoison(unit) {
 // ---------- Renewal (Kofi's Water blessing through Infuse, roadmap 1.49, 6.38) ----------
 
 // The start of a unit's turn while Renewal is on it: it heals a share of its health (spells.json "regen",
-// at least 1 point) and loses one weak status ("cleanse": poison, burn, blinded, disoriented, in that order).
+// at least "minHeal" points) and loses one weak status ("cleanse": poison, burn, blinded, disoriented, in that order).
 // Returns { heal, cured } (cured is the name of the status that lifted, or null).
 export function tickRenewal(unit) {
   const buff = statusOf(unit).buff;
   if (!buff || buff.id !== 'renewal') return { heal: 0, cured: null };
   const spell = spells.renewal;
-  const heal = Math.min(Math.max(1, Math.round(unit.maxHp * spell.regen * (buff.power || 1))), unit.maxHp - unit.hp);
+  const heal = Math.min(Math.max(spell.minHeal || 1, Math.round(unit.maxHp * spell.regen * (buff.power || 1))), unit.maxHp - unit.hp); // about 5 percent, but never under minHeal (1.51: 5 percent of 28 to 50 health is 1 or 2 points, which nobody noticed)
   unit.hp += heal;
   const status = statusOf(unit);
   let cured = null;
