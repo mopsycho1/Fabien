@@ -606,8 +606,9 @@ export class MenuRow {
   }
 
   // Where the row sits inside the menu, and how big it is drawn.
-  place(x, y, w, h, s) {
-    Object.assign(this, { x, y, w, h, s });
+  // minText: the smallest letters allowed, in game pixels (11 real pixels on this screen, M7)
+  place(x, y, w, h, s, minText = 11) {
+    Object.assign(this, { x, y, w, h, s, minText });
     this.hit.setPosition(x, y).setSize(w, h);
     if (this.hit.input) this.hit.input.hitArea.setTo(0, 0, w, h);
     this.draw(false);
@@ -636,13 +637,14 @@ export class MenuRow {
       this.glyph.setVisible(false);
       if (this.iconName) drawIcon(this.icon, this.iconName, ix, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434);
     }
-    this.cost.setFontSize(Math.round(15 * s)).setPosition(x + w - 10 * s, cy).setAlpha(on ? 1 : 0.5);
+    const least = this.minText || 11;
+    this.cost.setFontSize(Math.max(least, Math.round(15 * s))).setPosition(x + w - 10 * s, cy).setAlpha(on ? 1 : 0.5);
     this.word.setPosition(x + 48 * s, cy).setColor(on ? '#f1e6c8' : '#7d6e58');
     // a long word shrinks so it never runs into the cost
-    let size = Math.round(19 * s);
+    let size = Math.max(least, Math.round(19 * s));
     this.word.setFontSize(size);
     const room = w - 58 * s - (this.cost.text ? this.cost.width + 8 * s : 0);
-    while (this.word.width > room && size > 11) this.word.setFontSize(--size);
+    while (this.word.width > room && size > least) this.word.setFontSize(--size);
   }
 
   flash() {

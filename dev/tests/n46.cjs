@@ -13,7 +13,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const emittersOf = (aura) => (Array.isArray(aura) ? aura : (aura && aura.objects) || []).filter((o) => o.emitter);
   const setBuff = (u, id) => { u.status = u.status || { cooldowns: {} }; u.status.buff = id ? { id, turnsLeft: 3, power: 1 } : null; };
   const setSlow = (u, on) => { u.status = u.status || { cooldowns: {} }; u.status.hex = on ? { id: 'slow', turnsLeft: 2, power: 1 } : null; };
-  const label = () => b.children.list.find((o) => o.type === 'Text' && /^Effects:/.test(o.text));
+  const label = () => b.settingsSheet.list.find((o) => o.type === 'Text' && /^Effects:/.test(o.text)); /* M7: the switch is a row of the settings sheet */
   const click = (o) => o.emit('pointerdown');
 
   check('the Effects switch is on the board and starts on Full', label() && label().text === 'Effects: Full', label() && label().text);

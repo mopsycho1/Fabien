@@ -7,8 +7,8 @@ For Suleiman. Written 14 Nov from the roadmap and the Battle 1.0 plan. Plain wor
 
 - **Done:** the battle screen restyle (Phase 2), Intercept and the Verse moves (3), enemy skills (4), items (5), the new battle screen (8), the Hidden Cavern (11), the effects flair pass (16), your music.
 - **Almost done:** the fixes list (Phase 1), the isometric look and animations (9), the art wiring (6: most of your sheets are in the game; a few wait on files).
-- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 10 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
-- **Next, in order:** the unit card and menu (M7), hits with more weight (M9), fighters that stand out from the floor (M10), a proper Victory and Defeat (M12), then the desktop layout, saving, sounds, and the board's edges.
+- **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 12 are done. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
+- **Next, in order:** hits with more weight (M9), fighters that stand out from the floor (M10), a proper Victory and Defeat (M12), then the desktop layout, saving, sounds, and the board's edges.
 - **After Battle 1.0:** the kings (Phase 10), finishers (7), slopes (12), the camp and town (15).
 
 ---
@@ -62,7 +62,7 @@ Small bugs and requests, fixed as they come in.
 - [ ] A better tool for cutting pictures off their background (in use; kept open for more tests)
 - [ ] Dynamic lighting on your sprites (tested, on hold)
 - [ ] Blender fire and water (a test only)
-- [ ] Buffed stats show on the unit's card (your 12 Nov note; comes with the card rework, M7)
+- [x] Buffed stats show on the unit's card: green with an up arrow, red with a down arrow (14 Nov)
 
 ## Phase 2: battle screen restyle
 The battle screen in your interface art.
@@ -320,10 +320,10 @@ What an art director would fix after watching one battle on a phone. Most of it 
 - [x] Figures bigger, less empty screen
 - [x] Clutter over the heads: health bars hidden, 2 icons then "+2" (14 Nov)
 - [x] Floating words no longer collide or leave the screen (14 Nov)
-- [ ] The unit card's small print (M7)
-- [ ] The action menu jumps about (M7)
+- [x] The unit card: four big numbers, the rest on a tap (14 Nov)
+- [x] The action menu has one fixed home, bottom right, with thumb-sized buttons (14 Nov)
 - [ ] Fighters melt into the floor (M10; a colour accent per enemy is optional art)
-- [ ] The top strip wastes space (M7)
+- [x] The top strip: bigger turn faces, a NOW marker, a Settings sheet (14 Nov)
 - [ ] Title screen is plain text (needs your art: key art)
 - [ ] Story scenes are a text box on brown (needs your art: scene pictures and portraits)
 - [ ] Victory and Defeat feel flat (M12; a banner picture is optional art)
@@ -347,13 +347,13 @@ One battle that feels finished. The steps are the milestones at the bottom.
 - [x] A walk in code for everyone without walk pictures
 - [x] The kings and the archer: decided (kings wait for Phase 10, the archer is a generic unit)
 - [ ] Effects to studio quality: first pass built, waiting for Baiyee to sign off
-- [ ] Card, action menu, top strip
+- [x] Card, action menu, top strip (14 Nov)
 - [ ] Desktop layout
 - [ ] Weight: hit flash, health chunk, turn banner
 - [ ] Reading the board: shadow, team colour rim, tiles, path (we test white for the enemy team, as you suggested)
 - [ ] The ending
 - [ ] Sound pass
-- [ ] Enemy play and balance: enemies heal and forage; the win rate is being measured now (target: each side wins 40 to 60 percent)
+- [x] Enemy play and balance: enemies heal and forage; over 40 test battles each side won 20 (14 Nov)
 - [ ] Save and resume, loading bar
 - [ ] Edges and names: fog, the archer as "Archer" (the backdrop needs your art)
 - [ ] Art drops: walk sheets, fall sets, redraws, the archer at full size (needs your art; Gaha's, Sudeen's falls and the dodges are in)
@@ -404,7 +404,7 @@ None of this blocks the next steps (M7 to M16). They are all code.
 | M4 | Skills show what they will do | Done |
 | M5 | Steady tests | Done |
 | M6 | Nameplates, callout lane, tooltips | Done (14 Nov) |
-| M7 | Card, menu, top strip | Not done (next) |
+| M7 | Card, menu, top strip | Done (14 Nov) |
 | M8 | Desktop layout | Not done |
 | M9 | Weight: hit flash, health chunk, turn banner | Not done |
 | M10 | Reading the board: shadow, team colour, tiles, path | Not done |
@@ -413,7 +413,7 @@ None of this blocks the next steps (M7 to M16). They are all code.
 | M12 | The ending: Victory and Defeat, rating for fast wins | Not done |
 | M13 | Movement life: a walk for everyone, Layra's sand | Done |
 | M14 | Sound pass | Not done |
-| M15 | Enemy play and balance | Part done: healing, combo and foraging built; balance being measured |
+| M15 | Enemy play and balance | Done (14 Nov): each side won 20 of 40 test battles |
 | M16 | Save, load, speed | Not done |
 | M17 | Edges and names: fog, "Archer" | Not done (backdrop needs your art) |
 | M18 | Art drops | Ongoing, as your sheets arrive (needs your art) |

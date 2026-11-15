@@ -32,7 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.showMessage('A test message for the info card');
   await sleep(50);
   const ib = b.infoPanel.getBounds ? null : null;
-  check('8.2 the info card holds the text, bottom right', b.statusText.x > 360 && b.statusText.y > 1100 && b.infoTop < 1280, Math.round(b.statusText.x) + ',' + Math.round(b.statusText.y));
+  check('8.2 the info card holds the text, standing on the unit card beside the menu (M7; it was bottom right)', b.statusText.x < 360 && b.statusText.y > 800 && b.infoTop < b.cardTop, Math.round(b.statusText.x) + ',' + Math.round(b.statusText.y));
 
   // ---------- 8.3 the menu beside the unit ----------
   await sleep(50);

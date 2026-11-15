@@ -43,7 +43,7 @@ exports.battle = async function battle(game) {
   const t0 = Date.now();
   while (Date.now() - t0 < 30000) {
     const b = game.scene.getScene('BattleScene');
-    if (b.units && b.activeUnit && b.slots) { b.clashLifeOn = false; b.autoMove = false; b.home = { zoom: 1, x: 360, y: 640 }; b.goHome(); b.cancelMode(); return b; } // (older tests tap at screen points made for the Phase 2 camera) // (tests pick Move themselves; n35 turns tap-to-move on) // tests turn the background clash exchanges on themselves
+    if (b.units && b.activeUnit && b.slots) { b.clashLifeOn = false; b.autoMove = false; b.cardOpen = 'all'; /* the card shows every number at once, as the older tests read it (M7 turns pages) */ b.home = { zoom: 1, x: 360, y: 640 }; b.goHome(); b.cancelMode(); return b; } // (older tests tap at screen points made for the Phase 2 camera) // (tests pick Move themselves; n35 turns tap-to-move on) // tests turn the background clash exchanges on themselves
     await new Promise((r) => setTimeout(r, 30));
   }
   throw new Error('battle did not start');
