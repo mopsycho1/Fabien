@@ -2068,53 +2068,67 @@
       }
     },
     "enchanted": {
-      "note": "Under Rabdul's Enchant (roadmap 4.1): his 29 Oct sheets 'bull attacking with flame weaponry' 1 (stance) and 3 (the lunge, facing right; mirrored for left).",
+      "note": "Under Rabdul's Enchant (roadmap 4.1): his 15 Nov full-quality flame sheets (dev/tools/make_bull_flame.py): battle stance (ready, guard), neutral standing, the raised mace (windup) and the swung mace (attack), up-left and down-left, the rest mirrored. The flaming shield in flight (bull_flame_shield_*, four directions) is cut but not wired (the shield flight spins one set of pictures; see roadmap 18.31).",
       "battle": {
-        "downLeft": {
-          "file": "bull_ench_battle_downLeft.png",
-          "originX": 0.549
-        },
         "upLeft": {
-          "file": "bull_ench_battle_upLeft.png",
-          "originX": 0.552
+          "file": "bull_flame_battle_upLeft.png",
+          "originX": 0.314
+        },
+        "downLeft": {
+          "file": "bull_flame_battle_downLeft.png",
+          "originX": 0.224
         }
       },
       "poses": {
         "ready": {
-          "downLeft": {
-            "file": "bull_ench_battle_downLeft.png",
-            "originX": 0.549
-          },
           "upLeft": {
-            "file": "bull_ench_battle_upLeft.png",
-            "originX": 0.552
-          }
-        },
-        "windup": {
-          "downLeft": {
-            "file": "bull_ench_battle_downLeft.png",
-            "originX": 0.549
+            "file": "bull_flame_battle_upLeft.png",
+            "originX": 0.314
           },
-          "upLeft": {
-            "file": "bull_ench_battle_upLeft.png",
-            "originX": 0.552
+          "downLeft": {
+            "file": "bull_flame_battle_downLeft.png",
+            "originX": 0.224
           }
         },
         "guard": {
-          "downLeft": {
-            "file": "bull_ench_battle_downLeft.png",
-            "originX": 0.549
-          },
           "upLeft": {
-            "file": "bull_ench_battle_upLeft.png",
-            "originX": 0.552
+            "file": "bull_flame_battle_upLeft.png",
+            "originX": 0.314
+          },
+          "downLeft": {
+            "file": "bull_flame_battle_downLeft.png",
+            "originX": 0.224
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "bull_flame_windup_upLeft.png",
+            "originX": 0.263
+          },
+          "downLeft": {
+            "file": "bull_flame_windup_downLeft.png",
+            "originX": 0.231
           }
         },
         "attack": {
-          "downRight": {
-            "file": "bull_ench_attack_downRight.png",
-            "originX": 0.46
+          "upLeft": {
+            "file": "bull_flame_strike_upLeft.png",
+            "originX": 0.371
+          },
+          "downLeft": {
+            "file": "bull_flame_strike_downLeft.png",
+            "originX": 0.229
           }
+        }
+      },
+      "standing": {
+        "upLeft": {
+          "file": "bull_flame_stand_upLeft.png",
+          "originX": 0.356
+        },
+        "downLeft": {
+          "file": "bull_flame_stand_downLeft.png",
+          "originX": 0.407
         }
       }
     },
@@ -2271,11 +2285,29 @@
         "scale": 0.9,
         "footX": 0.437
       },
-      "bull_ench_battle_downLeft.png": {
+      "bull_flame_battle_upLeft.png": {
+        "footX": 0.455
+      },
+      "bull_flame_battle_downLeft.png": {
+        "footX": 0.541
+      },
+      "bull_flame_windup_upLeft.png": {
+        "footX": 0.408
+      },
+      "bull_flame_windup_downLeft.png": {
         "footX": 0.536
       },
-      "bull_ench_battle_upLeft.png": {
-        "footX": 0.47
+      "bull_flame_strike_upLeft.png": {
+        "footX": 0.439
+      },
+      "bull_flame_strike_downLeft.png": {
+        "footX": 0.529
+      },
+      "bull_flame_stand_upLeft.png": {
+        "footX": 0.446
+      },
+      "bull_flame_stand_downLeft.png": {
+        "footX": 0.537
       },
       "bull_n6b_bl3_f1.png": {
         "footX": 0.336
@@ -4389,6 +4421,20 @@
       }
     },
     "note_sheets": "13 Nov sheets (dev/tools/make_kofi_sheets.py): chant (channel) and cast (release) in his four elements under \"elementPoses\" (water, fire, storm, earth), hurt, down. No down-left casting view was drawn: it is figure 3 mirrored.",
+    "portrait": "kofi_face.png",
+    "shout": "kofi_face_angry.png",
+    "note_clash": "His own clash banner from his 15 Nov clash sheet. His clash poses (Press, Guard, Slip, dodge) still reuse the casting pose and the battle-ready pose until Suleiman draws them.",
+    "portraitHurt": "kofi_face_hurt.png",
+    "clash": {
+      "file": "clash/kofi_clash.webp",
+      "tip": 0.994,
+      "name": {
+        "file": "clash/kofi_clash_name.webp",
+        "x": 0.6882,
+        "y": 0.0266
+      }
+    },
+    "note_expressions": "Kofi's ten expressions (his 15 Nov sheet, dev/tools/make_kofi_assets.py): neutral is the portrait, angry the cut-in cry (shout), hurt the hurt face. The other seven (determined, worried, surprised, joyful, exhausted, fearful, defeated) are cut as kofi_face_<name>.png but not named here, so they are not loaded; wire them when mood faces want them.",
     "ruler": {
       "kofi_stand_f1.png": {
         "footX": 0.541
@@ -4532,10 +4578,102 @@
         "footX": 0.406
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "portrait": "kofi_face.png",
-    "shout": "kofi_face.png",
-    "note_portrait": "Placeholder: his head cropped from the standing picture (15 Nov). Replace when Suleiman sends a portrait.",
-    "note_clash": "Placeholders (15 Nov): his clash poses reuse the casting pose (Press) and the battle-ready pose (Guard, Slip, dodge) until Suleiman draws his own."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+  },
+  "sp_ember": {
+    "name": "Ember Spirit",
+    "height": 80,
+    "unwired": true,
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "standing": {
+      "downLeft": {
+        "file": "sp_ember_f1.png",
+        "originX": 0.559
+      },
+      "upRight": {
+        "file": "sp_ember_f2.png",
+        "originX": 0.531
+      },
+      "downRight": {
+        "file": "sp_ember_f3.png",
+        "originX": 0.416
+      },
+      "upLeft": {
+        "file": "sp_ember_f4.png",
+        "originX": 0.395
+      }
+    }
+  },
+  "sp_tide": {
+    "name": "Tide Spirit",
+    "height": 80,
+    "unwired": true,
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "standing": {
+      "downLeft": {
+        "file": "sp_tide_f1.png",
+        "originX": 0.487
+      },
+      "upRight": {
+        "file": "sp_tide_f2.png",
+        "originX": 0.499
+      },
+      "downRight": {
+        "file": "sp_tide_f3.png",
+        "originX": 0.454
+      },
+      "upLeft": {
+        "file": "sp_tide_f4.png",
+        "originX": 0.462
+      }
+    }
+  },
+  "sp_stone": {
+    "name": "Stone Spirit",
+    "height": 80,
+    "unwired": true,
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "standing": {
+      "downLeft": {
+        "file": "sp_stone_f1.png",
+        "originX": 0.509
+      },
+      "upRight": {
+        "file": "sp_stone_f2.png",
+        "originX": 0.409
+      },
+      "downRight": {
+        "file": "sp_stone_f3.png",
+        "originX": 0.463
+      },
+      "upLeft": {
+        "file": "sp_stone_f4.png",
+        "originX": 0.486
+      }
+    }
+  },
+  "sp_gale": {
+    "name": "Gale Spirit",
+    "height": 80,
+    "unwired": true,
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "standing": {
+      "downLeft": {
+        "file": "sp_gale_f1.png",
+        "originX": 0.496
+      },
+      "upRight": {
+        "file": "sp_gale_f2.png",
+        "originX": 0.471
+      },
+      "downRight": {
+        "file": "sp_gale_f3.png",
+        "originX": 0.45
+      },
+      "upLeft": {
+        "file": "sp_gale_f4.png",
+        "originX": 0.465
+      }
+    }
   }
 }

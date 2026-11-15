@@ -58,9 +58,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('4.1 Rabdul chants, then casts (his 31 Oct pictures)', shown(rabdul).some((k) => /rabdul_iso_chant/.test(k)) && shown(rabdul).some((k) => /rabdul_iso_cast/.test(k)), shown(rabdul).slice(0, 4).join(','));
   check('4.1 the bull is enchanted when the symbol lands', S.isEnchanted(bull));
   b.showStanding(bull);
-  check('4.1 the bull shows his flaming mace and shield', /bull_ench_battle_/.test(key(bull)), key(bull));
+  check('4.1 the bull shows his flaming mace and shield', /bull_flame_battle_/.test(key(bull)), key(bull));
   b.showPose(bull, 'attack', -1);
-  check('4.1 and strikes with the flaming mace', /bull_ench_attack_/.test(key(bull)), key(bull));
+  check('4.1 and strikes with the flaming mace', /bull_flame_strike_/.test(key(bull)), key(bull));
   check('4.1 Shango\'s symbol glows at his feet', !!bull.enchantAura && bull.enchantAura.objects.length > 0);
   S.applyEnchant(tayo, 'enchant'); b.refreshStatusTags();
   /* Tayo has his own flaming pictures since 6 Nov (6.30), so neither he nor the bull gets the drawn fire */ check('4.1 Tayo and the bull wear their painted flames, no drawn fire', !(tayo.enchantAura && tayo.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))) && !(bull.enchantAura && bull.enchantAura.objects.some((o) => o.texture && /rise_fire/.test(o.texture.key))));

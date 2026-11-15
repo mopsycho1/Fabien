@@ -76,8 +76,11 @@
     "note": "The bull: horns and bronze confuse the head finder, so every family is set by eye.",
     "scale": {
       "bull_dodge": 1.0,
-      "bull_ench_attack": 1.0,
-      "bull_ench_battle": 1.0,
+      "bull_flame_battle": 1.0,
+      "bull_flame_shield": 1.0,
+      "bull_flame_stand": 1.0,
+      "bull_flame_strike": 1.0,
+      "bull_flame_windup": 1.0,
       "bull_iso_attack": 1.0,
       "bull_iso_battle": 1.0,
       "bull_iso_hurt": 1.0,

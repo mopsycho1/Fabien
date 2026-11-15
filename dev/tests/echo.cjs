@@ -20,7 +20,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('names: Sudeen, Gaha, Layra vs Rabdul, Bull Commander (Tayo is on the bench)', [sudeen, gaha, layra, tayo, bull].map((u) => u.name).join() === 'Sudeen,Gaha,Layra,Rabdul,Bull Commander', b.units.map((u) => u.name).join());
   const keys = game.textures.getTextureKeys();
   check('Layra\'s 26 pictures loaded (18.2: her old knocked picture is gone; 13 Nov: her 4 dodge pictures)', keys.filter((k) => k.startsWith('h3:layra_')).length === 26, keys.filter((k) => k.startsWith('h3:layra_')).length);
-  check('the bull\'s pictures loaded', keys.filter((k) => k.startsWith('e2:bull_')).length === 38 /* 18.2: the old knocked picture is gone; 18 before 6 Nov, plus his Nov set: victory, weak, down, throws, shield flight, Bloodied looks (6.33) */, keys.filter((k) => k.startsWith('e2:bull_')).length);
+  check('the bull\'s pictures loaded', keys.filter((k) => k.startsWith('e2:bull_')).length === 43 /* 15 Nov: his three old flame pictures went and eight new ones came (flame stance, standing, wind-up and strike, up-left and down-left: 6.56); 38 before; 18.2: the old knocked picture is gone; 18 before 6 Nov, plus his Nov set: victory, weak, down, throws, shield flight, Bloodied looks (6.33) */, keys.filter((k) => k.startsWith('e2:bull_')).length);
   park(); St.applyBuff(sudeen, 'stone'); b.showStanding(sudeen);
   check('Sudeen under Stone shows his stone look', /sudeen_n6_stone_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
   sudeen.status.buff = null; b.showStanding(sudeen);

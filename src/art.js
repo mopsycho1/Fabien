@@ -85,6 +85,7 @@ function lookEntry(id) {
 
 export function preloadArt(scene) {
   for (const [id, entry] of Object.entries(art)) {
+    if (entry.unwired) continue; // cut but not in the game yet (Kofi's spirits): do not load their pictures
     for (const file of allFiles(entry)) {
       scene.load.image(textureKey(id, file), './art/' + file);
     }
