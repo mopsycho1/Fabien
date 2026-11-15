@@ -64,6 +64,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.onSpellButton(); b.openSpellGroup('Blessings'); b.chooseSpell('fury'); b.handleTap(3, 5); b.handleTap(3, 5); await idle(); await sleep(800);
   check('an echoed Verse of Fury gives +4 attack instead of +2', St.statMod(gaha, 'attack') === 4, St.statMod(gaha, 'attack'));
   check('and the decoy is gone', b.decoys.length === 0);
+  check('13.58 an echoed Verse of Fury also lasts twice as long (4 turns, not 2)', St.buffOf(gaha).turnsLeft === 4 && gaha.status.buff.power === 2, St.buffOf(gaha).turnsLeft);
+  St.applyBuff(sudeen, 'stone'); check('13.58 and a plain Verse is still 2 turns', St.buffOf(sudeen).turnsLeft === 2);
+  St.tickBuff(gaha); St.tickBuff(gaha); check('13.58 two turns later the echoed Verse is still on, with 2 left', !!St.buffOf(gaha) && St.buffOf(gaha).turnsLeft === 2);
 
   // an unused echo fades at the end of her turn
   park(); put(layra, 3, 6); turnOf(layra); layra.mp = 12;

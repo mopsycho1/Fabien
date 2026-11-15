@@ -125,6 +125,7 @@ Written 13 Nov from the game's real data files, so every number here is what the
 | **Exposed** | Defense -2, evade -10 | While meditating | Meditate |
 | **Meditating** | Cannot act on its next turn, then gets 6 MP | 1 turn | Meditate; a fall or a slam breaks it |
 
+- A Verse cast through a Husk **Echo** is twice as strong and lasts twice as many turns (4 instead of 2). The "turns left" on the unit card shows it.
 - A unit holds **only one buff** at a time (Swift, Bulwark or Fury). A new one replaces the old one, so buffs cannot pile up. A unit can carry a buff and an Enchant at once.
 - A unit with no MP of its own gets MP lent to it by a Verse, but only if the Verse changes one of its moves. That lent MP pays for the changed move.
 
@@ -155,7 +156,7 @@ Cooldown is in turns of that unit. "Verse" means Layra's buffs change a move int
 - **Verse of Stone** (3 MP): +2 defense. Twice as strong on a shield-bearer.
 - **Verse of Fury** (3 MP): +2 attack. Twice as strong on a heavy hitter.
 - **Slow** (4 MP, range 4): see statuses.
-- **Husk** (5 MP, range 3): leave a decoy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by her next turn, it echoes her next spell (a second bolt, or a Verse or Slow twice as strong). Under Swiftness, a struck decoy bursts in a gust that blows adjacent enemies 2 tiles away.
+- **Husk** (5 MP, range 3): leave a decoy and slip up to 3 tiles away, even out of a clash. Enemies chase the decoy. If nobody strikes it by her next turn, it echoes her next spell (a second bolt, or a Verse or Slow twice as strong). **Echo also doubles how long a Verse lasts**: an echoed Swiftness, Bulwark or Fury stays 4 turns instead of 2 (13.58, Suleiman 15 Nov); Slow keeps its length. Under Swiftness, a struck decoy bursts in a gust that blows adjacent enemies 2 tiles away.
 - **Meditate** (free): rest a turn, then 6 MP return. You are Exposed meanwhile.
 
 **Rabdul (Twin Spear), 9 MP**

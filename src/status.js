@@ -144,14 +144,15 @@ export function moveRules(unit) {
 // ---------- Buffs ----------
 
 // Puts a spell on a unit for its next few turns, replacing any spell it had.
-// power 2 is a doubled Verse (echoed by a Husk decoy).
+// power 2 is a doubled Verse (echoed by a Husk decoy): twice the strength and twice the turns.
 // A Verse on a unit with no MP of its own lends it the Verse's MP (twice as
 // much when a Husk echo doubles it), but only if the Verse changes one of its
 // moves: that MP is what the changed move costs (roadmap 3.13).
 export function applyBuff(unit, spellId, power = 1) {
   const spell = spells[spellId];
   if (!spell) throw new Error('spells.json has no spell called ' + spellId);
-  const buff = { id: spellId, turnsLeft: spell.turns, power };
+  // an echoed Verse (power 2) is twice as strong AND lasts twice as many turns (13.58, Suleiman 15 Nov)
+  const buff = { id: spellId, turnsLeft: spell.turns * power, power };
   if (spell.kind === 'buff' && !hasOwnMp(unit) && verseMovesOf(unit, spellId).length > 0) {
     const mp = (spell.mp || 0) * power;
     buff.lent = { mp, max: mp };
