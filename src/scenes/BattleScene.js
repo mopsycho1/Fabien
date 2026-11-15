@@ -129,6 +129,22 @@ const STYLE_NAMES = { overpower: 'Overpower', defence: 'Defence', evasion: 'Evas
 const CONTEST_CTX = { random: (...a) => Math.random(...a), heightOf: (col, row) => getHeight(col, row) };
 
 // A Phaser "scene" is one screen of the game. This one is the battle screen.
+// The menu's dragged spot (8.16), kept on the device as fractions of the screen so it fits any
+// size. No storage (private window): it simply starts at home.
+const MENU_PIN_KEY = 'fabien.menuPin';
+function loadMenuPin() {
+  try {
+    const p = JSON.parse(window.localStorage.getItem(MENU_PIN_KEY) || 'null');
+    return p && Number.isFinite(p.fx) && Number.isFinite(p.fy) ? { fx: p.fx, fy: p.fy } : null;
+  } catch (e) { return null; }
+}
+function saveMenuPin(pin) {
+  try {
+    if (pin) window.localStorage.setItem(MENU_PIN_KEY, JSON.stringify(pin));
+    else window.localStorage.removeItem(MENU_PIN_KEY);
+  } catch (e) { /* not remembered, still works */ }
+}
+
 export default class BattleScene extends Phaser.Scene {
   constructor() {
     super('BattleScene');
@@ -322,10 +338,14 @@ export default class BattleScene extends Phaser.Scene {
       this.handleTap(-1, -1);
     });
     // dragging the menu by its grip (roadmap 8.16)
-    this.menuPin = null;
+    // Where the player last dragged it is remembered on the device (15 Nov).
+    this.menuPin = loadMenuPin();
     this.menuDrag = null;
     this.input.on('pointermove', (pointer) => this.dragMenu(pointer));
-    this.input.on('pointerup', () => (this.menuDrag = null));
+    this.input.on('pointerup', () => {
+      if (this.menuDrag && this.menuDrag.moved) saveMenuPin(this.menuPin);
+      this.menuDrag = null;
+    });
 
     this.events.once('shutdown', () => stopMusic());
     startBattleMusic();
@@ -868,36 +888,40 @@ export default class BattleScene extends Phaser.Scene {
       rows[walk].view.setVisible(false);
       rows.splice(walk, 1);
     }
-    const pad = Math.round(6 * s);
+    const pad = Math.round(4 * s);
     const caster = this.activeUnit && this.activeUnit.maxMp > 0 && !isMelee(this.activeUnit);
     const header = this.mode === 'item' || this.mode === 'itemTarget' ? 'Items' : this.mode === 'spell' || this.spellGroup ? this.spellGroup || (caster ? 'Verses' : 'Skills') : '';
     const headH = header ? Math.max(Math.round(24 * s), this.lay.minText + Math.round(8 * s)) : 0;
     this.menuHeader.setFontSize(Math.max(Math.round(14 * s), this.lay.minText));
-    // Baiyee 15 Nov: the main menu is a slim column of icon buttons on the right edge; only the
-    // chosen (or hovered) one shows its word. Lists of skills and items keep their words.
-    const slim = !header;
-    const gripH = slim ? 0 : Math.round(14 * s);
-    // On an upright phone the main menu has two buttons a line (thumb sized, M7); lists of
-    // skills and items keep one a line so their names and costs fit.
-    const cols = 1;
-    const slimW = this.lay.minTap; // a square the size of a finger
-    const mW = slim ? slimW + 2 * pad : menuW;
-    const rH = slim ? this.lay.minTap : rowH;
-    const colW = (mW - 2 * pad) / cols;
+    // Baiyee 15 Nov (after the slim icon column): the main menu is a small panel again, with
+    // its grip so it can be dragged anywhere (8.16). One row per command: a little icon and
+    // its word, each row one finger tall (44 real pixels). Lists of skills and items keep
+    // their wider rows so names and costs fit.
+    const compact = !header;
+    const gripH = Math.round(12 * s);
+    // the compact rows' letters: 13 real pixels at least, so they read at a glance
+    const word = Math.max(this.lay.minText, Math.ceil(13 / this.lay.real), Math.round(15 * s));
+    const icon = Math.max(20 * s, word * 1.35);
+    const mW = compact ? Math.round(2 * pad + 6 * s + icon + 7 * s + word * 4.3 + 8 * s) : menuW; // room for "End turn"
+    const rH = compact ? this.lay.minTap : rowH;
+    const colW = mW - 2 * pad;
     rows.forEach((r, i) => {
-      r.slim = slim;
-      r.place(pad + (i % cols) * colW, pad + gripH + headH + Math.floor(i / cols) * rH, colW, rH, s, this.lay.minText);
+      r.compact = compact;
+      r.compactFont = word;
+      r.place(pad, pad + gripH + headH + i * rH, colW, rH, s, this.lay.minText);
     });
-    const h = pad * 2 + gripH + headH + Math.ceil(rows.length / cols) * rH;
+    const h = pad * 2 + gripH + headH + rows.length * rH;
     this.menuPanel.clear();
-    if (slim) { this.menuPanel.fillStyle(0x0e0906, 0.55).fillRoundedRect(0, 0, mW, h, 10 * s); this.menuPanel.lineStyle(1, UI.bronze, 0.7).strokeRoundedRect(0, 0, mW, h, 10 * s); }
-    else darkPanel(this.menuPanel, 0, 0, mW, h, s);
-    // the grip: two short rows of gold dots, centred along the top
+    darkPanel(this.menuPanel, 0, 0, mW, h, s);
+    // the grip: two short rows of gold dots, centred along the top (gold when it has been moved)
     this.menuGrip.clear().fillStyle(this.menuPin ? 0xffd27a : UI.bronzeLight, this.menuPin ? 0.95 : 0.7);
-    if (!slim) for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(mW / 2 + i * 7 * s, pad + gripH / 2 + dy * s, 1.6 * s);
-    const gripHit = slim ? 1 : pad + gripH + Math.round(4 * s);
-    this.menuGripHit.setSize(mW, gripHit);
-    if (this.menuGripHit.input) this.menuGripHit.input.hitArea.setTo(0, 0, mW, gripHit);
+    for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(mW / 2 + i * 6 * s, pad + gripH / 2 + dy * s, 1.5 * s);
+    // the grip's touch area reaches a little above the panel, so a thumb can catch it
+    // (26 real pixels in all; the rows are never under it)
+    const gripBand = pad + gripH + Math.round(2 * s);
+    const above = Math.max(0, Math.ceil(26 / this.lay.real) - gripBand);
+    this.menuGripHit.setPosition(0, -above).setSize(mW, gripBand + above);
+    if (this.menuGripHit.input) this.menuGripHit.input.hitArea.setTo(0, 0, mW, gripBand + above);
     this.menuHeader.setText(header.toUpperCase()).setPosition(pad + Math.round(10 * s), pad + gripH + headH / 2);
     this.menuRows = rows;
     this.menuSize = { w: mW, h };
@@ -963,6 +987,7 @@ export default class BattleScene extends Phaser.Scene {
       this.lastGripTap = 0;
       this.menuDrag = null;
       this.menuPin = null;
+      saveMenuPin(null); // back home, and remembered that way
       play('click');
       this.layoutMenu();
       return;

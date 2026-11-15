@@ -21,11 +21,13 @@ exports.openBattle = async function openBattle(view, opts = {}) {
   if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)
   const errors = [];
   page.on('pageerror', (e) => errors.push((e.stack || e.message).split('\n').slice(0, 4).join(' | ')));
-  await page.goto('http://localhost:' + (process.env.PORT || 4173) + '/', { waitUntil: 'load' });
+  // GAME_URL plays another build, for example the live site (https://mopsycho1.github.io/Fabien/)
+  const url = process.env.GAME_URL || 'http://localhost:' + (process.env.PORT || 4173) + '/';
+  await page.goto(url, { waitUntil: 'load', timeout: 120000 });
   await page.waitForTimeout(3000);
   const box = await page.locator('canvas').boundingBox();
   let inBattle = false;
-  for (let i = 0; i < 60 && !inBattle; i++) {
+  for (let i = 0; i < 240 && !inBattle; i++) { // (up to a minute: the live site loads slower)
     const x = box.x + box.width / 2, y = box.y + box.height * 0.8;
     if (desktop) await page.mouse.click(x, y); else await page.touchscreen.tap(x, y);
     await page.waitForTimeout(250);

@@ -75,6 +75,29 @@ for name in $NAMES; do
   fi
 done
 
+# The browser check (15 Nov): plays real turns by real clicks and taps on desktop and phone
+# (dev/browser/turn_clicks.cjs). The unit tests above call the game's code directly, so they
+# passed while no mouse click on the menu did anything. It builds the game and starts its own
+# preview on port 4174 (so a preview you have open on 4173 is left alone).
+browser_test() {
+  local t0 out word
+  t0=$(date +%s)
+  if ! (cd ../.. && npx vite build >/dev/null 2>&1); then
+    echo "FAIL turn_clicks 0" > "$RESULTS/turn_clicks"; echo "FAIL the game did not build (npx vite build)" > "$RESULTS/turn_clicks.why"; return
+  fi
+  (cd ../.. && npx vite preview --port 4174 --strictPort >/dev/null 2>&1) &
+  local PREVIEW=$!
+  disown $PREVIEW # no "Terminated" line when it is stopped
+  sleep 3
+  out=$(cd ../.. && PORT=4174 timeout 400 node dev/browser/turn_clicks.cjs both 2>&1)
+  pkill -f "vite preview --port 4174" 2>/dev/null; kill $PREVIEW 2>/dev/null
+  if echo "$out" | grep -q "ALL PASSED"; then word=PASS; else word=FAIL; fi
+  echo "$word turn_clicks $(($(date +%s) - t0))" > "$RESULTS/turn_clicks"
+  echo "$out" | grep "FAIL" | head -3 > "$RESULTS/turn_clicks.why"
+}
+browser_test
+NAMES=$(printf '%s\nturn_clicks' "$NAMES")
+
 pass=0
 fail=0
 : > "$LOG"

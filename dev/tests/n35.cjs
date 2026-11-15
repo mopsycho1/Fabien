@@ -36,7 +36,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 8.3 the menu beside the unit ----------
   await sleep(50);
-  check('8.3 the menu shows on a hero\'s turn, a slim column on the right edge', b.menu.visible && b.menu.x + b.menuSize.w > 720 - 2 * b.lay.m && b.menuSize.w <= b.lay.minTap + 2 * b.lay.m, b.menu.x + ',' + b.menu.y);
+  check('8.3 the menu shows on a hero\'s turn, a small panel at the bottom right (15 Nov: under a third of the screen wide)', b.menu.visible && b.menu.x + b.menuSize.w > 720 - 2 * b.lay.m && b.menuSize.w <= 720 / 3, b.menu.x + ',' + b.menu.y + ' w ' + b.menuSize.w);
   check('8.3 its rows: Thrust, Engage, Skills, Items, End turn', b.menuRows.map((r) => r.label.text).join('|') === 'Move|Thrust|Engage|Skills|Items|End turn' || b.menuRows.map((r) => r.label.text).join('|') === 'Thrust|Engage|Skills|Items|End turn', b.menuRows.map((r) => r.label.text).join('|'));
   check('8.3 the menu stays on screen', b.menu.x >= 0 && b.menu.y >= 0 && b.menu.x + b.menuSize.w <= 721 && b.menu.y + b.menuSize.h <= 1281);
   reset([[layra, 2, 5], [rabdul, 2, 1]], layra);

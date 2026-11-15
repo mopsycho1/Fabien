@@ -407,12 +407,16 @@ export class CommandButton {
       // when the button is greyed out. The tap itself still happens at once.
       this.stopHold();
       const at = pointer ? { x: pointer.x, y: pointer.y } : { x, y };
-      if (pointer && pointer.wasTouch === false) return; // a mouse gets its tooltip by resting on the button, not by holding it down
-      this.holdTimer = setTimeout(() => {
+      // A mouse gets its tooltip by resting on the button, not by holding it down, so only a
+      // finger starts the hold timer. (15 Nov bug: this used to 'return' here, which also
+      // skipped the tap below, so no mouse click on a button did anything.)
+      const touch = !(pointer && pointer.wasTouch === false);
+      if (touch) this.holdTimer = setTimeout(() => {
         this.holdTimer = null;
         const tip = this.tip || buttonTip(this.label.text);
         if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
       }, TIP_HOLD_MS);
+      else hoverTipEnd(scene); // a click puts the hover tooltip away
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
@@ -574,12 +578,16 @@ export class MenuRow {
       // held for half a second: a tooltip (roadmap 13.49), as on CommandButton above
       this.stopHold();
       const at = pointer && pointer.x !== undefined ? { x: pointer.x, y: pointer.y } : { x: this.x || 0, y: this.y || 0 };
-      if (pointer && pointer.wasTouch === false) return; // a mouse gets its tooltip by resting on the button, not by holding it down
-      this.holdTimer = setTimeout(() => {
+      // A mouse gets its tooltip by resting on the button, not by holding it down, so only a
+      // finger starts the hold timer. (15 Nov bug: this used to 'return' here, which also
+      // skipped the tap below, so no mouse click on a button did anything.)
+      const touch = !(pointer && pointer.wasTouch === false);
+      if (touch) this.holdTimer = setTimeout(() => {
         this.holdTimer = null;
         const tip = this.tip || buttonTip(this.label.text);
         if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
       }, TIP_HOLD_MS);
+      else hoverTipEnd(scene); // a click puts the hover tooltip away
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
@@ -630,36 +638,11 @@ export class MenuRow {
     this.draw(false);
   }
 
-  // The slim look (15 Nov): a round icon button; the word shows only for the chosen or hovered one,
-  // on a small tag to the left of the column.
-  drawSlim(hover) {
-    const { x, y, w, h, s } = this;
-    const on = this.enabled;
-    const cx = x + w / 2, cy = y + h / 2, rad = Math.min(w, h) / 2 - 2 * s;
-    const g = this.bg;
-    g.clear();
-    const lit = this.selected || (hover && on);
-    g.fillStyle(lit ? 0x5a3d1c : 0x1a1410, 0.92).fillCircle(cx, cy, rad);
-    g.lineStyle(lit ? 2.5 * s : 1.5 * s, lit ? UI.gold : on ? UI.bronze : UI.bronzeDark, 1).strokeCircle(cx, cy, rad);
-    const d = rad * 1.35;
-    const key = this.iconName && glyphKey(this.scene, this.iconName);
-    this.icon.clear();
-    if (key) this.glyph.setTexture(key).setPosition(cx, cy).setDisplaySize(d, d).setVisible(true).setAlpha(on ? 1 : 0.4);
-    else { this.glyph.setVisible(false); if (this.iconName) drawIcon(this.icon, this.iconName, cx, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434); }
-    this.cost.setText('');
-    if (lit) {
-      const size = Math.max(this.minText || 11, Math.round(15 * s));
-      this.word.setFontSize(size).setOrigin(1, 0.5).setPosition(x - 12 * s, cy).setVisible(true).setColor(on ? '#f1e6c8' : '#8a7a62');
-      const tw = this.word.width + 16 * s, th = size + 12 * s;
-      g.fillStyle(0x0e0906, 0.9).fillRoundedRect(x - 12 * s - tw + 8 * s, cy - th / 2, tw, th, 6 * s);
-      g.lineStyle(1, UI.bronze, 0.9).strokeRoundedRect(x - 12 * s - tw + 8 * s, cy - th / 2, tw, th, 6 * s);
-    } else this.word.setVisible(false);
-  }
-
   draw(hover) {
-    if (this.slim) return this.drawSlim(hover);
     this.word.setVisible(true).setOrigin(0, 0.5);
     const { x, y, w, h, s } = this;
+    // compact (15 Nov, Baiyee): the main menu's rows are small, a little icon and its word;
+    // lists of skills and items keep the bigger rows so names and costs fit
     const on = this.enabled;
     const cy = y + h / 2;
     const g = this.bg;
@@ -669,10 +652,11 @@ export class MenuRow {
       g.fillRoundedRect(x + 2, y + 2, w - 4, h - 4, 6 * s);
       // his gold cursor on the left, as in the mockups
       g.fillStyle(UI.gold, 1);
-      g.fillTriangle(x - 3 * s, cy - 7 * s, x + 7 * s, cy, x - 3 * s, cy + 7 * s);
+      if (!this.compact) g.fillTriangle(x - 3 * s, cy - 7 * s, x + 7 * s, cy, x - 3 * s, cy + 7 * s);
     }
-    const ix = x + 26 * s;
-    const d = 28 * s;
+    // compact: the icon is as big as the letters allow (so it reads on a phone too)
+    const d = this.compact ? Math.max(20 * s, (this.compactFont || 11) * 1.35) : 28 * s;
+    const ix = this.compact ? x + 6 * s + d / 2 : x + 26 * s;
     const key = this.iconName && glyphKey(this.scene, this.iconName);
     this.icon.clear();
     if (key) {
@@ -683,11 +667,12 @@ export class MenuRow {
     }
     const least = this.minText || 11;
     this.cost.setFontSize(Math.max(least, Math.round(15 * s))).setPosition(x + w - 10 * s, cy).setAlpha(on ? 1 : 0.5);
-    this.word.setPosition(x + 48 * s, cy).setColor(on ? '#f1e6c8' : '#7d6e58');
+    const wx = this.compact ? ix + d / 2 + 7 * s : x + 48 * s;
+    this.word.setPosition(wx, cy).setColor(on ? '#f1e6c8' : '#7d6e58');
     // a long word shrinks so it never runs into the cost
-    let size = Math.max(least, Math.round(19 * s));
+    let size = this.compact ? this.compactFont || least : Math.max(least, Math.round(19 * s));
     this.word.setFontSize(size);
-    const room = w - 58 * s - (this.cost.text ? this.cost.width + 8 * s : 0);
+    const room = x + w - wx - 6 * s - (this.cost.text ? this.cost.width + 8 * s : 0);
     while (this.word.width > room && size > least) this.word.setFontSize(--size);
   }
 

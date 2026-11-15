@@ -41,10 +41,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('2.3 after acting, the attack row is greyed', !b.slots[1].enabled);
   // every visible word fits on its button
   const all = [...b.slots, ...b.halves, ...b.lowHalves].filter((s) => s.view.visible);
-  check('the main menu is a slim column: round icon buttons at least 44 px tall, words hidden until chosen', all.every((s) => s.slim && s.h >= b.lay.minTap && !s.word.visible));
-  b.slots[1].selected = true; b.slots[1].draw(false);
-  check('the chosen one shows its word', b.slots[1].word.visible && b.slots[1].word.text.length > 0); b.slots[1].selected = false; b.slots[1].draw(false);
-  check('every word fits on its row (before its cost)', all.filter((s) => !s.slim).every((s) => s.word.x + s.word.width <= s.x + s.w - (s.cost.text ? s.cost.width + 4 : 0) + 0.5), all.map((s) => s.label.text + ':' + Math.round(s.word.width)).join(' '));
+  check('the main menu is a small panel: every row a little icon and its word, at least 44 px tall (15 Nov, after the slim column)', all.every((s) => s.compact && s.h >= b.lay.minTap && s.word.visible && s.word.text.length > 0));
+  check('every word fits on its row (before its cost)', all.every((s) => s.word.x + s.word.width <= s.x + s.w - (s.cost.text ? s.cost.width + 4 : 0) + 0.5), all.map((s) => s.label.text + ':' + Math.round(s.word.width)).join(' '));
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
