@@ -402,7 +402,8 @@ export default class BattleScene extends Phaser.Scene {
     const b = this.boardBounds();
     const top = portrait ? m + 66 * s : m; // (a smaller turn strip, 15 Nov)
     const bottom = portrait ? H - this.cardMetrics().slimH - 2 * m : H - m; // above the slim card bar
-    const zoom = Math.max(0.7, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
+    // (the floor was 0.7; the 11 by 11 cavern, roadmap 14.2, needs about 0.56 to show whole on an upright phone)
+    const zoom = Math.max(0.5, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
     this.lay.top = top;       // the board's free space on the screen: under the turn strip...
     this.lay.bottom = bottom; // ...and above the cards (the follow camera centres in it, roadmap 17.1)
     const freeY = (top + bottom) / 2;
@@ -414,7 +415,10 @@ export default class BattleScene extends Phaser.Scene {
     const shown = this.scale.displaySize.width / W || 1; // real screen pixels per game pixel
     // On an upright phone the figures were too small to read at 70 (about 45 pixels tall), and a third
     // of the screen was empty rock, so the view sits closer there (roadmap 17.1). Pinch or the little map still pull back.
-    const MIN_TILE = portrait ? 88 : 70;
+    // On a wide screen the 9 by 9 board showed whole with tiles about 130 real pixels wide (fighters 99 to 127
+    // pixels tall, checklist E1). The 11 by 11 cavern (roadmap 14.2) would shrink them to fit, so a wide
+    // screen keeps that tile size and follows the unit too; the wheel or the little map shows the whole board.
+    const MIN_TILE = portrait ? 88 : 130;
     this.follow = mapData.camera === 'follow';
     const want = MIN_TILE / (TILE_WIDTH * shown);
     this.playZoom = this.follow ? Math.min(2.2, Math.max(zoom, want)) : zoom;
@@ -528,6 +532,20 @@ export default class BattleScene extends Phaser.Scene {
     const world = this.cameras.main.getWorldPoint(p.x, p.y);
     const { col, row } = this.tileAtPoint(world.x, world.y);
     this.handleTap(col, row);
+  }
+
+  // The arrow keys (roadmap 14.2): slide the view one step (a fifth of the screen) left, right, up or down.
+  // Like a drag, the view then stays where the player put it until the next turn begins.
+  panBy(dx, dy) {
+    if (!this.follow || this.inCinematic) return;
+    const cam = this.cameras.main;
+    const zoom = cam.zoom;
+    const step = (Math.min(this.lay.W, this.lay.H) * 0.2) / zoom;
+    const from = this.rest && this.manualView ? this.rest : { x: cam.midPoint.x, y: cam.midPoint.y };
+    const c = this.clampView(from.x + dx * step, from.y + dy * step, zoom);
+    this.rest = { zoom, x: c.x, y: c.y };
+    this.manualView = true;
+    cam.pan(c.x, c.y, 140, 'Sine.easeOut', true);
   }
 
   // Zooms the board camera to "zoom" (kept between the whole board and close
@@ -775,6 +793,11 @@ export default class BattleScene extends Phaser.Scene {
       this.input.keyboard?.on('keydown-E', () => this.rotateCamera(1));
       // M8 (checklist E3): Esc cancels, Enter confirms, Space ends the turn
       this.input.keyboard?.on('keydown-ESC', () => this.keyCancel());
+      // Roadmap 14.2: the arrow keys look around the board (held down, they keep going)
+      this.input.keyboard?.on('keydown-LEFT', () => this.panBy(-1, 0));
+      this.input.keyboard?.on('keydown-RIGHT', () => this.panBy(1, 0));
+      this.input.keyboard?.on('keydown-UP', () => this.panBy(0, -1));
+      this.input.keyboard?.on('keydown-DOWN', () => this.panBy(0, 1));
       this.input.keyboard?.on('keydown-ENTER', () => this.keyConfirm());
       this.input.keyboard?.on('keydown-SPACE', () => this.keyEndTurn());
     }
