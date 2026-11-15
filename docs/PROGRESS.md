@@ -8,7 +8,7 @@ For Suleiman. Updated 15 Nov from the roadmap and the Battle 1.0 plan. Plain wor
 - **Done:** the battle screen restyle (Phase 2), Intercept and the Verse moves (3), enemy skills (4), items (5), the new battle screen (8), the Hidden Cavern (11), the effects flair pass (16), your music.
 - **Almost done:** the fixes list (Phase 1), the isometric look and animations (9), the art wiring (6: most of your sheets are in the game; a few wait on files).
 - **Where we are now: Phase 18, "Battle 1.0".** This is the push to make one battle feel like a finished game. It is 22 steps (M1 to M20, plus M3b and M10b). 19 are done, counting save and resume. This week: effects stay in place, every push and fall uses one system, sizes match between pictures, 4 against 4 with Kofi, fast enemy turns, a walk for everyone, health bars hidden, tooltips, enemies that heal and forage.
-- **Next, in order:** the sound pass, the board's edges, then the front door and the phone check. The lighting is being looked at again (Baiyee will choose from a test sheet).
+- **Next, in order:** the sound pass, the board's edges, then the front door and the phone check.
 - **After Battle 1.0:** the kings (Phase 10), finishers (7), slopes (12), the camp and town (15).
 
 ---
@@ -346,7 +346,7 @@ One battle that feels finished. The steps are the milestones at the bottom.
 - [x] Pace: fast enemy turns
 - [x] A walk in code for everyone without walk pictures
 - [x] The kings and the archer: decided (kings wait for Phase 10, the archer is a generic unit)
-- [ ] Effects to studio quality: first pass built, waiting for Baiyee to sign off
+- [x] Effects to studio quality: signed off by Baiyee and you (15 Nov); soft lighting is the default
 - [x] Card, action menu, top strip (14 Nov)
 - [x] Desktop layout: big title and story box, mouse hover, keyboard (15 Nov)
 - [x] Weight: hit flash, health chunk, turn banner (15 Nov)
@@ -400,7 +400,7 @@ None of this blocks the next steps (M7 to M16). They are all code. Kofi's face a
 | M1 | One knockback: pushes, falls and slams | Done |
 | M2 | Size ruler: one size per character | Done |
 | M3 | Effects stay put; the water moves | Done |
-| M3b | Effects to studio quality | First pass built, waiting for sign-off |
+| M3b | Effects to studio quality | Done (15 Nov) |
 | M4 | Skills show what they will do | Done |
 | M5 | Steady tests | Done |
 | M6 | Nameplates, callout lane, tooltips | Done (14 Nov) |

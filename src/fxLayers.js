@@ -28,9 +28,9 @@ import { fxMode } from './spellArt.js';
 // rims and the floor light at about half), 'minimal' (team rims only, a thin floor glow, no light on
 // fighters). The look is read from window.__lightMode, or ?lighting=soft in the address.
 export function lightStrength() {
-  if (typeof window === 'undefined') return { floor: 1, units: 1, rim: 1 };
-  const m = window.__lightMode || new URLSearchParams(window.location.search).get('lighting') || 'now';
-  return { now: { floor: 1, units: 1, rim: 1 }, soft: { floor: 0.5, units: 0.5, rim: 0.5 }, minimal: { floor: 0.25, units: 0, rim: 1 } }[m] || { floor: 1, units: 1, rim: 1 };
+  if (typeof window === 'undefined') return { floor: 0.5, units: 0.5, rim: 0.5 };
+  const m = window.__lightMode || new URLSearchParams(window.location.search).get('lighting') || 'soft'; // soft is the default (Baiyee, 15 Nov); ?lighting=now or minimal still work
+  return { now: { floor: 1, units: 1, rim: 1 }, soft: { floor: 0.5, units: 0.5, rim: 0.5 }, minimal: { floor: 0.25, units: 0, rim: 1 } }[m] || { floor: 0.5, units: 0.5, rim: 0.5 };
 }
 
 // ---------- One colour language per element ----------
