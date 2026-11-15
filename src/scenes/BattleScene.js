@@ -1044,7 +1044,7 @@ export default class BattleScene extends Phaser.Scene {
   pillName() {
     const u = this.activeUnit;
     if (this.mode === 'attack' || this.mode === 'approach') {
-      const atk = activeMove(u, 'attack');
+      const atk = this.attackMove(u, this.mode === 'approach' && this.approach ? this.approach.tile : null);
       return atk !== 'attack' ? spells[atk].button : u.attackName || 'Attack';
     }
     if (this.mode === 'engage') return 'Engage';
@@ -1995,11 +1995,11 @@ export default class BattleScene extends Phaser.Scene {
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const wet = drenchedEffect(unit, target);
       if (wet) notes.push(wet === 'more' ? 'Drenched: lightning hits harder' : 'Drenched: fire does less');
-      const atk = activeMove(unit, 'attack');
+      const atk = this.attackMove(unit);
       const fire = atk !== 'attack' && spells[atk].element === 'fire';
-      const next = fire ? null : chainTarget(unit, target, this.units); // fire doesn't jump
+      const next = fire || (unit.reading && !(atk !== 'attack' && spells[atk].jump)) ? null : chainTarget(unit, target, this.units); // fire doesn't jump; Kofi's bolt jumps only as a Gale Bolt
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
-      const verse = atk === 'attack' ? '' : spells[atk].push ? ' Knocked back a tile.' : fire ? (isDrenched(target) ? ' Too wet to catch fire.' : ' Sets it alight: ' + spells[atk].burn + ' a turn for ' + spells[atk].turns + ' turns.') : '';
+      const verse = atk === 'attack' ? '' : spells[atk].push ? ' Knocked back a tile.' : fire ? (isDrenched(target) ? ' Too wet to catch fire.' : ' Sets it alight: ' + spells[atk].burn + ' a turn for ' + spells[atk].turns + ' turns.') : spells[atk].drench ? ' Leaves it Drenched.' : '';
       text =
         (atk !== 'attack' ? spells[atk].button + ' at ' : '') + target.name + ': ' + getHitChance(unit, target) + '% to hit, ' +
         getDamage(unit, target) + ' damage' + (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump + verse +
@@ -2015,9 +2015,13 @@ export default class BattleScene extends Phaser.Scene {
       if (usesCloseWeapon(from, a.target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
       const hAcc = heightAccuracy(from, a.target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
-      const next = chainTarget(from, a.target, this.units);
+      // Kofi: the bolt he would fire from THAT tile (1.50), named, since the ground there may read differently
+      const atk = this.attackMove(unit, a.tile);
+      const bolt = atk !== 'attack' && unit.reading ? spells[atk] : null;
+      const next = unit.reading && !(bolt && bolt.jump) ? null : chainTarget(from, a.target, this.units);
       const jump = next ? ' Jumps to ' + next.name + ' for ' + chainDamage(unit, next) + '.' : '';
-      text =
+      const boltText = bolt ? bolt.button + ' from there' + (bolt.element === 'fire' ? (isDrenched(a.target) ? ' (too wet to catch fire)' : ' (sets it alight)') : bolt.drench ? ' (leaves it Drenched)' : bolt.push ? ' (knocks it back)' : '') + '. ' : '';
+      text = boltText +
         a.target.name + ': ' + getHitChance(from, a.target) + '% to hit, ' + getDamage(unit, a.target) + ' damage' +
         (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
         '\nTap it again to go' + (a.options.length > 1 ? ', or a blue tile to stand elsewhere.' : '.');
@@ -2271,7 +2275,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
     // a Verse can change the attack itself (Layra: Thunderclap under Stone, Wildfire under Fury)
-    const atk = activeMove(unit, 'attack');
+    const atk = this.attackMove(unit);
     const atkName = atk !== 'attack' ? spells[atk].button : unit.attackName;
     const atkAccent = atk !== 'attack' ? Phaser.Display.Color.HexStringToColor(spells[atk].color).color : unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a;
     b.set(atkName, weaponIcon, free, () => this.onAttackButton(), { selected: this.mode === 'attack', accent: atkAccent, tip: atk !== 'attack' ? spellTip(atk) : { title: atkName, body: buttonTip('Attack').body } });
@@ -3797,12 +3801,17 @@ export default class BattleScene extends Phaser.Scene {
   // his four elements, and the strongest one. That element colours his Spirit Bolt, Haunt
   // and Infuse, and his casting pictures. The points for each thing are in jobs.json
   // ("readingRules"). A tie keeps the element he had; nothing to read = water at strength 0.
-  reading(unit) {
+  // "at" ({ col, row }) asks what he WOULD read from another tile (the preview of a walk then
+  // an attack, 1.50): it changes nothing. The cause of 1.50: he reads where he stands when he
+  // fires, so a fire reading at the start of his turn turned into a Tide Bolt on the tile he
+  // walked to, and nothing on screen said so.
+  reading(unit, at) {
     const rules = jobs[unit.job].readingRules;
+    const col = at ? at.col : unit.col, row = at ? at.row : unit.row;
     const pts = { water: 0, earth: 0, fire: 0, storm: 0 };
-    const near = (c, r) => Math.abs(c - unit.col) + Math.abs(r - unit.row) <= rules.radius;
-    for (let c = unit.col - rules.radius; c <= unit.col + rules.radius; c++) {
-      for (let r = unit.row - rules.radius; r <= unit.row + rules.radius; r++) {
+    const near = (c, r) => Math.abs(c - col) + Math.abs(r - row) <= rules.radius;
+    for (let c = col - rules.radius; c <= col + rules.radius; c++) {
+      for (let r = row - rules.radius; r <= row + rules.radius; r++) {
         if (!near(c, r) || c < 0 || r < 0 || c >= GRID_SIZE || r >= GRID_SIZE) continue;
         const ground = terrainAt(mapData, c, r);
         if (ground === 'water') pts.water += rules.water.tile;
@@ -3820,20 +3829,26 @@ export default class BattleScene extends Phaser.Scene {
       if (verse === 'swiftness') pts.storm += rules.storm.swiftnessVerseUnit;
       if (u.element === 'lightning') pts.storm += rules.storm.lightningCaster;
     }
-    if (getHeight(unit.col, unit.row) >= 2) pts.storm += rules.storm.highGround;
+    if (getHeight(col, row) >= 2) pts.storm += rules.storm.highGround;
     const top = Math.max(...Object.values(pts));
     const best = rules.order.filter((e) => pts[e] === top);
     const element = top === 0 ? 'water' : best.includes(unit.lastRead) ? unit.lastRead : best[0];
-    unit.lastRead = element;
+    if (!at) unit.lastRead = element; // a what-if look must not change what he remembers
     return { element, points: top, all: pts };
   }
 
   // The Spirit Bolt his reading gives (a spells.json id like "spiritBoltFire"), or null for
   // anyone who does not read.
-  readingMove(unit) {
+  readingMove(unit, at) {
     if (!unit.reading) return null;
-    const el = this.reading(unit).element;
+    const el = this.reading(unit, at).element;
     return 'spiritBolt' + el[0].toUpperCase() + el.slice(1);
+  }
+
+  // The move the Attack button makes now: Kofi's bolt for what he reads (from the tile "at" if
+  // given), otherwise what a Verse made of it, otherwise the plain attack ('attack').
+  attackMove(unit, at) {
+    return this.readingMove(unit, at) || activeMove(unit, 'attack');
   }
 
   // Haunt: a spirit mark on a foe. 2 damage at the start of each of its next 3 turns (the

@@ -1,6 +1,7 @@
 // M10b (roadmap 18.22, 14.1, 6.38): 4 against 4 on the cavern, and Kofi's first kit.
 // Run on the cavern with the map's own line-up:  FABIEN_MAP=cavern node n62.cjs
 const { start, battle } = require('./boot.cjs');
+const spells_of = (id) => ({ spiritBoltFire: 'Ember Bolt', spiritBoltWater: 'Tide Bolt', spiritBoltEarth: 'Stone Bolt', spiritBoltStorm: 'Gale Bolt' }[id]);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
@@ -117,6 +118,20 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   gaha.hp = gaha.maxHp; check('1.49 a full-health unit heals nothing more', St.tickRenewal(gaha).heal === 0);
   St.tickBuff(gaha); St.tickBuff(gaha); St.tickBuff(gaha);
   check('1.49 Renewal ends after 3 turns', !St.buffOf(gaha));
+
+  // ---------- 1.50: the bolt he fires is the one his preview names, from the tile he fires from ----------
+  park(); put(kofi, 4, 4); kofi.lastRead = null; b.reading(kofi); // fire among the lamps
+  let flip = null; for (let c = 1; c <= 7 && !flip; c++) for (let rr = 1; rr <= 7 && !flip; rr++) { if (Math.abs(c - 4) + Math.abs(rr - 4) <= 3 && !b.getUnitAt(c, rr) && b.reading(kofi, { col: c, row: rr }).element !== 'fire') flip = { col: c, row: rr }; }
+  check('1.50 from the lamps he reads Fire, and a tile he could walk to reads something else', b.reading(kofi).element === 'fire' && !!flip, JSON.stringify(flip));
+  check('1.50 a what-if reading changes nothing: he stays put and still remembers Fire', kofi.col === 4 && kofi.row === 4 && kofi.lastRead === 'fire' && b.readingMove(kofi, flip) !== 'spiritBoltFire');
+  put(tayo, 4, 7); b.activeUnit = kofi; b.mode = 'approach'; b.approach = { target: tayo, options: [flip], tile: flip, optionKeys: new Set() }; b.refreshStatus();
+  const ap = b.statusText.text;
+  const flipBolt = spells_of(b.readingMove(kofi, flip));
+  check('1.50 the walk-then-attack preview names the bolt from the tile he will stand on', ap.includes(flipBolt + ' from there') && !ap.includes('Ember Bolt'), ap.replace(/\n/g, ' | '));
+  check('1.50 and the cancel tag and the menu button name the bolt', b.pillName() === flipBolt);
+  b.cancelMode(); b.mode = 'idle'; park(); put(kofi, 4, 4); b.activeUnit = kofi; b.refreshStatus(); b.updateMenu && b.updateMenu();
+  check('1.50 in range, the preview names Ember Bolt and says it sets the target alight', (() => { put(tayo, 4, 7); b.mode = 'attack'; b.pendingTarget = tayo; b.targetsInRange = [tayo]; b.refreshStatus(); return /Ember Bolt at/.test(b.statusText.text) && /alight/.test(b.statusText.text); })(), b.statusText.text.replace(/\n/g, ' | '));
+  b.mode = 'idle'; b.pendingTarget = null;
 
   // ---------- a whole 4 v 4 enemy round does not break ----------
   park(); b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b);
