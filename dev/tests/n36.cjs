@@ -71,7 +71,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   layra.mp = layra.maxMp;
   await cast(layra, { col: 3, row: 7 }, 'husk');
   const decoy = b.decoys.find((d) => d.owner === layra);
-  check('3.15 a Husk cast under Swiftness leaves a gust decoy (wind at its feet)', decoy && decoy.gust === true && decoy.view.list.some((o) => o.anims && o.anims.currentAnim && o.anims.currentAnim.key === 'swiftSwirl'));
+  check('3.15 a Husk cast under Swiftness leaves a gust decoy (wind at its feet)', decoy && decoy.gust === true && decoy.view.list.some((o) => o.anims && o.anims.currentAnim && (o.anims.currentAnim.key === 'swiftSwirl' || o.anims.currentAnim.key === 'buffloop-swiftness') /* 1.53: his drawn loop when he has one, as on the real unit */));
   put(bull, 3, 3); put(rabdul, 4, 4); put(sudeen, 2, 4);
   const before = { bull: [bull.col, bull.row], rabdul: [rabdul.col, rabdul.row] };
   let finished = false;
