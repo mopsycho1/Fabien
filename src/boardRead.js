@@ -8,6 +8,7 @@
 import Phaser from 'phaser';
 import rules from './data/board.json';
 import { tileToScreen } from './grid.js';
+import { lightStrength } from './fxLayers.js';
 
 export const boardRules = rules;
 const hex = (h) => Phaser.Display.Color.HexStringToColor(h).color;
@@ -48,6 +49,7 @@ export function syncRims(units) {
       const r = rims[i];
       if (!r.active) continue;
       r.setVisible(show);
+      r.setAlpha(rules.rim.alpha * lightStrength().rim);
       if (!show) continue;
       if (r.texture.key !== s.texture.key) r.setTexture(s.texture.key);
       r.setOrigin(s.originX, s.originY).setFlipX(s.flipX).setScale(s.scaleX, s.scaleY).setAngle(s.angle);

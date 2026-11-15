@@ -23,6 +23,16 @@ import { fxMode } from './spellArt.js';
 // (the switch on the board, or the frame-rate fallback) the particle counts are
 // halved and the light on nearby fighters and the afterglow are left out.
 
+// ---------- How strong the light is (lighting test, 15 Nov) ----------
+// Three looks for Baiyee to choose from: 'now' (as built), 'soft' (the glow on fighters, the team
+// rims and the floor light at about half), 'minimal' (team rims only, a thin floor glow, no light on
+// fighters). The look is read from window.__lightMode, or ?lighting=soft in the address.
+export function lightStrength() {
+  if (typeof window === 'undefined') return { floor: 1, units: 1, rim: 1 };
+  const m = window.__lightMode || new URLSearchParams(window.location.search).get('lighting') || 'now';
+  return { now: { floor: 1, units: 1, rim: 1 }, soft: { floor: 0.5, units: 0.5, rim: 0.5 }, minimal: { floor: 0.25, units: 0, rim: 1 } }[m] || { floor: 1, units: 1, rim: 1 };
+}
+
 // ---------- One colour language per element ----------
 // core  : the hottest, brightest colour (the flash)
 // glow  : the light it throws on the floor and on fighters
@@ -85,6 +95,7 @@ export function floorLight(scene, x, y, color, { size = 1, peak = 0.55, ms = 420
   const img = scene.add.image(x, y, 'fx-glow').setBlendMode(ADD).setTint(color).setDepth(depth).setAlpha(0);
   const w = (150 * size) / img.width; // laid flat: wide and low, like the tiles
   img.setScale(w * 0.7, w * 0.36);
+  peak *= lightStrength().floor;
   scene.tweens.add({ targets: img, alpha: peak, scaleX: w, scaleY: w * 0.5, duration: 60, ease: 'Quad.easeOut',
     onComplete: () => scene.tweens.add({ targets: img, alpha: 0, scaleX: w * 1.15, scaleY: w * 0.58, duration: ms, ease: 'Quad.easeOut', onComplete: () => img.destroy() }) });
   return img;
@@ -96,7 +107,9 @@ export function floorLight(scene, x, y, color, { size = 1, peak = 0.55, ms = 420
 // fades. Its real picture and tint are never touched, so nothing can be left
 // the wrong colour. Nearer units are lit more.
 export function lightNearby(scene, x, y, color, { radius = 170, peak = 0.5, ms = 300, skip = null } = {}) {
-  if (light() || !scene.units) return 0;
+  const k = lightStrength().units;
+  if (light() || !scene.units || k <= 0) return 0;
+  peak *= k;
   let lit = 0;
   for (const u of scene.units) {
     if (!u.alive || u === skip || !u.sprite || !u.sprite.active || !u.view || !u.view.active || u.hidden) continue;
