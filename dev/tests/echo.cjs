@@ -72,6 +72,22 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   realEnd.call(b); await sleep(300);
   check('an echo she does not use fades at the end of her turn', b.decoys.length === 0 && !layra.echoReady);
 
+  // ---------- 1.53: the decoy copies her CURRENT look: the picture and the Verse's effect round her ----------
+  const decoyOf = async (verse) => {
+    park(); b.removeDecoys(layra); layra.hidden = false; layra.status.buff = null; put(layra, 3, 6); turnOf(layra);
+    if (verse) St.applyBuff(layra, verse);
+    b.showStanding(layra); await sleep(120);
+    b.busy = true; await new Promise((res) => { b.castHusk(layra, { col: 5, row: 6 }, res); setTimeout(res, 2000); });
+    const d = b.decoys.find((x) => x.owner === layra); const img = d.view.list.find((o) => o.type === 'Image');
+    const out = { key: img.texture.key, mine: layra.sprite.texture.key, parts: d.view.list.length };
+    b.busy = false; b.removeDecoys(layra); layra.hidden = false; layra.status.buff = null; b.showStanding(layra);
+    return out;
+  };
+  const plain = await decoyOf(null);
+  for (const verse of ['swiftness', 'stone', 'fury']) {
+    const d = await decoyOf(verse);
+    check('1.53 under ' + verse + ' the decoy has her blessed picture (not her base look) and the Verse effect round it', /blessed/.test(d.key) && d.key === d.mine && d.parts > plain.parts, JSON.stringify(d) + ' plain ' + plain.parts);
+  }
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

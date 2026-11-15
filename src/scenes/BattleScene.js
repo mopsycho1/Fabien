@@ -7143,11 +7143,7 @@ export default class BattleScene extends Phaser.Scene {
     // Under Swiftness the decoy is wound up with wind: struck, it bursts in a
     // howling gust (roadmap 3.15). Wind swirls at its feet so you can tell.
     const swift = buffOf(caster) && buffOf(caster).id === 'swiftness';
-    if (swift) {
-      const decoy = this.decoys[this.decoys.length - 1];
-      decoy.gust = true;
-      swiftAura(this, { view: decoy.view });
-    }
+    if (swift) this.decoys[this.decoys.length - 1].gust = true; // (its wind swirl is drawn by copyVerseLook now)
     caster.hidden = true;
     caster.col = tile.col;
     caster.row = tile.row;
@@ -7212,7 +7208,26 @@ export default class BattleScene extends Phaser.Scene {
     pieces.push(this.add.circle(bx, by, 10, 0x1a1410).setStrokeStyle(2, 0xe8d5a8));
     pieces.push(this.add.text(bx, by, owner.badge, { fontFamily: 'Georgia, serif', fontSize: '13px', color: '#ffe08a' }).setOrigin(0.5));
     const view = this.add.container(p.x, p.y, pieces).setDepth(depthFor(col, row) + 1);
-    this.decoys.push({ owner, col, row, view });
+    const decoy = { owner, col, row, view };
+    this.decoys.push(decoy);
+    this.copyVerseLook(decoy);
+  }
+
+  // A decoy copies her CURRENT look (1.53): not only the picture (the blessed one under a Verse) but the Verse's
+  // own effect round her too, drawn from the same functions the real unit uses (Suleiman's GIF loop where he has
+  // drawn one, otherwise the code's wind, flames or orbiting stones). They sit inside the decoy's container, so they
+  // go with it and are destroyed with it. A stand-in object carries what those functions read from a unit.
+  copyVerseLook(decoy) {
+    const owner = decoy.owner;
+    const verse = buffOf(owner) ? buffOf(owner).id : null;
+    if (!verse || !owner.sprite) return;
+    const img = decoy.view.list.find((o) => o.type === 'Image');
+    const stand = { view: decoy.view, sprite: img, topY: owner.topY, centerY: owner.centerY, bodyHalfWidth: owner.bodyHalfWidth, hidden: false, id: owner.id, alive: true };
+    if (hasBuffLoop(this, verse)) buffLoopFx(this, stand, verse);
+    else if (verse === 'swiftness') swiftAura(this, stand);
+    else if (verse === 'fury') furyAura(this, stand, { ribbons: !hasPaintedAura(owner.id, 'fury') });
+    else if (verse === 'stone') bulwarkAura(this, stand);
+    decoy.verseLook = verse;
   }
 
   // The decoy is struck: it bursts into the swarm, and the caster shows herself.
