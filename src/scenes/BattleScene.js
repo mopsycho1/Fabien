@@ -38,6 +38,7 @@ import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
+import { drawUnitCard, drawSkillPanel, cardHeight, cardSizes } from '../battleCard.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -415,12 +416,14 @@ export default class BattleScene extends Phaser.Scene {
     // the menu (two buttons a line) has its fixed home above it on the right, and the info
     // box sits beside the menu on the left.
     const real = this.scale.displaySize.width / W || 1;
-    const minText = Math.ceil(11 / real);
+    const minText = Math.ceil(13 / real); // UI rework 16 Nov: no text under 13 real pixels
     const minTap = Math.ceil(44 / real);
-    const cardW = Math.round(portrait ? W - 2 * m : Math.min(392 * s, W * 0.36));
+    // UI rework 16 Nov: the card bottom left, the skill panel bottom right (side by side on a phone too)
+    const cardW = Math.round(portrait ? (W - 3 * m) * 0.6 : Math.min(392 * s, W * 0.36));
+    const skillW = Math.round(portrait ? W - 3 * m - cardW : Math.min(380 * s, W * 0.3));
     const menuW = Math.round(portrait ? Math.min(W * 0.54, 400 * s) : 212 * s);
     const infoW = Math.round(portrait ? W - menuW - 3 * m : Math.min(470 * s, W - cardW - 3 * m));
-    this.lay = { W, H, s, m, portrait, cardW, infoW, real, minText, minTap, rowH: Math.max(Math.round(40 * s), minTap), menuW, top: 0, bottom: H };
+    this.lay = { W, H, s, m, portrait, cardW, infoW, real, minText, minTap, rowH: Math.max(Math.round(40 * s), minTap), menuW, skillW, top: 0, bottom: H };
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
     const b = this.boardBounds();
@@ -701,7 +704,7 @@ export default class BattleScene extends Phaser.Scene {
     const bx = W - m - bw;
     darkPanel(keep(this.add.graphics()), bx, m, bw, bh, s);
     keep(this.add.text(bx + S(12), m + S(14), 'TURN', textStyle(T(12), '#a89a78')).setLetterSpacing(2).setOrigin(0, 0.5));
-    this.turnText = keep(this.add.text(bx + bw - S(12), m + S(14), '01', textStyle(S(20), '#ffe08a')).setOrigin(1, 0.5));
+    this.turnText = keep(this.add.text(bx + bw - S(12), m + S(14), '01', textStyle(T(20), '#ffe08a')).setOrigin(1, 0.5));
     this.tileText = keep(this.add.text(bx + S(12), m + S(37), '', textStyle(T(12), '#e8d5a8')).setOrigin(0, 0.5));
 
     // Under it: turn the camera (his curved arrows) either side of the little
@@ -829,6 +832,10 @@ export default class BattleScene extends Phaser.Scene {
     // Bottom left: the unit's profile (see refreshCard)
     this.cardLayer = keep(this.add.container(0, 0));
     this.cardTop = H;
+
+    // Bottom right: the skill panel (UI rework 16 Nov), shown while a skill is chosen
+    this.skillLayer = keep(this.add.container(0, 0));
+    this.skillTop = H;
 
     // Bottom right: the info card (hints, and the preview of a move or skill)
     this.infoPanel = keep(this.add.graphics());
@@ -1094,7 +1101,7 @@ export default class BattleScene extends Phaser.Scene {
     const statsH = S(6) + small + big + S(8);
     const chipsH = Math.max(S(24), small + S(8)) + S(6);
     // the slim bar the card is while closed (15 Nov): a small face, the name and a thin HP bar
-    const slimH = Math.max(S(54), this.lay.minTap);
+    const slimH = Math.round(cardHeight(cardSizes(s, minText))); // the closed card (UI rework 16 Nov, src/battleCard.js)
     return { S, T, pad, r, nameSize, small, big, line, h0, topH, statsH, chipsH, slimH, closedH: slimH };
   }
 
@@ -1108,7 +1115,8 @@ export default class BattleScene extends Phaser.Scene {
     L.removeAll(true);
     this.cardUnit = unit; this.cardViewing = viewing;
     if (!unit || !this.lay) return;
-    const { s, m, H, cardW: w, portrait } = this.lay;
+    const { s, m, H, W, portrait } = this.lay;
+    const w = portrait && this.cardOpen ? W - 2 * m : this.lay.cardW; // open on a phone: the full width, for the numbers
     const { S, T, pad, r, nameSize, small, big, line, h0, topH, statsH, chipsH, closedH } = this.cardMetrics();
     const open = !!this.cardOpen;
     if (!open) return this.drawSlimCard(unit, viewing);
@@ -1241,51 +1249,48 @@ export default class BattleScene extends Phaser.Scene {
   // round face, the name, a thin HP bar (and a thinner MP bar for a caster) and the conditions as
   // small icons. Tap it to open the full numbers; tap again to close.
   drawSlimCard(unit, viewing) {
+    // UI rework 16 Nov (Suleiman's mock-up): Final Fantasy Tactics style. A square portrait,
+    // name and level, class, and the HP, MP and CT bars (src/battleCard.js). Tap it for the full numbers.
     const L = this.cardLayer;
-    const { s, m, H, cardW: w } = this.lay;
-    const { S, T, slimH: h } = this.cardMetrics();
-    const items = [];
-    const r = Math.round(h / 2 - S(6));
-    items.push(portraitMedallion(this, S(10) + r, h / 2, r, unit, portraitKey(unit.id, unit), { active: unit === this.activeUnit }));
-    const tx = S(10) + 2 * r + S(12);
-    const nameSize = T(17), small = T(12);
-    const name = this.add.text(tx, h / 2 - S(5), unit.name, textStyle(nameSize, '#ffe08a')).setOrigin(0, 1);
-    items.push(name);
-    const side = this.add.text(tx + name.width + S(10), h / 2 - S(7), unit.side === 'hero' ? 'ALLY' : 'FOE', textStyle(small, unit.side === 'hero' ? '#7fd6cf' : '#ff8a6a')).setOrigin(0, 1);
-    items.push(side);
-    // the thin bars
-    const numW = Math.round(small * 3.6), rightEdge = w - S(12);
-    const barX = tx, barW = rightEdge - numW - S(10) - barX;
-    const bars = this.add.graphics();
-    items.push(bars);
-    const thin = (y, value, max, color, hh) => {
-      bars.fillStyle(UI.ink, 1).fillRoundedRect(barX, y, barW, hh, hh / 2);
-      if (value > 0) bars.fillStyle(color, 1).fillRoundedRect(barX, y, Math.max(hh, barW * Math.min(1, value / max)), hh, hh / 2);
-    };
-    const frac = Math.max(0, unit.hp / unit.maxHp);
-    const hy = h / 2 + S(5);
-    thin(hy, unit.hp, unit.maxHp, frac <= 0.35 ? 0xe05a47 : 0x6fcf7f, S(6));
-    items.push(this.add.text(rightEdge, hy + S(3), unit.hp + '/' + unit.maxHp, textStyle(small, '#f1e6c8', { fontStyle: 'bold' })).setOrigin(1, 0.5));
+    const { s, m, H, cardW: w, minText } = this.lay;
+    const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
     const mpNow = mpShown(unit);
-    if (mpNow) thin(hy + S(9), mpNow.mp, mpNow.max, mpNow.lent ? Phaser.Display.Color.HexStringToColor(buffOf(unit).color).color : 0x5aa8ff, S(3));
-    // conditions: icons only, on the name's line at the right
-    let cx = rightEdge;
+    unit.mpShown = mpNow ? { ...mpNow, color: mpNow.lent ? Phaser.Display.Color.HexStringToColor(buffOf(unit).color).color : null } : null;
+    const { items, h } = drawUnitCard(this, unit, w, s, minText, { active: unit === this.activeUnit, viewing, faceKey: portraitKey(unit.id, unit), jobLine: unit.jobName + '  ·  ' + role });
+    // conditions: small icons along the bottom of the portrait
+    const d = Math.round(Math.max(18 * s, minText * 0.9));
+    let cx = Math.round(10 * s) + d / 2 + 2;
     for (const tag of statusTags(unit)) {
       if (!tag.icon || !this.textures.exists('icon:' + tag.icon)) continue;
-      const d = S(20);
-      items.push(this.add.image(cx - d / 2, h / 2 - S(16), 'icon:' + tag.icon).setDisplaySize(d, d));
-      cx -= d + S(4);
+      items.push(this.add.image(cx, h - Math.round(10 * s) - d / 2 - 2, 'icon:' + tag.icon).setDisplaySize(d, d));
+      cx += d + 2;
     }
-    if (viewing) items.push(this.add.text(rightEdge, h / 2 - S(16), 'viewing', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0.5));
-    const back = this.add.graphics();
-    darkPanel(back, 0, 0, w, h, s);
     const hit = this.add.rectangle(0, 0, w, h, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
     hit.on('pointerdown', () => { this.cardOpen = true; play('select'); this.refreshCard(this.cardUnit, this.cardViewing); });
     this.cardHit = hit;
-    L.add([back, ...items, hit]);
+    L.add([...items, hit]);
     L.setPosition(m, H - m - h);
     this.cardTop = H - m - h;
     this.cardHeight = h;
+    this.ui(L);
+  }
+
+  // The skill panel, bottom right (UI rework 16 Nov): shown while a skill is chosen.
+  refreshSkillPanel() {
+    if (!this.skillLayer || !this.lay) return;
+    const L = this.skillLayer;
+    L.removeAll(true);
+    const id = this.selectedSpell;
+    const u = this.activeUnit;
+    const show = !!(id && spells[id] && u && u.side === 'hero' && !this.battleOver);
+    this.skillTop = this.lay.H;
+    if (!show) return;
+    const { s, m, W, H, cardW, skillW, portrait, minText } = this.lay;
+    const { items, h } = drawSkillPanel(this, id, skillW, s, minText);
+    L.add(items);
+    const x = portrait ? m + cardW + m : W - m - skillW;
+    L.setPosition(Math.round(x), Math.round(H - m - h));
+    this.skillTop = H - m - h;
     this.ui(L);
   }
 
@@ -1989,6 +1994,7 @@ export default class BattleScene extends Phaser.Scene {
 
   refreshStatus() {
     this.refreshPreview();
+    this.refreshSkillPanel();
     // only the one being tapped shows its health while a target is chosen (16 Nov: with the bars set to "when hit" it
     // used to show every foe in range); pointing at one with the mouse flashes it too (boardMove). Hides again when it is let go.
     for (const u of this.units || []) holdPlate(this, u, TARGET_MODES.includes(this.mode) && u === this.pendingTarget);
@@ -2068,7 +2074,7 @@ export default class BattleScene extends Phaser.Scene {
       text = it.name + ': ' + it.text + '\nTap a green tile (yours or an ally next to you), or tap ' + it.name + ' again for yourself.';
     } else if ((this.mode === 'spell' || this.mode === 'rest') && this.selectedSpell) {
       const spell = spells[this.selectedSpell];
-      text = spell.name + ': ' + spell.text + '\nTap ' + spell.button + ' again.';
+      text = 'Tap ' + spell.button + ' again.'; // what it does is on the skill panel now (UI rework 16 Nov); a long press gives the full text
     } else if (this.mode === 'spell' && (isMelee(unit) || !unit.maxMp)) {
       const lent = mpShown(unit);
       text = 'Choose a skill' + (lent ? '  (' + lent.mp + ' MP from the ' + buffOf(unit).name + ')' : '');
@@ -2377,7 +2383,9 @@ export default class BattleScene extends Phaser.Scene {
     const h = t.height + 2 * pad;
     const bw = turnLine ? Math.min(infoW, t.width + 2 * pad) : infoW;
     // upright phone: left, standing on the card; wide screen: bottom right (clear of the menu column)
-    const x = portrait ? m : W - m - bw;
+    // with the skill panel showing on a wide screen, the info box stands to its left (clear of the menu above it)
+    const besidePanel = !portrait && this.skillTop < H;
+    const x = portrait ? m : besidePanel ? W - 2 * m - this.lay.skillW - bw : W - m - bw;
     const y = portrait ? Math.min(this.cardTop, H - m - this.cardClosedH()) - m - h : H - m - h;
     darkPanel(this.infoPanel, x, y, bw, h, s);
     t.setPosition(x + pad, y + pad);
