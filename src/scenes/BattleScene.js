@@ -6007,7 +6007,16 @@ export default class BattleScene extends Phaser.Scene {
         },
       };
     });
-    this.tweens.chain({ targets: user.view, tweens: steps, onComplete: () => this.performAttack(user, target, onDone) });
+    // A foe exactly 2 tiles away means no run (steps is empty), and tweens.chain throws on an empty list: that threw
+    // out of castLunge with the turn still busy and froze the game (found 16 Nov). So with no run he thrusts straight
+    // away, and if the run cannot start for any reason he still thrusts: Lunge must never leave the game waiting.
+    const thrust = () => this.performAttack(user, target, onDone);
+    if (!steps.length) return thrust();
+    try {
+      this.tweens.chain({ targets: user.view, tweens: steps, onComplete: thrust });
+    } catch (e) {
+      thrust();
+    }
   }
 
   // ---------- Rabdul's Enchant (roadmap 4.1) ----------
