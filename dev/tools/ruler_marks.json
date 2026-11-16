@@ -50,7 +50,8 @@
   },
   "e1": {
     "scale": {
-      "tayo_n6b_victory": 1.0
+      "tayo_n6b_victory": 1.0,
+      "tayo_n6b_battleFire": 0.87
     },
     "feet": {}
   },

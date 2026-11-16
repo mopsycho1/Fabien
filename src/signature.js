@@ -97,12 +97,24 @@ export function afterBeat(beat) {
   if (signatureOf(winner) === 'bloodied' && winStance === 'press') {
     effects.push({ kind: 'hit', from: winner, to: loser, damage: S.bloodied.winHitBase + (winner.fury || 0), word: 'Bloodied Press' });
   }
+  // Riposte: a Slip beat won lands a hit of winHitBase + the stacks held before this beat, then adds a stack.
+  // Losing any beat clears the stacks (an even beat leaves them alone).
+  if (signatureOf(winner) === 'riposte' && winStance === 'slip') {
+    effects.push({ kind: 'hit', from: winner, to: loser, damage: S.riposte.winHitBase + (winner.riposte || 0), word: 'Riposte' });
+    winner.riposte = Math.min(S.riposte.maxStacks, (winner.riposte || 0) + 1);
+  }
+  if (signatureOf(loser) === 'riposte') loser.riposte = 0;
   // Counter-Press: losing a beat releases the stored Charge
   if (signatureOf(loser) === 'counter' && (loser.charge || 0) > 0) {
     effects.push({ kind: 'hit', from: loser, to: winner, damage: loser.charge * S.counter.damagePerCharge, word: 'Counter!' });
     loser.charge = 0;
   }
   return effects;
+}
+
+// True when a decisive win is Gaha's Riposte step: his signature, won with Slip.
+export function riposteStep(winner, winStance) {
+  return signatureOf(winner) === 'riposte' && winStance === 'slip';
 }
 
 // How many tiles less this unit is pushed (Bulwark), and extra tiles a

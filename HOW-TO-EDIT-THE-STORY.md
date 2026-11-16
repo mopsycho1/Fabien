@@ -549,3 +549,11 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - "starts" says where each fighter stands at the start; "digsites" where pots and bones are buried; "waterfalls" and "lamps" are by [column, row].
 - If you change the map, the cavern tests that stand fighters on certain tiles may need new tiles (see the 14.2 note in the roadmap).
 
+## 16 Nov batch: Gaha's new kit, the clash GIFs, Kofi's effects, Tayo (roadmap 13.59, 6.62, 6.63, 1.54)
+- Gaha's Lunge is `lunge` in `src/data/spells.json` (`range` 4 and `minRange` 2 say how far away the foe may stand, `reach` 2 is where he stops, `bonusPerTile` the damage for each tile he runs, `cooldown`). He gets it from the `spells` list of `spearman` in `src/data/jobs.json`.
+- Counterstep: `"counterstep": true` on `spearman` in jobs.json turns it on for the job. Its numbers are `counterstep` in `src/data/relay.json` (`share` 0.6 = 60 percent, `offBalanceShare` 1 = full damage against an Off-Balance attacker).
+- Riposte (his clash signature): the line `"signature": { "id": "riposte", ... }` on `spearman`, and the numbers under `signatures` then `riposte` in `src/data/engagement.json` (`maxStacks`, `winHitBase`).
+- The clash GIFs: `src/data/clashGifs.json` (made by `dev/tools/make_clash_gifs.py`; the frame delay of each is his own). The pair that gets them is `CLASH_GIF_PAIR` at the top of `src/clashGif.js` (Gaha `h2` against the Bull Commander `e2`). The panel's height follows the clash banners (`panelWindow` in the same file).
+- Kofi's effects: `src/data/fxSlots.json`, under `buffs` then `renewal` (the droplet halo loop and the healing spiral cast) and `haunt` (the smoke), and under `spells` then `spirit_bolt` (the comet; `hitMs` is when the blow lands). How tall each is drawn is its `fit` (`k` = body heights; edit `k` there and it stays when `fx_fit.py` runs again).
+- Tayo: his Earth Drive now uses his normal pictures. When Suleiman redraws it, add `"moves": { "earthDrive": { "frameMs": 110, "frames": [...] } }` to `e1` in art.json and run `ruler.py measure`.
+

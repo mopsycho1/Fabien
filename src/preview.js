@@ -54,6 +54,10 @@ export function planSkill(scene, unit, target, id) {
       marks: effect === 'stun' ? [{ unit: target, text: 'Stunned' }] : effect === 'knockback' || effect === 'strike' ? [] : [{ unit: target, text: 'Clash' }],
     };
   }
+  if (sp.kind === 'lunge') {
+    const spot = scene.lungeSpot(unit, target, sp);
+    return spot ? { label: sp.button, end: spot, zip: false, hits: [target], pushes: [], marks: [] } : null;
+  }
   if (sp.kind === 'dive') {
     const spot = scene.sweepSpot(unit, target);
     if (!spot) return null;

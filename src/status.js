@@ -524,6 +524,7 @@ export function statusTags(unit) {
   // signature stances (see signature.js)
   if (unit.fury) tags.push({ text: 'BLOODIED ' + unit.fury, color: '#ff6b5a', icon: 'bloodied', count: unit.fury });
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a', icon: 'charge', count: unit.charge });
+  if (unit.riposte) tags.push({ text: 'RIPOSTE ' + unit.riposte, color: '#9fd4ff', icon: 'bloodied', count: unit.riposte }); // Gaha's stacks (no icon of its own yet)
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a', icon: 'bulwark', count: unit.bulwark });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a', icon: 'hidden' }); // Husk: enemies chase the decoy
   if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4', icon: 'meditating' }); // her next turn is spent in the trance

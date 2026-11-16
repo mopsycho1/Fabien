@@ -26,9 +26,16 @@ Families (and where the game uses them):
   sfx_lightning_strike  "Lightning Strike Sequence"     the strike on the target
   sfx_wildfire_orb      "Fireball Formation"            Layra gathers Wildfire (Lightning under Fury)
   sfx_wildfire_lance    "Fireball Morphing Into a Fiery Lance"   the fire flying to the target
+Kofi's four (15 Nov, "Kofi's spell assets.7z", roadmap 6.63; run with ONLY=... and his folder, see below):
+  buff_renewal_loop     "Animated Aqua Droplet Halo"           round a unit while Renewal (Infuse in Water) lasts
+  buff_renewal_cast     "Animated Aqua Healing Spiral"         where Renewal lands and at each heal at the start of the unit's turn
+  buff_haunt_loop       "Ghostly Teal-Violet Haunt Aura"       at the feet of a unit that is Haunted (also played once when Haunt lands)
+  sfx_spirit_bolt       "Teal Spirit Projectile Animation"     Kofi's Tide Bolt (Water) and Haunt: the teal comet to the target
 NOT used: the two Umbra GIFs (Gadara's spell; Gadara is not in the game and no spell in it is called Umbra).
 
 Run:  ~/.fabien-tools/venv/bin/python dev/tools/make_gif_fx.py [<Spell effects folder>]
+      ONLY=buff_renewal_loop,buff_renewal_cast,buff_haunt_loop,sfx_spirit_bolt ~/.fabien-tools/venv/bin/python dev/tools/make_gif_fx.py "<Kofi's spell assets folder>"
+      (ONLY= makes just those families; without it all are made again)
 then  ~/.fabien-tools/venv/bin/python dev/tools/align_fx.py fix <the new families>   (they are listed at the end)
 """
 import sys, os, json
@@ -42,6 +49,7 @@ SLOTS = os.path.join(ROOT, 'src', 'data', 'fxSlots.json')
 ANCH = os.path.join(HERE, 'fx_anchors.json')
 SRC = (sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/Documents/Fabien Blueprint/INBOX/2026-11-15/Email/Spell effects/Spell effects")).rstrip('/') + '/'
 HALF = 0.5
+ONLY = [n for n in os.environ.get('ONLY', '').split(',') if n]   # make just these families
 
 # family: (GIF, anchor kind, originX, originY). originY is where the anchor sits down the frame (0.9 = near the bottom:
 # the unit's feet; 0.5 = the middle). "keep" = the frames are left as he drew them (one canvas, one camera): beams and the
@@ -58,6 +66,11 @@ FILES = {
     'sfx_lightning_strike': ('Lightning spell effects/Animated Lightning Strike Sequence.gif', 'keep', 0.5, 0.95),   # origin measured below (foot_point): the bolt grows from the top, so no per-frame anchor fits
     'sfx_wildfire_orb': ('Wild fire spell effects/Animated Fireball Formation.gif', 'core', 0.5, 0.5),
     'sfx_wildfire_lance': ('Wild fire spell effects/Animated Fireball Morphing Into a Fiery Lance.gif', 'keep', 0.5, 0.5),
+    # Kofi's (6.63): their GIFs sit loose in his own folder, so ONLY= and that folder as the first argument
+    'buff_renewal_loop': ('Animated Aqua Droplet Halo.gif', 'box', 0.5, 0.5),
+    'buff_renewal_cast': ('Animated Aqua Healing Spiral.gif', 'boxbase', 0.5, 0.9),
+    'buff_haunt_loop': ('Ghostly Teal-Violet Haunt Aura.gif', 'boxbase', 0.5, 0.9),
+    'sfx_spirit_bolt': ('Teal Spirit Projectile Animation.gif', 'keep', 0.5, 0.5),
 }
 
 def to_alpha(rgb):
@@ -108,6 +121,8 @@ def main():
     slots.setdefault('spells', {})
     made = []
     for name, (gif, kind, ox, oy) in FILES.items():
+        if ONLY and name not in ONLY:
+            continue
         frs, ms = frames_of(SRC + gif)
         assert len(set(ms)) == 1, (name, ms)
         small = []
@@ -120,7 +135,7 @@ def main():
         fam[name] = {'frames': len(frs), 'anchor': kind, 'originX': ox, 'originY': oy}
         info = {'frames': len(frs), 'frameMs': ms[0]}
         if name.startswith('sfx_'):
-            if name in ('sfx_lightning_bolt', 'sfx_wildfire_lance'):
+            if name in ('sfx_lightning_bolt', 'sfx_wildfire_lance', 'sfx_spirit_bolt'):
                 bx, by, reach = beam_geometry(small)
                 info.update({'originX': round(bx, 3), 'originY': round(by, 3), 'reach': round(reach, 3)})
             elif name == 'sfx_lightning_strike':
@@ -133,8 +148,8 @@ def main():
             slots['spells'][name[4:]] = {**slots['spells'].get(name[4:], {}), **info}
         else:
             _, verse, part = name.split('_')
-            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone'}[verse]
-            slot = slots['buffs'][vid]
+            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt'}[verse]
+            slot = slots['buffs'].setdefault(vid, {'cast': 0, 'loop': 0, 'frameMs': 80, 'scale': 0.5, 'feetY': 0.4})
             slot[part] = len(frs); slot[part + 'Ms'] = ms[0]
         made.append(name)
         print(name, len(frs), 'frames', ms[0], 'ms', small[0].size)

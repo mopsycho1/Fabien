@@ -123,6 +123,64 @@
    "frameMs": 80,
    "scale": 0.5,
    "feetY": 0.4
+  },
+  "renewal": {
+   "cast": 8,
+   "loop": 8,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4,
+   "loopMs": 140,
+   "castMs": 160,
+   "fit": {
+    "cast": {
+     "h": 147,
+     "w": 180,
+     "mx": 114,
+     "my": 134,
+     "by": 208,
+     "W": 228,
+     "H": 232,
+     "k": 1.3,
+     "anchor": "base",
+     "layer": "behind"
+    },
+    "loop": {
+     "h": 186,
+     "w": 142,
+     "mx": 112,
+     "my": 114,
+     "by": 208,
+     "W": 226,
+     "H": 230,
+     "k": 1.3,
+     "anchor": "centre",
+     "layer": "front"
+    }
+   }
+  },
+  "haunt": {
+   "cast": 0,
+   "loop": 8,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4,
+   "loopMs": 150,
+   "fit": {
+    "loop": {
+     "h": 140,
+     "w": 160,
+     "mx": 114,
+     "my": 156,
+     "by": 226,
+     "W": 228,
+     "H": 252,
+     "k": 1.2,
+     "anchor": "base",
+     "layer": "behind"
+    }
+   },
+   "castUses": "loop"
   }
  },
  "spells": {
@@ -231,6 +289,28 @@
     "H": 220,
     "tiles": 0.8
    }
+  },
+  "spirit_bolt": {
+   "frames": 8,
+   "frameMs": 120,
+   "originX": 0.519,
+   "originY": 0.473,
+   "reach": 0.959,
+   "size": [
+    220,
+    220
+   ],
+   "fit": {
+    "h": 103,
+    "w": 148,
+    "mx": 107,
+    "my": 108,
+    "by": 160,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   },
+   "hitMs": 500
   }
  }
 }

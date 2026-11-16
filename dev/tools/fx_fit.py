@@ -37,12 +37,18 @@ WANT_BUFF = {
     ('fury', 'move'): dict(k=1.2, anchor='centre', layer='behind'),
     ('stone', 'loop'): dict(k=1.3, anchor='centre', layer='split'),
     ('stone', 'rooted'): dict(k=1.3, anchor='base', layer='front'),
+    # Kofi (6.63): the droplet ring stands round the body (in front, thin drops of light), the heal spiral rises from the feet,
+    # the Haunt smoke stands on the floor round the feet of the haunted unit
+    ('renewal', 'loop'): dict(k=1.3, anchor='centre', layer='front'),
+    ('renewal', 'cast'): dict(k=1.3, anchor='base', layer='behind'),
+    ('haunt', 'loop'): dict(k=1.2, anchor='base', layer='behind'),
 }
 # Projectiles: "tiles" = how wide the drawn effect should be across the board, in tiles (about one).
 WANT_SPELL = {
     'lightning_orb': dict(tiles=1.0), 'wildfire_orb': dict(tiles=1.0),
     'lightning_bolt': dict(tiles=0.8), 'wildfire_lance': dict(tiles=0.8),   # across the beam (its thickness)
     'lightning_strike': dict(tiles=1.0),                                   # the width of the bolt that comes down
+    'spirit_bolt': dict(tiles=0.8),                                        # Kofi's comet, across its thickness
 }
 
 
@@ -66,7 +72,7 @@ def measure(name, n):
 def main():
     data = json.load(open(SLOTS))
     for vid, slot in data['buffs'].items():
-        for part in ('loop', 'move', 'rooted'):
+        for part in ('cast', 'loop', 'move', 'rooted'):
             n = slot.get(part, 0)
             if not n:
                 continue

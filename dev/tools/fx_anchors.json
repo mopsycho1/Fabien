@@ -194,6 +194,30 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.5
+    },
+    "buff_renewal_loop": {
+      "frames": 8,
+      "anchor": "box",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "buff_renewal_cast": {
+      "frames": 8,
+      "anchor": "boxbase",
+      "originX": 0.5,
+      "originY": 0.9
+    },
+    "buff_haunt_loop": {
+      "frames": 8,
+      "anchor": "boxbase",
+      "originX": 0.5,
+      "originY": 0.9
+    },
+    "sfx_spirit_bolt": {
+      "frames": 8,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
     }
   }
 }

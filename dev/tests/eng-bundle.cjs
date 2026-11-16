@@ -183,6 +183,11 @@ var engagement_default = {
       maxCharge: 3,
       damagePerCharge: 3
     },
+    riposte: {
+      note: "Riposte (Gaha, Spearman; roadmap 13.59, numbers from Suleiman's build sheet): each Slip beat he wins adds a stack (up to maxStacks); losing any beat clears them. A won Slip beat hits for winHitBase + the stacks he held before it. A decisive Slip win lets him step to a free tile next to him, ends the clash and leaves the foe Off-Balance (no push).",
+      maxStacks: 2,
+      winHitBase: 1
+    },
     bulwark: {
       note: "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
       max: 3,
@@ -485,6 +490,22 @@ var spells_default = {
     mp: 0,
     use: "enemy",
     rangePerLevel: 1
+  },
+  lunge: {
+    name: "Lunge",
+    button: "Lunge",
+    short: "LUNGE",
+    kind: "lunge",
+    color: "#e8c690",
+    range: 4,
+    minRange: 2,
+    reach: 2,
+    bonusPerTile: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "Gaha's Spearman Build (Suleiman, 15 Nov; roadmap 13.59). Numbers are the PDF's defaults. Advance up to 2 tiles in a straight line, then Thrust: +1 damage for each tile he advanced. He stops where his spear (reach 2) just touches the foe, so the foe stands 2 to 4 tiles away in a line (at 2 he does not run: +0). The run does not use up his Move. Not in a clash. Cancels Rooted that turn.",
+    text: "Run up to 2 tiles in a straight line at an enemy, then Thrust: 1 extra damage for each tile you ran. The foe must stand 2 to 4 tiles away in a straight line. The run does not use up your Move. Not during a clash. It moves you, so you are not Rooted this turn. Ready again after 3 turns."
   },
   herbs: {
     name: "Herbs",
@@ -972,6 +993,8 @@ function endDuel(unit) {
   endEngagement(unit);
   unit.engagement = null;
   if (foe) foe.engagement = null;
+  unit.riposte = 0;
+  if (foe) foe.riposte = 0;
 }
 function poiseOf(unit) {
   if (unit.poise === void 0) unit.poise = engagement_default.poise.start;

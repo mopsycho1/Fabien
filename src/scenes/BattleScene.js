@@ -31,8 +31,9 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
-import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature } from '../signature.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
+import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook } from '../art.js';
@@ -1684,6 +1685,7 @@ export default class BattleScene extends Phaser.Scene {
         floorLight(this, unit.view.x, unit.view.y, glow, { size: 1.4, peak: 0.6, ms: 800 });
         lightNearby(this, unit.view.x, unit.view.y - unit.centerY, glow, { radius: 70, peak: 0.6, ms: 600 });
         afterglow(this, unit.view.x, unit.view.y - 8, 'heal', { level: 3, depth: unit.view.depth + 2 });
+        buffCastFx(this, unit.view.x, unit.view.y, 'renewal', unit); // his healing spiral rises from the feet (6.63)
         this.floatText(unit, '+' + renewed.heal + ' Renewal', '#7fd6c4', { pop: true });
       }
       if (renewed.cured) this.time.delayedCall(350, () => unit.alive && this.floatText(unit, 'Cured', '#9fdc6a', { rise: 46 }));
@@ -2090,6 +2092,12 @@ export default class BattleScene extends Phaser.Scene {
         : canBeCaught(t) ? 'locked in a clash with you' + (ally ? ', and ' + ally.name + ' is free' : '')
         : 'too slippery to lock in a clash';
       text = sp.button + ' at ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.' + (sp.verse ? ' Uses ' + sp.mp + ' MP.' : '') + '\nTap again to charge.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'lunge') {
+      const t = this.pendingTarget;
+      const sp = spells[this.selectedSpell];
+      const spot = this.lungeSpot(unit, t, sp);
+      const run = spot ? spot.path.length : 0;
+      text = 'Lunge at ' + t.name + ': run ' + run + ' tile' + (run === 1 ? '' : 's') + ', then Thrust ' + getHitChance(unit, t) + '% to hit, ' + (getDamage(unit, t) + run * sp.bonusPerTile) + ' damage (+' + run * sp.bonusPerTile + ' from the run).\nTap again to lunge.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'dive') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];
@@ -2759,11 +2767,11 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
+    const foesOnly = ['haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse';
     this.targetsInRange = this.units.filter(
       (u) =>
-        u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
+        u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
@@ -2781,7 +2789,7 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'double', 'javelin', 'dive'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
+    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.holdCharge(unit, id);
     this.refreshOutlines();
@@ -3431,6 +3439,10 @@ export default class BattleScene extends Phaser.Scene {
   performAttack(attacker, target, onDone) {
     attacker.hasActed = true;
     const result = rollAttack(attacker, target);
+    if (attacker.lungeBonus) { // Gaha's Lunge: 1 more damage for each tile he ran (castLunge sets it)
+      if (result.hit) result.damage += attacker.lungeBonus;
+      attacker.lungeBonus = 0;
+    }
     const lead0 = target.isDecoy ? 0 : this.channelLead(attacker, target);
     // a Verse may have changed the attack (Layra: Thunderclap, Wildfire; roadmap 3.7 and 3.9)
     // Kofi's Spirit Bolt takes the element he reads (roadmap 6.38): Ember, Tide, Stone or Gale Bolt
@@ -3547,6 +3559,8 @@ export default class BattleScene extends Phaser.Scene {
         if (outcome) {
           this.busy = false; // nothing is happening any more; the battleOver flag blocks taps
           this.showResult(outcome);
+        } else if (!result.hit && !target.isDecoy && this.canCounterstep(target, attacker)) {
+          this.counterstep(target, attacker, (end) => (end ? this.endBattleFromRelay(end) : onDone())); // Gaha's passive
         } else {
           onDone();
         }
@@ -3886,7 +3900,11 @@ export default class BattleScene extends Phaser.Scene {
       this.showPose(caster, 'cast', dx);
       play('spell');
       const to = this.centerOf(target);
-      lightning(this, caster.view.x + Math.sign(dx || 1) * 14, caster.view.y - caster.topY * 0.7, to.x, to.y);
+      const from = { x: caster.view.x + Math.sign(dx || 1) * 14, y: caster.view.y - caster.topY * 0.7 };
+      // his teal spirit comet flies to the mark and his Haunt smoke rises where it lands (6.63); ours until they are loaded
+      if (sfxHas(this, 'spirit_bolt')) sfxBeam(this, 'spirit_bolt', from.x, from.y, to.x, to.y);
+      else lightning(this, from.x, from.y, to.x, to.y);
+      buffCastFx(this, target.view.x, target.view.y, 'haunt', target);
       floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
       lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
       afterglow(this, target.view.x, target.view.y - 10, tone, { level: 3, depth: target.view.depth + 2 });
@@ -3908,12 +3926,14 @@ export default class BattleScene extends Phaser.Scene {
     if (target && usesCloseWeapon(attacker, target)) return 0;
     // with Suleiman's drawn orb (15 Nov) she gathers it for as long as he chose (fxSlots.json "lead")
     const drawn = this.drawnSpell(variant);
-    return drawn ? sfxInfo(drawn.orb).lead : CHANNEL_MS;
+    return drawn && drawn.orb ? sfxInfo(drawn.orb).lead : CHANNEL_MS;
   }
 
   // His drawn Lightning (or Wildfire, for the fire variant) pieces, if all of them are loaded: { orb, beam, strike }
   // (strike is null for Wildfire: the lance lands on the target by itself), else null.
   drawnSpell(variant = null) {
+    // Kofi's Tide Bolt (reading Water) is his teal spirit comet (6.63): no orb gathered, no strike coming down
+    if (variant && variant.reads === 'water' && sfxHas(this, 'spirit_bolt')) return { orb: null, beam: 'spirit_bolt', strike: null };
     const fire = !!(variant && variant.element === 'fire');
     const names = fire ? { orb: 'wildfire_orb', beam: 'wildfire_lance', strike: null } : { orb: 'lightning_orb', beam: 'lightning_bolt', strike: 'lightning_strike' };
     return sfxHas(this, ...Object.values(names).filter(Boolean)) ? names : null;
@@ -3962,7 +3982,7 @@ export default class BattleScene extends Phaser.Scene {
       const fire = variant && variant.element === 'fire';
       this.showPose(attacker, 'chant', dx);
       const hands = { x: attacker.view.x + Math.sign(dx || 1) * 10, y: attacker.view.y - attacker.topY * 0.72 };
-      if (drawn) sfxChannel(this, drawn.orb, hands.x, hands.y, { depth: attacker.view.depth + 2 });
+      if (drawn && drawn.orb) sfxChannel(this, drawn.orb, hands.x, hands.y, { depth: attacker.view.depth + 2 });
       else chargeUp(this, hands.x, hands.y, (variant && variant.element) || (fire ? 'fire' : 'lightning'), { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
       play('select');
       this.time.delayedCall(lead, () => attacker.alive && this.showPose(attacker, strikePose, dx));
@@ -4011,7 +4031,7 @@ export default class BattleScene extends Phaser.Scene {
         const hit = sfxInfo(drawn.beam).hitMs;
         this.time.delayedCall(lead, () => {
           sfxBeam(this, drawn.beam, start.x, start.y - 20, end.x, end.y);
-          if (!target.isDecoy) sfxStrike(this, drawn.strike, target.view.x, target.view.y, { big: lethal });
+          if (!target.isDecoy && drawn.strike) sfxStrike(this, drawn.strike, target.view.x, target.view.y, { big: lethal });
           play('spark');
         });
         this.time.delayedCall(lead + hit, impact);
@@ -4862,6 +4882,24 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
 
+    // A Lunge (Gaha) at a foe in a straight line, 3 or 4 tiles away, when nobody is in spear reach yet:
+    // a caster first, then the weakest
+    if (unit.spells.includes('lunge') && canAfford(unit, 'lunge') && !unit.engagedWith && getTargetsInRange(unit, seen).length === 0) {
+      const marks = seen
+        .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && this.lungeSpot(unit, t, spells.lunge))
+        .sort((a, b) => isCaster(b) - isCaster(a) || a.hp - b.hp);
+      if (marks.length > 0) {
+        this.busy = true;
+        startCooldown(unit, 'lunge');
+        unit.hasActed = true;
+        this.castLunge(unit, marks[0], spells.lunge, () => {
+          this.busy = false;
+          this.enemyWrapUp(unit);
+        });
+        return;
+      }
+    }
+
     const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
@@ -5088,6 +5126,23 @@ export default class BattleScene extends Phaser.Scene {
     next(0);
   }
 
+  // ---------- Counterstep (Gaha's passive, roadmap 13.59) ----------
+  // A close fighter misses him: he gets a free Thrust at 60 percent (full if the attacker is Off-Balance).
+  // Once per round, never in a clash, Stunned or Meditating. It is a free strike, not an attack roll,
+  // so it can never set off another Counterstep.
+  canCounterstep(unit, foe) {
+    // a melee attack only: a bow or a spell does not set it off (an archer's dagger does)
+    if (!unit.counterstep || !unit.alive || !foe.alive || foe.side === unit.side || !(isMelee(foe) || holdsDagger(foe))) return false;
+    if (unit.engagedWith || isStunned(unit) || unit.meditating || getTargetsInRange(unit, [foe]).length === 0) return false;
+    const cycle = this.units.filter((u) => u.alive).length;
+    return unit.counterTurn === undefined || this.turnCount - unit.counterTurn >= cycle;
+  }
+
+  counterstep(unit, foe, onDone) {
+    unit.counterTurn = this.turnCount; // used up for this round
+    this.relayStrike(unit, foe, 0, onDone, { word: 'Counterstep!', rules: relayRules.counterstep });
+  }
+
   endBattleFromRelay(outcome) {
     this.battleOver = true;
     this.busy = false;
@@ -5095,8 +5150,10 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // One free strike: a "Relay!" callout, a short dash at the foe, the hit, back to place.
-  relayStrike(ally, foe, nth, onDone) {
-    const share = (isOffBalance(foe) ? relayRules.offBalanceShare : relayRules.share) * (nth > 0 ? relayRules.secondShare : 1);
+  // (opts.word and opts.share let Gaha's Counterstep use the same strike with its own word and numbers)
+  relayStrike(ally, foe, nth, onDone, opts = {}) {
+    const rules = opts.rules || relayRules;
+    const share = (isOffBalance(foe) ? rules.offBalanceShare : rules.share) * (nth > 0 ? relayRules.secondShare : 1);
     const landed = this.landHit(foe, Math.max(1, Math.round(getDamage(ally, foe) * share)));
     foe.hp = Math.max(0, foe.hp - landed.damage);
     if (foe.hp === 0) this.defeat(foe);
@@ -5105,7 +5162,7 @@ export default class BattleScene extends Phaser.Scene {
     const dx = foe.view.x - ally.view.x;
     const dy = foe.view.y - ally.view.y;
     this.faceToward(ally, dx, dy);
-    this.floatText(ally, 'Relay!', '#ffd27a', { rise: 44, pop: true });
+    this.floatText(ally, opts.word || 'Relay!', '#ffd27a', { rise: 44, pop: true });
     play('whoosh');
     this.showPose(ally, 'attack', dx);
     const home = tileToScreen(ally.col, ally.row); // its tile, not where it happens to be (13.47)
@@ -5190,7 +5247,12 @@ export default class BattleScene extends Phaser.Scene {
 
     const { winner, loser } = beat;
     resetMomentum(winner);
+    const winStance0 = winner === beat.actor ? beat.actorStance : beat.holderStance;
+    // Gaha's Riposte: a decisive Slip win lets him step to a free tile and end the clash (no push),
+    // and the foe is always left Off-Balance (the foe's own class cannot hold or slip it)
+    const stepTo = riposteStep(winner, winStance0) ? this.riposteTile(winner, loser) : null;
     out.response = lossResponse(loser, CONTEST_CTX);
+    if (stepTo) out.response = { ...out.response, held: false, slipped: false };
     if (!out.response.slipped) applyOffBalance(loser);
 
     // the free strike, which always lands
@@ -5203,6 +5265,15 @@ export default class BattleScene extends Phaser.Scene {
         out.ended = true;
         return out;
       }
+    }
+
+    if (stepTo) {
+      winner.col = stepTo.col;
+      winner.row = stepTo.row;
+      endDuel(winner);
+      out.ended = true;
+      out.riposteStep = stepTo;
+      return out;
     }
 
     if (!out.response.held) {
@@ -5221,6 +5292,18 @@ export default class BattleScene extends Phaser.Scene {
       out.ended = true;
     }
     return out;
+  }
+
+  // Gaha's Riposte step (roadmap 13.59): a free tile next to the winner (up or down one level at most).
+  // One that keeps the foe in spear reach (a straight line, 2 tiles) wins over any other; returns { col, row } or null.
+  riposteTile(winner, foe) {
+    const climb = moveRules(winner).climb;
+    const options = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+      .map(([dc, dr]) => ({ col: winner.col + dc, row: winner.row + dr }))
+      .filter((t) => isInsideGrid(t.col, t.row) && !this.isBlocked(t.col, t.row) && Math.abs(getHeight(t.col, t.row) - getHeight(winner.col, winner.row)) <= climb);
+    const reach = (t) => (inReach({ ...winner, col: t.col, row: t.row }, foe) ? 1 : 0);
+    options.sort((a, b) => reach(b) - reach(a));
+    return options[0] || null;
   }
 
   // The beat animation: both fighters show their stance, close in, the blades
@@ -5374,7 +5457,12 @@ export default class BattleScene extends Phaser.Scene {
         }
         if (path.length > 0 || outcome.fall) this.knockBack(loser, { from: outcome.from, path, fall: outcome.fall }, awayX);
       });
-      if (ended && loser.alive && !outcome.fall) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
+      if (outcome.riposteStep) {
+        at(1500, () => {
+          this.floatText(winner, 'Riposte step!', '#9fd4ff', { rise: 46 });
+          this.slideAlong(winner, [outcome.riposteStep]);
+        });
+      } else if (ended && loser.alive && !outcome.fall) at(1850, () => this.floatText(winner, 'Broken off', '#e8d5a8'));
     }
 
     const last = beat.decisive ? 2300 : beat.kind === 'break' ? 1100 : 1300;
@@ -5721,6 +5809,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
     if (spell.kind === 'elementBlast') return this.castElementBlast(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
+    if (spell.kind === 'lunge') return this.castLunge(caster, target, spell, onDone);
     if (spell.kind === 'javelin') return this.castSonicJavelin(caster, target, spell, onDone);
     if (spell.kind === 'dive') return this.castFuryDive(caster, target, spell, onDone);
     if (spell.kind === 'double') return this.castDoubleHit(caster, target, spell, onDone);
@@ -5857,6 +5946,59 @@ export default class BattleScene extends Phaser.Scene {
     return best;
   }
 
+  // ---------- Lunge (Gaha, roadmap 13.59) ----------
+  // Where a Lunge ends: the foe must stand in a straight line, minRange to range tiles away. He runs
+  // until his spear (reach 2) just touches it, so 1 or 2 tiles, over free tiles he can step on.
+  // Returns { col, row, path } or null. Not usable in a clash.
+  lungeSpot(user, target, spell) {
+    if (user.engagedWith || target.isDecoy || !target.alive || (user.col !== target.col && user.row !== target.row)) return null;
+    const d = distance(user, target);
+    if (d < spell.minRange || d > spell.range) return null;
+    const dc = Math.sign(target.col - user.col);
+    const dr = Math.sign(target.row - user.row);
+    const climb = moveRules(user).climb;
+    const path = [];
+    let prev = { col: user.col, row: user.row };
+    for (let i = 1; i <= d - spell.reach; i++) {
+      const tile = { col: user.col + dc * i, row: user.row + dr * i };
+      if (!isInsideGrid(tile.col, tile.row) || this.isBlocked(tile.col, tile.row) || Math.abs(getHeight(tile.col, tile.row) - getHeight(prev.col, prev.row)) > climb) return null;
+      path.push(tile);
+      prev = tile;
+    }
+    const end = path[path.length - 1] || { col: user.col, row: user.row }; // (a foe already 2 tiles away: no run, +0)
+    return inReach({ ...user, col: end.col, row: end.row }, target) ? { col: end.col, row: end.row, path } : null;
+  }
+
+  // He runs, then Thrusts: the normal attack, with 1 more damage for each tile he ran. Moving cancels Rooted.
+  castLunge(user, target, spell, onDone) {
+    const spot = this.lungeSpot(user, target, spell);
+    if (!spot) {
+      onDone();
+      return;
+    }
+    user.col = spot.col;
+    user.row = spot.row;
+    user.hasMoved = true; // moving cancels Rooted this turn; the run does not use up his Move (he may still walk after, 13.53)
+    clearRooted(user);
+    user.lungeBonus = spot.path.length * spell.bonusPerTile;
+    play('whoosh');
+    this.floatText(user, 'Lunge +' + user.lungeBonus, spell.color, { rise: 44, pop: true });
+    const steps = spot.path.map((tile) => {
+      const p = tileToScreen(tile.col, tile.row);
+      return {
+        x: p.x,
+        y: p.y,
+        duration: 85,
+        onStart: () => {
+          user.view.setDepth(depthFor(tile.col, tile.row) + 1);
+          this.afterimage(user);
+          this.faceToward(user, target.view.x - p.x, target.view.y - p.y);
+        },
+      };
+    });
+    this.tweens.chain({ targets: user.view, tweens: steps, onComplete: () => this.performAttack(user, target, onDone) });
+  }
+
   // ---------- Rabdul's Enchant (roadmap 4.1) ----------
 
   // Who Rabdul enchants: an ally (or himself) within reach of the spell, not
@@ -5939,11 +6081,17 @@ export default class BattleScene extends Phaser.Scene {
     if (outcome) this.battleOver = true;
     this.refreshButtons();
 
+    // Roadmap 1.54: his old 29 Oct Earth Drive pictures (a different, smaller look) are out of art.json, so he plays his
+    // current sheet: the arms drawn back, then the punch when the fist meets the ground. (A move in art.json still wins.)
     const m = moveFrames(user.id, 'earthDrive', dx >= 0 ? 'right' : 'left');
     const frameMs = m ? m.frameMs : 110;
     this.floatText(user, spell.name, spell.color, { rise: 40 });
     play('whoosh');
-    if (!this.playMove(user, 'earthDrive', dx)) this.showPose(user, 'attack', dx);
+    const drawnBack = poseFrame(user.id, 'blastWind', 'right', user.facing) ? 'blastWind' : 'windup';
+    if (!this.playMove(user, 'earthDrive', dx)) {
+      this.showPose(user, drawnBack, dx);
+      this.time.delayedCall(frameMs * 2, () => user.alive && !user.knock && this.showPose(user, 'attack', dx));
+    }
     // the fist meets the ground on his third picture
     this.time.delayedCall(frameMs * 2, () => {
       play('crash');
@@ -6827,6 +6975,8 @@ export default class BattleScene extends Phaser.Scene {
       if (outcome) {
         this.busy = false;
         this.showResult(outcome);
+      } else if (target.alive && strikes.some((s) => !s.hit) && this.canCounterstep(target, user)) {
+        this.counterstep(target, user, (end) => (end ? this.endBattleFromRelay(end) : onDone())); // a miss on Gaha: Counterstep (13.59)
       } else onDone();
     });
   }
@@ -7509,8 +7659,10 @@ export default class BattleScene extends Phaser.Scene {
       const verseNow = unit.alive && buffOf(unit) ? buffOf(unit).id : null;
       // Gaha standing his ground under Earth's Bulwark (Rooted) shows the dome he drew for it in place of the orbiting stones
       const rootedNow = verseNow === 'stone' && isRooted(unit) && hasBuffPart(this, 'stone', 'rooted');
-      for (const id of ['swiftness', 'fury', 'stone']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id) && !(id === 'stone' && rootedNow), () => buffLoopFx(this, unit, id));
+      for (const id of ['swiftness', 'fury', 'stone', 'renewal']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id) && !(id === 'stone' && rootedNow), () => buffLoopFx(this, unit, id));
       this.keepAura(unit, 'drawnAura_stoneRooted', unit.alive && rootedNow, () => buffLoopFx(this, unit, 'stone', 'rooted'));
+      // Kofi's Haunt: the teal and violet smoke stands round the feet of a haunted unit while the mark lasts (6.63)
+      this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.poison && unit.status.poison.id === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
@@ -7753,6 +7905,15 @@ export default class BattleScene extends Phaser.Scene {
   // split frame (the hero on the red panel, the foe on the blue), with their
   // names; a flash and a shake where they meet, then they fly apart.
   clashBanner(a, b, onDone) {
+    // Gaha against the Bull Commander: after the banners, one of Suleiman's clash GIFs plays as a framed panel (6.62).
+    // Not at fast speed (the panel is a long cut-in), and only once its frames are loaded.
+    if (hasClashGif(a, b) && this.speed.base * this.speed.skip <= 1) {
+      const name = pickClashGif(this);
+      if (name) {
+        const after = onDone;
+        onDone = () => playClashGif(this, name, (o) => this.ui(o), after);
+      }
+    }
     const hero = a.side === 'hero' ? a : b;
     const foe = hero === a ? b : a;
     // both fighters have their own banner (8.15), loaded: his banners face to face
@@ -7890,8 +8051,11 @@ export default class BattleScene extends Phaser.Scene {
   // once it has started so they don't slow the first load (roadmap 8.15).
   // Until a pair is loaded, a clash shows the shared banner with both faces.
   loadClashArt() {
-    if (typeof window !== 'undefined' && window.__noWebp) return; // the test browser can't read WebP
-    let queued = 0;
+    let queued = loadClashGifs(this, this.units); // his clash GIFs (6.62) are JPEG, so the test browser reads them too
+    if (typeof window !== 'undefined' && window.__noWebp) { // the test browser can't read WebP
+      if (queued) this.load.start();
+      return;
+    }
     for (const u of this.units) {
       const c = clashArt(u.id);
       if (!c) continue;

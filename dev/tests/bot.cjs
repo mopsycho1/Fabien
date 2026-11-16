@@ -60,6 +60,10 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         // a moment apart, so a body still settling is not counted
         const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
         if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
+        // every figure must be drawn at its picture's size (roadmap 1.54): the sideways scale of the sprite is what the
+        // unit says it is. A figure that is bigger or smaller than that has lost track of its picture's scale.
+        const sizeOff = () => b.units.filter((x) => x.alive && x.sprite && x.sprite.active && !x.knock && !x.squash && !b.inCinematic).map((x) => ({ x, r: x.sprite.scaleX / x.artScale })).filter((o) => Math.abs(o.r - 1) > 0.04);
+        if (sizeOff().length) { await sleep(500); for (const o of sizeOff()) { tally.sizeOff = (tally.sizeOff || 0) + 1; console.log('SIZE OFF', o.x.label, 'x' + o.r.toFixed(2), 'showing', o.x.sprite.texture.key, 'frameScale', o.x.frameScale, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); } }
         // a hero's turn with every button greyed out is a stuck screen for a real player
         if ([...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed); }
         const foes = alive('enemy');

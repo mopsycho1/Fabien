@@ -221,6 +221,22 @@
     "use": "enemy",
     "rangePerLevel": 1
   },
+  "lunge": {
+    "name": "Lunge",
+    "button": "Lunge",
+    "short": "LUNGE",
+    "kind": "lunge",
+    "color": "#e8c690",
+    "range": 4,
+    "minRange": 2,
+    "reach": 2,
+    "bonusPerTile": 1,
+    "cooldown": 3,
+    "mp": 0,
+    "use": "enemy",
+    "note": "Gaha's Spearman Build (Suleiman, 15 Nov; roadmap 13.59). Numbers are the PDF's defaults. Advance up to 2 tiles in a straight line, then Thrust: +1 damage for each tile he advanced. He stops where his spear (reach 2) just touches the foe, so the foe stands 2 to 4 tiles away in a line (at 2 he does not run: +0). The run does not use up his Move. Not in a clash. Cancels Rooted that turn.",
+    "text": "Run up to 2 tiles in a straight line at an enemy, then Thrust: 1 extra damage for each tile you ran. The foe must stand 2 to 4 tiles away in a straight line. The run does not use up your Move. Not during a clash. It moves you, so you are not Rooted this turn. Ready again after 3 turns."
+  },
   "herbs": {
     "name": "Herbs",
     "button": "Herbs",

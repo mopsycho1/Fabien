@@ -86,6 +86,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('8.15 their points meet in the middle', Math.abs(heroTip - W / 2) < 40 && Math.abs(foeTip - W / 2) < 40, Math.round(heroTip) + ' ' + Math.round(foeTip) + ' / ' + W / 2);
   check('8.15 the foe\'s name plate laid over its flipped plate', nameP && nameP.x > foeB.x && nameP.x < foeB.x + foeB.displayWidth && nameP.depth > foeB.depth);
   await sleep(1200);
+  // (Gaha against the Bull also gets Suleiman's clash GIF as a panel after the banners, 6.62: wait for it to end)
+  for (let i = 0; i < 80 && !done; i++) await sleep(100);
   check('8.15 then they fly apart and the clash goes on', done && !b.children.list.some((o) => o.texture && /clash\//.test(o.texture.key)));
   reset([[sudeen, 3, 4], [rabdul, 3, 3]]);
   done = false;

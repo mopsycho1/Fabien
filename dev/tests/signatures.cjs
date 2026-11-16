@@ -27,7 +27,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const halves = () => b.halves.map((h) => (h.view.visible ? h.label.text + (h.enabled ? '' : '(dim)') : '-')).join(' | ');
   check('his third row is two buttons: Engage and Skills', halves() === 'Engage(dim) | Skills' && !b.slots[2].view.visible, halves());
   b.onSpellButton();
-  check('Skills holds Spear Throw (Engage is not in it)', labels() === 'Spear Throw | - | - | Back', labels());
+  check('Skills holds Spear Throw and Lunge (Engage is not in it)', labels() === 'Spear Throw | Lunge | - | Back', labels());
   b.cancelMode();
   // throw at an enemy 3 tiles away on flat ground: knocked back a tile
   park(); put(gaha, 3, 6); put(bull, 3, 3); turnOf(gaha);

@@ -3253,30 +3253,6 @@
     },
     "portrait": "tayo_face.png",
     "shout": "tayo_face_angry.png",
-    "moves": {
-      "earthDrive": {
-        "note": "Earth Drive (roadmap 4.2): fist raised, swinging down, punching the ground, the follow-through. His 29 Oct sheet 'earth drive without effects'.",
-        "frameMs": 110,
-        "frames": [
-          {
-            "file": "tayo_drive_0.png",
-            "originX": 0.467
-          },
-          {
-            "file": "tayo_drive_1.png",
-            "originX": 0.497
-          },
-          {
-            "file": "tayo_drive_2.png",
-            "originX": 0.58
-          },
-          {
-            "file": "tayo_drive_3.png",
-            "originX": 0.565
-          }
-        ]
-      }
-    },
     "battle": {
       "upLeft": {
         "file": "tayo_n6b_battle_f1.png",
@@ -3580,18 +3556,6 @@
       "tayo_n6d_blastPunch_f4.png": {
         "footX": 0.412
       },
-      "tayo_drive_0.png": {
-        "scale": 0.61
-      },
-      "tayo_drive_1.png": {
-        "scale": 0.61
-      },
-      "tayo_drive_2.png": {
-        "scale": 0.61
-      },
-      "tayo_drive_3.png": {
-        "scale": 0.61
-      },
       "tayo_n6b_weak_f1.png": {
         "scale": 0.73,
         "footX": 0.49
@@ -3624,16 +3588,20 @@
         "footX": 0.527
       },
       "tayo_n6b_battleFire_f1.png": {
-        "footX": 0.372
+        "footX": 0.372,
+        "scale": 0.87
       },
       "tayo_n6b_battleFire_f2.png": {
-        "footX": 0.66
+        "footX": 0.66,
+        "scale": 0.87
       },
       "tayo_n6b_battleFire_f3.png": {
-        "footX": 0.298
+        "footX": 0.298,
+        "scale": 0.87
       },
       "tayo_n6b_battleFire_f4.png": {
-        "footX": 0.583
+        "footX": 0.583,
+        "scale": 0.87
       },
       "tayo_n6b_punchFire_f1.png": {
         "scale": 0.73,
@@ -3668,7 +3636,8 @@
         "footX": 0.661
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",

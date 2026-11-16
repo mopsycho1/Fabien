@@ -317,6 +317,8 @@ export function endDuel(unit) {
   endEngagement(unit);
   unit.engagement = null;
   if (foe) foe.engagement = null;
+  unit.riposte = 0; // Gaha's Riposte stacks belong to one clash (signature.js)
+  if (foe) foe.riposte = 0;
 }
 
 // ---------- Poise ----------

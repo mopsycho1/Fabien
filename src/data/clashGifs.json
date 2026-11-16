@@ -1,0 +1,26 @@
+{
+  "note": "Suleiman 15 Nov, clash GIFs (roadmap 6.62). Frames are public/art/clashgif/<name>_<n>.jpg; ms is his own frame delay. Shown by src/clashGif.js as a framed panel when Gaha clashes with the Bull Commander.",
+  "gifs": {
+    "dance": {
+      "frames": 9,
+      "w": 507,
+      "h": 336,
+      "ms": 140,
+      "what": "Gaha and the Bull circle each other, then trade a blow"
+    },
+    "strike": {
+      "frames": 8,
+      "w": 439,
+      "h": 439,
+      "ms": 150,
+      "what": "Gaha drives the spear in; the spark where it meets the mace"
+    },
+    "duel": {
+      "frames": 6,
+      "w": 720,
+      "h": 358,
+      "ms": 150,
+      "what": "spear and mace trade blows, a wide view"
+    }
+  }
+}

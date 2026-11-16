@@ -119,6 +119,11 @@
       "maxCharge": 3,
       "damagePerCharge": 3
     },
+    "riposte": {
+      "note": "Riposte (Gaha, Spearman; roadmap 13.59, numbers from Suleiman's build sheet): each Slip beat he wins adds a stack (up to maxStacks); losing any beat clears them. A won Slip beat hits for winHitBase + the stacks he held before it. A decisive Slip win lets him step to a free tile next to him, ends the clash and leaves the foe Off-Balance (no push).",
+      "maxStacks": 2,
+      "winHitBase": 1
+    },
     "bulwark": {
       "note": "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
       "max": 3,
