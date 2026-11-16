@@ -3903,8 +3903,12 @@ export default class BattleScene extends Phaser.Scene {
       const to = this.centerOf(target);
       const from = { x: caster.view.x + Math.sign(dx || 1) * 14, y: caster.view.y - caster.topY * 0.7 };
       // his teal spirit comet flies to the mark and his Haunt smoke rises where it lands (6.63); ours until they are loaded
-      if (sfxHas(this, 'spirit_bolt')) sfxBeam(this, 'spirit_bolt', from.x, from.y, to.x, to.y);
+      const hasComet = sfxHas(this, 'spirit_bolt');
+      if (hasComet) sfxBeam(this, 'spirit_bolt', from.x, from.y, to.x, to.y);
       else lightning(this, from.x, from.y, to.x, to.y);
+      // the mark lands when the comet arrives (its hitMs), not when it leaves his hand
+      const hit = hasComet ? sfxInfo('spirit_bolt').hitMs || 0 : 0;
+      this.time.delayedCall(hit, () => {
       buffCastFx(this, target.view.x, target.view.y, 'haunt', target);
       floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
       lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
@@ -3914,8 +3918,9 @@ export default class BattleScene extends Phaser.Scene {
       if (read === 'storm') this.interrupt(target);
       this.refreshStatusTags();
       this.refreshTurnStrip();
-      this.time.delayedCall(520, () => caster.alive && this.showStanding(caster));
-      this.time.delayedCall(900, onDone);
+      });
+      this.time.delayedCall(520 + hit, () => caster.alive && this.showStanding(caster));
+      this.time.delayedCall(900 + hit, onDone);
     });
   }
 
