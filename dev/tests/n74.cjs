@@ -41,7 +41,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const lst = gaha.view.list;
   check('6.58 his Fury loop is drawn behind the figure, never over it', lst.indexOf(gaha.drawnAura_fury.objects[0]) >= 0 && lst.indexOf(gaha.drawnAura_fury.objects[0]) < lst.indexOf(gaha.sprite), lst.indexOf(gaha.drawnAura_fury.objects[0]) + ' / ' + lst.indexOf(gaha.sprite));
   verse(gaha, 'stone');
-  const [orbBack, orbFront] = gaha.drawnAura_stone.objects; // back half, then the front copies (16 Nov wrap) const lst2 = gaha.view.list;
+  const [orbBack, orbFront] = gaha.drawnAura_stone.objects; /* back half, then the front copies (16 Nov wrap) */ const lst2 = gaha.view.list;
   check('6.64 the stone orbit: all of it behind the figure and its near (lower) half in front of it', lst2.indexOf(orbBack) < lst2.indexOf(gaha.sprite) && lst2.indexOf(orbFront) > lst2.indexOf(gaha.sprite) && orbFront.isCropped);
   verse(gaha, 'fury');
   check('6.64 the drawn auras are about 0.9 to 1.1 body heights tall (16 Nov: 1.0) (by the ruler\'s body height, not the picture)', ['swiftness', 'fury', 'stone'].every((id) => { const k = slots.buffs[id].fit.loop.k; return k >= 0.9 && k <= 1.1; }) && Math.abs(gaha.drawnAura_fury.objects[0].scaleY * slots.buffs.fury.fit.loop.h / (gaha.topY - 12) - slots.buffs.fury.fit.loop.k) < 0.02, gaha.drawnAura_fury.objects[0].scaleY);
