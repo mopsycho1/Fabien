@@ -95,7 +95,12 @@ export function drawUnitCard(scene, unit, w, s, minText, { active = false, viewi
   if (job.width > right - tx) job.setScale((right - tx) / job.width); // a long class line shrinks to fit, never wraps
   items.push(job);
   y += Math.round(small * 1.35);
-  if (viewing) items.push(scene.add.text(right, pad + L.name * 1.25, 'viewing', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0));
+  if (viewing) {
+    // "viewing" at the end of the class line, only where it has room (a long class line keeps its words)
+    const v = scene.add.text(right, pad + L.name * 1.25, 'viewing', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0);
+    if (job.x + job.width * job.scaleX + S(8) < v.x - v.width) items.push(v);
+    else v.destroy();
+  }
 
   // three bars: a small word, the bar, the numbers at its end
   const bars = scene.add.graphics();
@@ -207,4 +212,43 @@ export function drawSkillPanel(scene, id, w, s, minText) {
   const h = Math.round(y + pad);
   framePanel(frame, 0, 0, w, h, s);
   return { items, h };
+}
+
+// A portrait cut as a diamond (the unit list down the left side, UI rework step 3).
+export function diamondPortrait(scene, unit, faceKey, size) {
+  const key = 'diamond:' + unit.id + ':' + size + ':' + (faceKey || 'none');
+  if (scene.textures.exists(key)) return key;
+  const tex = scene.textures.createCanvas(key, size, size);
+  const c = tex.getContext();
+  const h = size / 2;
+  c.save();
+  c.beginPath();
+  c.moveTo(h, 0); c.lineTo(size, h); c.lineTo(h, size); c.lineTo(0, h);
+  c.closePath();
+  c.clip();
+  c.fillStyle = unit.side === 'hero' ? '#2e5f5b' : '#6e2e22';
+  c.fillRect(0, 0, size, size);
+  if (faceKey && scene.textures.exists(faceKey)) {
+    const img = scene.textures.get(faceKey).getSourceImage();
+    const k = Math.max(size / img.width, size / img.height) * 1.15;
+    const w = img.width * k, hh = img.height * k;
+    c.drawImage(img, (size - w) / 2, (size - hh) * 0.3, w, hh);
+  }
+  c.restore();
+  tex.refresh();
+  return key;
+}
+
+// A small block of ground for the turn and terrain panel: the top in the ground's colour,
+// the two sides darker. g: a graphics object; (x, y) the middle of the top face; w its width.
+export function tileBlock(g, x, y, w, top, side) {
+  const h = w / 2, d = w * 0.28;
+  g.fillStyle(side, 1);
+  g.fillPoints([{ x: x - w / 2, y }, { x, y: y + h / 2 }, { x, y: y + h / 2 + d }, { x: x - w / 2, y: y + d }], true);
+  g.fillStyle(Phaser.Display.Color.ValueToColor(side).darken(25).color, 1);
+  g.fillPoints([{ x: x + w / 2, y }, { x, y: y + h / 2 }, { x, y: y + h / 2 + d }, { x: x + w / 2, y: y + d }], true);
+  g.fillStyle(top, 1);
+  g.fillPoints([{ x, y: y - h / 2 }, { x: x + w / 2, y }, { x, y: y + h / 2 }, { x: x - w / 2, y }], true);
+  g.lineStyle(1, 0xffe6b0, 0.35);
+  g.strokePoints([{ x, y: y - h / 2 }, { x: x + w / 2, y }, { x, y: y + h / 2 }, { x: x - w / 2, y }], true);
 }

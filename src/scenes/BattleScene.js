@@ -38,14 +38,14 @@ import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
-import { drawUnitCard, drawSkillPanel, cardHeight, cardSizes, emblemFor, framePanel } from '../battleCard.js';
+import { drawUnitCard, drawSkillPanel, cardHeight, cardSizes, emblemFor, framePanel, diamondPortrait, tileBlock } from '../battleCard.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { installLighting } from '../lighting.js';
-import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName } from '../boardArt.js';
+import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName, groundColors } from '../boardArt.js';
 import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn, shockRing } from '../effects.js';
 import {
   isMelee,
@@ -427,7 +427,13 @@ export default class BattleScene extends Phaser.Scene {
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
     const b = this.boardBounds();
-    const top = portrait ? m + 66 * s : m; // (a smaller turn strip, 15 Nov)
+    // the top bar (UI rework 16 Nov): the title, then the turn strip of round faces
+    const titleSize = Math.max(Math.round(13 * s), minText);
+    const stripR = Math.round(28 * s);
+    this.lay.titleSize = titleSize;
+    this.lay.stripR = stripR;
+    this.lay.stripY = m + Math.round(titleSize * 1.5) + Math.round(6 * s) + stripR;
+    const top = portrait ? this.lay.stripY + stripR + Math.round(10 * s) : m;
     const bottom = portrait ? H - this.cardMetrics().slimH - 2 * m : H - m; // above the slim card bar
     // (the floor was 0.7; the 11 by 11 cavern, roadmap 14.2, needs about 0.56 to show whole on an upright phone)
     const zoom = Math.max(0.5, Math.min(1.6, (W - 2 * m) / (b.x1 - b.x0), (bottom - top) / (b.y1 - b.y0)));
@@ -689,23 +695,34 @@ export default class BattleScene extends Phaser.Scene {
       return o;
     };
     const T = (n) => Math.max(S(n), this.lay.minText); // letters: never under 11 real pixels (M7)
-    this.stripY = m + S(28);
+    this.stripY = this.lay.stripY;
 
-    // Top left: the turn order, with a thin gold line under it. (The title line that stood
-    // here is gone: it took a line for nothing, 17.7. The faces are bigger instead.)
+    // Top left (UI rework 16 Nov, his mock-up): the title, then the turn strip, a thin gold line under it
+    const tS = this.lay.titleSize;
+    const tg = keep(this.add.graphics());
+    const ty = m + Math.round(tS * 0.75);
+    tg.fillStyle(UI.bronzeLight, 1).fillTriangle(m, ty, m + tS * 0.4, ty - tS * 0.4, m + tS * 0.8, ty).fillTriangle(m, ty, m + tS * 0.4, ty + tS * 0.4, m + tS * 0.8, ty);
+    this.titleText = keep(this.add.text(m + tS * 1.3, ty, 'FABIEN  ·  OF GODS & MEN', textStyle(tS, '#e4c27c')).setOrigin(0, 0.5).setLetterSpacing(2));
     const line = keep(this.add.graphics());
     line.lineStyle(1, UI.bronze, 0.8);
-    if (this.lay.portrait) line.lineBetween(m, this.stripY + S(36), m + S(300), this.stripY + S(36));
+    this.stripLine = line;
     this.turnStripLayer = keep(this.add.container(0, 0));
+    // Down the left: every fighter as a diamond, heroes then enemies (see refreshTurnStrip)
+    this.unitListLayer = keep(this.add.container(0, 0));
 
-    // Top right: the turn number, and the tile in focus (its ground and height)
-    const bw = S(206);
-    const bh = S(52);
+    // Top right: the turn number, the tile in focus (its ground and height) and a picture of it
+    const bw = Math.max(S(206), T(13) * 10);
+    const bh = Math.round(T(13) * 1.5 + T(20) * 1.3 + S(12));
     const bx = W - m - bw;
-    darkPanel(keep(this.add.graphics()), bx, m, bw, bh, s);
-    keep(this.add.text(bx + S(12), m + S(14), 'TURN', textStyle(T(12), '#a89a78')).setLetterSpacing(2).setOrigin(0, 0.5));
-    this.turnText = keep(this.add.text(bx + bw - S(12), m + S(14), '01', textStyle(T(20), '#ffe08a')).setOrigin(1, 0.5));
-    this.tileText = keep(this.add.text(bx + S(12), m + S(37), '', textStyle(T(12), '#e8d5a8')).setOrigin(0, 0.5));
+    framePanel(keep(this.add.graphics()), bx, m, bw, bh, s);
+    const rowA = m + S(6) + T(20) * 0.65, rowB = rowA + T(20) * 0.65 + T(13) * 0.85;
+    const turnWord = keep(this.add.text(bx + S(12), rowA, 'TURN', textStyle(T(13), '#a89a78')).setLetterSpacing(2).setOrigin(0, 0.5));
+    // the title never runs under this panel: on a narrow screen it loses its letter spacing
+    if (this.titleText.x + this.titleText.width > bx - S(8)) this.titleText.setLetterSpacing(0).setText('FABIEN · OF GODS & MEN');
+    this.turnText = keep(this.add.text(turnWord.x + turnWord.width + S(10), rowA, '01', textStyle(T(20), '#ffe08a')).setOrigin(0, 0.5));
+    this.tileText = keep(this.add.text(bx + S(12), rowB, '', textStyle(T(13), '#e8d5a8')).setOrigin(0, 0.5));
+    this.tilePic = keep(this.add.graphics());
+    this.tilePicAt = { x: bx + bw - S(12) - S(26), y: m + bh / 2 - S(5), w: S(52) };
 
     // Under it: turn the camera (his curved arrows) either side of the little
     // map of the board, and sound on or off
@@ -1021,7 +1038,7 @@ export default class BattleScene extends Phaser.Scene {
       const v = cam.worldView;
       const ux = (u.view.x - v.x) * cam.zoom;
       const uy = (u.view.y - u.centerY - v.y) * cam.zoom;
-      const gap = TILE_WIDTH * 0.42 * cam.zoom;
+      const gap = TILE_WIDTH * 0.6 * cam.zoom;
       x = ux + gap + total <= W - m ? ux + gap : ux - gap - total;
       y = uy - tallest / 2;
     }
@@ -1674,6 +1691,13 @@ export default class BattleScene extends Phaser.Scene {
     // The plate over its head (health bar, number, turn place): hidden until it is hit, tapped
     // or can be targeted (M6, src/nameplate.js)
     const plate = buildPlate(this, { topY, barBack, hpFill, job: data.job, hp: data.hp, maxHp: data.hp });
+    // UI rework 16 Nov (his mock-up): a small gold diamond at the bar's left end; an enemy's bar is red
+    const tip = this.add.graphics();
+    tip.fillStyle(0x120c08, 1).fillPoints([{ x: 0, y: -6 }, { x: 6, y: 0 }, { x: 0, y: 6 }, { x: -6, y: 0 }], true);
+    tip.lineStyle(1.5, UI.bronzeLight, 1).strokePoints([{ x: 0, y: -5 }, { x: 5, y: 0 }, { x: 0, y: 5 }, { x: -5, y: 0 }], true);
+    tip.setPosition(barBack.x - 9, barBack.y);
+    plate.addAt(tip, 0);
+    if (data.side !== 'hero') hpFill.setFillStyle(0xd8453a);
     const pieces = [floorShade, shadow, body, sprite, labelText, plate, badgeBack, badgeText, tagRow].filter(Boolean);
     const view = this.add.container(x, y, pieces).setDepth(depthFor(data.col, data.row) + 1);
     // less over the characters (roadmap 8.4): the job badge goes; the profile card says it
@@ -1938,41 +1962,44 @@ export default class BattleScene extends Phaser.Scene {
   // unit also carries its place in the order as a small number over its head.
   refreshTurnStrip() {
     this.turnStripLayer.removeAll(true);
-    const { s, m, portrait } = this.lay;
-    const y0 = this.stripY;
-    let count = 5;
-    if (!portrait) {
-      // as many as fit above the profile card
-      const room = Math.min(this.cardTop, this.lay.H - 200 * s) - m - (y0 + 48 * s);
-      count = Math.max(2, Math.min(8, Math.floor(room / (36 * s))));
-    }
-    // Each fighter once, in the order of their NEXT turn (M7, 17.7): a fast fighter used to
-    // show two or three times and push the others off the strip.
+    const { s, m, W, stripR } = this.lay;
+    const y = this.stripY;
+    // UI rework 16 Nov (his mock-up): one row of round faces under the title, on every screen.
+    // The unit acting now is bigger, in his glowing medal, with a gold arrow either side;
+    // then each fighter once, in the order of their next turn (M7, 17.7), as many as fit
+    // left of the turn panel.
+    const r = Math.round(stripR * 0.68);
+    const step = Math.round(r * 2 + 10 * s);
+    const room = W - m - this.tilePicAt.w - Math.round(300 * s) - (m + stripR * 2 + 24 * s);
+    const count = Math.max(2, Math.min(7, Math.floor(room / step)));
     const lineup = [this.activeUnit];
     for (const u of previewTurns(this.units, this.units.length * 3)) if (!lineup.includes(u) && lineup.length <= count) lineup.push(u);
     this.stripLineup = lineup;
-    const small = Math.max(Math.round(13 * s), this.lay.minText);
+    const arrows = this.add.graphics();
+    arrows.fillStyle(UI.gold, 1);
+    const a = Math.round(5 * s);
+    const ax = m + a;
+    arrows.fillTriangle(ax - a, y - a * 1.4, ax + a, y, ax - a, y + a * 1.4);
+    const cx0 = ax + a + Math.round(6 * s) + stripR;
+    let x = cx0;
     lineup.forEach((unit, i) => {
       const now = i === 0;
-      const x = portrait ? (now ? m + 26 * s : m + 78 * s + (i - 1) * 38 * s) : m + 26 * s;
-      const y = portrait ? y0 : now ? y0 : y0 + 48 * s + (i - 1) * 36 * s;
       const medal = now
-        ? medalPortrait(this, x, y, 23 * s, unit, portraitKey(unit.id, unit), { active: true })
-        : portraitMedallion(this, x, y, 16 * s, unit, portraitKey(unit.id, unit), { active: false });
+        ? medalPortrait(this, x, y, stripR, unit, portraitKey(unit.id, unit), { active: true })
+        : portraitMedallion(this, x, y, r, unit, portraitKey(unit.id, unit), { active: false });
       this.turnStripLayer.add(medal);
-      if (!now) {
-        // its place in the order
-        this.turnStripLayer.add(this.add.text(x + (portrait ? 12 : -22) * s, y + (portrait ? -14 : 0) * s, String(i + 1), textStyle(small, '#ffe08a', { fontStyle: 'bold' })).setOrigin(0.5));
-      }
       if (now) {
-        // the "now" marker: the word under the big face, in the side's colour, and the arrow to the next
-        this.turnStripLayer.add(this.add.text(x, y + 23 * s + small * 0.75, 'NOW', textStyle(small, unit.side === 'hero' ? '#9fd4ff' : '#ff9a8a', { fontStyle: 'bold' })).setOrigin(0.5).setLetterSpacing(1));
-        const arrow = this.add.graphics();
-        arrow.fillStyle(UI.gold, 1);
-        if (portrait) arrow.fillTriangle(x + 32 * s, y, x + 40 * s, y - 6 * s, x + 40 * s, y + 6 * s);
-        this.turnStripLayer.add(arrow);
-      }
+        // the mark: a small gold point under the face, in the side's colour edge
+        arrows.fillStyle(unit.side === 'hero' ? 0x9fd4ff : 0xff9a8a, 1).fillTriangle(x - a, y + stripR + a * 0.2, x + a, y + stripR + a * 0.2, x, y + stripR + a * 1.8);
+        arrows.fillStyle(UI.gold, 1);
+        x += stripR + Math.round(10 * s) + r;
+      } else x += step;
     });
+    const endX = x - step + r + Math.round(8 * s);
+    arrows.fillTriangle(endX, y - a * 1.4, endX + 2 * a, y, endX, y + a * 1.4);
+    this.turnStripLayer.add(arrows);
+    if (this.stripLine) this.stripLine.clear().lineStyle(1, UI.bronze, 0.8).lineBetween(m, y + stripR + Math.round(6 * s), endX + 2 * a, y + stripR + Math.round(6 * s));
+    this.refreshUnitList();
     this.ui(this.turnStripLayer);
     if (this.turnText) this.turnText.setText(String(Math.max(1, this.turnCount)).padStart(2, '0'));
     this.refreshTileInfo();
@@ -2002,6 +2029,38 @@ export default class BattleScene extends Phaser.Scene {
     }
   }
 
+  // Down the left side (UI rework 16 Nov): every fighter as a small diamond, heroes first, in
+  // hero teal and enemy red; the one acting now has a gold edge, the fallen are dimmed.
+  // A tap on one shows its card (as a tap on the figure does).
+  refreshUnitList() {
+    const L = this.unitListLayer;
+    if (!L) return;
+    L.removeAll(true);
+    const { s, m, portrait, H } = this.lay;
+    const d = Math.round(Math.max(20 * s, this.lay.minTap * 0.42)); // half the diamond's height
+    const gap = Math.round(5 * s);
+    const list = [...this.units.filter((u) => u.side === 'hero'), ...this.units.filter((u) => u.side !== 'hero')].filter((u) => !u.decoy && !u.isDecoy);
+    const y0 = (portrait ? this.lay.top : this.stripY + this.lay.stripR + Math.round(20 * s)) + d + gap;
+    // never down into the turning buttons halfway down a phone screen
+    const yMax = (this.rotateSpots && this.rotateSpots.length ? Math.min(...this.rotateSpots.map((p) => p.y)) - Math.round(30 * s) : H * 0.62) - d;
+    const x = m + d;
+    list.forEach((u, i) => {
+      const y = y0 + i * (2 * d + gap);
+      if (y > yMax) return;
+      const g = this.add.graphics();
+      const pts = (k) => [{ x, y: y - d - k }, { x: x + d + k, y }, { x, y: y + d + k }, { x: x - d - k, y }];
+      g.fillStyle(0x000000, 0.55).fillPoints(pts(3), true);
+      const img = this.add.image(x, y, diamondPortrait(this, u, portraitKey(u.id, u), 96)).setDisplaySize(2 * d, 2 * d);
+      const edge = this.add.graphics();
+      edge.lineStyle(Math.max(1.5, 2 * s), u === this.activeUnit ? UI.gold : u.side === 'hero' ? UI.hero : UI.enemy, 1).strokePoints(pts(1), true);
+      if (!u.alive) { img.setAlpha(0.3).setTint(0x777777); edge.setAlpha(0.4); }
+      const hit = this.add.zone(x, y, 2 * d, 2 * d).setInteractive({ useHandCursor: true });
+      hit.on('pointerdown', () => { if (u.alive && !this.busy) this.inspect(u); });
+      L.add([g, img, edge, hit]);
+    });
+    this.ui(L);
+  }
+
   // Top right: the ground and height of the tile in focus (the target being
   // looked at, else the unit whose turn it is), as in his mockup.
   refreshTileInfo() {
@@ -2009,6 +2068,12 @@ export default class BattleScene extends Phaser.Scene {
     const t = this.hoverTile || this.pendingTarget || (this.approach && this.approach.tile) || this.activeUnit; // (the tile under the mouse first, M8)
     const ground = groundName(terrainAt(mapData, t.col, t.row));
     this.tileText.setText(ground + '   ·   ELEV ' + getHeight(t.col, t.row));
+    // and a small picture of that ground (UI rework 16 Nov)
+    if (this.tilePic && this.tilePicAt) {
+      const c = groundColors(terrainAt(mapData, t.col, t.row));
+      const p = this.tilePicAt;
+      tileBlock(this.tilePic.clear(), p.x, p.y, p.w, c.top, c.side);
+    }
   }
 
   // Outlines: red-orange on the enemy picked for attack, gold on the unit
@@ -2221,7 +2286,7 @@ export default class BattleScene extends Phaser.Scene {
       text = (self ? 'Tap Herbs again to use them on yourself,\nor tap a green tile to heal an ally.' : 'Tap a green tile to heal an ally.');
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
-      text = 'Tap a ' + ({ hex: 'purple', throw: 'red', toss: 'red', charge: 'red', double: 'red', javelin: 'red', dive: 'red', heal: 'green', poison: 'green' }[kind] || 'gold') + ' tile: who gets ' + spells[this.selectedSpell].name + '?';
+      text = 'Tap a lit tile: who gets ' + spells[this.selectedSpell].name + '?'; // (the tiles are in the skill's colour)
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -2855,7 +2920,8 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    const color = spell.kind === 'hex' ? 0xb48cff : ['throw', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive'].includes(spell.kind) ? 0xe05a47 : spell.kind === 'heal' || spell.kind === 'poison' ? 0x9fdc8a : GOLD;
+    // UI rework 16 Nov: the target tiles in the skill's own colour (fire orange, lightning violet...)
+    const color = spell.color ? Phaser.Display.Color.HexStringToColor(spell.color).color : GOLD;
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
     this.holdCharge(unit, id);
     this.refreshOutlines();
@@ -3707,7 +3773,7 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.hp < before) drainChunk(this, unit, before / unit.maxHp, fraction);
     else if (unit.hp > before) clearChunk(unit);
     unit.shownHp = unit.hp;
-    unit.hpFill.setFillStyle(fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f); // red when low
+    unit.hpFill.setFillStyle(unit.side !== 'hero' ? 0xd8453a : fraction <= 0.35 ? 0xe05a47 : 0x6fcf7f); // heroes green (red when low), enemies red (UI rework 16 Nov)
     if (fraction > 0 && fraction <= 0.3 && !unit.lowGlow && unit.view.active) {
       unit.lowGlow = this.add.ellipse(0, 2, 74, 32, 0xff3b2e, 0.35).setBlendMode(Phaser.BlendModes.ADD);
       unit.view.addAt(unit.lowGlow, 1);

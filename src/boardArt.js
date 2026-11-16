@@ -29,6 +29,11 @@ const PALETTE = {
 };
 // What the top right of the battle screen calls each kind of ground
 const GROUND_NAMES = { caveSand: 'Sand', caveSigil: 'Sigil', rubble: 'Rubble', floor: 'Floor', water: 'Water', bridge: 'Bridge', rift: 'Rift', rock: 'Rock' };
+// The ground's colours for the little tile picture in the turn panel (UI rework 16 Nov): { top, side } as numbers
+export function groundColors(kind) {
+  const p = PALETTE[kind] || PALETTE.floor;
+  return { top: parseInt(p.top.slice(1), 16), side: p.side };
+}
 export function groundName(kind) {
   return GROUND_NAMES[kind] || kind.charAt(0).toUpperCase() + kind.slice(1);
 }
