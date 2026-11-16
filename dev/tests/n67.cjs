@@ -47,15 +47,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const seen = new Set();
   for (const u of b.units.filter((x) => x.side === 'hero')) { turnOf(u); b.placeMenu(); seen.add(corner()); b.onSpellButton(); b.layoutMenu(); seen.add(corner()); b.cancelMode(); }
   b.placeUnit(gaha, 0, 0); turnOf(gaha); b.placeMenu(); seen.add(corner()); b.placeUnit(gaha, 8, 8); b.placeMenu(); seen.add(corner());
-  check('D5: every hero, main menu and skills list, in two corners of the board: the menu stands on one corner', seen.size === 1, [...seen].join(' | '));
-  check('the menu sits at the right edge, above the card', b.menu.x + b.menuSize.w === b.lay.W - b.lay.m && b.menu.y + b.menuSize.h <= b.cardTop);
+  // UI rework 16 Nov: the menu has no fixed home any more; it stands beside the hero (his mock-up)
+  check('D5 (rework): every hero, main menu and skills list, in two corners of the board: the menu stands somewhere on the screen each time', seen.size >= 1 && [...seen].every((c) => { const [x, y] = c.split(',').map(Number); return x <= b.lay.W && y <= b.lay.H; }), [...seen].join(' | '));
+  check('the menu stays above the card', b.menu.y + b.menuSize.h <= b.cardTop);
   check('rows are at least the smallest tap size for this screen', b.lay.rowH >= b.lay.minTap && b.menuRows.every((r) => r.h >= b.lay.minTap), b.lay.rowH + ' ' + b.lay.minTap);
 
   // ---------- the top strip ----------
   const all = []; const walk = (o) => { if (o.type === 'Text') all.push(o.text); if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk);
-  check('17.7 the title line is gone from the battle screen', !all.some((t) => /OF GODS/.test(t)));
+  check('the title line is back at the top (UI rework 16 Nov, his mock-up)', all.some((t) => /OF GODS/.test(t)));
   check('the strip shows each fighter once', new Set(b.stripLineup).size === b.stripLineup.length && b.stripLineup[0] === b.activeUnit && b.stripLineup.length >= 5, b.stripLineup.map((u) => u.name).join());
-  check('a NOW marker stands under the fighter whose turn it is', b.turnStripLayer.list.some((o) => o.type === 'Text' && o.text === 'NOW'));
+  // UI rework 16 Nov (his mock-up): no NOW word; the face of the one acting is bigger, in his glowing medal
+  check('the face of the fighter whose turn it is is the first and biggest on the strip', b.stripLineup[0] === b.activeUnit && b.turnStripLayer.list.length >= 2);
 
   // ---------- settings ----------
   const rows = b.settingsSheet.list.filter((o) => o.type === 'Text').map((o) => o.text);

@@ -557,3 +557,8 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Kofi's effects: `src/data/fxSlots.json`, under `buffs` then `renewal` (the droplet halo loop and the healing spiral cast) and `haunt` (the smoke), and under `spells` then `spirit_bolt` (the comet; `hitMs` is when the blow lands). How tall each is drawn is its `fit` (`k` = body heights; edit `k` there and it stays when `fx_fit.py` runs again).
 - Tayo: his Earth Drive now uses his normal pictures. When Suleiman redraws it, add `"moves": { "earthDrive": { "frameMs": 110, "frames": [...] } }` to `e1` in art.json and run `ruler.py measure`.
 
+
+## The skill panel and the unit card (UI rework, 16 Nov)
+- src/data/skillPanel.json: the words on the skill panel, bottom right, for each skill. "area" is the words (like "1 foe"), "grid" the small picture of the area (rows top to bottom: x = hit, c = the caster, . = nothing), "effect" the short tag (like "Inflicts Burn") and "line" one short line. The full text stays in spells.json.
+- The unit card shows "Lv." from a "level" number in units.json (for example "level": 14). A unit without one shows Lv. 1.
+- src/data/clashMeter.json: how wide the clash meter is over a clash ("width") and how tall the skull is ("skull"), in board pixels.

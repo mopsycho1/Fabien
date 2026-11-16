@@ -36,7 +36,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 8.3 the menu beside the unit ----------
   await sleep(50);
-  check('8.3 the menu shows on a hero\'s turn, a small panel at the bottom right (15 Nov: under a third of the screen wide)', b.menu.visible && b.menu.x + b.menuSize.w > 720 - 2 * b.lay.m && b.menuSize.w <= 720 / 3, b.menu.x + ',' + b.menu.y + ' w ' + b.menuSize.w);
+  const beside = (u) => { const cam = b.cameras.main, v = cam.worldView; const ux = (u.view.x - v.x) * cam.zoom; const tw = (G.TILE_WIDTH || 128) * cam.zoom; const left = b.sideMenu && b.sideMenu.visible ? b.sideMenu.x : b.menu.x; const right = b.menu.x + b.menuSize.w; const inside = ux > left && ux < right; const near = Math.min(Math.abs(left - ux), Math.abs(right - ux)) <= 1.5 * tw + 2; return !inside && (near || left <= b.lay.m + 1 || right >= b.lay.W - b.lay.m - 1); };
+  // UI rework 16 Nov (his mock-up): the menu stands beside the unit whose turn it is (it was a fixed home bottom right)
+  check('8.3 the menu shows on a hero\'s turn, a small panel beside the hero (under a third of the screen wide)', b.menu.visible && beside(b.activeUnit) && b.menuSize.w <= 720 / 3, b.menu.x + ',' + b.menu.y + ' w ' + b.menuSize.w);
   check('8.3 its rows: Thrust, Engage, Skills, Items, End turn', b.menuRows.map((r) => r.label.text).join('|') === 'Move|Thrust|Engage|Skills|Items|End turn' || b.menuRows.map((r) => r.label.text).join('|') === 'Thrust|Engage|Skills|Items|End turn', b.menuRows.map((r) => r.label.text).join('|'));
   check('8.3 the menu stays on screen', b.menu.x >= 0 && b.menu.y >= 0 && b.menu.x + b.menuSize.w <= 721 && b.menu.y + b.menuSize.h <= 1281);
   reset([[layra, 2, 5], [rabdul, 2, 1]], layra);
@@ -104,7 +106,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     for (const k of b.reachableKeys) { const [c, rr] = k.split(',').map(Number); const p = G.tileToScreen(c, rr); const q = scr(p.x, p.y); if (q.x > r.x && q.x < r.x + r.w && q.y > r.y && q.y < r.y + r.h) n++; }
     return n;
   };
-  check('8.9 walking: the menu covers as few blue tiles as it can (none here)', b.mode === 'move' && b.menu.visible && covers() === 0, 'covers ' + covers());
+  check('8.9 walking: the menu stands beside the hero, never over it', b.mode === 'move' && b.menu.visible && beside(gaha), 'covers ' + covers() + ' blue tiles');
   b.onAttackButton(); await sleep(50);
   check('8.9 picking a target: the menu shrinks to a small cancel tag', b.mode === 'attack' && !b.menu.visible && b.pill.visible && /Thrust/.test(b.pillText.text), b.pillText.text);
   check('8.9 the hidden menu can\'t catch taps', b.slots.every((r) => !r.hit.input || !r.hit.input.enabled));

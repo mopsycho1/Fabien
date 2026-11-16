@@ -12,7 +12,8 @@ import { play } from './audio.js';
 
 const UI_FILES = ['top', 'bottom', 'hint', 'ring', 'medal_normal', 'medal_glow', 'medal_grey',
   'bar_normal', 'bar_glow', 'bar_grey', 'barS_normal', 'barS_glow', 'barS_grey',
-  'clash_frame']; // his clash banner (30 Oct, roadmap 8.6)
+  'clash_frame', // his clash banner (30 Oct, roadmap 8.6)
+  'clash_skull', 'clash_bar', 'clash_fill_red', 'clash_fill_blue']; // his clash meter (roadmap 8.21, dev/tools/make_clash_meter.py)
 // his 14 icons: a round medal (for round buttons) and just the symbol (for a button's socket)
 export const UI_ICONS = ['walk', 'sword', 'spear', 'lightning', 'crossed', 'star', 'hourglass',
   'shield', 'run', 'gem', 'undo', 'redo', 'sound', 'mute'];

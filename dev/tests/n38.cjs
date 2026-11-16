@@ -111,7 +111,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   put(gaha, 5, 5); b.update(); b.placeMenu();
   check('8.16 it stays where it was put when the unit moves', b.menu.x === pinned.x && b.menu.y === pinned.y);
   b.activeUnit = sudeen; b.refreshButtons(); b.placeMenu();
-  check('8.16 and on the next hero\'s turn', b.menu.x === pinned.x && b.menu.y === pinned.y);
+  // (a wider menu is kept on the screen: its left edge may come in, UI rework 16 Nov)
+  { const lead = b.sideMenu.visible ? b.sideMenu.x : b.menu.x; const total = b.menu.x + b.menuSize.w - lead;
+    check('8.16 and on the next hero\'s turn', lead === Math.min(pinned.x, b.lay.W - b.lay.m - total) && b.menu.y === pinned.y, pinned.x + ',' + pinned.y + ' -> ' + lead + ',' + b.menu.y); }
   b.dragMenu({ x: 99999, y: 99999, isDown: true });
   b.grabMenu({ x: b.menu.x + 5, y: b.menu.y + 5, isDown: true }); b.dragMenu({ x: 99999, y: 99999, isDown: true }); b.input.emit('pointerup', {});
   check('8.16 it can\'t be dragged off the screen', b.menu.x + b.menuSize.w <= b.lay.W && b.menu.y + b.menuSize.h <= b.lay.H);

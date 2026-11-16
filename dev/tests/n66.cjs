@@ -29,7 +29,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // a target that can be chosen shows its health while the player is choosing
   put(gaha, 4, 4); put(rabdul, 4, 3); b.activeUnit = gaha; gaha.hasActed = false; b.busy = false; b.cancelMode();
   b.onAttackButton(); await sleep(250);
-  put(bull, 5, 4); b.refreshStatus(); await sleep(plates.tapMs + 700); /* (the bull's tap flash from above has gone) */ /* a second foe in reach */
+  put(bull, 5, 4); b.refreshStatus(); await sleep(plates.tapMs + 700); /* then on the game's clock (under load it runs behind the real one) */ for (let k = 0; k < 60 && b.time.now < (bull.plateUntil || 0) + 450; k++) await sleep(100); /* (the bull's tap flash from above has gone) */ /* a second foe in reach */
   check('choosing a target (16 Nov): two foes in reach and none tapped, so no plate shows', b.mode === 'attack' && !rabdul.plateHold && !bull.plateHold && rabdul.plate.alpha < 0.05 && bull.plate.alpha < 0.05, b.mode + ' ' + rabdul.plate.alpha + ' ' + bull.plate.alpha);
   b.handleTap(rabdul.col, rabdul.row); await sleep(300);
   check('tapping Rabdul shows his health only, not the bull\'s', b.pendingTarget === rabdul && rabdul.plateHold === true && rabdul.plate.alpha > 0.9 && !bull.plateHold && bull.plate.alpha < 0.05, b.mode + ' ' + rabdul.plate.alpha + ' ' + bull.plate.alpha);

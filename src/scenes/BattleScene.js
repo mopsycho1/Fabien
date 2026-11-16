@@ -89,6 +89,7 @@ import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept fo
 // ("map": "cavern"); the game uses the Hidden Cavern otherwise.
 const MAPS = { cavern: cavernMap, yoba: yobaMap };
 let mapData = cavernMap; // the map of the battle being played (set in create)
+import clashMeterData from '../data/clashMeter.json'; // his clash meter's slots (roadmap 8.21)
 import spells from '../data/spells.json';   // the Sage's spells
 
 // Says when a spell can be used, from its "use" tag in spells.json.
@@ -937,7 +938,17 @@ export default class BattleScene extends Phaser.Scene {
     // the compact rows' letters: 13 real pixels at least, so they read at a glance
     const word = Math.max(this.lay.minText, Math.ceil(13 / this.lay.real), Math.round(15 * s));
     const icon = Math.max(20 * s, word * 1.35);
-    const mW = compact ? Math.round(2 * pad + 6 * s + icon + 7 * s + word * 4.3 + 8 * s) : menuW; // room for "End turn"
+    let mW = compact ? Math.round(2 * pad + 6 * s + icon + 7 * s + word * 4.3 + 8 * s) : menuW; // room for "End turn"
+    if (compact) {
+      // wide enough for its longest row with its cost ("Empower  3 Poise" in a clash)
+      let need = 0;
+      for (const r of rows) {
+        r.word.setFontSize(word);
+        r.cost.setFontSize(Math.max(this.lay.minText, Math.round(15 * s)));
+        need = Math.max(need, r.word.width + (r.cost.text ? r.cost.width + 10 * s : 0));
+      }
+      mW = Math.max(mW, Math.round(2 * pad + 6 * s + icon + 7 * s + need + 16 * s));
+    }
     const rH = compact ? this.lay.minTap : rowH;
     const colW = mW - 2 * pad;
     rows.forEach((r, i) => {
@@ -1039,7 +1050,11 @@ export default class BattleScene extends Phaser.Scene {
       const ux = (u.view.x - v.x) * cam.zoom;
       const uy = (u.view.y - u.centerY - v.y) * cam.zoom;
       const gap = TILE_WIDTH * 0.6 * cam.zoom;
-      x = ux + gap + total <= W - m ? ux + gap : ux - gap - total;
+      // in a clash, the side away from the foe, so the clash meter between them stays in sight
+      const foe = u.engagedWith && u.engagedWith.view;
+      const wantLeft = foe ? foe.x > u.view.x : false;
+      const fitsRight = ux + gap + total <= W - m, fitsLeft = ux - gap - total >= m;
+      x = (wantLeft ? !fitsLeft && fitsRight : fitsRight || !fitsLeft) ? ux + gap : ux - gap - total;
       y = uy - tallest / 2;
     }
     x = Math.min(Math.max(x, m), W - m - total);
@@ -4741,7 +4756,9 @@ export default class BattleScene extends Phaser.Scene {
     const px = W / 2 - pw / 2, py = Math.round(H / 2 - ph / 2);
     const parts = [];
     const add = (o) => { this.ui(o); parts.push(o); return o; };
-    add(bronzePanel(this, px, py, pw, ph).setDepth(301));
+    // the FFT frame of the UI rework (16 Nov), like every other panel of the battle screen
+    const resultFrame = add(this.add.graphics().setDepth(301));
+    framePanel(resultFrame, px, py, pw, ph, Math.max(1, ph / 500), { alpha: 0.93 });
     // the word sweeps in from the side, over a streak of light
     const streak = add(this.add.rectangle(-W, py + K(96), W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
     const title = add(this.add.text(-W / 2, py + K(96), won ? 'Victory' : 'Defeat', textStyle(K(96), won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
@@ -7730,6 +7747,11 @@ export default class BattleScene extends Phaser.Scene {
 
       const mx = (u.view.x + v.view.x) / 2;
       const my = Math.min(u.view.y - u.topY, v.view.y - v.topY) - 50; // above both health bars and tags
+      // His clash meter (roadmap 8.21, UI rework step 4): the raven skull over the bar of seven slots
+      if (this.textures.exists('ui:clash_skull') && this.textures.exists('ui:clash_bar')) {
+        this.engageMarks.push(ground, this.clashMeter(u, v, mx, my));
+        continue;
+      }
       const icon = this.add.graphics().setDepth(85);
       icon.fillStyle(0x1a1410, 0.85);
       icon.fillCircle(mx, my, 16);
@@ -7764,6 +7786,47 @@ export default class BattleScene extends Phaser.Scene {
 
       this.engageMarks.push(ground, icon);
     }
+  }
+
+  // Suleiman's clash meter over two locked fighters (roadmap 8.21): the skull medallion, and in a
+  // stance duel the bar under it. The bar's red end points at the enemy and its blue end at the
+  // hero; the slots fill from the gold middle toward whoever is winning, in their colour (blue
+  // for a hero, red for an enemy), one slot per point of momentum. Sizes in src/data/clashMeter.json.
+  clashMeter(u, v, mx, my) {
+    const M = clashMeterData;
+    const box = this.add.container(mx, my).setDepth(85);
+    const k = M.width / M.bar[0];
+    const duel = isStanceDuel() && u.engagement;
+    const barY = 6;
+    if (duel) {
+      const enemy = u.side !== 'hero' ? u : v;
+      const hero = enemy === u ? v : u;
+      const flip = enemy.view.x > hero.view.x; // the red end goes on the enemy's side
+      const bar = this.add.image(0, barY, 'ui:clash_bar').setScale(k).setFlipX(flip);
+      box.add(bar);
+      const first = u.engagement.first;
+      const other = first === u ? v : u;
+      const track = u.engagement.track; // from "first"'s side
+      const leader = track > 0 ? first : track < 0 ? other : null;
+      const n = Math.min(Math.abs(track), 3);
+      if (leader) {
+        const leftSide = leader.view.x <= (leader === u ? v : u).view.x;
+        const fill = leader.side === 'hero' ? 'ui:clash_fill_blue' : 'ui:clash_fill_red';
+        for (let i = 1; i <= n; i++) {
+          const slot = M.slots[leftSide ? 3 - i : 3 + i];
+          // the slot's middle, from the bar's middle, on the leader's side of the screen (the
+          // slots are the same either way, so a mirrored bar needs nothing more)
+          const sx = (slot[0] + slot[2]) / 2 - M.bar[0] / 2;
+          const sy = (slot[1] + slot[3]) / 2 - M.bar[1] / 2;
+          const piece = this.add.image(sx * k, barY + sy * k, fill).setDisplaySize((slot[2] - slot[0]) * k, (slot[3] - slot[1]) * k);
+          box.add(piece);
+        }
+      }
+    }
+    const skull = this.add.image(0, duel ? barY - M.bar[1] * k * 0.12 : 0, 'ui:clash_skull');
+    skull.setScale(M.skull / skull.height).setOrigin(0.5, duel ? 0.92 : 0.5);
+    box.add(skull);
+    return box;
   }
 
   // The small tags above every unit's health bar.

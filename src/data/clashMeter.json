@@ -1,0 +1,53 @@
+{
+  "note": "Suleiman's clash meter (roadmap 8.21), cut by dev/tools/make_clash_meter.py. Slots are [x0, y0, x1, y1] in clash_bar.png pixels, left to right; the middle one (3) is the gold neutral slot. The bar's red end is on the left. width is how wide the bar is drawn over a clash, in board pixels; skull the medallion's height.",
+  "bar": [
+    966,
+    151
+  ],
+  "slots": [
+    [
+      185,
+      30,
+      256,
+      69
+    ],
+    [
+      273,
+      30,
+      342,
+      69
+    ],
+    [
+      360,
+      30,
+      435,
+      69
+    ],
+    [
+      448,
+      30,
+      523,
+      69
+    ],
+    [
+      537,
+      30,
+      609,
+      69
+    ],
+    [
+      629,
+      30,
+      705,
+      69
+    ],
+    [
+      723,
+      30,
+      792,
+      69
+    ]
+  ],
+  "width": 170,
+  "skull": 64
+}
