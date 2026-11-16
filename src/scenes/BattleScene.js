@@ -1989,9 +1989,9 @@ export default class BattleScene extends Phaser.Scene {
 
   refreshStatus() {
     this.refreshPreview();
-    // whoever can be chosen as a target right now shows its health (M6: the bars are hidden otherwise)
-    const marked = TARGET_MODES.includes(this.mode) ? this.targetsInRange || [] : [];
-    for (const u of this.units || []) holdPlate(this, u, marked.includes(u) || u === this.pendingTarget);
+    // only the one being tapped shows its health while a target is chosen (16 Nov: with the bars set to "when hit" it
+    // used to show every foe in range); pointing at one with the mouse flashes it too (boardMove). Hides again when it is let go.
+    for (const u of this.units || []) holdPlate(this, u, TARGET_MODES.includes(this.mode) && u === this.pendingTarget);
     if (this.battleOver) return; // the result screen has taken over
 
     const unit = this.activeUnit;
