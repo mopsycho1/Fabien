@@ -38,7 +38,7 @@ import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
-import { drawUnitCard, drawSkillPanel, cardHeight, cardSizes } from '../battleCard.js';
+import { drawUnitCard, drawSkillPanel, cardHeight, cardSizes, emblemFor, framePanel } from '../battleCard.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
@@ -861,6 +861,13 @@ export default class BattleScene extends Phaser.Scene {
     this.menuGripHit = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive();
     this.menuGripHit.on('pointerdown', (pointer) => this.grabMenu(pointer));
     this.menu = keep(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5));
+    // UI rework 16 Nov: while the skills or items list is open, the main commands stay beside it
+    // (as in his mock-up). These rows copy the main menu; a tap on another command closes the list first.
+    this.sidePanel = this.add.graphics();
+    this.sideRows = [0, 1, 2, 3, 4, 5].map(() => new MenuRow(this));
+    for (const r of this.sideRows) r.set(null);
+    this.sideMenu = keep(this.add.container(0, 0, [this.sidePanel, ...this.sideRows.map((r) => r.view)]).setDepth(5).setVisible(false));
+    this.mainSpec = null;
     this.menuRows = [];
     this.menuSize = { w: 0, h: 0 };
     this.menuShown = null;
@@ -923,7 +930,7 @@ export default class BattleScene extends Phaser.Scene {
     });
     const h = pad * 2 + gripH + headH + rows.length * rH;
     this.menuPanel.clear();
-    darkPanel(this.menuPanel, 0, 0, mW, h, s);
+    framePanel(this.menuPanel, 0, 0, mW, h, s); // the FFT frame of the UI rework (16 Nov)
     // the grip: two short rows of gold dots, centred along the top (gold when it has been moved)
     this.menuGrip.clear().fillStyle(this.menuPin ? 0xffd27a : UI.bronzeLight, this.menuPin ? 0.95 : 0.7);
     for (let i = -2; i <= 2; i++) for (const dy of [-2.5, 2.5]) this.menuGrip.fillCircle(mW / 2 + i * 6 * s, pad + gripH / 2 + dy * s, 1.5 * s);
@@ -937,7 +944,38 @@ export default class BattleScene extends Phaser.Scene {
     this.menuRows = rows;
     this.menuSize = { w: mW, h };
     this.ui(this.menu);
+    // the main commands, remembered so they can stand beside a list (UI rework 16 Nov)
+    if (!header) this.mainSpec = { unit: this.activeUnit, font: word, w: mW, rows: rows.map((r) => ({ label: r.label.text, icon: r.iconName, enabled: r.enabled, onTap: r.onTap, emblem: r.emblem, accent: r.accent })) };
+    this.layoutSideMenu(header, pad, gripH);
     this.placeMenu();
+  }
+
+  // The main commands beside an open list (UI rework 16 Nov). The row of the open list is lit;
+  // a tap on it closes the list, a tap on another command closes the list and does that.
+  layoutSideMenu(header, pad, gripH) {
+    const spec = this.mainSpec;
+    const on = !!(header && spec && spec.unit === this.activeUnit);
+    this.sideSize = null;
+    for (const r of this.sideRows) { r.set(null); if (r.hit.input) r.hit.input.enabled = false; }
+    this.sidePanel.clear();
+    if (!on) return;
+    const { s } = this.lay;
+    const rH = this.lay.minTap;
+    const open = header === 'ITEMS' || header === 'Items' ? 'Items' : null;
+    spec.rows.slice(0, this.sideRows.length).forEach((d, i) => {
+      const r = this.sideRows[i];
+      const word = d.label.split('  ')[0];
+      const lit = open ? word === open : word === 'Skills' || word === 'Verses';
+      const tap = lit ? () => this.cancelMode() : () => { this.cancelMode(); if (d.onTap) d.onTap(); };
+      r.set(d.label, d.icon, d.enabled, tap, { selected: lit, accent: d.accent, emblem: d.emblem });
+      r.compact = true;
+      r.compactFont = spec.font;
+      r.place(pad, pad + gripH + i * rH, spec.w - 2 * pad, rH, s, this.lay.minText);
+    });
+    const h = pad * 2 + gripH + Math.min(spec.rows.length, this.sideRows.length) * rH;
+    framePanel(this.sidePanel, 0, 0, spec.w, h, s);
+    this.sideSize = { w: spec.w, h };
+    this.ui(this.sideMenu);
   }
 
   // The menu stands beside the unit whose turn it is, clear of the frame and
@@ -960,22 +998,38 @@ export default class BattleScene extends Phaser.Scene {
       for (const r of [...this.slots, ...this.halves, ...this.lowHalves]) if (r.hit.input) r.hit.input.enabled = show;
       if (this.menuGripHit.input) this.menuGripHit.input.enabled = show;
     }
+    const side = !!(show && this.sideSize);
+    this.sideMenu.setVisible(side);
+    for (const r of this.sideRows) if (r.hit.input) r.hit.input.enabled = side && r.view.visible;
     if (!show) return;
-    const { W, H, s, m, cardW, infoW } = this.lay;
-    // put somewhere by hand (8.16): it stays there, kept on the screen
-    if (this.menuPin) {
-      const { w, h } = this.menuSize;
-      const x = Math.min(Math.max(this.menuPin.fx * W, m), W - m - w);
-      const y = Math.min(Math.max(this.menuPin.fy * H, m), H - m - h);
-      this.menu.setPosition(Math.round(x), Math.round(y));
-      return;
-    }
-    // One fixed home, bottom right, in thumb reach (M7, 17.5): its bottom right corner never
-    // moves, whatever the unit, the camera or the number of rows. (Drag it by its grip to pin
-    // it somewhere else, 8.16.)
+    const { W, H, s, m } = this.lay;
     const { w, h } = this.menuSize;
-    const home = this.menuHome();
-    this.menu.setPosition(Math.round(home.x - w), Math.round(Math.max(m, home.y - h)));
+    const sw = side ? this.sideSize.w + Math.round(6 * s) : 0; // the main commands to the left of the list
+    const total = sw + w;
+    const tallest = Math.max(h, side ? this.sideSize.h : 0);
+    // the lowest the menu may reach: above the card and the skill panel
+    const floor = Math.min(this.cardTop || H, this.skillTop || H) - m;
+    let x, y;
+    if (this.menuPin) {
+      // put somewhere by hand (8.16): it stays there (remembered on the device), kept on the screen
+      x = this.menuPin.fx * W;
+      y = this.menuPin.fy * H;
+    } else {
+      // UI rework 16 Nov (his mock-up): beside the unit whose turn it is, to its right, or to its
+      // left when there is no room; level with its body
+      const cam = this.cameras.main;
+      const v = cam.worldView;
+      const ux = (u.view.x - v.x) * cam.zoom;
+      const uy = (u.view.y - u.centerY - v.y) * cam.zoom;
+      const gap = TILE_WIDTH * 0.42 * cam.zoom;
+      x = ux + gap + total <= W - m ? ux + gap : ux - gap - total;
+      y = uy - tallest / 2;
+    }
+    x = Math.min(Math.max(x, m), W - m - total);
+    y = Math.min(Math.max(y, this.lay.top), floor - tallest);
+    y = Math.max(y, m);
+    if (side) this.sideMenu.setPosition(Math.round(x), Math.round(y));
+    this.menu.setPosition(Math.round(x + sw), Math.round(y));
   }
 
   // The bottom right corner of the menu's home: above the card on an upright phone, above the
@@ -1004,7 +1058,8 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     this.lastGripTap = now;
-    this.menuDrag = { px: pointer.x, py: pointer.y, mx: this.menu.x, my: this.menu.y, moved: false };
+    const lead = this.sideMenu && this.sideMenu.visible ? this.sideMenu : this.menu; // (the group's left edge)
+    this.menuDrag = { px: pointer.x, py: pointer.y, mx: lead.x, my: lead.y, moved: false };
   }
 
   // The finger (or mouse) moves while holding the grip: the menu follows it.
@@ -2243,7 +2298,7 @@ export default class BattleScene extends Phaser.Scene {
       const entries = this.spellMenu(unit);
       [a, b, c].forEach((slot, i) => {
         const e = entries[i];
-        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip });
+        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -2632,6 +2687,8 @@ export default class BattleScene extends Phaser.Scene {
         selected: this.selectedSpell === id,
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
         tip: spellTip(id), // long press: what the skill does (13.49)
+        emblem: emblemFor(id), // his emblem, on a ring in the skill's colour (UI rework 16 Nov)
+        ring: Phaser.Display.Color.HexStringToColor(spell.color).color,
       };
     };
     if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map((id) => entry(id));
@@ -2651,6 +2708,7 @@ export default class BattleScene extends Phaser.Scene {
           onTap: () => this.openSpellGroup(group),
           selected: false,
           accent: GOLD,
+          emblem: group === 'Hexes' ? 'hexes' : group === 'Blessings' ? 'blessings' : 'skills',
         });
       }
     }

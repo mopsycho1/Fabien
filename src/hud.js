@@ -550,6 +550,11 @@ export function darkPanel(g, x, y, w, h, s = 1) {
   g.strokeRoundedRect(x + 3, y + 3, w - 6, h - 6, Math.max(2, r - 3));
 }
 
+// Suleiman's emblems per menu word (roadmap 6.53). Summon and Dig Up have no action in the game yet.
+const EMBLEM_FOR_WORD = { Skills: 'skills', Verses: 'skills', Blessings: 'blessings', Hexes: 'hexes', Meditate: 'meditate', Husk: 'husk', Haunt: 'haunt', Infuse: 'infuse', Press: 'press', Empower: 'empower' };
+// Words shown differently from the label (the label stays: the game and the tests read it)
+const SHOWN_AS = { 'End turn': 'Wait' };
+
 // One row of the small command menu beside the unit whose turn it is
 // (roadmap 8.3): his icon, the word, and on the right a cost (the part of the
 // label after two spaces, like "Furious Charge  3 MP"). It works like a
@@ -615,9 +620,12 @@ export class MenuRow {
 
   // label: the words on the row, or null to hide it.
   // tip: { title, body } for the long-press tooltip (see CommandButton.set)
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null } = {}) {
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null, emblem = null, ring = null } = {}) {
     this.tip = tip;
     const visible = label !== null;
+    // his emblem for this row (UI rework 16 Nov, roadmap 6.53): given, or found from the row's word
+    this.emblem = emblem || EMBLEM_FOR_WORD[(label || '').split('  ')[0].replace(/\s*>$/, '')] || null;
+    this.ringColor = ring;
     this.view.setVisible(visible);
     this.hit.setVisible(visible);
     this.enabled = visible && enabled;
@@ -627,7 +635,7 @@ export class MenuRow {
     this.iconName = iconName;
     this.label.setText(label || '');
     const [word, ...rest] = (label || '').split('  ');
-    this.word.setText(word);
+    this.word.setText(SHOWN_AS[word] || word); // (the label stays as it is: the game and the tests read it)
     this.cost.setText(rest.join(' ').trim());
     this.draw(false);
   }
@@ -660,10 +668,14 @@ export class MenuRow {
     // compact: the icon is as big as the letters allow (so it reads on a phone too)
     const d = this.compact ? Math.max(20 * s, (this.compactFont || 11) * 1.35) : 28 * s;
     const ix = this.compact ? x + 6 * s + d / 2 : x + 26 * s;
-    const key = this.iconName && glyphKey(this.scene, this.iconName);
+    const emblemKey = this.emblem && this.scene.textures.exists('ui:emblem_' + this.emblem) ? 'ui:emblem_' + this.emblem : null;
+    const key = emblemKey || (this.iconName && glyphKey(this.scene, this.iconName));
     this.icon.clear();
+    // a skill in a list: a soft ring in its colour behind the emblem (fire orange, lightning violet...)
+    if (emblemKey && this.ringColor) this.icon.fillStyle(this.ringColor, on ? 0.55 : 0.2).fillCircle(ix, cy, d * 0.62);
     if (key) {
-      this.glyph.setTexture(key).setPosition(ix, cy).setDisplaySize(d, d).setVisible(true).setAlpha(on ? 1 : 0.4);
+      const dd = emblemKey ? d * 1.1 : d;
+      this.glyph.setTexture(key).setPosition(ix, cy).setDisplaySize(dd, dd).setVisible(true).setAlpha(on ? 1 : 0.4);
     } else {
       this.glyph.setVisible(false);
       if (this.iconName) drawIcon(this.icon, this.iconName, ix, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434);
