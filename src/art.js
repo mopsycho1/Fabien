@@ -66,6 +66,10 @@ export function setLookLookup(fn) {
 export function artHasLook(id, look) {
   return !!(art[id] && art[id][look] && art[id][look].battle);
 }
+// True if the unit has a weak (badly hurt) stance.
+export function artHasWeak(id) {
+  return !!(art[id] && art[id].weak);
+}
 // Which Verse (buff id) is on a unit right now, or null. A unit can have its own action
 // pictures for a Verse ("buffPoses" in art.json: Gaha's stone attack, his fury attack).
 let buffIdOf = () => null;
@@ -230,7 +234,9 @@ export function standingFrame(id, facing, alert = false, buff = null, weak = fal
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
   const look = lookEntry(id);
   const lookSet = look && ((!alert && look.standing) || look.battle); // enchanted: the flaming weapon (neutral or battle)
-  if (lookSet) standing = lookSet;
+  // enchanted: the flame look, unless he is badly hurt and has a weak pose: the hurt look wins and the flame
+  // effect is drawn over it by the aura (1.56)
+  if (lookSet && !(weak && entry.weak)) standing = lookSet;
   if (rooted && entry.rooted) standing = entry.rooted;
   return pickFacing(id, standing, facing);
 }

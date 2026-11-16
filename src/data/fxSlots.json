@@ -311,6 +311,72 @@
     "tiles": 0.8
    },
    "hitMs": 500
+  },
+  "spirit_bolt_fire": {
+   "frames": 8,
+   "frameMs": 120,
+   "originX": 0.519,
+   "originY": 0.473,
+   "reach": 0.959,
+   "size": [
+    220,
+    220
+   ],
+   "hitMs": 500,
+   "fit": {
+    "h": 103,
+    "w": 148,
+    "mx": 107,
+    "my": 108,
+    "by": 160,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   }
+  },
+  "spirit_bolt_earth": {
+   "frames": 8,
+   "frameMs": 120,
+   "originX": 0.519,
+   "originY": 0.473,
+   "reach": 0.959,
+   "size": [
+    220,
+    220
+   ],
+   "hitMs": 500,
+   "fit": {
+    "h": 103,
+    "w": 148,
+    "mx": 107,
+    "my": 108,
+    "by": 160,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   }
+  },
+  "spirit_bolt_storm": {
+   "frames": 8,
+   "frameMs": 120,
+   "originX": 0.519,
+   "originY": 0.473,
+   "reach": 0.959,
+   "size": [
+    220,
+    220
+   ],
+   "hitMs": 500,
+   "fit": {
+    "h": 103,
+    "w": 148,
+    "mx": 107,
+    "my": 108,
+    "by": 160,
+    "W": 220,
+    "H": 220,
+    "tiles": 0.8
+   }
   }
  }
 }

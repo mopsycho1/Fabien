@@ -36,7 +36,7 @@ import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clash
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
@@ -3627,6 +3627,7 @@ export default class BattleScene extends Phaser.Scene {
     const weakNow = fraction > 0 && fraction <= HURT_FACE_AT;
     if (weakNow !== !!unit.wasWeak) {
       unit.wasWeak = weakNow;
+      if (isEnchanted(unit)) this.refreshStatusTags(); // the flame effect follows the look (1.56)
       this.time.delayedCall(450, () => unit.alive && !this.inCinematic && this.showStanding(unit)); // after the flinch: weakened, or upright again after healing
     }
     unit.hpFill.setScale(fraction, 1);
@@ -3932,8 +3933,13 @@ export default class BattleScene extends Phaser.Scene {
   // His drawn Lightning (or Wildfire, for the fire variant) pieces, if all of them are loaded: { orb, beam, strike }
   // (strike is null for Wildfire: the lance lands on the target by itself), else null.
   drawnSpell(variant = null) {
-    // Kofi's Tide Bolt (reading Water) is his teal spirit comet (6.63): no orb gathered, no strike coming down
-    if (variant && variant.reads === 'water' && sfxHas(this, 'spirit_bolt')) return { orb: null, beam: 'spirit_bolt', strike: null };
+    // All four of Kofi's bolts are his spirit comet (6.63, 1.55): Tide is Suleiman's teal one, Ember, Stone and Gale are
+    // the same comet tinted red, gold and pale until he draws them (make_spirit_bolt_tints.py). No orb gathered, no strike
+    // coming down, and never Layra's Wildfire or Lightning.
+    if (variant && variant.reads) {
+      const comet = { water: 'spirit_bolt', fire: 'spirit_bolt_fire', earth: 'spirit_bolt_earth', storm: 'spirit_bolt_storm' }[variant.reads];
+      if (comet && sfxHas(this, comet)) return { orb: null, beam: comet, strike: null };
+    }
     const fire = !!(variant && variant.element === 'fire');
     const names = fire ? { orb: 'wildfire_orb', beam: 'wildfire_lance', strike: null } : { orb: 'lightning_orb', beam: 'lightning_bolt', strike: 'lightning_strike' };
     return sfxHas(this, ...Object.values(names).filter(Boolean)) ? names : null;
@@ -7676,7 +7682,11 @@ export default class BattleScene extends Phaser.Scene {
       this.keepAura(unit, 'furyAura', verse === 'fury' && !hasBuffLoop(this, 'fury'), () => furyAura(this, unit, { ribbons: !hasPaintedAura(unit.id, 'fury') }));
       this.keepAura(unit, 'bulwarkAura', verse === 'stone' && !hasBuffLoop(this, 'stone'), () => bulwarkAura(this, unit));
       // Rabdul's Enchant: Shango's symbol glowing at its feet (roadmap 4.1)
-      unit.hasEnchantedArt = artHasLook(unit.id, 'enchanted'); // its own flaming pictures to stand in
+      // (badly hurt, his weak pose wins over the flame pictures, so the code flame is drawn on top instead: 1.56)
+      const flameArt = artHasLook(unit.id, 'enchanted') && !(unit.wasWeak && artHasWeak(unit.id));
+      if (unit.enchantAura && unit.enchantAuraArt !== flameArt) this.keepAura(unit, 'enchantAura', false, null); // the look changed: draw the aura again
+      unit.hasEnchantedArt = flameArt; // its own flaming pictures to stand in
+      unit.enchantAuraArt = flameArt;
       this.keepAura(unit, 'enchantAura', unit.alive && isEnchanted(unit) && !hasBuffLoop(this, 'enchant'), () => enchantAura(this, unit));
       // a burning unit gives off embers
       const burning = unit.alive && isBurning(unit);

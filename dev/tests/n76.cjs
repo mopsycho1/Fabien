@@ -135,7 +135,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   const variant = readJson('src/data/spells.json').spiritBoltWater;
   const names = b.drawnSpell(variant);
   check('Kofi\'s Tide Bolt is drawn with the spirit comet, no orb, no strike', !!names && names.beam === 'spirit_bolt' && names.orb === null && names.strike === null, JSON.stringify(names));
-  check('his other bolts and Layra\'s Lightning are still the old pieces', b.drawnSpell(null).beam === 'lightning_bolt' && b.drawnSpell(readJson('src/data/spells.json').spiritBoltFire).beam === 'wildfire_lance');
+  check('Layra\'s Lightning is still the old pieces (Kofi\'s other bolts are the tinted comet since 1.55, see n77)', b.drawnSpell(null).beam === 'lightning_bolt' && b.drawnSpell(readJson('src/data/spells.json').spiritBoltFire).beam === 'spirit_bolt_fire');
   check('the Tide Bolt gathers for the plain channel time (no orb of his to wait for)', b.channelLead(kofi, bull, variant) > 0 && b.channelLead(kofi, bull, variant) !== slots.spells.lightning_orb.lead, b.channelLead(kofi, bull, variant));
   b.busy = true; bull.evade = -500; kofi.accuracy = 500;
   const cometsBefore = new Set(images('fx:sfx_spirit_bolt'));

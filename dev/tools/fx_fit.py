@@ -49,6 +49,7 @@ WANT_SPELL = {
     'lightning_bolt': dict(tiles=0.8), 'wildfire_lance': dict(tiles=0.8),   # across the beam (its thickness)
     'lightning_strike': dict(tiles=1.0),                                   # the width of the bolt that comes down
     'spirit_bolt': dict(tiles=0.8),                                        # Kofi's comet, across its thickness
+    'spirit_bolt_fire': dict(tiles=0.8), 'spirit_bolt_earth': dict(tiles=0.8), 'spirit_bolt_storm': dict(tiles=0.8),  # its tinted copies (1.55)
 }
 
 
