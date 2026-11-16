@@ -121,7 +121,7 @@ Written 13 Nov from the game's real data files, so every number here is what the
 | **Poisoned** | 3 damage at the start of each of its turns, never the last point | 3 turns | Poison Arrow; cured by Herbs or Bitter leaf |
 | **Burning** | 2 damage at the start of each of its turns, never the last point | 3 turns | Wildfire, fire Element Blast; put out by Herbs, Bitter leaf or water |
 | **Enchanted** | Its weapon does +2 damage (+1 against Drenched) | 3 turns | Enchant (Rabdul) |
-| **Drenched** | Lightning x1.5, fire x0.5, cannot be set alight | 2 turns after leaving water | Standing in water; Element Blast (water) |
+| **Drenched** | Lightning x1.5 (and Layra's Lightning comes down as Skyfall, +2), fire x0.5, cannot be set alight | 2 turns after leaving water | Standing in water; Element Blast (water) |
 | **Exposed** | Defense -2, evade -10 | While meditating | Meditate |
 | **Meditating** | Cannot act on its next turn, then gets 6 MP | 1 turn | Meditate; a fall or a slam breaks it |
 
@@ -154,7 +154,7 @@ Cooldown is in turns of that unit. "Verse" means Layra's buffs change a move int
 - **Open questions for Suleiman** (from the build sheet, section 8): (1) Gadara, Kofi and King Alagura's kits were not seen when it was drafted: check Counterstep and Lunge against them (a pull skill was dropped from Gaha because Gadara owns it). (2) Should a Relay Strike free hit that misses Gaha also set off Counterstep? In the game a Relay Strike always lands, so the question does not arise yet. (3) Lunge cooldown and distance: a 4-tile threat range at speed 11 may be too strong; first try capping the advance at 1 tile. (4) Riposte numbers (cap 2, "1 plus stacks") are placeholders: compare with Bloodied Press. (5) Verse changes to Lunge: maybe Swiftness +1 tile of advance and Fury +1 damage, which needs a ruling on MP lent to a unit with no MP of its own. (6) The Hold rule (not built) could pair with Counterstep.
 
 **Layra (Sage), 12 MP**
-- **Lightning** (range 4, magic 7): jumps to a second enemy within 2 for half damage. Point blank it is 25 less accurate.
+- **Lightning** (range 4, magic 7): jumps to a second enemy within 2 for half damage. Point blank it is 25 less accurate. **Two forms (6.65, Suleiman's voice note 1578):** she gathers the orb, then the bolt flies from her hands to the target, with no strike from the sky. On a **Drenched** target the lightning comes down from the sky instead of the bolt (**Skyfall!**), for 2 more damage on top of the x1.5. Only on a hit, and only her plain Lightning (not Thunderclap or Wildfire). He asked for a critical hit; the game has no critical hits yet, so Drenched (wet from Kofi's Tide Bolt, Haunt of Water or standing in water) is the condition. The damage number lands when the bolt or the strike arrives. Numbers: terrain.json water.skyfall, fxSlots.json lightning_strike hitMs.
   - **Thunderclap** (with Stone): the bolt pushes the target 1 tile, still jumps.
   - **Wildfire** (with Fury): sets the target alight (2 damage a turn for 3 turns), does not jump.
 - **Verse of Swiftness** (3 MP, range 3, 2 turns): +15 evade, +1 move. Twice as strong on a Scout or Spearman.

@@ -22,7 +22,7 @@ import {
 } from '../grid.js';
 import { getReachableTiles, getPath } from '../movement.js';
 import { startNextTurn, previewTurns } from '../turnOrder.js';
-import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, holdsDagger, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect } from '../combat.js';
+import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCloseWeapon, holdsDagger, distance, isDistracted, chainTarget, chainDamage, setHeightLookup, heightAccuracy, hasClearShot, drenchedEffect, skyfallOn } from '../combat.js';
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import relayRules from '../data/relay.json'; // Relay Strike numbers
@@ -3450,6 +3450,8 @@ export default class BattleScene extends Phaser.Scene {
     const variant = moveId !== 'attack' && !target.isDecoy ? spells[moveId] : null;
     const fire = !!variant && variant.element === 'fire';
     if (fire) result.element = 'fire'; // Wildfire burns: the impact is drawn in fire's colours
+    // Skyfall (6.65): her plain Lightning on a Drenched target comes down from the sky, for a little more damage
+    if (result.hit && !variant && skyfallOn(attacker, target)) { result.skyfall = true; result.damage += terrain.water.skyfall.bonus; }
 
     // The numbers change right away. The pictures and effects catch up a
     // moment later, when the blow lands (see playAttack and showImpact).
@@ -4039,20 +4041,26 @@ export default class BattleScene extends Phaser.Scene {
       const end = this.centerOf(target);
       if (drawn) {
         // his bolt leaves her hands and his strike comes down on the target; the blow lands when the bolt gets there
-        const hit = sfxInfo(drawn.beam).hitMs;
+        const sky = !!result.skyfall && !!drawn.strike;
+        const hit = sky ? sfxInfo(drawn.strike).hitMs : sfxInfo(drawn.beam).hitMs;
         this.time.delayedCall(lead, () => {
-          sfxBeam(this, drawn.beam, start.x, start.y - 20, end.x, end.y);
-          if (!target.isDecoy && drawn.strike) sfxStrike(this, drawn.strike, target.view.x, target.view.y, { big: lethal });
+          // two forms (6.65): the bolt flies from her hands; on a Skyfall the lightning comes down from the sky instead
+          if (!sky) sfxBeam(this, drawn.beam, start.x, start.y - 20, end.x, end.y);
+          else sfxStrike(this, drawn.strike, target.view.x, target.view.y, { big: lethal });
           play('spark');
         });
-        this.time.delayedCall(lead + hit, impact);
+        this.time.delayedCall(lead + hit, () => {
+          impact(); // the number lands when the bolt, or the strike, arrives
+          if (sky) this.floatText(target, terrain.water.skyfall.word, terrain.water.skyfall.color, { rise: 46 });
+        });
         this.time.delayedCall(lead + hit + 300, () => this.showStanding(attacker));
         return;
       }
       this.time.delayedCall(lead + 140, () => {
         lightning(this, start.x, start.y - 20, end.x, end.y);
         // a bolt crashes down on the target (from Layra's effect sheet)
-        if (!target.isDecoy) lightningStrike(this, target.view.x, target.view.y, { big: lethal });
+        if (!target.isDecoy && result.skyfall) lightningStrike(this, target.view.x, target.view.y, { big: lethal }); // (only on a Skyfall, 6.65)
+        if (result.skyfall) this.time.delayedCall(120, () => this.floatText(target, terrain.water.skyfall.word, terrain.water.skyfall.color, { rise: 46 }));
         play('spark');
       });
       this.time.delayedCall(lead + 260, impact);

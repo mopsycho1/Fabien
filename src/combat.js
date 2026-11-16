@@ -112,6 +112,11 @@ function soaked(attacker, defender, damage) {
   return Math.max(1, Math.round(damage * times));
 }
 
+// Layra's Skyfall (roadmap 6.65): her plain Lightning comes down from the sky on a Drenched target (terrain.json, water.skyfall).
+export function skyfallOn(attacker, defender) {
+  return attacker.attackEffect === 'spark' && attackElement(attacker) === 'lightning' && !defender.isDecoy && isDrenched(defender);
+}
+
 // How a Drenched target changes this attacker's damage: 'more', 'less' or null (previews).
 export function drenchedEffect(attacker, defender) {
   if (!isDrenched(defender)) return null;

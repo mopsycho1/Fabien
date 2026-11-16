@@ -14,6 +14,12 @@
     "drenchedTurns": 2,
     "lightningTimes": 1.5,
     "fireTimes": 0.5,
-    "note": "Shallow water (roadmap 11.4, Suleiman 29 Oct 19:58): units can wade through it. A unit standing in water is Drenched, and stays Drenched for drenchedTurns of its own turns after it leaves. Drenched units take lightningTimes the damage from lightning and fireTimes from fire (ice when it exists: more). Water puts out a burn, and fire can't set a Drenched unit alight."
+    "note": "Shallow water (roadmap 11.4, Suleiman 29 Oct 19:58): units can wade through it. A unit standing in water is Drenched, and stays Drenched for drenchedTurns of its own turns after it leaves. Drenched units take lightningTimes the damage from lightning and fireTimes from fire (ice when it exists: more). Water puts out a burn, and fire can't set a Drenched unit alight.",
+    "skyfall": {
+      "bonus": 2,
+      "word": "Skyfall!",
+      "color": "#cfd8ff",
+      "note": "Roadmap 6.65 (Suleiman 15 Nov, voice note 1578): Layra's plain Lightning has two forms. Normally she gathers the orb and the bolt flies from her to the target. When the target is Drenched (wet from Kofi's Tide Bolt, a Haunt of Water, or standing in water) the lightning comes down from the sky instead and hits for `bonus` more damage, with the `word` callout. Only a hit; not Thunderclap or Wildfire."
+    }
   }
 }

@@ -245,7 +245,8 @@
     "W": 220,
     "H": 220,
     "tiles": 1.0
-   }
+   },
+   "hitMs": 360
   },
   "wildfire_orb": {
    "frames": 8,

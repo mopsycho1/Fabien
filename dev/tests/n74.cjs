@@ -87,7 +87,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const lead = b.channelLead(layra, rabdul), fireLead = b.channelLead(layra, rabdul, { element: 'fire' });
   check('6.58 Layra gathers Lightning for his orb\'s lead (440 ms) and Wildfire for his fireball\'s (560 ms)', lead === slots.spells.lightning_orb.lead && fireLead === slots.spells.wildfire_orb.lead, lead + ' / ' + fireLead);
   let r = await filmSfx(null);
-  check('6.58 Lightning plays his orb, then his bolt and his strike', r.seen.join() === 'lightning_orb,lightning_bolt,lightning_strike' || (r.seen[0] === 'lightning_orb' && r.seen.includes('lightning_bolt') && r.seen.includes('lightning_strike')), r.seen.join());
+  check('6.58 Lightning plays his orb, then his bolt, and (6.65, 16 Nov) no strike from the sky unless the target is Drenched (n79)', r.seen[0] === 'lightning_orb' && r.seen.includes('lightning_bolt') && !r.seen.includes('lightning_strike'), r.seen.join());
   check('6.58 and the blow lands when his bolt reaches the target (lead + hitMs)', r.impactAt !== null && Math.abs(r.impactAt - (lead + slots.spells.lightning_bolt.hitMs)) < 120, r.impactAt);
   reset([[layra, 2, 4], [rabdul, 5, 4]]);
   r = await filmSfx({ element: 'fire' });
