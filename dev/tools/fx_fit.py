@@ -31,15 +31,15 @@ FX = os.path.join(ROOT, 'public', 'art', 'fx')
 #   layer  "behind" the body, "front" of it (the Rooted dome overlays Gaha, Suleiman 15 Nov), or "split": all of it behind and
 #          its lower (near) half again in front, for the ring of orbiting stones
 WANT_BUFF = {
-    ('swiftness', 'loop'): dict(k=1.3, anchor='base', layer='behind'),
-    ('swiftness', 'move'): dict(k=1.2, anchor='centre', layer='behind'),
-    ('fury', 'loop'): dict(k=1.3, anchor='base', layer='behind'),
-    ('fury', 'move'): dict(k=1.2, anchor='centre', layer='behind'),
-    ('stone', 'loop'): dict(k=1.3, anchor='centre', layer='split'),
+    ('swiftness', 'loop'): dict(k=1.0, anchor='base', layer='split'),
+    ('swiftness', 'move'): dict(k=1.0, anchor='centre', layer='behind'),
+    ('fury', 'loop'): dict(k=1.0, anchor='base', layer='split'),
+    ('fury', 'move'): dict(k=1.0, anchor='centre', layer='behind'),
+    ('stone', 'loop'): dict(k=1.0, anchor='centre', layer='split'),
     ('stone', 'rooted'): dict(k=1.3, anchor='base', layer='front'),
     # Kofi (6.63): the droplet ring stands round the body (in front, thin drops of light), the heal spiral rises from the feet,
     # the Haunt smoke stands on the floor round the feet of the haunted unit
-    ('renewal', 'loop'): dict(k=1.3, anchor='centre', layer='front'),
+    ('renewal', 'loop'): dict(k=1.0, anchor='centre', layer='split'),
     ('renewal', 'cast'): dict(k=1.3, anchor='base', layer='behind'),
     ('haunt', 'loop'): dict(k=1.2, anchor='base', layer='behind'),
 }

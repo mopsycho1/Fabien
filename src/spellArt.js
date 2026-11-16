@@ -205,7 +205,7 @@ export function buffCastFx(scene, x, y, id, unit = null) {
 }
 // His looping effect round a unit, inside the unit's own container (it walks with it): the loop frames, or for
 // part "rooted" the standing-his-ground frames. Returns { objects, tweens } for BattleScene.keepAura, or null.
-// Sized by the fit (6.64): an aura about 1.3 body heights tall, its base on the feet, behind the body; the Rooted dome is
+// Sized by the fit (6.64): an aura about 1.0 body height tall (16 Nov, fxSlots.json), wrapped round the body (back half behind, front half in front); the Rooted dome is
 // in front of Gaha (it overlays him); the orbiting stones are drawn behind and their near, lower half again in front.
 export function buffLoopFx(scene, unit, id, part = 'loop') {
   if (!hasBuffPart(scene, id, part)) return null;
@@ -224,15 +224,59 @@ export function buffLoopFx(scene, unit, id, part = 'loop') {
   };
   const layer = (fit && fit.layer) || 'behind';
   const objects = [];
+  if (layer === 'split') {
+    // Wrapped round the body: the back half behind the figure, the front half in front and fainter. The front half is cut
+    // from the lower part of the picture and built from `steps` copies that start lower and lower (fadeFrom to fadeTo of the
+    // drawn height), so it fades in over the middle of the body and the face stays clear. All numbers: fxSlots.json "wrap".
+    const wrap = { ...(fxSlots.wrap || {}), ...(fit.wrap || {}) };
+    const back = make().setAlpha(wrap.backAlpha == null ? 1 : wrap.backAlpha);
+    behind(unit, back);
+    objects.push(back);
+    const steps = Math.max(1, wrap.steps || 3), top = fit.by - fit.h;
+    for (let i = 0; i < steps; i++) {
+      const share = steps > 1 ? i / (steps - 1) : 0;
+      const cut = Math.round(top + fit.h * ((wrap.fadeFrom == null ? 0.5 : wrap.fadeFrom) + ((wrap.fadeTo == null ? 0.8 : wrap.fadeTo) - (wrap.fadeFrom == null ? 0.5 : wrap.fadeFrom)) * share));
+      const near = make().setCrop(0, cut, fit.W, fit.H - cut).setAlpha((wrap.frontAlpha == null ? 0.55 : wrap.frontAlpha) / steps);
+      inFront(unit, near);
+      objects.push(near);
+    }
+    return { objects, tweens: [] };
+  }
   const main = make();
   if (layer === 'front') inFront(unit, main); else behind(unit, main);
   objects.push(main);
-  if (layer === 'split') {
-    const near = make().setCrop(0, fit.my, fit.W, fit.H - fit.my); // the lower, near half of the ring passes in front of the body
-    inFront(unit, near);
-    objects.push(near);
-  }
   return { objects, tweens: [] };
+}
+// The figure itself lit by its Verse (fusing the aura to the body): a soft tint and a rim light in the Verse's colour, both
+// pulsing gently with the loop. Two copies of the figure's picture kept on it every frame (the picture changes, breathes,
+// squashes): a slightly bigger one behind (the rim) and one in front added as light (the tint). Numbers: fxSlots.json "fuse".
+export function buffFuseFx(scene, unit, id) {
+  const cfg = fxSlots.fuse;
+  const col = cfg && cfg.colours && cfg.colours[id];
+  if (!col || !unit.sprite || !unit.sprite.active) return null;
+  const color = parseInt(col.replace('#', ''), 16);
+  const sp = unit.sprite;
+  const mk = () => scene.add.image(sp.x, sp.y, sp.texture.key).setTintFill(color).setBlendMode(Phaser.BlendModes.ADD);
+  const rim = mk(), tint = mk();
+  unit.view.addAt(rim, Math.max(0, unit.view.getIndex(sp)));
+  unit.view.addAt(tint, unit.view.getIndex(sp) + 1);
+  const slot = BUFF_FX[id] || {};
+  const period = Math.max(400, (slot.loopMs || slot.frameMs || 100) * (slot.loop || 8)); // one turn of the loop
+  const tick = () => {
+    if (!rim.active || !tint.active) return;
+    if (!sp.active) { rim.setVisible(false); tint.setVisible(false); return; }
+    const show = unit.alive && sp.visible && !unit.hidden && sp.alpha > 0.5;
+    const wave = 1 - cfg.pulse * (0.5 + 0.5 * Math.sin((scene.time.now / period) * Math.PI * 2)); // 1 at the peak, less at the low
+    for (const [img, grow, alpha] of [[rim, cfg.rimScale, cfg.rimAlpha], [tint, 1, cfg.tintAlpha]]) {
+      img.setVisible(show);
+      if (!show) continue;
+      if (img.texture.key !== sp.texture.key) img.setTexture(sp.texture.key);
+      img.setOrigin(sp.originX, sp.originY).setFlipX(sp.flipX).setScale(sp.scaleX * grow, sp.scaleY * grow).setAngle(sp.angle).setPosition(sp.x, sp.y).setAlpha(alpha * wave);
+    }
+  };
+  scene.events.on('update', tick);
+  rim.once('destroy', () => scene.events.off('update', tick));
+  return { objects: [rim, tint], tweens: [] };
 }
 // His "in motion" effect on a unit while it walks under a Verse. It sits on the unit's body (inside its container, so it
 // goes with it) and is drawn facing right; dx says which way the unit goes now. Returns { objects, tweens } or null.
@@ -245,9 +289,10 @@ export function buffMoveFx(scene, unit, id, dx) {
   const fit = buffFit(id, 'move');
   const place = fit ? placeFit(fit, unit) : null;
   const sprite = scene.add.sprite(0, place ? place.y : -unit.centerY, 'fx:' + keys[0]).setBlendMode(Phaser.BlendModes.ADD).setFlipX(dx < 0);
-  if (place) sprite.setOrigin(place.originX, place.originY).setScale(place.scale);
-  else sprite.setScale(slot.moveScale || slot.scale);
-  sprite.play(anim);
+  const walk = fxSlots.walk || { length: 1, alpha: 1 }; // fxSlots.json "walk": the streaks are shorter and fainter
+  if (place) sprite.setOrigin(place.originX, place.originY).setScale(place.scale * walk.length, place.scale);
+  else sprite.setScale((slot.moveScale || slot.scale) * walk.length, slot.moveScale || slot.scale);
+  sprite.setAlpha(walk.alpha).play(anim);
   behind(unit, sprite);
   return { objects: [sprite], tweens: [] };
 }

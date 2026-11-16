@@ -32,7 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([[gaha, 3, 4]]);
   for (const id of ['swiftness', 'fury', 'stone']) {
     verse(gaha, id);
-    check('6.58 under ' + id + ' he shows his drawn loop round the unit (and our own fury and bulwark looks step aside)', !!gaha['drawnAura_' + id] && gaha['drawnAura_' + id].objects.length === (id === 'stone' ? 2 : 1) /* 6.64: the orbit is drawn behind and its near half again in front */ && !gaha.furyAura && !gaha.bulwarkAura, Object.keys(gaha).filter((k) => /Aura/.test(k) && gaha[k]).join());
+    check('6.58 under ' + id + ' he shows his drawn loop round the unit (and our own fury and bulwark looks step aside)', !!gaha['drawnAura_' + id] && gaha['drawnAura_' + id].objects.length === 1 + slots.wrap.steps /* 16 Nov: every loop is a back copy and the front copies */ /* 6.64: the orbit is drawn behind and its near half again in front */ && !gaha.furyAura && !gaha.bulwarkAura, Object.keys(gaha).filter((k) => /Aura/.test(k) && gaha[k]).join());
     verse(gaha, null);
     check('6.58 and it goes when the Verse ends', !gaha['drawnAura_' + id]);
   }
@@ -41,10 +41,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const lst = gaha.view.list;
   check('6.58 his Fury loop is drawn behind the figure, never over it', lst.indexOf(gaha.drawnAura_fury.objects[0]) >= 0 && lst.indexOf(gaha.drawnAura_fury.objects[0]) < lst.indexOf(gaha.sprite), lst.indexOf(gaha.drawnAura_fury.objects[0]) + ' / ' + lst.indexOf(gaha.sprite));
   verse(gaha, 'stone');
-  const [orbBack, orbFront] = gaha.drawnAura_stone.objects; const lst2 = gaha.view.list;
+  const [orbBack, orbFront] = gaha.drawnAura_stone.objects; // back half, then the front copies (16 Nov wrap) const lst2 = gaha.view.list;
   check('6.64 the stone orbit: all of it behind the figure and its near (lower) half in front of it', lst2.indexOf(orbBack) < lst2.indexOf(gaha.sprite) && lst2.indexOf(orbFront) > lst2.indexOf(gaha.sprite) && orbFront.isCropped);
   verse(gaha, 'fury');
-  check('6.64 the drawn auras are about 1.2 to 1.4 body heights tall (by the ruler\'s body height, not the picture)', ['swiftness', 'fury', 'stone'].every((id) => { const k = slots.buffs[id].fit.loop.k; return k >= 1.2 && k <= 1.4; }) && Math.abs(gaha.drawnAura_fury.objects[0].scaleY * slots.buffs.fury.fit.loop.h / (gaha.topY - 12) - slots.buffs.fury.fit.loop.k) < 0.02, gaha.drawnAura_fury.objects[0].scaleY);
+  check('6.64 the drawn auras are about 0.9 to 1.1 body heights tall (16 Nov: 1.0) (by the ruler\'s body height, not the picture)', ['swiftness', 'fury', 'stone'].every((id) => { const k = slots.buffs[id].fit.loop.k; return k >= 0.9 && k <= 1.1; }) && Math.abs(gaha.drawnAura_fury.objects[0].scaleY * slots.buffs.fury.fit.loop.h / (gaha.topY - 12) - slots.buffs.fury.fit.loop.k) < 0.02, gaha.drawnAura_fury.objects[0].scaleY);
+  { const fo = gaha.drawnAura_fury.objects, l3 = gaha.view.list, fz = gaha.fuse_fury;
+    check('16 Nov every loop is wrapped: one back copy behind, the cropped front copies in front and fainter (fxSlots.json wrap)', fo.length === 1 + slots.wrap.steps && l3.indexOf(fo[0]) < l3.indexOf(gaha.sprite) && fo.slice(1).every((o) => l3.indexOf(o) > l3.indexOf(gaha.sprite) && o.isCropped && o.alpha < fo[0].alpha));
+    check('16 Nov the figure is lit by its Verse: a rim copy behind it and a tint copy in front (fxSlots.json fuse)', !!fz && l3.indexOf(fz.objects[0]) < l3.indexOf(gaha.sprite) && l3.indexOf(fz.objects[1]) > l3.indexOf(gaha.sprite)); }
   verse(gaha, null);
   // Rooted under Earth's Bulwark: the dome instead of the stones
   verse(gaha, 'stone'); gaha.status.rooted = true; b.refreshStatusTags();

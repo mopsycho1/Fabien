@@ -104,10 +104,10 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   const ren = sudeen.drawnAura_renewal && sudeen.drawnAura_renewal.objects[0];
   check('a unit under Renewal carries the droplet halo', !!ren && ren.texture.key.startsWith('fx:buff_renewal_loop'));
   const body = (u) => u.topY - 12;
-  check('the halo is 1.3 body heights tall (6.64), on the body', !!ren && Math.abs(drawnH(ren, slots.buffs.renewal.fit.loop) / (1.3 * body(sudeen)) - 1) < 0.03, ren && Math.round(drawnH(ren, slots.buffs.renewal.fit.loop)) + ' vs ' + Math.round(1.3 * body(sudeen)));
+  check('the halo is 1.0 body height tall (6.64), on the body', !!ren && Math.abs(drawnH(ren, slots.buffs.renewal.fit.loop) / (1.0 * body(sudeen)) - 1) < 0.03, ren && Math.round(drawnH(ren, slots.buffs.renewal.fit.loop)) + ' vs ' + Math.round(1.0 * body(sudeen)));
   // a smaller and a bigger fighter get the same proportion
   St.applyBuff(layra, 'renewal', 1); b.refreshStatusTags(); const ren2 = layra.drawnAura_renewal && layra.drawnAura_renewal.objects[0];
-  check('another fighter gets the same proportion', !!ren2 && Math.abs(drawnH(ren2, slots.buffs.renewal.fit.loop) / (1.3 * body(layra)) - 1) < 0.03);
+  check('another fighter gets the same proportion', !!ren2 && Math.abs(drawnH(ren2, slots.buffs.renewal.fit.loop) / (1.0 * body(layra)) - 1) < 0.03);
   sudeen.status.buff = null; layra.status.buff = null; b.refreshStatusTags();
   check('the halo goes when Renewal ends', !sudeen.drawnAura_renewal && !layra.drawnAura_renewal);
   // the spiral at the start of the turn's heal

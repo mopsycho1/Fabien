@@ -31,7 +31,7 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
 import { startStep } from '../story.js';
@@ -7671,6 +7671,8 @@ export default class BattleScene extends Phaser.Scene {
       // Gaha standing his ground under Earth's Bulwark (Rooted) shows the dome he drew for it in place of the orbiting stones
       const rootedNow = verseNow === 'stone' && isRooted(unit) && hasBuffPart(this, 'stone', 'rooted');
       for (const id of ['swiftness', 'fury', 'stone', 'renewal']) this.keepAura(unit, 'drawnAura_' + id, verseNow === id && hasBuffLoop(this, id) && !(id === 'stone' && rootedNow), () => buffLoopFx(this, unit, id));
+      // the figure itself lit in the Verse's colour, pulsing with the loop (fxSlots.json "fuse")
+      for (const id of ['swiftness', 'fury', 'stone', 'renewal']) this.keepAura(unit, 'fuse_' + id, unit.alive && verseNow === id, () => buffFuseFx(this, unit, id));
       this.keepAura(unit, 'drawnAura_stoneRooted', unit.alive && rootedNow, () => buffLoopFx(this, unit, 'stone', 'rooted'));
       // Kofi's Haunt: the teal and violet smoke stands round the feet of a haunted unit while the mark lasts (6.63)
       this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.poison && unit.status.poison.id === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
