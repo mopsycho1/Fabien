@@ -68,6 +68,9 @@ export function applyItem(unit, id, user = unit) {
 // Poison and burn on an ally are cured the same way with a cure item.
 // Returns { id, target } or null.
 export function enemyAllyItemChoice(unit, allies) {
+  // nobody locked in a clash can be handed an item, and a locked fighter hands none (1.65)
+  if (unit.engagedWith) return null;
+  allies = allies.filter((a) => !a.engagedWith);
   const held = heldItems(unit);
   if (unit.hp <= unit.maxHp * 0.5) return null; // it needs the item itself (enemyItemChoice)
   const heal = held.find((id) => ITEMS[id].heal);
@@ -79,6 +82,7 @@ export function enemyAllyItemChoice(unit, allies) {
 }
 
 export function enemyItemChoice(unit) {
+  if (unit.engagedWith) return null; // locked in a clash: no items (1.65)
   const held = heldItems(unit);
   const pick = (test) => held.find((id) => itemHelps(unit, id) && test(ITEMS[id]));
   if (unit.hp <= unit.maxHp * 0.5) {

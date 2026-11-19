@@ -348,9 +348,10 @@ export function tickPoison(unit) {
 // The start of a unit's turn while Renewal is on it: it heals a share of its health (spells.json "regen",
 // at least "minHeal" points) and loses one weak status ("cleanse": poison, burn, blinded, disoriented, in that order).
 // Returns { heal, cured } (cured is the name of the status that lifted, or null).
-export function tickRenewal(unit) {
+// locked: the fighter is in a clash, so Renewal does not heal or cure this turn (roadmap 1.65); it still counts down.
+export function tickRenewal(unit, locked = false) {
   const buff = statusOf(unit).buff;
-  if (!buff || buff.id !== 'renewal') return { heal: 0, cured: null };
+  if (!buff || buff.id !== 'renewal' || locked) return { heal: 0, cured: null };
   const spell = spells.renewal;
   const heal = Math.min(Math.max(spell.minHeal || 1, Math.round(unit.maxHp * spell.regen * (buff.power || 1))), unit.maxHp - unit.hp); // about 5 percent, but never under minHeal (1.51: 5 percent of 28 to 50 health is 1 or 2 points, which nobody noticed)
   unit.hp += heal;

@@ -1824,8 +1824,15 @@ export default class BattleScene extends Phaser.Scene {
   // Kofi's Renewal (Infuse in Water, 1.49, 1.51): at the start of the blessed unit's turn it heals a little and
   // loses one weak status. It used to show only a small "+2" word, so it read as "heals nobody"; now it
   // lights the ground and the unit like the herb heal does, and says "Renewal". "wait" delays it past a poison or burn word.
+  // True when this skill heals its target: Herbs, or Kofi's Infuse while it would give Renewal (1.65 uses it).
+  healsTarget(caster, id) {
+    const spell = spells[id];
+    if (spell.kind === 'heal') return true;
+    return spell.kind === 'infuse' && spell.verses[this.reading(caster).element] === 'renewal';
+  }
+
   renewalTick(unit, wait = 0) {
-    const renewed = tickRenewal(unit);
+    const renewed = tickRenewal(unit, !!unit.engagedWith);
     if (!(renewed.heal > 0 || renewed.cured)) return renewed;
     this.updateHpBar(unit);
     this.time.delayedCall(wait, () => {
@@ -2671,8 +2678,11 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // Who an item could go to: the unit itself or an ally next to it, if it would help them.
+  // Who an item can go to: an ally next to the user (or the user). Nobody locked in a clash uses or is handed
+  // an item, hero or enemy (roadmap 1.65, Suleiman 17 Nov: "he can't be healing during clash").
   itemTargets(unit, id) {
-    return this.units.filter((u) => u.alive && u.side === unit.side && distance(unit, u) <= 1 && itemHelps(u, id));
+    if (unit.engagedWith) return [];
+    return this.units.filter((u) => u.alive && u.side === unit.side && !u.engagedWith && distance(unit, u) <= 1 && itemHelps(u, id));
   }
 
   chooseItem(id) {
@@ -2977,7 +2987,8 @@ export default class BattleScene extends Phaser.Scene {
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
-        (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u))
+        (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
+        !(this.healsTarget(unit, id) && u.engagedWith) // no healing a fighter locked in a clash (1.65)
     );
     if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
       this.showMessage('Nobody in reach needs healing');

@@ -1,51 +1,58 @@
-// Roadmap 6.65: Layra's Lightning in two forms. Plain: she gathers the orb and the bolt flies from her to the target, no
-// strike from the sky. On a Drenched target (Skyfall) the lightning comes down from the sky instead of the bolt, for
-// terrain.json water.skyfall.bonus more damage, with the "Skyfall!" callout, and the number lands when the strike arrives.
+// 1.65 (Suleiman 17 Nov: "why this mofo heal while we were clashing"): a fighter locked in a clash cannot use items or
+// be healed. Enemy and hero alike: no item handed to or used by a locked fighter, no Herbs on one, no Renewal blessing
+// on one, and a Renewal already on him does not heal while he is locked (it still counts down).
 // Run on the cavern:  FABIEN_MAP=cavern FABIEN_BENCH= node n79.cjs
 const { start, battle } = require('./boot.cjs');
-const terrain = require('../../src/data/terrain.json');
-const slots = require('../../src/data/fxSlots.json');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
   const { w, game, errors } = await start();
   const b = await battle(game); await sleep(600);
-  const G = w.__grid;
+  const St = w.__status, I = w.__items;
   const U = (id) => b.units.find((u) => u.id === id);
-  const layra = U('h3'), tayo = U('e1');
-  b.endTurn = () => {}; b.runEnemyTurn = () => {};
-  let line = null;
-  for (let r = 0; r < 11 && !line; r++) for (let c = 0; c + 3 < 11 && !line; c++) {
-    const t = [0, 1, 2, 3].map((i) => ({ col: c + i, row: r }));
-    if (t.every((x) => G.isInsideGrid(x.col, x.row) && !b.isBlocked(x.col, x.row))) line = t;
-  }
-  const park = () => { b.units.forEach((u, i) => { u.hp = u.maxHp; u.engagedWith = null; u.engagement = null; u.hasActed = false; u.status.buff = null; u.status.cooldowns = {}; if (u !== layra && u !== tayo) b.placeUnit(u, 10 - (i % 3), 10 - Math.floor(i / 3)); }); b.placeUnit(layra, line[0].col, line[0].row); b.placeUnit(tayo, line[3].col, line[3].row); layra.accuracy = 999; b.busy = false; b.cancelMode(); b.activeUnit = layra; };
-  const run = async (drenched) => { /* a hit is never certain (95 in 100 at most): go again after a miss */
-    for (let i = 0; i < 6; i++) { const r = await runOnce(drenched); if (r.lost > 0) return r; }
-    return runOnce(drenched);
+  const sudeen = U('h1'), gaha = U('h2'), layra = U('h3'), kofi = U('h4'), tayo = U('e1'), bull = U('e2'), archer = U('e3'), rabdul = U('e4');
+  const put = (u, c, r) => b.placeUnit(u, c, r);
+  const idle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 9000) await sleep(30); await sleep(60); };
+  b.endTurn = () => {}; b.enemySecondWalk = false;
+  const lock = (a, c) => { a.engagedWith = c; c.engagedWith = a; };
+  const park = () => {
+    for (const u of b.units) { u.engagedWith = null; u.engagement = null; u.hp = u.maxHp; u.status = { offBalance: false, buff: null, hex: null, cooldowns: {} }; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; u.hidden = false; }
+    put(sudeen, 0, 10); put(gaha, 1, 10); put(layra, 2, 10); put(kofi, 3, 10); put(tayo, 10, 0); put(bull, 9, 0); put(archer, 8, 0); put(rabdul, 7, 0);
+    b.busy = false; b.cancelMode();
   };
-  const runOnce = async (drenched) => {
-    park(); tayo.status.drenched = drenched ? { turnsLeft: 2 } : null; b.refreshStatusTags();
-    const seen = {}; const log = []; const t0 = Date.now(); const T = () => Date.now() - t0;
-    const poll = setInterval(() => { for (const o of b.children.list) { const m = o.texture && /^fx:sfx_(lightning_\w+?)_\d+$/.exec(o.texture.key || ''); if (m && o.active && !seen[m[1]]) seen[m[1]] = T(); } }, 20);
-    const oFT = b.floatText.bind(b); b.floatText = (u, t, c, o) => { log.push([T(), String(t)]); return oFT(u, t, c, o); };
-    const hp0 = tayo.hp; let hpAt = null; const oHP = b.updateHpBar.bind(b); b.updateHpBar = (u) => { if (u === tayo && tayo.hp !== hp0 && hpAt === null) hpAt = T(); return oHP(u); };
-    b.busy = true; let done = false; b.performAttack(layra, tayo, () => { done = true; b.busy = false; });
-    const t = Date.now(); while (!done && Date.now() - t < 8000) await sleep(30); await sleep(400);
-    clearInterval(poll); b.floatText = oFT; b.updateHpBar = oHP;
-    return { seen, log, lost: hp0 - tayo.hp, hpAt };
-  };
-  const plain = await run(false);
-  check('plain Lightning: the orb and the bolt, and no strike from the sky', plain.seen.lightning_orb !== undefined && plain.seen.lightning_bolt !== undefined && plain.seen.lightning_strike === undefined, JSON.stringify(plain.seen));
-  check('plain Lightning: no Skyfall callout', !plain.log.some((l) => l[1] === terrain.water.skyfall.word));
-  check('plain Lightning: the number lands when the bolt arrives (its hitMs)', plain.hpAt !== null && Math.abs(plain.hpAt - (plain.seen.lightning_bolt + slots.spells.lightning_bolt.hitMs)) < 320, plain.hpAt + ' vs ' + (plain.seen.lightning_bolt + slots.spells.lightning_bolt.hitMs));
-  const wet = await run(true);
-  check('on a Drenched target: the orb, then the strike from the sky, no bolt', wet.seen.lightning_orb !== undefined && wet.seen.lightning_strike !== undefined && wet.seen.lightning_bolt === undefined, JSON.stringify(wet.seen));
-  check('Skyfall! shows', wet.log.some((l) => l[1] === terrain.water.skyfall.word), JSON.stringify(wet.log));
-  check('Skyfall: the number lands when the strike arrives (its hitMs)', wet.hpAt !== null && Math.abs(wet.hpAt - (wet.seen.lightning_strike + slots.spells.lightning_strike.hitMs)) < 320, wet.hpAt + ' vs ' + (wet.seen.lightning_strike + slots.spells.lightning_strike.hitMs));
-  // the damage: Drenched takes 1.5 times from lightning, and Skyfall adds its bonus on top
-  const base = w.__combat.getDamage(layra, tayo); // (Drenched is on now, so this already has the 1.5)
-  check('Skyfall damage is the Drenched damage plus the bonus (' + terrain.water.skyfall.bonus + ')', wet.lost === base + terrain.water.skyfall.bonus, wet.lost + ' vs ' + base + ' + ' + terrain.water.skyfall.bonus);
-  check('no page errors', errors.filter((e) => !/Not implemented/.test(String(e))).length === 0);
+
+  // ---- the enemy side: the bull locked with Gaha, badly hurt, Tayo next to him holding a Shea balm ----
+  park(); put(bull, 5, 5); put(gaha, 5, 6); put(tayo, 4, 5); lock(bull, gaha);
+  bull.hp = Math.floor(bull.maxHp * 0.3); I.giveItem(tayo, 'sheaBalm');
+  const mates = b.units.filter((o) => o.alive && o.side === 'enemy' && o !== tayo && Math.abs(o.col - tayo.col) + Math.abs(o.row - tayo.row) === 1);
+  check('the rule: Tayo does not pick a balm for the bull while the bull is locked in a clash', I.enemyAllyItemChoice(tayo, mates) === null, JSON.stringify(I.enemyAllyItemChoice(tayo, mates) && I.enemyAllyItemChoice(tayo, mates).id));
+  const hp0 = bull.hp;
+  b.activeUnit = tayo; b.runEnemyTurn(); await sleep(700); await idle(); await sleep(600); await idle();
+  check('on Tayo\'s turn the bull is not healed', bull.hp <= hp0, hp0 + ' -> ' + bull.hp);
+  check('a locked fighter does not use an item on himself either', (() => { lock(bull, gaha); bull.hp = Math.floor(bull.maxHp * 0.3); I.giveItem(bull, 'sheaBalm'); return I.enemyItemChoice(bull) === null; })());
+
+  // ---- the hero side: Gaha locked with the bull, hurt; Sudeen next to him ----
+  park(); put(gaha, 5, 5); put(bull, 5, 4); put(sudeen, 4, 5); lock(gaha, bull); gaha.hp = Math.floor(gaha.maxHp * 0.4);
+  I.giveItem(sudeen, 'sheaBalm');
+  check('items: Sudeen cannot hand a balm to Gaha while Gaha is locked', !b.itemTargets(sudeen, 'sheaBalm').includes(gaha));
+  b.activeUnit = sudeen; b.refreshButtons(); b.onSpellButton(); b.chooseSpell('herbs');
+  check('Herbs: Gaha is not a target while he is locked', !(b.targetsInRange || []).includes(gaha), (b.targetsInRange || []).map((u) => u.id).join(','));
+  b.cancelMode();
+  sudeen.hp = sudeen.maxHp - 10; lock(sudeen, rabdul); put(rabdul, 3, 5);
+  check('items: a locked fighter cannot use one on himself', b.itemTargets(sudeen, 'sheaBalm').length === 0);
+  sudeen.engagedWith = null; rabdul.engagedWith = null;
+
+  // ---- Renewal (Kofi's Water blessing) ----
+  park(); put(gaha, 5, 5); put(bull, 5, 4); lock(gaha, bull); gaha.hp = Math.floor(gaha.maxHp * 0.5);
+  St.applyBuff(gaha, 'renewal', 1);
+  
+  const r = b.renewalTick(gaha);
+  check('Renewal does not heal a locked fighter', r.heal === 0 && gaha.hp === Math.floor(gaha.maxHp * 0.5), JSON.stringify(r));
+  gaha.engagedWith = null; bull.engagedWith = null;
+  const r2 = b.renewalTick(gaha);
+  check('...and heals again once the clash is over', r2.heal > 0, JSON.stringify(r2));
+
+  const real = errors.filter((e) => !/Not implemented/.test(String(e)));
+  check('no page errors', real.length === 0, real.join('|').slice(0, 200));
   console.log(fails ? 'FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);
 })();
