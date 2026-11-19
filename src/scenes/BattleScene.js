@@ -6353,11 +6353,12 @@ export default class BattleScene extends Phaser.Scene {
       groundRing(this, fist.x, fist.y, elementOf('earth').glow, 0.9);
       dustPuff(this, fist.x, fist.y);
       energyWaves(this, fist.x, fist.y, elementOf('earth').glow, { count: 1, size: 0.55 });
-      if (user.sprite && user.sprite.active) {
-        const sp = user.sprite, sx = sp.scaleX, sy = sp.scaleY;
-        sp.setScale(sx * 1.08, sy * 0.9); // the weight lands on the fist
-        this.tweens.add({ targets: sp, scaleX: sx, scaleY: sy, duration: 160, ease: 'Quad.easeOut' });
-      }
+      // the weight lands on the fist: a short squash through unit.squash, which the breathing reads (never a
+      // tween of the sprite's own scale: a pose change rescales the sprite from where it is, and a tween that
+      // ends on a fixed number then leaves him at the wrong size, found by the bot's SIZE OFF, 19 Nov)
+      const squash = { v: 0.1 };
+      user.squash = squash.v;
+      this.tweens.add({ targets: squash, v: 0, duration: 160, ease: 'Quad.easeOut', onUpdate: () => { user.squash = squash.v; }, onComplete: () => { user.squash = 0; } });
     });
     this.time.delayedCall(eruptAt, () => {
       play('crash');
