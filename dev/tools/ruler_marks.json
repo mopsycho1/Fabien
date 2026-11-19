@@ -13,11 +13,15 @@
       "gaha_n6_down": 0.8,
       "gaha_n6_victory": 1.0,
       "gaha_release": 1.0,
-      "gaha_wind": 1.0
+      "gaha_wind": 1.0,
+      "gaha_n6_sonicPrep": 1.24,
+      "gaha_n6_sonicClose": 1.47,
+      "gaha_n6_sonicThrow": 1.6
     },
     "feet": {
       "gaha_rooted": 0.94
-    }
+    },
+    "note_sonic": "Roadmap 1.61 (19 Nov): Sonic Javelin's wind-up, close and release were measured by a head turned away (too small), so the ruler drew them 14 to 23 percent bigger than his Swift stance (Suleiman: too big, north-east, under Swift). Pinned so the figure is about as big as his Swift attack (7 percent over the stance, arms out): drawn area against the stance, checked on a contact sheet."
   },
   "h1": {
     "scale": {

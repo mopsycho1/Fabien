@@ -1462,51 +1462,51 @@
         "footX": 0.59
       },
       "gaha_n6_sonicPrep_upLeft.png": {
-        "scale": 1.42,
+        "scale": 1.24,
         "footX": 0.45
       },
       "gaha_n6_sonicPrep_upRight.png": {
-        "scale": 1.42,
+        "scale": 1.24,
         "footX": 0.355
       },
       "gaha_n6_sonicPrep_downLeft.png": {
-        "scale": 1.42,
+        "scale": 1.24,
         "footX": 0.513
       },
       "gaha_n6_sonicPrep_downRight.png": {
-        "scale": 1.42,
+        "scale": 1.24,
         "footX": 0.509
       },
       "gaha_n6_sonicClose_upLeft.png": {
-        "scale": 1.56,
+        "scale": 1.47,
         "footX": 0.751
       },
       "gaha_n6_sonicClose_upRight.png": {
-        "scale": 1.56,
+        "scale": 1.47,
         "footX": 0.118
       },
       "gaha_n6_sonicClose_downLeft.png": {
-        "scale": 1.56,
+        "scale": 1.47,
         "footX": 0.602
       },
       "gaha_n6_sonicClose_downRight.png": {
-        "scale": 1.56,
+        "scale": 1.47,
         "footX": 0.406
       },
       "gaha_n6_sonicThrow_upLeft.png": {
-        "scale": 1.84,
+        "scale": 1.6,
         "footX": 0.626
       },
       "gaha_n6_sonicThrow_upRight.png": {
-        "scale": 1.84,
+        "scale": 1.6,
         "footX": 0.285
       },
       "gaha_n6_sonicThrow_downLeft.png": {
-        "scale": 1.84,
+        "scale": 1.6,
         "footX": 0.489
       },
       "gaha_n6_sonicThrow_downRight.png": {
-        "scale": 1.84,
+        "scale": 1.6,
         "footX": 0.502
       },
       "gaha_n6_weak_upRight.png": {
@@ -3432,6 +3432,7 @@
     },
     "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
+    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later.",
     "ruler": {
       "tayo_n6b_stand_f1.png": {
         "footX": 0.422
@@ -3606,20 +3607,20 @@
         "footX": 0.527
       },
       "tayo_n6b_battleFire_f1.png": {
-        "footX": 0.372,
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.372
       },
       "tayo_n6b_battleFire_f2.png": {
-        "footX": 0.66,
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.66
       },
       "tayo_n6b_battleFire_f3.png": {
-        "footX": 0.298,
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.298
       },
       "tayo_n6b_battleFire_f4.png": {
-        "footX": 0.583,
-        "scale": 0.87
+        "scale": 0.87,
+        "footX": 0.583
       },
       "tayo_n6b_punchFire_f1.png": {
         "scale": 0.73,
@@ -3654,8 +3655,7 @@
         "footX": 0.661
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",
