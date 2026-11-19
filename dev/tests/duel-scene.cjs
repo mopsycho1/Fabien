@@ -37,7 +37,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('in a duel, the buttons are Press, Guard, Slip and More (Guardian strong in Guard)', labels() === 'Press | Guard  * | Slip | More  >', labels());
   check('the status line says the momentum and how stances beat each other', /Momentum 0/.test(b.statusText.text) && /Guard beats Press/.test(b.statusText.text), JSON.stringify(b.statusText.text));
   b.openStanceMenu('more');
-  check('More: Auto mode, Break away, Empower, Back', /^Auto mode \| Break away \| Empower  \d Poise \| Back$/.test(labels()), labels());
+  check('More: Auto mode, Break away, Empower, Back', /^Auto mode \| Break away  \d+% \| Empower  \d Poise \| Back$/.test(labels()), labels());
   b.openStanceMenu('main');
 
   // 3. pick Guard with high dice: the hero wins the beat

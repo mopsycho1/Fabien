@@ -77,6 +77,7 @@ import {
   resolveBeat,
   aiStance,
   answerStance,
+  breakChance,
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
@@ -2450,18 +2451,21 @@ export default class BattleScene extends Phaser.Scene {
       // Already acted this turn: the stances are spent, so offer End turn
       // (a safety net; normally the turn ends by itself after a beat)
       const doneAlready = isHero && unit.hasActed && !this.busy;
+      // Break Away is a roll (BATTLE_SYSTEMS 4): the row shows the chance to get free, worked out before he picks it
+      // (roadmap 1.67), with Empower counted when it is switched on
+      const breakLabel = 'Break away  ' + breakChance(unit, unit.engagedWith, CONTEST_CTX, this.empower && poiseOf(unit) > 0) + '%';
       // Auto (the default): one Fight button picks the stance for you
       if (this.stanceChoice === 'auto' && !doneAlready) {
         const pick = this.autoStanceFor(unit);
         a.set('Fight: ' + stanceName(pick) + star(pick), 'press', free, () => this.onStance(pick), { accent: ENGAGE_COLOR, selected: this.empower });
-        b.set('Break away', 'run', free, () => this.onStance('break'));
+        b.set(breakLabel, 'run', free, () => this.onStance('break'));
         c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
         d.set('Manual  >', 'gem', isHero, () => this.setStanceChoice('manual'));
         return;
       }
       if (this.stanceMenu === 'more' && !doneAlready) {
         a.set('Auto mode', 'star', isHero, () => this.setStanceChoice('auto'), { accent: GOLD });
-        b.set('Break away', 'run', free, () => this.onStance('break'));
+        b.set(breakLabel, 'run', free, () => this.onStance('break'));
         c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
         d.set('Back', 'back', isHero, () => this.openStanceMenu('main'));
       } else {
@@ -5476,9 +5480,11 @@ export default class BattleScene extends Phaser.Scene {
       return out;
     }
 
-    // Signature stances: extra blows (Bloodied Press, Counter!) and Bulwark's standoff
+    // Signature stances: extra blows (Bloodied Press, Counter!) and Bulwark's standoff. Not on a Break Away try
+    // (roadmap 1.67): failing to break away costs momentum (BATTLE_SYSTEMS 4), not a hit. The bull's Bloodied
+    // Press used to count his answer to a break as "a Press beat won" and hit the one trying to leave.
     out.sig = [];
-    for (const fx of afterBeat(beat)) {
+    for (const fx of beat.kind === 'break' ? [] : afterBeat(beat)) {
       if (fx.kind === 'hit' && fx.to.alive && fx.from.alive) {
         const landed = this.landHit(fx.to, fx.damage);
         fx.to.hp = Math.max(0, fx.to.hp - landed.damage);
@@ -5608,7 +5614,8 @@ export default class BattleScene extends Phaser.Scene {
           this.duelFacesMood({ winner: a });
           if (escape) this.slideAlong(a, [escape]);
         } else {
-          this.banner(mid.x, headY - 70, 'Held fast!', '#ff6b5a', a.name + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.name);
+          // say plainly that it failed and that he is still locked (1.67: "Held fast!" alone read as a bug)
+          this.banner(mid.x, headY - 70, 'Break Away failed: still locked', '#ff6b5a', a.name + ' ' + Math.round(beat.actorScore) + '  vs  ' + Math.round(beat.holderScore) + ' ' + b.name);
           this.duelFacesMood({ winner: b });
           this.recoil(a, -dx);
         }

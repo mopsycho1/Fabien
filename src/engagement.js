@@ -484,6 +484,35 @@ export function aiStance(unit, foe, ctx = DEFAULT_CTX) {
   return autoStance(unit);
 }
 
+// The chance (0 to 100) that "unit" breaks away from "foe" this turn (roadmap 1.67), worked out exactly from the
+// rule of a beat: unit's score (3 dice + half agility + bonuses for Break away) must reach the foe's (3 dice + its
+// stance's parts). The foe answers by its class habits (answerStance), so each of its stances is weighted as
+// aiStance weights them. Shown on the Break away row before the player picks it.
+export function breakChance(unit, foe, ctx = DEFAULT_CTX, empowered = false) {
+  // how often the difference of two 3-dice rolls (mine minus theirs) is each number
+  const one = {};
+  const sides = rules.diceSides, n = rules.beatDice;
+  let dist = { 0: 1 };
+  for (let i = 0; i < n; i++) {
+    const next = {};
+    for (const [t, c] of Object.entries(dist)) for (let f = 1; f <= sides; f++) next[+t + f] = (next[+t + f] || 0) + c;
+    dist = next;
+  }
+  const total = Math.pow(sides, n);
+  for (const [a, ca] of Object.entries(dist)) for (const [b, cb] of Object.entries(dist)) one[a - b] = (one[a - b] || 0) + (ca * cb) / (total * total);
+  const weight = { strong: 5, average: 2, weak: 1 };
+  const sum = STANCE_IDS.reduce((x, s) => x + weight[stanceAffinity(foe, s)], 0);
+  let chance = 0;
+  for (const s of STANCE_IDS) {
+    const mine = sumBeat(beatParts(unit, 'break', foe, s, ctx, empowered));
+    const theirs = sumBeat(beatParts(foe, s, unit, 'break', ctx));
+    let p = 0;
+    for (const [d, c] of Object.entries(one)) if (mine + +d >= theirs) p += c; // success: margin >= 0 (resolveBeat)
+    chance += (weight[stanceAffinity(foe, s)] / sum) * p;
+  }
+  return Math.round(chance * 100);
+}
+
 // A stance picked by a unit that is answering (not acting): its class habits only,
 // with no read, because both stances are chosen at the same moment.
 export function answerStance(unit, ctx = DEFAULT_CTX) {

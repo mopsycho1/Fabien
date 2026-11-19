@@ -113,7 +113,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- Auto stances ----------
   park(); put(gaha, 3, 4); put(bull, 3, 3); E.startDuel(gaha, bull);
   turnOf(gaha); b.setStanceChoice('auto');
-  check('Auto (the default): Fight, Break away, Empower, Manual', /^Fight: Slip  \* \| Break away \| Empower  \d Poise \| Manual  >$/.test(labels()), labels());
+  check('Auto (the default): Fight, Break away, Empower, Manual', /^Fight: Slip  \* \| Break away  \d+% \| Empower  \d Poise \| Manual  >$/.test(labels()), labels());
   bull.stance = 'press'; b.refreshStatus();
   check('if the foe last used the stance that beats his, Auto switches to the counter', /^Fight: Guard/.test(labels()), labels());
   b.setStanceChoice('manual');
