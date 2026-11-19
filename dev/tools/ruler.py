@@ -294,7 +294,11 @@ def cmd_sheets(folder, old_root, ids):
 
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else ''
-    if cmd == 'measure': cmd_measure(sys.argv[2:])
+    if cmd == 'measure':
+        cmd_measure(sys.argv[2:])
+        # roadmap 1.64: every cut is checked for pictures that face the wrong way (dev/tools/facing_check.py)
+        import facing_check
+        facing_check.check()
     elif cmd == 'audit': sys.exit(cmd_audit(sys.argv[2:]))
     elif cmd == 'sheets':
         rest = sys.argv[3:]; old = rest.pop(0) if rest and os.path.isdir(rest[0]) else None
