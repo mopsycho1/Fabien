@@ -18,7 +18,8 @@ export function startStep(scene, index) {
   if (step.type === 'dialogue') {
     scene.scene.start('DialogueScene', { stepIndex: index, sceneId: step.scene });
   } else if (step.type === 'battle') {
-    scene.scene.start('BattleScene', { stepIndex: index, map: step.map }); // "map" in story.json picks the battle's map (src/data/maps)
+    // the character select first (roadmap 18.30); it starts the battle with the line-up picked there
+    scene.scene.start('SelectScene', { stepIndex: index, map: step.map }); // "map" in story.json picks the battle's map (src/data/maps)
   } else {
     // A step type we do not know: say so, and skip it so the game keeps going
     console.warn('story.json: unknown step type "' + step.type + '" at step ' + index);

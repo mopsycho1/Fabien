@@ -1,0 +1,45 @@
+{
+  "note": "Character bios for the character select (roadmap 18.30). One entry per character id in units.json. \"line\": one short line on the card (empty = the game lists the skills). \"bio\": Suleiman's longer text, shown when it is filled in. New characters get an entry here; a character with no entry still shows.",
+  "characters": {
+    "h1": {
+      "name": "Sudeen",
+      "line": "",
+      "bio": ""
+    },
+    "h2": {
+      "name": "Gaha",
+      "line": "",
+      "bio": ""
+    },
+    "h3": {
+      "name": "Layra",
+      "line": "",
+      "bio": ""
+    },
+    "h4": {
+      "name": "Kofi",
+      "line": "",
+      "bio": ""
+    },
+    "e4": {
+      "name": "Rabdul",
+      "line": "",
+      "bio": ""
+    },
+    "e1": {
+      "name": "Tayo",
+      "line": "",
+      "bio": ""
+    },
+    "e2": {
+      "name": "Bull Commander",
+      "line": "",
+      "bio": ""
+    },
+    "e3": {
+      "name": "Archer",
+      "line": "",
+      "bio": ""
+    }
+  }
+}

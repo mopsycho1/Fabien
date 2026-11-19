@@ -562,3 +562,9 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - src/data/skillPanel.json: the words on the skill panel, bottom right, for each skill. "area" is the words (like "1 foe"), "grid" the small picture of the area (rows top to bottom: x = hit, c = the caster, . = nothing), "effect" the short tag (like "Inflicts Burn") and "line" one short line. The full text stays in spells.json.
 - The unit card shows "Lv." from a "level" number in units.json (for example "level": 14). A unit without one shows Lv. 1.
 - src/data/clashMeter.json: how wide the clash meter is over a clash ("width") and how tall the skull is ("skull"), in board pixels.
+
+## The character select (18.30, 19 Nov)
+- Before every battle a screen lists every character in src/data/units.json as a card. Add a character there and it appears by itself (with a placeholder until its portrait is in art.json).
+- src/data/bios.json: one entry per character id. "line" is the short line on the card (leave it empty and the card lists the skills). "bio" is Suleiman's longer text, waiting to be filled in. Plain text, no em dashes.
+- Each character stays on its side from units.json ("side": "hero" or "enemy"), up to 4 a side.
+- The tester's last line-up is remembered on the device; "Reset to default" goes back to the map's own line-up. Settings in battle has "Test mode": On lets the enemies be picked too; Off locks them to the map's.

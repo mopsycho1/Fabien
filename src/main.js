@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import StartScene from './scenes/StartScene.js';
 import DialogueScene from './scenes/DialogueScene.js';
 import BattleScene from './scenes/BattleScene.js';
+import SelectScene from './scenes/SelectScene.js';
 import EndScene from './scenes/EndScene.js';
 import EffectsLab from './scenes/EffectsLab.js';
 import { pickSize, followWindow } from './layout.js';
@@ -25,8 +26,8 @@ const game = new Phaser.Game({
   // the story (see src/data/story.json).
   // Adding ?lab to the web address opens the effects test screen first
   scene: window.location.search.includes('lab')
-    ? [EffectsLab, StartScene, DialogueScene, BattleScene, EndScene]
-    : [StartScene, DialogueScene, BattleScene, EndScene, EffectsLab],
+    ? [EffectsLab, StartScene, DialogueScene, SelectScene, BattleScene, EndScene]
+    : [StartScene, DialogueScene, SelectScene, BattleScene, EndScene, EffectsLab],
   render: { maxLights: 24 }, // room for every torch (only used by the ?light test)
   loader: { imageLoadType: 'HTMLImageElement' }, // load pictures straight from their files
 });

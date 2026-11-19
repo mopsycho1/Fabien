@@ -84,6 +84,7 @@ import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enem
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
+import { testMode, setTestMode } from '../lineup.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
 import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
 // The maps a battle can be fought on. A battle in story.json can name one
@@ -167,6 +168,8 @@ export default class BattleScene extends Phaser.Scene {
     const asked = (data && data.map) || (typeof window !== 'undefined' && window.__mapName) || 'cavern';
     this.mapName = MAPS[asked] ? asked : 'cavern';
     this.resumeAsked = !!(data && data.resume); // "Continue the battle" on the title screen (M16)
+    // the line-up picked on the character select (18.30): { hero: [ids], enemy: [ids] }, or null for the map's own
+    this.chosenLineUp = data && data.lineUp ? data.lineUp : null;
   }
 
   // Phaser calls create() once, when the scene starts.
@@ -273,17 +276,35 @@ export default class BattleScene extends Phaser.Scene {
     // buildUnit fills in each unit's numbers from its job (see jobs.js).
     // (a unit with "bench": true in units.json sits this battle out)
     // (the map says where each unit starts: "starts" in its file)
+    // A character the map has no start tile for (one added later, 18.30) stands on a free tile on its own side:
+    // the nearest free tile to its side's start tiles, so it lines up with its team.
+    const taken = new Set(Object.values(mapData.starts || {}).map((t) => t[0] + ',' + t[1]));
     const startAt = (entry) => {
       const at = mapData.starts && mapData.starts[entry.id];
-      return at ? { ...entry, col: at[0], row: at[1] } : entry;
+      if (at) return { ...entry, col: at[0], row: at[1] };
+      const mine = unitData.filter((u) => u.side === entry.side && mapData.starts && mapData.starts[u.id]).map((u) => mapData.starts[u.id]);
+      if (!mine.length) return entry;
+      let best = null, bestD = Infinity;
+      for (let c = 0; c < GRID_SIZE; c++) for (let r = 0; r < GRID_SIZE; r++) {
+        if (taken.has(c + ',' + r) || (mapData.digsites || []).some((d) => d.col === c && d.row === r)) continue; // (units are not built yet: start tiles and pots are what blocks)
+        const d = Math.min(...mine.map((t) => Math.abs(t[0] - c) + Math.abs(t[1] - r)));
+        if (d < bestD) { bestD = d; best = [c, r]; }
+      }
+      if (!best) return entry;
+      taken.add(best[0] + ',' + best[1]);
+      return { ...entry, col: best[0], row: best[1] };
     };
     // (a map can change who fights: "alsoFighting" brings benched units in,
     // "sittingOut" benches others, for that map only)
     // (the bot tests can name who sits out instead: window.__bench, a list of ids)
+    // (the character select, 18.30, names exactly who fights: this.chosenLineUp)
+    const picked = this.chosenLineUp ? [...this.chosenLineUp.hero, ...this.chosenLineUp.enemy] : null;
     const benched = (entry) =>
       window.__bench
         ? window.__bench.includes(entry.id)
-        : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id);
+        : picked
+          ? !picked.includes(entry.id)
+          : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id);
     this.lineUp = { alsoFighting: mapData.alsoFighting || [], sittingOut: mapData.sittingOut || [] };
     const fielded = (entry) => !benched(entry);
     this.units = unitData.filter(fielded).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
@@ -773,7 +794,7 @@ export default class BattleScene extends Phaser.Scene {
     const rowH2 = Math.max(S(48), this.lay.minTap + S(6));
     const sheetW = Math.min(W - 2 * m, Math.max(S(380), T(15) * 20));
     const sheetRows = [];
-    const sheetH = S(56) + 4 * rowH2 + S(14);
+    const sheetH = S(56) + 5 * rowH2 + S(14);
     const sx0 = Math.round((W - sheetW) / 2), sy0 = Math.round((H - sheetH) / 2);
     const veil = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive(); // taps outside close it
     const panel = this.add.graphics();
@@ -809,7 +830,12 @@ export default class BattleScene extends Phaser.Scene {
     const barsLabel = sheetRow(2, () => { setPlateMode(plateMode() === 'always' ? 'hit' : 'always'); showBars(); for (const u of this.units) settlePlate(this, u); play('click'); });
     const showBars = () => barsLabel.setText('Health bars: ' + (plateMode() === 'always' ? 'Always' : 'When hit'));
     showBars();
-    sheetRow(3, () => openSheet(false)).setText('Close');
+    // Test mode (18.30): on, the character select lets the tester pick the enemies too; off locks them to the
+    // map's own (for the story later). On by default for now. Takes effect at the next character select.
+    const testLabel = sheetRow(3, () => { setTestMode(!testMode()); showTest(); play('click'); });
+    const showTest = () => testLabel.setText('Test mode: ' + (testMode() ? 'On (pick enemies)' : 'Off'));
+    showTest();
+    sheetRow(4, () => openSheet(false)).setText('Close');
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
     fxWatchFrameRate(this);
@@ -4896,7 +4922,7 @@ export default class BattleScene extends Phaser.Scene {
     // After a win, "Continue" moves the story on to the next step
     if (won && this.stepIndex !== null) addButton('Continue', 'press', () => startStep(this, this.stepIndex + 1));
     // Restarting the scene builds a brand new battle from units.json
-    addButton(won ? 'Play again' : 'Try again', 'back', () => this.scene.restart({ stepIndex: this.stepIndex, map: this.mapName }));
+    addButton(won ? 'Play again' : 'Try again', 'back', () => this.scene.restart({ stepIndex: this.stepIndex, map: this.mapName, lineUp: this.chosenLineUp })); // the same line-up again (18.30)
   }
 
   // ---------- Enemy turns ----------

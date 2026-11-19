@@ -4,7 +4,7 @@ One batch at a time: build, test, tick the roadmap, push, stop. Numbers point to
 Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the cause" work.
 "Art" says whether we are missing pictures from Suleiman for that item.
 
-## Batch 1: things that are broken now
+## Batch 1: things that are broken now (DONE 19 Nov, plus 1.67 Break Away; 1.58 and 1.62 wait; 1.66 is new: fix the 45 wrong-facing pairs)
 - **1.59** Gaha's Lunge shows "0" and the whole UI disappears afterwards. Art: none. **Opus** (find the cause; look at 13.55 in the same session).
 - **13.55** "NO BUTTONS": every button off for a moment after an action (seen once in 40 bot battles). Art: none. **Opus**.
 - **13.54** A figure left off its tile after a push (about 1 battle in 10). Art: none. **Opus**.
@@ -44,7 +44,7 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **6.80** Gaha and Bull clash GIF should play on the battlefield. Art: no. **Sonnet** (decided 19 Nov: over the two fighters on the board, no panel).
 
 ## Batch 5: teams and the character select
-- **18.30** Character select before each battle (he wants it early, for testing). Art: his bios are coming; portraits exist. **Sonnet**.
+- **18.30** DONE 19 Nov. Character select before each battle (he wants it early, for testing). Art: his bios are coming; portraits exist. **Sonnet**.
 - **6.61** Male archer joins the heroes, Kofi moves to the enemies as support (needs Kofi's AI). Art: partly (the male archer's missing poses, 6.31). **Opus**.
 - **18.32** Battle length on the 11 by 11 cavern (about 125 turns; his best is 63). Art: none. **Opus** (measure with the new teams).
 
