@@ -11,7 +11,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   S('StartScene').begin();
   check('tap -> prologue', await waitFor(() => active() === 'DialogueScene' && S('DialogueScene').ready));
   S('DialogueScene').leave();
-  check('prologue -> battle (story step 1) with the new line-up', await waitFor(() => active() === 'BattleScene' && S('BattleScene').slots) && S('BattleScene').stepIndex === 1 && S('BattleScene').units.map((u) => u.jobName).join() === 'Guardian,Spearman,Sage,Spearman,Warlord,Ranger');
+  // 18.30: the character select comes between the story and the battle; Start battle keeps the map's own line-up
+  w.localStorage.removeItem('fabien.lineup');
+  check('prologue -> character select (story step 1)', await waitFor(() => active() === 'SelectScene' && S('SelectScene').startButton) && S('SelectScene').stepIndex === 1);
+  S('SelectScene').startButton.emit('pointerup', { y: 0, downY: 0 });
+  const reached = await waitFor(() => active() === 'BattleScene' && S('BattleScene').slots);
+  check('Start battle -> battle (story step 1) with the new line-up', reached && S('BattleScene').stepIndex === 1 && S('BattleScene').units.map((u) => u.jobName).join() === 'Guardian,Spearman,Sage,Spearman,Warlord,Ranger');
   const b = S('BattleScene');
   for (const u of b.units.filter((x) => x.side === 'enemy')) { u.hp = 0; b.defeat(u); }
   b.battleOver = true; b.showResult(b.checkBattleEnd());

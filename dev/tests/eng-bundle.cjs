@@ -24,6 +24,7 @@ __export(engagement_exports, {
   autoStance: () => autoStance,
   beatParts: () => beatParts,
   breakAwayContest: () => breakAwayContest,
+  breakChance: () => breakChance,
   canBeCaught: () => canBeCaught,
   canEngage: () => canEngage,
   contestEdge: () => contestEdge,
@@ -1110,6 +1111,29 @@ function aiStance(unit, foe, ctx = DEFAULT_CTX) {
   }
   return autoStance(unit);
 }
+function breakChance(unit, foe, ctx = DEFAULT_CTX, empowered = false) {
+  const one = {};
+  const sides = engagement_default.diceSides, n = engagement_default.beatDice;
+  let dist = { 0: 1 };
+  for (let i = 0; i < n; i++) {
+    const next = {};
+    for (const [t, c] of Object.entries(dist)) for (let f = 1; f <= sides; f++) next[+t + f] = (next[+t + f] || 0) + c;
+    dist = next;
+  }
+  const total = Math.pow(sides, n);
+  for (const [a, ca] of Object.entries(dist)) for (const [b, cb] of Object.entries(dist)) one[a - b] = (one[a - b] || 0) + ca * cb / (total * total);
+  const weight = { strong: 5, average: 2, weak: 1 };
+  const sum = STANCE_IDS.reduce((x, s) => x + weight[stanceAffinity(foe, s)], 0);
+  let chance = 0;
+  for (const s of STANCE_IDS) {
+    const mine = sumBeat(beatParts(unit, "break", foe, s, ctx, empowered));
+    const theirs = sumBeat(beatParts(foe, s, unit, "break", ctx));
+    let p = 0;
+    for (const [d, c] of Object.entries(one)) if (mine + +d >= theirs) p += c;
+    chance += weight[stanceAffinity(foe, s)] / sum * p;
+  }
+  return Math.round(chance * 100);
+}
 function answerStance(unit, ctx = DEFAULT_CTX) {
   return aiStance(unit, null, ctx);
 }
@@ -1120,6 +1144,7 @@ function answerStance(unit, ctx = DEFAULT_CTX) {
   autoStance,
   beatParts,
   breakAwayContest,
+  breakChance,
   canBeCaught,
   canEngage,
   contestEdge,

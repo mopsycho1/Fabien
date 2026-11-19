@@ -30,7 +30,9 @@ export default class SelectScene extends Phaser.Scene {
 
   init(data) {
     this.stepIndex = data && data.stepIndex !== undefined ? data.stepIndex : null;
-    this.mapName = (data && data.map) || 'cavern';
+    // the map, picked as the battle picks it: the story's, else the one a test asks for, else the Hidden Cavern
+    const asked = (data && data.map) || (typeof window !== 'undefined' && window.__mapName) || 'cavern';
+    this.mapName = MAPS[asked] ? asked : 'cavern';
   }
 
   preload() {
