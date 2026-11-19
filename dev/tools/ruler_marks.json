@@ -83,11 +83,11 @@
     "note": "The bull: horns and bronze confuse the head finder, so every family is set by eye.",
     "scale": {
       "bull_dodge": 1.0,
-      "bull_flame_battle": 1.0,
+      "bull_flame_battle": 1.1,
       "bull_flame_shield": 1.0,
-      "bull_flame_stand": 1.0,
-      "bull_flame_strike": 1.0,
-      "bull_flame_windup": 1.0,
+      "bull_flame_stand": 0.92,
+      "bull_flame_strike": 1.12,
+      "bull_flame_windup": 1.12,
       "bull_iso_attack": 1.0,
       "bull_iso_battle": 1.0,
       "bull_iso_hurt": 1.0,
@@ -100,12 +100,13 @@
       "bull_n6b_bl6": 1.0,
       "bull_n6b_down": 1.0,
       "bull_n6b_shield": 1.0,
-      "bull_n6b_throw1": 1.0,
-      "bull_n6b_throw2": 1.0,
+      "bull_n6b_throw1": 1.12,
+      "bull_n6b_throw2": 1.12,
       "bull_n6b_victory": 1.0,
       "bull_n6b_weak": 0.9
     },
-    "feet": {}
+    "feet": {},
+    "note_163": "Roadmap 1.63 (19 Nov): the flame set (6.51) and the Shield Toss throw came from sheets drawn at other sizes: flame standing about 9 percent bigger than his plain look, flame battle, wind-up and strike and the throw 9 to 12 percent smaller. Set by eye on a contact sheet (helmet and shield size) and by drawn area against his plain stance."
   },
   "e3": {
     "note": "The archer: horns, veil and bronze confuse the head finder, so every family is set by eye. The archer_hq_* pictures are cut at the right size (make_archer_hq.py). The others are her old small pictures (standing was 112 pixels, now 300): 2.68 makes them the same size.",

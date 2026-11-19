@@ -2360,15 +2360,19 @@
         "footX": 0.511
       },
       "bull_n6b_throw1_f1.png": {
+        "scale": 1.12,
         "footX": 0.457
       },
       "bull_n6b_throw1_f3.png": {
+        "scale": 1.12,
         "footX": 0.291
       },
       "bull_n6b_throw2_f3.png": {
+        "scale": 1.12,
         "footX": 0.683
       },
       "bull_n6b_throw2_f1.png": {
+        "scale": 1.12,
         "footX": 0.35
       },
       "bull_n6b_weak_f1.png": {
@@ -2380,27 +2384,35 @@
         "footX": 0.437
       },
       "bull_flame_battle_upLeft.png": {
+        "scale": 1.1,
         "footX": 0.455
       },
       "bull_flame_battle_downLeft.png": {
+        "scale": 1.1,
         "footX": 0.541
       },
       "bull_flame_windup_upLeft.png": {
+        "scale": 1.12,
         "footX": 0.408
       },
       "bull_flame_windup_downLeft.png": {
+        "scale": 1.12,
         "footX": 0.536
       },
       "bull_flame_strike_upLeft.png": {
+        "scale": 1.12,
         "footX": 0.439
       },
       "bull_flame_strike_downLeft.png": {
+        "scale": 1.12,
         "footX": 0.529
       },
       "bull_flame_stand_upLeft.png": {
+        "scale": 0.92,
         "footX": 0.446
       },
       "bull_flame_stand_downLeft.png": {
+        "scale": 0.92,
         "footX": 0.537
       },
       "bull_flame_shield_upLeft.png": {
