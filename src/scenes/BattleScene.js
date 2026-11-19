@@ -2267,8 +2267,11 @@ export default class BattleScene extends Phaser.Scene {
       const spell = spells[this.selectedSpell];
       text = 'Tap ' + spell.button + ' again.'; // what it does is on the skill panel now (UI rework 16 Nov); a long press gives the full text
     } else if (this.mode === 'spell' && (isMelee(unit) || !unit.maxMp)) {
+      // MP a Verse lent him (Layra's, or Kofi's Infuse). Once his changed move has spent it, the line says so instead
+      // of "0 MP from the Verse of Fury" (roadmap 1.52: the misleading MP line seen after an Infuse).
       const lent = mpShown(unit);
-      text = 'Choose a skill' + (lent ? '  (' + lent.mp + ' MP from the ' + buffOf(unit).name + ')' : '');
+      const verse = lent && lent.lent && buffOf(unit) ? buffOf(unit).name : null;
+      text = 'Choose a skill' + (verse ? (lent.mp > 0 ? '  (' + lent.mp + ' MP from the ' + verse + ')' : '  (the ' + verse + "'s MP is spent)") : '');
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose from the ' + this.spellGroup : 'Choose a Verse') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'throw') {
