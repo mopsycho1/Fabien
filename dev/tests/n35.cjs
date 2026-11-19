@@ -24,7 +24,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- 8.2 the frame in portrait (the test screen is 720 by 1280) ----------
   reset([[gaha, 3, 4], [bull, 3, 1]], gaha);
   await sleep(100);
-  check('8.2 the turn number and the tile in focus (top right)', /^\d\d$/.test(b.turnText.text) && /ELEV \d/.test(b.tileText.text), b.turnText.text + ' / ' + b.tileText.text);
+  check('8.2 the turn number and the tile in focus (top right)', /^\d\d$/.test(b.turnText.text) && b.tileText.text.length > 0 && /ELEV \d/.test(b.elevText.text), b.turnText.text + ' / ' + b.tileText.text + ' ' + b.elevText.text); /* 18.35: ground word and ELEV on their own lines */
   const cb = cardBox();
   check('8.2 the profile card sits bottom left, on screen', cb.x < 40 && cb.bottom <= 1280 && cb.bottom > 1200, Math.round(cb.x) + ',' + Math.round(cb.y) + ' ' + Math.round(cb.width) + 'x' + Math.round(cb.height));
   const texts = []; const walk = (c) => c.list.forEach((o) => (o.list ? walk(o) : o.type === 'Text' && texts.push(o.text))); walk(b.cardLayer);
@@ -44,7 +44,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([[layra, 2, 5], [rabdul, 2, 1]], layra);
   layra.mp = layra.maxMp; b.onSpellButton(); await sleep(50);
   const costs = b.menuRows.filter((r) => r.cost.text).map((r) => r.word.text + '=' + r.cost.text);
-  check('8.3 Skills open with each MP cost on the right', costs.length >= 1 && b.menuHeader.text.length > 0, costs.join(' ') + ' / ' + b.menuHeader.text);
+  check('8.3 Skills open with each MP cost on the right', costs.length >= 1, /* 18.35: no title over his list */ costs.join(' ') + ' / ' + b.menuHeader.text);
   b.cancelMode();
   reset([[gaha, 3, 4], [bull, 3, 1]], bull);
   await sleep(50);
@@ -125,9 +125,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('8.10 first tap lights Meditate and explains it; the menu stays', b.selectedSpell === 'meditate' && b.mode === 'rest' && b.menu.visible && b.halves[1].selected && /Tap Meditate again/.test(b.statusText.text), b.mode + ' / ' + b.statusText.text);
   b.cancelMode();
   b.onSpellButton(); await sleep(30);
-  check('8.11 the Verses panel: Blessings, Hexes and Husk under a VERSES header', /Blessings/.test(rows()) && /Hexes/.test(rows()) && /Husk/.test(rows()) && !/Meditate/.test(rows()) && b.menuHeader.text === 'VERSES', rows() + ' / ' + b.menuHeader.text);
+  check('8.11 the Verses panel: Blessings, Hexes and Husk (no title, 18.35)', /Blessings/.test(rows()) && /Hexes/.test(rows()) && /Husk/.test(rows()) && !/Meditate/.test(rows()), rows() + ' / ' + b.menuHeader.text);
   b.openSpellGroup('Hexes'); await sleep(30);
-  check('8.11 Slow sits under Hexes', /Slow/.test(rows()) && b.menuHeader.text === 'HEXES', rows());
+  check('8.11 Slow sits under Hexes', /Slow/.test(rows()) && b.spellGroup === 'Hexes', rows());
   b.cancelMode();
   b.refreshCard(gaha); const t2 = []; const walk2 = (c) => c.list.forEach((o) => (o.list ? walk2(o) : o.type === 'Text' && t2.push(o.text))); walk2(b.cardLayer);
   const order = w.__game.scene.getScene('BattleScene');

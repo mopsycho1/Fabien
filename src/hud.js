@@ -580,7 +580,7 @@ export class MenuRow {
     // the whole label (what the rest of the game reads); the row shows it as a word and a cost
     this.label = scene.add.text(0, 0, '').setVisible(false);
     this.word = scene.add.text(0, 0, '', textStyle(19, '#f1e6c8')).setOrigin(0, 0.5);
-    this.cost = scene.add.text(0, 0, '', textStyle(15, '#bcd8ff')).setOrigin(1, 0.5);
+    this.cost = scene.add.text(0, 0, '', textStyle(15, '#e8dcc0')).setOrigin(1, 0.5);
     this.hit = scene.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
     this.view = scene.add.container(0, 0, [this.bg, this.icon, this.glyph, this.label, this.word, this.cost, this.hit]);
     this.hit.on('pointerdown', (pointer) => {
@@ -621,7 +621,8 @@ export class MenuRow {
 
   // label: the words on the row, or null to hide it.
   // tip: { title, body } for the long-press tooltip (see CommandButton.set)
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null, emblem = null, ring = null } = {}) {
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null, emblem = null, ring = null, shown = null } = {}) {
+    this.shown = shown; // the word shown, when it differs from the label ("Attack" for Thrust)
     this.tip = tip;
     const visible = label !== null;
     // his emblem for this row (UI rework 16 Nov, roadmap 6.53): given, or found from the row's word
@@ -636,8 +637,8 @@ export class MenuRow {
     this.iconName = iconName;
     this.label.setText(label || '');
     const [word, ...rest] = (label || '').split('  ');
-    this.word.setText(SHOWN_AS[word] || word); // (the label stays as it is: the game and the tests read it)
-    this.cost.setText(rest.join(' ').trim());
+    this.word.setText(shown || SHOWN_AS[word] || word); // (the label stays as it is: the game and the tests read it)
+    this.cost.setText(rest.join(' ').trim().replace(/^(\d+) MP$/, '$1')); // his list shows the MP number alone, right-aligned
     this.draw(false);
   }
 
@@ -660,14 +661,17 @@ export class MenuRow {
     const g = this.bg;
     g.clear();
     if (this.selected || (hover && on)) {
-      g.fillStyle(this.selected ? 0x5a3d1c : 0x3a2716, this.selected ? 0.95 : 0.8);
-      g.fillRoundedRect(x + 2, y + 2, w - 4, h - 4, 6 * s);
-      // his gold cursor on the left, as in the mockups
-      g.fillStyle(UI.gold, 1);
-      if (!this.compact) g.fillTriangle(x - 3 * s, cy - 7 * s, x + 7 * s, cy, x - 3 * s, cy + 7 * s);
+      // his mock-up: the chosen row is a soft warm band, with a small gold pointer just outside on the left
+      g.fillStyle(0xc9a35a, this.selected ? 0.2 : 0.11);
+      g.fillRect(x, y + 1, w, h - 2);
+      if (this.selected) {
+        g.lineStyle(1, 0xc9a35a, 0.35).lineBetween(x, y + 1, x + w, y + 1).lineBetween(x, y + h - 1, x + w, y + h - 1);
+        g.fillStyle(UI.gold, 1);
+        g.fillTriangle(x - 7 * s, cy - 4 * s, x - 2 * s, cy, x - 7 * s, cy + 4 * s);
+      }
     }
     // compact: the icon is as big as the letters allow (so it reads on a phone too)
-    const d = this.compact ? Math.max(20 * s, (this.compactFont || 11) * 1.35) : 28 * s;
+    const d = this.iconSize || (this.compact ? Math.max(20 * s, (this.compactFont || 11) * 1.35) : 28 * s);
     const ix = this.compact ? x + 6 * s + d / 2 : x + 26 * s;
     const emblemKey = this.emblem && this.scene.textures.exists('ui:emblem_' + this.emblem) ? 'ui:emblem_' + this.emblem : null;
     const key = emblemKey || (this.iconName && glyphKey(this.scene, this.iconName));
@@ -682,7 +686,7 @@ export class MenuRow {
       if (this.iconName) drawIcon(this.icon, this.iconName, ix, cy, d * 0.8, on ? UI.bronzeLight : 0x6a5434);
     }
     const least = this.minText || 11;
-    this.cost.setFontSize(Math.max(least, Math.round(15 * s))).setPosition(x + w - 10 * s, cy).setAlpha(on ? 1 : 0.5);
+    this.cost.setFontSize(this.costFont || Math.max(least, Math.round(15 * s))).setPosition(x + w - (this.iconSize ? 6 : 10) * s, cy).setAlpha(on ? 1 : 0.5);
     const wx = this.compact ? ix + d / 2 + 7 * s : x + 48 * s;
     this.word.setPosition(wx, cy).setColor(on ? '#f1e6c8' : '#7d6e58');
     // a long word shrinks so it never runs into the cost

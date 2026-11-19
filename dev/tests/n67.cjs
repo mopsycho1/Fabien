@@ -19,7 +19,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- the card ----------
   b.cardOpen = false; turnOf(gaha);
-  check('closed, the card is a slim bar: name and a thin HP bar, no stat numbers', !num('ATK') && cardWords().includes('Gaha') && cardWords().includes('36/36'), cardWords().join(' '));
+  check('closed, the card is his compact card: name, Lv., HP MP CT with numbers, class line, no ATK (18.35)', !num('ATK') && cardWords().includes('Gaha') && cardWords().some((w) => /36 \/ 36|36\/36/.test(w)) && cardWords().includes('CT'), cardWords().join(' '));
   const h1 = b.cardHeight;
   check('the slim bar is at least a finger tall', h1 >= b.lay.minTap, h1 + ' ' + b.lay.minTap);
   b.cardHit.emit('pointerdown');
@@ -50,7 +50,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // UI rework 16 Nov: the menu has no fixed home any more; it stands beside the hero (his mock-up)
   check('D5 (rework): every hero, main menu and skills list, in two corners of the board: the menu stands somewhere on the screen each time', seen.size >= 1 && [...seen].every((c) => { const [x, y] = c.split(',').map(Number); return x <= b.lay.W && y <= b.lay.H; }), [...seen].join(' | '));
   check('the menu stays above the card', b.menu.y + b.menuSize.h <= b.cardTop);
-  check('rows are at least the smallest tap size for this screen', b.lay.rowH >= b.lay.minTap && b.menuRows.every((r) => r.h >= b.lay.minTap), b.lay.rowH + ' ' + b.lay.minTap);
+  check('rows are slim like his (26 to 32 design px) and each touch band is its whole row (18.35)', b.lay.rowH >= 26 * b.lay.px && b.lay.rowH <= 32 * b.lay.px && b.menuRows.every((r) => r.hit.height >= r.h), b.lay.rowH + ' ' + b.lay.minTap);
 
   // ---------- the top strip ----------
   const all = []; const walk = (o) => { if (o.type === 'Text') all.push(o.text); if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk);

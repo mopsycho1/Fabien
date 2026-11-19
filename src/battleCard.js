@@ -9,21 +9,23 @@ import skillPanel from './data/skillPanel.json';
 // name, MP, the area as a small grid, the effect and one line).
 // Everything here is drawn in code, so it is sharp at any size (no stretched pictures).
 
-// The frame: a dark see-through panel, a thin gold line and a faint inner line,
-// small gold diamonds on the corners. Drawn into the graphics object g.
-export function framePanel(g, x, y, w, h, s = 1, { alpha = 0.88, line = UI.bronze } = {}) {
-  const r = Math.max(2, Math.round(3 * s));
-  g.fillStyle(0x0d0907, alpha).fillRoundedRect(x, y, w, h, r);
-  // a faint lighter band along the top, like light on the edge of the panel
-  g.fillStyle(0xffe6b0, 0.05).fillRect(x + 2, y + 2, w - 4, Math.round(h * 0.35));
-  g.lineStyle(Math.max(1, 1.5 * s), line, 0.95).strokeRoundedRect(x, y, w, h, r);
-  g.lineStyle(1, UI.bronzeLight, 0.22).strokeRoundedRect(x + 4 * s, y + 4 * s, w - 8 * s, h - 8 * s, r);
-  const d = Math.max(3, 4.5 * s);
-  g.fillStyle(UI.bronzeLight, 1);
-  for (const [cx, cy] of [[x, y], [x + w, y], [x, y + h], [x + w, y + h]]) {
-    g.fillTriangle(cx - d, cy, cx, cy - d, cx + d, cy);
-    g.fillTriangle(cx - d, cy, cx, cy + d, cx + d, cy);
-  }
+// The frame (UI rework, matched to his mock-up 16 Nov): a dark see-through panel (about 80 percent),
+// a thin gold line (1 to 2 real pixels), a faint inner line and a soft shadow. No thick frames.
+// px: game pixels per design pixel (BattleScene lay.px), so the line is thin on every screen.
+export function framePanel(g, x, y, w, h, px = 1, { alpha = 0.8, line = 0xc9a35a } = {}) {
+  const r = Math.max(2, Math.round(3 * px));
+  // the soft shadow: two faint dark layers a little below and around
+  g.fillStyle(0x000000, 0.14).fillRoundedRect(x - 2 * px, y, w + 4 * px, h + 5 * px, r + 3 * px);
+  g.fillStyle(0x000000, 0.2).fillRoundedRect(x - 0.5 * px, y + 1.5 * px, w + px, h + 2.5 * px, r + px);
+  g.fillStyle(0x0b0806, alpha).fillRoundedRect(x, y, w, h, r);
+  g.lineStyle(Math.max(1, 1.2 * px), line, 0.85).strokeRoundedRect(x, y, w, h, r);
+  g.lineStyle(Math.max(1, 0.8 * px), 0xe4c27c, 0.1).strokeRoundedRect(x + 2.5 * px, y + 2.5 * px, w - 5 * px, h - 5 * px, Math.max(1, r - px));
+}
+
+// A tiny gold diamond (his marks before the class line and the title), centre (x, y), half size d.
+export function goldDiamond(g, x, y, d, color = 0xe4c27c) {
+  g.lineStyle(1, color, 0.95).strokePoints([{ x, y: y - d }, { x: x + d, y }, { x, y: y + d }, { x: x - d, y }], true);
+  g.fillStyle(color, 0.9).fillPoints([{ x, y: y - d * 0.45 }, { x: x + d * 0.45, y }, { x, y: y + d * 0.45 }, { x: x - d * 0.45, y }], true);
 }
 
 // A square portrait (the face filling the square, aimed a little above the middle),
@@ -54,82 +56,62 @@ export function squarePortrait(scene, unit, faceKey, size) {
   return key;
 }
 
-// How tall the closed unit card is, from the letter sizes (it never changes, so the menu can stand on it).
-export function cardHeight(L) {
-  return L.pad * 2 + L.name * 1.25 + L.small * 1.35 + 3 * L.row;
-}
+// The card's size in design pixels (real screen pixels on a phone; BattleScene multiplies by lay.px).
+// compact on a phone (the board needs the room: 85 percent of the height), roomier on a wide screen,
+// where it follows his mock-up more closely (Lv. on its own line, more space between the bars).
+export const CARD = { w: 188, h: 64 };
+export const CARD_ROOMY = { w: 220, h: 104 };
 
-// The letter sizes and spacing for the card and panel. T(n) = n game pixels, never under minText.
-export function cardSizes(s, minText) {
-  const S = (n) => Math.round(n * s);
-  const T = (n) => Math.max(S(n), minText);
-  const small = T(13);
-  return { S, T, small, name: Math.max(T(22), Math.round(small * 1.3)), pad: S(10), row: small + S(9) };
-}
-
-// The unit card (closed): returns the things to put in the card's container and its height.
-// active: the unit whose turn it is (its CT shows full, as in FFT).
-export function drawUnitCard(scene, unit, w, s, minText, { active = false, viewing = false, faceKey = null, jobLine = '' } = {}) {
-  const L = cardSizes(s, minText);
-  const { S, small, pad, row } = L;
-  const h = Math.round(cardHeight(L));
+// The unit card, bottom left, as in his mock-up but compact: a square portrait, the name and Lv.,
+// thin HP, MP and CT bars with their numbers, and the class line along the bottom.
+// P: game pixels per design pixel; F: the letter sizes ({ small, mid, name }) in game pixels.
+// Returns the things to put in the card's container and its size.
+export function drawUnitCard(scene, unit, P, F, { active = false, viewing = false, faceKey = null, jobLine = '', roomy = false } = {}) {
+  const D = (n) => Math.round(n * P);
+  const size = roomy ? CARD_ROOMY : CARD;
+  const w = D(size.w), h = D(size.h), pad = D(roomy ? 7 : 4);
   const items = [];
   const g = scene.add.graphics();
-  framePanel(g, 0, 0, w, h, s);
+  framePanel(g, 0, 0, w, h, P);
   items.push(g);
-  // the portrait: a square in a gold frame, as tall as the card allows but never more than a third of it wide
-  const ps = Math.round(Math.min(h - 2 * pad, w * 0.3));
-  const px = pad, py = Math.round((h - ps) / 2);
-  items.push(scene.add.image(px, py, squarePortrait(scene, unit, faceKey, 160)).setOrigin(0, 0).setDisplaySize(ps, ps));
-  g.lineStyle(Math.max(1.5, 2 * s), active ? UI.gold : UI.bronze, 1).strokeRect(px, py, ps, ps);
-  g.lineStyle(Math.max(1, 1.5 * s), unit.side === 'hero' ? UI.hero : UI.enemy, 0.9).strokeRect(px + 3 * s, py + 3 * s, ps - 6 * s, ps - 6 * s);
-
-  const tx = px + ps + pad + S(4);
-  const right = w - pad;
-  let y = pad;
-  const nameT = scene.add.text(tx, y, unit.name, textStyle(L.name, '#ffe08a'));
-  items.push(nameT);
-  items.push(scene.add.text(right, y + L.name - small, 'Lv. ' + (unit.level || 1), textStyle(small, '#d8c8a4')).setOrigin(1, 0));
-  y += Math.round(L.name * 1.25);
-  const job = scene.add.text(tx, y, jobLine, textStyle(small, '#e4c27c'));
-  if (job.width > right - tx) job.setScale((right - tx) / job.width); // a long class line shrinks to fit, never wraps
-  items.push(job);
-  y += Math.round(small * 1.35);
-  if (viewing) {
-    // "viewing" at the end of the class line, only where it has room (a long class line keeps its words)
-    const v = scene.add.text(right, pad + L.name * 1.25, 'viewing', textStyle(small, '#a89a78', { fontStyle: 'italic' })).setOrigin(1, 0);
-    if (job.x + job.width * job.scaleX + S(8) < v.x - v.width) items.push(v);
-    else v.destroy();
-  }
-
-  // three bars: a small word, the bar, the numbers at its end
+  // the portrait, with a thin gold edge (brighter for the one acting)
+  const ps = D(roomy ? 70 : 46);
+  items.push(scene.add.image(pad, pad, squarePortrait(scene, unit, faceKey, 128)).setOrigin(0, 0).setDisplaySize(ps, ps));
+  g.lineStyle(Math.max(1, P), active ? 0xffe08a : 0xa87b3a, 0.95).strokeRect(pad, pad, ps, ps);
+  // the name and Lv. on the first line
+  const tx = pad + ps + D(7), right = w - pad - D(2);
+  items.push(scene.add.text(tx, pad - D(1), unit.name, textStyle(F.name, '#f3e7c6')));
+  const lv = scene.add.text(right, pad + D(1), 'Lv. ' + (unit.level || 1), textStyle(F.small, '#bfae86')).setOrigin(1, 0);
+  if (roomy) lv.setOrigin(0, 0).setPosition(tx, pad + D(17)); // his mock-up: Lv. under the name
+  items.push(lv);
+  // three thin bars: the word, the bar, the numbers at the end
   const bars = scene.add.graphics();
   items.push(bars);
-  const numW = Math.round(small * 3.7);
-  const barX = tx + Math.round(small * 1.7);
-  const barW = Math.max(S(30), right - numW - S(6) - barX);
-  const barH = Math.max(4, Math.round(row * 0.26));
+  const numW = D(46);
+  const barX = tx + D(22), barW = Math.max(D(20), right - numW - D(4) - barX), barH = Math.max(2, D(3));
+  let cy = pad + D(roomy ? 40 : 22);
   const bar = (word, value, max, color, numbers) => {
-    const cy = y + row / 2;
-    items.push(scene.add.text(tx, cy, word, textStyle(small, '#d8c8a4')).setOrigin(0, 0.5));
-    bars.fillStyle(0x000000, 0.75).fillRect(barX, cy - barH / 2, barW, barH);
-    if (max > 0 && value > 0) {
-      const f = Math.min(1, value / max);
-      bars.fillStyle(color, 1).fillRect(barX, cy - barH / 2, barW * f, barH);
-      bars.fillStyle(0xffffff, 0.25).fillRect(barX, cy - barH / 2, barW * f, Math.max(1, barH / 3)); // a shine on top
-    }
-    bars.lineStyle(1, UI.bronzeDark, 1).strokeRect(barX, cy - barH / 2, barW, barH);
-    items.push(scene.add.text(right, cy, numbers, textStyle(small, '#f1e6c8', { fontStyle: 'bold' })).setOrigin(1, 0.5));
-    y += row;
+    items.push(scene.add.text(tx, cy, word, textStyle(F.small, '#cdbb92')).setOrigin(0, 0.5));
+    bars.fillStyle(0x000000, 0.6).fillRect(barX, cy - barH / 2, barW, barH);
+    if (max > 0 && value > 0) bars.fillStyle(color, 1).fillRect(barX, cy - barH / 2, barW * Math.min(1, value / max), barH);
+    items.push(scene.add.text(right, cy, numbers, textStyle(F.small, '#efe3c2')).setOrigin(1, 0.5));
+    cy += D(roomy ? 14 : 10.5);
   };
   const hpFrac = Math.max(0, unit.hp / unit.maxHp);
-  bar('HP', unit.hp, unit.maxHp, hpFrac <= 0.35 ? 0xe05a47 : 0x5fcf6f, Math.max(0, unit.hp) + '/' + unit.maxHp);
+  bar('HP', unit.hp, unit.maxHp, hpFrac <= 0.35 ? 0xe05a47 : 0x5cc46a, Math.max(0, unit.hp) + ' / ' + unit.maxHp);
   const mp = unit.mpShown;
-  if (mp) bar('MP', mp.mp, mp.max, mp.color || 0x4f8fe8, mp.mp + '/' + mp.max);
+  if (mp) bar('MP', mp.mp, mp.max, mp.color || 0x4f8fe8, mp.mp + ' / ' + mp.max);
   else bar('MP', 0, 0, 0x4f8fe8, '-');
   const ct = active ? 100 : Math.max(0, Math.min(100, Math.round(unit.ct || 0)));
-  bar('CT', ct, 100, 0xe8b04a, String(ct));
-  return { items, h, nameText: nameT };
+  bar('CT', ct, 100, 0xe0a944, String(ct));
+  // the class line along the bottom, under a faint rule, with his small diamond
+  const ly = h - pad - D(roomy ? 5 : 4);
+  bars.lineStyle(1, 0xc9a35a, 0.22).lineBetween(pad, ly - D(roomy ? 8 : 6.5), w - pad, ly - D(roomy ? 8 : 6.5));
+  goldDiamond(bars, pad + D(4), ly, D(3.5));
+  const job = scene.add.text(pad + D(11), ly, jobLine + (viewing ? '   (viewing)' : ''), textStyle(F.small, '#c9b07a')).setOrigin(0, 0.5);
+  if (job.width > w - pad - job.x) job.setScale((w - pad - job.x) / job.width);
+  items.push(job);
+  return { items, w, h };
 }
 
 // The words of a skill for the panel (from skillPanel.json), with safe defaults.
@@ -149,69 +131,53 @@ export function emblemFor(id) {
   return 'skills';
 }
 
-// The skill panel: emblem, name, MP, the area as a small grid, the effect and one line.
-// w is its width; returns the things to put in its container and its height.
-export function drawSkillPanel(scene, id, w, s, minText) {
-  const L = cardSizes(s, minText);
-  const { S, small, pad } = L;
+// The skill panel, bottom right, as his: the emblem, the name and MP, the area as a small grid at
+// the right, and under a faint rule "1 foe  |  Inflicts Burn". P and F as for the card.
+export const SKILL_PANEL = { w: 178, h: 56 };
+export function drawSkillPanel(scene, id, P, F) {
+  const D = (n) => Math.round(n * P);
   const k = skillWords(id);
   const color = Phaser.Display.Color.HexStringToColor(k.color).color;
-  const frame = scene.add.graphics(); // the frame, drawn last but kept under everything
-  const g = scene.add.graphics();     // the area grid and the dividing line
+  const w = D(SKILL_PANEL.w), h = D(SKILL_PANEL.h), pad = D(6);
+  const frame = scene.add.graphics();
+  framePanel(frame, 0, 0, w, h, P);
+  const g = scene.add.graphics();
   const items = [frame, g];
-  // the emblem, with a glow in the skill's colour behind it
-  const e = Math.round(Math.max(S(44), small * 2.3));
-  const ex = pad + e / 2, ey = pad + e / 2;
-  const glow = scene.add.graphics();
-  glow.fillStyle(color, 0.35).fillCircle(ex, ey, e * 0.56);
-  items.push(glow);
+  // the emblem with a soft glow in the skill's colour
+  const e = D(26), ex = pad + e / 2, ey = pad + e / 2;
+  g.fillStyle(color, 0.3).fillCircle(ex, ey, e * 0.58);
   const key = 'ui:emblem_' + emblemFor(id);
   if (scene.textures.exists(key)) items.push(scene.add.image(ex, ey, key).setDisplaySize(e, e));
-  // the area grid, top right: one small square per tile
+  // the area grid at the right: small squares, lit in the skill's colour
   const rows = k.grid, n = Math.max(rows.length, ...rows.map((r) => r.length));
-  const cell = Math.max(4, Math.floor(Math.min(e, S(46)) / Math.max(3, n)));
+  const cell = Math.max(3, Math.floor(D(24) / Math.max(3, n)));
   const gw = cell * rows[0].length, gh = cell * rows.length;
-  const gx = w - pad - gw, gy = pad + Math.max(0, (e - gh) / 2);
+  const gx = w - pad - gw, gy = ey - gh / 2;
   rows.forEach((r, j) => [...r].forEach((c, i) => {
-    const x = gx + i * cell, yy = gy + j * cell;
-    if (c === 'x') g.fillStyle(color, 0.95).fillRect(x + 1, yy + 1, cell - 2, cell - 2);
-    else if (c === 'c') g.fillStyle(UI.gold, 0.9).fillRect(x + cell * 0.25, yy + cell * 0.25, cell * 0.5, cell * 0.5);
-    else g.fillStyle(0xffffff, 0.08).fillRect(x + 1, yy + 1, cell - 2, cell - 2);
+    const x = gx + i * cell, y = gy + j * cell;
+    if (c === 'x') g.fillStyle(color, 0.95).fillRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+    else if (c === 'c') g.fillStyle(0xffe08a, 0.9).fillRect(x + cell * 0.25, y + cell * 0.25, cell * 0.5, cell * 0.5);
+    else g.fillStyle(0xffffff, 0.07).fillRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
   }));
-  // the name and the MP under it
-  const tx = pad + e + S(10);
-  const nameRoom = gx - S(6) - tx;
-  const nm = scene.add.text(tx, ey - S(2), k.name, textStyle(Math.max(L.T(17), small), '#f1e6c8')).setOrigin(0, 1);
-  if (nm.width > nameRoom) nm.setScale(nameRoom / nm.width);
+  // the name, and the MP under it
+  const tx = pad + e + D(8);
+  const nm = scene.add.text(tx, ey - D(1), k.name, textStyle(F.mid, '#f3e7c6')).setOrigin(0, 1);
+  if (nm.width > gx - D(6) - tx) nm.setScale((gx - D(6) - tx) / nm.width);
   items.push(nm);
-  items.push(scene.add.text(tx, ey + S(2), k.mp ? 'MP ' + k.mp : 'No MP', textStyle(small, k.mp ? '#8fc0ff' : '#a89a78')).setOrigin(0, 0));
-  let y = pad + e + S(8);
-  g.lineStyle(1, UI.bronzeDark, 1).lineBetween(pad, y, w - pad, y);
-  y += S(6);
-  // the area and the effect on one line (the effect in the skill's colour), the description under it
-  const area = scene.add.text(pad, y, k.area, textStyle(small, '#d8c8a4'));
+  items.push(scene.add.text(tx, ey + D(1), k.mp ? 'MP ' + k.mp : 'MP 0', textStyle(F.small, '#cdbb92')).setOrigin(0, 0));
+  // under a faint rule: the area | the effect (the effect in the skill's colour)
+  const ry = pad + e + D(4);
+  g.lineStyle(1, 0xc9a35a, 0.22).lineBetween(pad, ry, w - pad, ry);
+  const ly = (ry + h - D(2)) / 2 + D(1);
+  const area = scene.add.text(pad + D(2), ly, k.area, textStyle(F.small, '#d8c8a4')).setOrigin(0, 0.5);
   items.push(area);
   if (k.effect) {
-    const sep = scene.add.text(pad + area.width + S(8), y, '|', textStyle(small, '#6b5a3c'));
-    const eff = scene.add.text(sep.x + sep.width + S(8), y, k.effect, textStyle(small, k.color, { fontStyle: 'bold' }));
-    const room = w - pad - eff.x;
-    if (eff.width > room) {
-      // no room beside the area: the effect goes on its own line
-      sep.destroy();
-      y += Math.round(small * 1.3);
-      eff.setPosition(pad, y);
-    } else items.push(sep);
-    items.push(eff);
+    const sep = scene.add.text(area.x + area.width + D(7), ly, '|', textStyle(F.small, '#7a6848')).setOrigin(0, 0.5);
+    const eff = scene.add.text(sep.x + sep.width + D(7), ly, k.effect, textStyle(F.small, k.color)).setOrigin(0, 0.5);
+    if (eff.x + eff.width > w - pad) eff.setScale((w - pad - eff.x) / eff.width);
+    items.push(sep, eff);
   }
-  y += Math.round(small * 1.35);
-  if (k.line) {
-    const line = scene.add.text(pad, y, k.line, textStyle(small, '#bfb08c', { wordWrap: { width: w - 2 * pad }, fontStyle: 'italic' }));
-    items.push(line);
-    y += line.height;
-  }
-  const h = Math.round(y + pad);
-  framePanel(frame, 0, 0, w, h, s);
-  return { items, h };
+  return { items, w, h };
 }
 
 // A portrait cut as a diamond (the unit list down the left side, UI rework step 3).

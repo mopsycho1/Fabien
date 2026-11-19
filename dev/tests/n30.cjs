@@ -41,7 +41,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('2.3 after acting, the attack row is greyed', !b.slots[1].enabled);
   // every visible word fits on its button
   const all = [...b.slots, ...b.halves, ...b.lowHalves].filter((s) => s.view.visible);
-  check('the main menu is a small panel: every row a little icon and its word, at least 44 px tall (15 Nov, after the slim column)', all.every((s) => s.compact && s.h >= b.lay.minTap && s.word.visible && s.word.text.length > 0));
+  check('the main menu is a slim column: every row a little icon and its word, 28 px or more, its touch band the whole row (18.35)', all.every((s) => s.compact && s.h >= 26 * b.lay.px && s.hit.height >= s.h && s.word.visible && s.word.text.length > 0));
   check('every word fits on its row (before its cost)', all.every((s) => s.word.x + s.word.width <= s.x + s.w - (s.cost.text ? s.cost.width + 4 : 0) + 0.5), all.map((s) => s.label.text + ':' + Math.round(s.word.width)).join(' '));
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);

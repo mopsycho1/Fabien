@@ -114,7 +114,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   b.activeUnit = h3; h3.hasActed = false; b.cancelMode();
   check('the Sage has Move | Lightning | Verses/Meditate | End turn (8.10, 8.11)', labels() === 'Move | Lightning | - | Items/End turn' && b.halves[0].label.text === 'Verses' && b.halves[1].label.text === 'Meditate', labels() + ' / ' + b.halves.map((h) => h.label.text).join('/'));
   b.onSpellButton();
-  check('Verses shows Blessings, Hexes, Husk and Back', labels() === 'Blessings  > | Hexes  > | Husk  5 MP | Back', labels());
+  check('Verses shows Blessings, Hexes and Husk (no Back, 18.35)', labels() === 'Blessings  > | Hexes  > | Husk  5 MP | -', labels()); /* 18.35: his list has no Back row */
   b.chooseSpell('stone');
   const inRange = b.targetsInRange.map((u) => u.label).sort().join();
   check('gold tiles on everyone within 3 tiles, friend or foe', b.mode === 'spellTarget' && b.targetsInRange.length > 0 && b.targetsInRange.every((u) => Math.abs(u.col - h3.col) + Math.abs(u.row - h3.row) <= 3), inRange);

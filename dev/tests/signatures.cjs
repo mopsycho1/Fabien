@@ -27,7 +27,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const halves = () => b.halves.map((h) => (h.view.visible ? h.label.text + (h.enabled ? '' : '(dim)') : '-')).join(' | ');
   check('his third row is two buttons: Engage and Skills', halves() === 'Engage(dim) | Skills' && !b.slots[2].view.visible, halves());
   b.onSpellButton();
-  check('Skills holds Spear Throw and Lunge (Engage is not in it)', labels() === 'Spear Throw | Lunge | - | Back', labels());
+  check('Skills holds Spear Throw and Lunge (Engage is not in it)', labels() === 'Spear Throw | Lunge | - | -', labels());
   b.cancelMode();
   // throw at an enemy 3 tiles away on flat ground: knocked back a tile
   park(); put(gaha, 3, 6); put(bull, 3, 3); turnOf(gaha);
@@ -54,7 +54,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- Herbs ----------
   park(); put(sudeen, 2, 6); put(gaha, 2, 5); gaha.hp = 10; turnOf(sudeen);
   b.onSpellButton();
-  check('Sudeen\'s Skills: Herbs and Intercept', labels() === 'Herbs x3 | Intercept | - | Back', labels());
+  check('Sudeen\'s Skills: Herbs and Intercept', labels() === 'Herbs x3 | Intercept | - | -', labels());
   b.chooseSpell('herbs');
   check('Herbs offers only hurt allies next to him', b.targetsInRange.length === 1 && b.targetsInRange[0] === gaha, b.targetsInRange.map((u) => u.label).join());
   b.handleTap(2, 5); b.handleTap(2, 5); await idle();

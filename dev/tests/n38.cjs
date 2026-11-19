@@ -103,10 +103,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const m0 = { x: b.menu.x, y: b.menu.y };
   const press = { x: m0.x + 20, y: m0.y + 6, isDown: true };
   b.grabMenu(press);
-  b.dragMenu({ x: press.x - 140, y: press.y - 60, isDown: true });
+  b.dragMenu({ x: press.x - 80, y: press.y - 60, isDown: true });
   b.input.emit('pointerup', press);
   b.placeMenu();
-  check('8.16 dragging the grip moves the menu', Math.abs(b.menu.x - (m0.x - 140)) <= 1 && Math.abs(b.menu.y - (m0.y - 60)) <= 1, m0.x + ',' + m0.y + ' -> ' + b.menu.x + ',' + b.menu.y);
+  check('8.16 dragging the grip moves the menu', Math.abs(b.menu.x - (m0.x - 80)) <= 1 && Math.abs(b.menu.y - (m0.y - 60)) <= 1, m0.x + ',' + m0.y + ' -> ' + b.menu.x + ',' + b.menu.y);
   const pinned = { x: b.menu.x, y: b.menu.y };
   put(gaha, 5, 5); b.update(); b.placeMenu();
   check('8.16 it stays where it was put when the unit moves', b.menu.x === pinned.x && b.menu.y === pinned.y);
@@ -123,7 +123,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.placeMenu();
   check('8.16 double-tap the grip: back beside the unit', b.menuPin === null && !(b.menu.x === pinned.x && b.menu.y === pinned.y));
   // a tap on a menu row still works (the grip doesn't eat it)
-  check('8.16 the rows below the grip still work', b.menuRows.length > 0 && b.menuRows[0].hit.input.enabled && b.menuRows[0].hit.y >= b.menuGripHit.height - 6);
+  check('8.16 the rows below the grip still work', b.menuRows.length > 0 && b.menuRows[0].hit.input.enabled && b.menuRows[0].hit.y >= b.menuGripHit.y + b.menuGripHit.height - 1); /* 18.35: the grip's touch area reaches above the panel */
 
   // ---------- 8.18 turn buttons on a phone's sides ----------
   check('8.18 on a computer they stay top right', (b.rotateSpots || []).length === 0);

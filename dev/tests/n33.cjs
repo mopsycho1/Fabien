@@ -65,7 +65,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   S.applyPoison(gaha, 'poisonArrow'); S.applyStun(gaha); S.applyDisoriented(gaha); S.applyBurn(gaha, 'wildfire'); gaha.status.exposed = true;
   b.refreshCard(gaha);
   const right = (() => { let m = 0; const walk = (c) => c.list.forEach((o) => { if (o.list) walk(o); else if (o.type === 'Image' && o.texture && /^icon:/.test(o.texture.key)) m = Math.max(m, o.x + 10); }); walk(b.cardLayer); return m; })();
-  check('6.7 too many for the card: icons only, still inside the card', cardIcons().length >= 6 && right <= b.lay.cardW, cardIcons().length + ' icons, right edge ' + right);
+  check('6.7 too many for the card: icons only, still inside the card', cardIcons().length >= 6 && right <= (b.lay.portrait && b.cardOpen ? b.lay.W - 2 * b.lay.m : b.lay.cardW), cardIcons().length + ' icons, right edge ' + right);
 
   // ---------- 6.8 Earth's Bulwark ----------
   reset([[layra, 2, 7], [sudeen, 3, 7]]);
