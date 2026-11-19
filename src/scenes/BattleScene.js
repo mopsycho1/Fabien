@@ -2720,10 +2720,25 @@ export default class BattleScene extends Phaser.Scene {
     const id = this.selectedItem;
     this.cancelMode();
     this.busy = true;
-    this.useItem(user, target, id, () => {
+    const done = () => {
       this.busy = false;
       this.refreshStatus();
-    });
+    };
+    this.safeAction(() => this.useItem(user, target, id, done), done);
+  }
+
+  // Runs a hero's action (a skill, an attack, an item) so that a mistake inside it can never freeze the game
+  // (roadmap 1.59: Gaha's Lunge threw on 16 Nov, the turn stayed busy and every button vanished for good).
+  // If starting the action throws, the error goes to the console, any cut-in ends, and done() runs, so the
+  // game is calm again and the menu comes back. The action still counts as used.
+  safeAction(start, done) {
+    try {
+      start();
+    } catch (e) {
+      console.error('Fabien: an action failed and was stopped safely', e);
+      this.endCinematic();
+      done();
+    }
   }
 
   // Uses one item: it takes the user's action. Works for heroes and enemies.
@@ -3531,9 +3546,10 @@ export default class BattleScene extends Phaser.Scene {
     const { target, tile } = this.approach;
     const strike = () => {
       this.busy = true;
-      this.performAttack(unit, target, () => {
+      const done = () => {
         this.busy = false;
-      });
+      };
+      this.safeAction(() => this.performAttack(unit, target, done), () => { done(); this.refreshStatus(); });
     };
     if (tile.col === unit.col && tile.row === unit.row) {
       this.approach = null;
@@ -3614,9 +3630,10 @@ export default class BattleScene extends Phaser.Scene {
 
     this.cancelMode();
     this.busy = true;
-    this.performAttack(attacker, target, () => {
+    const done = () => {
       this.busy = false;
-    });
+    };
+    this.safeAction(() => this.performAttack(attacker, target, done), () => { done(); this.refreshStatus(); });
   }
 
   // ---------- Attacking (used by heroes and enemies) ----------
@@ -5984,7 +6001,7 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
     this.busy = true;
     this.refreshPreview(); // the skill starts: the preview goes
-    this.castSpell(caster, target, id, () => {
+    const done = () => {
       this.busy = false;
       this.refreshStatus();
       // Intercept locked it in a clash: in the stance duel its turn is over
@@ -5993,7 +6010,8 @@ export default class BattleScene extends Phaser.Scene {
           if (!this.battleOver && this.activeUnit === caster) this.endTurn();
         });
       }
-    });
+    };
+    this.safeAction(() => this.castSpell(caster, target, id, done), done);
   }
 
   // Casts a spell. It costs the caster's action and the spell's MP.

@@ -41,7 +41,7 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **6.71** Kofi's dodge. Art: no. **Sonnet**.
 - **6.72** Gaha's new neutral and damaged stances, plus Lunge pictures and effects. Art: no. **Sonnet**.
 - **6.79** Slow GIF now; the Gravity GIF waits for 13.65. Art: no. **Sonnet**.
-- **6.80** Gaha and Bull clash GIF should play on the battlefield. Art: no. **Sonnet** (ask him what he means first, Q11).
+- **6.80** Gaha and Bull clash GIF should play on the battlefield. Art: no. **Sonnet** (decided 19 Nov: over the two fighters on the board, no panel).
 
 ## Batch 5: teams and the character select
 - **18.30** Character select before each battle (he wants it early, for testing). Art: his bios are coming; portraits exist. **Sonnet**.
@@ -80,11 +80,11 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **11.9** The jungle map: needs his layout, heights and props. 13.64 difficulty by level and story. 18.33 sharper Layra, Sudeen and Gaha (he must send high-resolution files). 18.34 attack animations need work (ask which). 13.62 Poise to Stamina (he now says poise works well; ask).
 
 ## Questions only Suleiman can answer (Q numbers used above; full text in the roadmap, Questions)
-1. Sudeen's Ward in a clash: the sheet says on, his message says off. Which? And is the switch a free tap or a toggle?
+1. DECIDED 19 Nov: Ward off in a clash, switchable on and off (free tap or toggle still open).
 2. The second lion (6.78): name, hero or enemy, class, kit?
 3. Leol and the Thief: HP, attack, defense, speed, move and clash profile? Hero or enemy? When is the female thief?
 4. "Rejuvenate is op": which skill (Renewal or Herbs), and what should change?
-5. "Sudeen's summons": did he mean Kofi's spirits?
+5. DECIDED 19 Nov: yes, Kofi's spirits.
 6. "The vertical and horizontal lightning issue again": what did he see?
 7. Gravity: what does it do beyond a stronger Slow? Do the other echoed Verses get names?
 8. Critical hits: wanted? How often, how big?

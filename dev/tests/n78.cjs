@@ -37,6 +37,22 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     // let an enemy turn play out so the next loop starts quiet
     const t3 = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t3 < 15000) await sleep(60);
   }
+  // 1.59 safety net: a skill that throws as it starts (as Lunge did on 16 Nov) must not freeze the game. Through the
+  // real confirm path (confirmSpell), the turn is freed, any cut-in ends and the menu has a live End turn row.
+  {
+    const t0 = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t0 < 15000) await sleep(60);
+    for (const u of b.units) { u.engagedWith = null; u.engagement = null; u.hasActed = false; u.status.cooldowns = {}; }
+    b.placeUnit(gaha, line[0].col, line[0].row); b.placeUnit(bull, line[3].col, line[3].row);
+    b.cancelMode(); b.activeUnit = gaha; b.refreshButtons();
+    const real = b.castLunge; b.castLunge = () => { b.beginCinematic(); throw new Error('test: the run could not start'); };
+    const quiet = w.console.error; w.console.error = () => {};
+    b.onSpellButton(); b.chooseSpell('lunge'); b.handleTap(bull.col, bull.row); b.handleTap(bull.col, bull.row);
+    w.console.error = quiet; b.castLunge = real;
+    await sleep(300);
+    const rows = [...b.slots, ...b.halves, ...b.lowHalves].filter((sl) => sl.enabled).map((sl) => sl.label && sl.label.text);
+    check('a skill that throws leaves the game free (not busy, no cut-in)', !b.busy && !b.inCinematic && gaha.hasActed);
+    check('  and the menu still has a live button (End turn)', rows.length > 0, rows.join('/'));
+  }
   const real = errors.filter((e) => !/Not implemented/.test(String(e)));
   check('no page errors', real.length === 0, real.join('|').slice(0, 200));
   console.log(fails ? 'FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);
