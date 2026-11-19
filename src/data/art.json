@@ -3249,6 +3249,24 @@
           "file": "tayo_n6d_blastPunch_f4.png",
           "originX": 0.23
         }
+      },
+      "groundPound": {
+        "upLeft": {
+          "file": "tayo_n6b_down_f1.png",
+          "originX": 0.607
+        },
+        "upRight": {
+          "file": "tayo_n6b_down_f2.png",
+          "originX": 0.404
+        },
+        "downLeft": {
+          "file": "tayo_n6b_down_f3.png",
+          "originX": 0.44
+        },
+        "downRight": {
+          "file": "tayo_n6b_down_f4.png",
+          "originX": 0.448
+        }
       }
     },
     "portrait": "tayo_face.png",
@@ -3637,7 +3655,7 @@
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it."
+    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later."
   },
   "e4": {
     "note": "Rabdul, a spearman with a two-headed spear. From Suleiman's labeled 8-direction sheets (standing and battle stance). No action poses yet: he strikes from his battle stance. Height 112 like the bull; his battle-stance pictures are cut 20% bigger because the crouch is drawn so low that he looked tiny next to the others (Suleiman, 29 Oct).",

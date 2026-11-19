@@ -6328,19 +6328,38 @@ export default class BattleScene extends Phaser.Scene {
     if (outcome) this.battleOver = true;
     this.refreshButtons();
 
-    // Roadmap 1.54: his old 29 Oct Earth Drive pictures (a different, smaller look) are out of art.json, so he plays his
-    // current sheet: the arms drawn back, then the punch when the fist meets the ground. (A move in art.json still wins.)
+    // Roadmap 1.54: his old 29 Oct Earth Drive pictures (a different, smaller look) are out of art.json.
+    // Roadmap 1.60 (Suleiman 16 Nov: "he just throws a punch"): Earth Drive is a ground pound again, from his
+    // current sheet. He draws back (blastCharge), slams his fist into the floor (groundPound: kneeling, fist
+    // planted), a shockwave runs from his fist, and a beat later the rock erupts under the foe.
+    // (A drawn 'earthDrive' move in art.json still wins, when Suleiman sends one.)
     const m = moveFrames(user.id, 'earthDrive', dx >= 0 ? 'right' : 'left');
     const frameMs = m ? m.frameMs : 110;
+    const slamAt = frameMs * 2; // the fist meets the floor
+    const eruptAt = slamAt + 90; // the rock bursts up under the foe
     this.floatText(user, spell.name, spell.color, { rise: 40 });
     play('whoosh');
-    const drawnBack = poseFrame(user.id, 'blastWind', 'right', user.facing) ? 'blastWind' : 'windup';
-    if (!this.playMove(user, 'earthDrive', dx)) {
-      this.showPose(user, drawnBack, dx);
-      this.time.delayedCall(frameMs * 2, () => user.alive && !user.knock && this.showPose(user, 'attack', dx));
-    }
-    // the fist meets the ground on his third picture
-    this.time.delayedCall(frameMs * 2, () => {
+    const pose = (names) => names.find((n) => poseFrame(user.id, n, 'right', user.facing)) || 'attack';
+    const drawnBack = pose(['blastCharge', 'blastWind', 'windup']);
+    const pound = pose(['groundPound', 'attack']);
+    const played = this.playMove(user, 'earthDrive', dx);
+    if (!played) this.showPose(user, drawnBack, dx);
+    this.time.delayedCall(slamAt, () => {
+      if (!played && user.alive && !user.knock) this.showPose(user, pound, dx);
+      // the slam at his fist: a short drop of the body, a ring and dust where the fist lands
+      const fist = { x: user.view.x + (target.view.x - user.view.x) * 0.5, y: user.view.y + (target.view.y - user.view.y) * 0.5 };
+      play('crash');
+      screenShake(this, 0.006, 140);
+      groundRing(this, fist.x, fist.y, elementOf('earth').glow, 0.9);
+      dustPuff(this, fist.x, fist.y);
+      energyWaves(this, fist.x, fist.y, elementOf('earth').glow, { count: 1, size: 0.55 });
+      if (user.sprite && user.sprite.active) {
+        const sp = user.sprite, sx = sp.scaleX, sy = sp.scaleY;
+        sp.setScale(sx * 1.08, sy * 0.9); // the weight lands on the fist
+        this.tweens.add({ targets: sp, scaleX: sx, scaleY: sy, duration: 160, ease: 'Quad.easeOut' });
+      }
+    });
+    this.time.delayedCall(eruptAt, () => {
       play('crash');
       screenShake(this, 0.008, 200);
       const p = tileToScreen(tile.col, tile.row);
@@ -6356,12 +6375,12 @@ export default class BattleScene extends Phaser.Scene {
       }
     });
     this.time.delayedCall(frameMs * 4 + 380, () => {
-      if (user.alive) {
+      if (user.alive && !user.knock) {
         this.faceNearestOpponent(user);
-        this.showStanding(user);
+        this.showStanding(user); // up from the pound
       }
     });
-    this.time.delayedCall(frameMs * 2 + 1250, () => {
+    this.time.delayedCall(eruptAt + 1250, () => {
       if (outcome) {
         this.busy = false;
         this.showResult(outcome);

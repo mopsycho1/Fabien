@@ -89,7 +89,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   park(); put(tayo, 5, 5); put(gaha, 5, 6); const seenKeys = new Set(); const iv = setInterval(() => seenKeys.add(tayo.sprite.texture.key), 20);
   const sizeBefore = tayo.artScale; b.busy = true;
   b.castEarthDrive(tayo, gaha, { name: 'Earth Drive', color: '#d9a066', damageShare: 0.5, push: 1, turns: 2 }, () => { b.busy = false; }); await idle(); await sleep(900); clearInterval(iv);
-  check('Earth Drive shows the arms drawn back and the punch of his current sheet', [...seenKeys].some((k) => /blastWind/.test(k)) && [...seenKeys].some((k) => /n6b_punch/.test(k)) && ![...seenKeys].some((k) => /tayo_drive/.test(k)), [...seenKeys].map((k) => k.replace('e1:tayo_', '')).join(','));
+  check('Earth Drive (1.60): drawn back, then the ground pound (fist on the floor) of his current sheet', [...seenKeys].some((k) => /blastCharge/.test(k)) && [...seenKeys].some((k) => /n6b_down/.test(k)) && ![...seenKeys].some((k) => /tayo_drive/.test(k)), [...seenKeys].map((k) => k.replace('e1:tayo_', '')).join(','));
   check('and he is back at his standing size afterwards', Math.abs(tayo.sprite.scaleX / tayo.artScale - 1) < 0.04 && /n6b_(stand|battle)/.test(tayo.sprite.texture.key), tayo.sprite.texture.key);
   for (const spike of b.spikes.splice(0)) { if (spike.view && spike.view.destroy) spike.view.destroy(); }
 
