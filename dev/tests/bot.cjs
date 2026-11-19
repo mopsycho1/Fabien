@@ -34,6 +34,38 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
       };
     }
     for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function' || b['__trailed_' + fn]) continue; b['__trailed_' + fn] = true; /* wrap once: the scene lives on across battles */ const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
+    // 13.55: every frame, a hero's calm turn must have at least one live button. Notes who the buttons were last drawn
+    // for (and from where), so a stale menu can be traced. Printed as NO BUTTONS (frame).
+    if (!b.__btnWatch) {
+      b.__btnWatch = true;
+      const origSet = b.setButtons.bind(b);
+      b.setButtons = () => { b.__lastSet = { who: b.activeUnit && b.activeUnit.label, busy: b.busy, mode: b.mode, at: Math.round(b.time.now), from: (new Error().stack || '').split('\n').slice(2, 6).map((l) => l.trim().replace(/^at /, '').replace(/ \(.*$/, '')).join(' < ') }; return origSet(); };
+      b.events.on('postupdate', () => {
+        const u = b.activeUnit;
+        if (!u || u.side !== 'hero' || b.busy || b.inCinematic || b.battleOver) { b.__noBtnSince = 0; return; }
+        const live = [...b.slots, ...b.halves, ...b.lowHalves].some((sl) => sl.enabled);
+        if (live) { b.__noBtnSince = 0; return; }
+        if (!b.__noBtnSince) b.__noBtnSince = b.time.now;
+        if (b.__noBtnReported !== u.label + b.turnCount) { b.__noBtnReported = u.label + b.turnCount; tally.noButtonsFrame = (tally.noButtonsFrame || 0) + 1; console.log('NO BUTTONS (frame) on', u.label, 'turn', b.turnCount, 'acted', u.hasActed, 'engaged', !!u.engagedWith, 'mode', b.mode, 'menu', b.menu && b.menu.visible, '| buttons last drawn:', JSON.stringify(b.__lastSet), '| last:', (b.__trail || []).slice(-5).join(' > ')); }
+      });
+    }
+    // 13.54: every frame, note when a figure's body moves (where to, its tile then, what tweens hold it, a push on or
+    // not), the last 6 per unit, printed with any OFF TILE line so the move that left it there can be named.
+    if (!b.__moveWatch) {
+      b.__moveWatch = true;
+      b.events.on('postupdate', () => {
+        for (const u of b.units) {
+          if (!u.view || !u.view.active) continue;
+          const x = Math.round(u.view.x), y = Math.round(u.view.y);
+          if (u.__mx === x && u.__my === y && u.__mt === u.col + ',' + u.row) continue;
+          const tw = b.tweens.getTweensOf(u.view).filter((t) => t.isPlaying && t.isPlaying()).map((t) => (t.data || []).map((d) => d.key).join('+') + (t.data && t.data[0] && t.data[0].yoyo ? '(yoyo)' : '')).join(';');
+          const p = w.__grid.tileToScreen(u.col, u.row);
+          (u.__moves = u.__moves || []).push(Math.round(b.time.now) + ' @' + x + ',' + y + ' tile ' + u.col + ',' + u.row + ' off ' + Math.round(x - p.x) + ',' + Math.round(y - p.y) + (u.knock ? ' KNOCK' : '') + (tw ? ' tw[' + tw + ']' : '') + (b.busy ? ' busy' : ''));
+          if (u.__moves.length > 8) u.__moves.shift();
+          u.__mx = x; u.__my = y; u.__mt = u.col + ',' + u.row;
+        }
+      });
+    }
     if (!b.__engageCounted) { b.__engageCounted = true; const origEngage = b.performEngage.bind(b);
       b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); }; }
     const waitIdle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 6000) await sleep(5); };
@@ -59,13 +91,13 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         // every figure must be standing on the middle of its tile (roadmap 13.47): checked twice,
         // a moment apart, so a body still settling is not counted
         const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
-        if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
+        if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); console.log('  moves of ' + o.x.label + ': ' + (o.x.__moves || []).join(' | ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
         // every figure must be drawn at its picture's size (roadmap 1.54): the sideways scale of the sprite is what the
         // unit says it is. A figure that is bigger or smaller than that has lost track of its picture's scale.
         const sizeOff = () => b.units.filter((x) => x.alive && x.sprite && x.sprite.active && !x.knock && !x.squash && !b.inCinematic).map((x) => ({ x, r: x.sprite.scaleX / x.artScale })).filter((o) => Math.abs(o.r - 1) > 0.04);
         if (sizeOff().length) { await sleep(500); for (const o of sizeOff()) { tally.sizeOff = (tally.sizeOff || 0) + 1; console.log('SIZE OFF', o.x.label, 'x' + o.r.toFixed(2), 'showing', o.x.sprite.texture.key, 'frameScale', o.x.frameScale, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); } }
         // a hero's turn with every button greyed out is a stuck screen for a real player
-        if ([...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed); }
+        if ([...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; const at = { mode: b.mode, spell: b.selectedSpell, item: b.selectedItem, last: b.__lastSet }; await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 30))); const liveNext = [...b.slots, ...b.halves, ...b.lowHalves].some((sl) => sl.enabled); console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed, JSON.stringify(at), 'live a frame later:', liveNext, 'menu visible', b.menu && b.menu.visible); }
         const foes = alive('enemy');
         if (u.engagedWith) {
           const foe = u.engagedWith;

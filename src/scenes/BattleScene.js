@@ -4308,13 +4308,26 @@ export default class BattleScene extends Phaser.Scene {
     else if (thrust) this.playMove(attacker, thrust, dx, { to: 3 });
     else this.showPose(attacker, readyPose, dx);
     const leanSprite = drawnWindup ? null : this.leanBack(attacker, dx, 150); // her dagger stab leans too
+    // The body moves by offsets from the middle of the tile it stands on NOW, worked out every frame (roadmap 13.54,
+    // as nudgeFromTile does for 13.47). These tweens used to go to fixed points measured from where the body was when
+    // the attack began: an attacker pushed to another tile mid-swing (a counter, a Sonic Burst) was dragged back to
+    // the old tile when the last tween ended, and a body that started a little off its tile came back there.
+    // While a push is drawing the body (unit.knock) these leave it alone.
+    const ux = dx / dist, uy = dy / dist;
+    const reach = { d: 0 }; // how far along the line to the target: -8 drawn back, 30 at the blow, 0 home
+    const place = () => {
+      const v = attacker.view;
+      if (!v || !v.active || attacker.knock) return;
+      const home = tileToScreen(attacker.col, attacker.row);
+      v.setPosition(home.x + ux * reach.d, home.y + uy * reach.d * 0.5);
+    };
     this.tweens.add({
-      targets: attacker.view,
-      x: from.x - (dx / dist) * 8, // draw back a little first
-      y: from.y - (dy / dist) * 4,
+      targets: reach,
+      d: -8, // draw back a little first
       duration: 150,
       hold: 70, // anticipation: freeze at the top of the wind-up before the strike
       ease: 'Quad.easeOut',
+      onUpdate: place,
       onComplete: () => {
         play('whoosh');
         this.unlean(leanSprite); // the lean snaps forward into the blow
@@ -4322,22 +4335,24 @@ export default class BattleScene extends Phaser.Scene {
         else this.showPose(attacker, strikePose, dx);
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
-          targets: attacker.view,
-          x: from.x + (dx / dist) * 30,
-          y: from.y + (dy / dist) * 15,
+          targets: reach,
+          d: 30,
           duration: 90,
           ease: 'Quad.easeIn',
+          onUpdate: place,
           onComplete: () => {
             impact();
             if (thrust) this.playMove(attacker, thrust, dx, { from: 4 }); // pull the spear back
             this.tweens.add({
-              targets: attacker.view,
-              x: from.x,
-              y: from.y,
+              targets: reach,
+              d: 0,
               delay: 140,
               duration: 220,
               ease: 'Quad.easeOut',
+              onUpdate: place,
               onComplete: () => {
+                reach.d = 0;
+                place(); // exactly on the middle of its tile
                 if (leanSprite && leanSprite.active) leanSprite.angle = 0; // never leave the lean on
                 this.showStanding(attacker);
               },
@@ -5609,8 +5624,8 @@ export default class BattleScene extends Phaser.Scene {
         const meet = (u, stance) => (stance === 'press' ? (this.hasPose(u, 'clashPress') ? 'clashPress' : 'attack') : this.hasPose(u, this.clashPose(u, stance)) && this.clashPose(u, stance) !== 'dodge' ? this.clashPose(u, stance) : 'ready');
         this.showPose(a, meet(a, beat.actorStance), dx);
         this.showPose(b, meet(b, beat.holderStance), -dx);
-        this.tweens.add({ targets: a.view, x: aHome.x + dx * 0.2, y: aHome.y + dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
-        this.tweens.add({ targets: b.view, x: bHome.x - dx * 0.2, y: bHome.y - dy * 0.2, duration: 110, yoyo: true, ease: 'Quad.easeIn' });
+        this.nudgeFromTile(a, dx * 0.2, dy * 0.2, { duration: 110, ease: 'Quad.easeIn' }); // from the tile, not from where the body is (13.54)
+        this.nudgeFromTile(b, -dx * 0.2, -dy * 0.2, { duration: 110, ease: 'Quad.easeIn' });
       });
       at(490, () => {
         clashFlash(this, mid.x, mid.y);
@@ -5831,8 +5846,8 @@ export default class BattleScene extends Phaser.Scene {
     at(300, () => {
       this.showPose(a, 'attack', dx);
       this.showPose(b, 'attack', -dx);
-      this.tweens.add({ targets: a.view, x: aHome.x + dx * 0.22, y: aHome.y + dy * 0.22, duration: 120, yoyo: true, ease: 'Quad.easeIn' });
-      this.tweens.add({ targets: b.view, x: bHome.x - dx * 0.22, y: bHome.y - dy * 0.22, duration: 120, yoyo: true, ease: 'Quad.easeIn' });
+      this.nudgeFromTile(a, dx * 0.22, dy * 0.22, { duration: 120, ease: 'Quad.easeIn' }); // from the tile (13.54)
+      this.nudgeFromTile(b, -dx * 0.22, -dy * 0.22, { duration: 120, ease: 'Quad.easeIn' });
     });
     at(420, () => {
       clashFlash(this, mid.x, mid.y);
@@ -7230,8 +7245,9 @@ export default class BattleScene extends Phaser.Scene {
           const dh = moveFrames(user.id, 'doubleHit', dx >= 0 ? 'right' : 'left'); // one head, then the other (4.6)
           if (!(dh && dh.frames[i] && this.showFrame(user, dh.frames[i]))) this.showPose(user, i === 0 ? 'windup' : 'attack', dx);
           this.afterimage(user);
-          const home = tileToScreen(user.col, user.row); // its tile, not where it happens to be (13.47)
-          this.tweens.add({ targets: user.view, x: home.x + (dx / dist) * 20, y: home.y + (dy / dist) * 10, duration: 90, yoyo: true, ease: 'Quad.easeIn' });
+          // measured from its tile every frame (13.47, 13.54): a plain yoyo tween came back to wherever the body was
+          // when it started, and the second head starts while the first is still out, so it stopped off the tile
+          this.nudgeFromTile(user, (dx / dist) * 20, (dy / dist) * 10, { duration: 90, ease: 'Quad.easeIn' });
           this.time.delayedCall(100, () => this.showImpact(user, target, strike, dx, strike.lethal));
         });
       });
