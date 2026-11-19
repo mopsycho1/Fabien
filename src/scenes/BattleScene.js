@@ -4114,19 +4114,14 @@ export default class BattleScene extends Phaser.Scene {
     if (read === 'water') { applyDrenched(target, spell.drench); word = ['Drenched', '#7fd6c4']; }
     if (read === 'earth') { applySlow(target, 'haunt'); word = ['Bound', '#d9b77a']; }
     if (read === 'storm') { applyOffBalance(target); word = ['Shaken', '#bfd8ff']; }
+    // Roadmap 1.57 (Suleiman 16 Nov: "the spell's effects should be the only thing that fires"): Haunt used to end
+    // in his cast picture and his spirit comet, which is exactly his plain attack. Now he holds his chant (he works
+    // the spirits from where he stands), and only his Haunt effect plays, once, on the target. The mark stays as the
+    // status tag; no smoke lingers on the unit (that loop is gone from refreshStatusTags).
     this.time.delayedCall(420, () => {
       if (!caster.alive) return onDone();
-      this.showPose(caster, 'cast', dx);
       play('spell');
       const to = this.centerOf(target);
-      const from = { x: caster.view.x + Math.sign(dx || 1) * 14, y: caster.view.y - caster.topY * 0.7 };
-      // his teal spirit comet flies to the mark and his Haunt smoke rises where it lands (6.63); ours until they are loaded
-      const hasComet = sfxHas(this, 'spirit_bolt');
-      if (hasComet) sfxBeam(this, 'spirit_bolt', from.x, from.y, to.x, to.y);
-      else lightning(this, from.x, from.y, to.x, to.y);
-      // the mark lands when the comet arrives (its hitMs), not when it leaves his hand
-      const hit = hasComet ? sfxInfo('spirit_bolt').hitMs || 0 : 0;
-      this.time.delayedCall(hit, () => {
       buffCastFx(this, target.view.x, target.view.y, 'haunt', target);
       floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
       lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
@@ -4136,9 +4131,8 @@ export default class BattleScene extends Phaser.Scene {
       if (read === 'storm') this.interrupt(target);
       this.refreshStatusTags();
       this.refreshTurnStrip();
-      });
-      this.time.delayedCall(520 + hit, () => caster.alive && this.showStanding(caster));
-      this.time.delayedCall(900 + hit, onDone);
+      this.time.delayedCall(700, () => caster.alive && this.showStanding(caster));
+      this.time.delayedCall(1000, onDone);
     });
   }
 
@@ -7992,8 +7986,9 @@ export default class BattleScene extends Phaser.Scene {
       // the figure itself lit in the Verse's colour, pulsing with the loop (fxSlots.json "fuse")
       for (const id of ['swiftness', 'fury', 'stone', 'renewal']) this.keepAura(unit, 'fuse_' + id, unit.alive && verseNow === id, () => buffFuseFx(this, unit, id));
       this.keepAura(unit, 'drawnAura_stoneRooted', unit.alive && rootedNow, () => buffLoopFx(this, unit, 'stone', 'rooted'));
-      // Kofi's Haunt: the teal and violet smoke stands round the feet of a haunted unit while the mark lasts (6.63)
-      this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.poison && unit.status.poison.id === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
+      // Kofi's Haunt: its smoke plays once at the cast and does not stand on the haunted unit (1.57, Suleiman 16 Nov:
+      // "it shouldn't linger on the enemy"); the mark is the status tag. (An old loop is cleared here.)
+      this.keepAura(unit, 'drawnAura_haunt', false, () => null);
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];

@@ -91,7 +91,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.showFrame = shown;
   check('Haunt costs 2 MP and marks the foe: 2 damage a turn for 3 turns', kofi.mp === kofi.maxMp - 2 && St.isPoisoned(tayo) && tayo.status.poison.turnsLeft === 3, JSON.stringify(tayo.status.poison));
   check('read in Water it also leaves the foe Drenched', St.isDrenched(tayo));
-  check('he channels, then casts (both pictures, in that order)', seen.findIndex((k) => /chant/.test(k)) >= 0 && seen.findIndex((k) => /_cast_/.test(k)) > seen.findIndex((k) => /chant/.test(k)), seen.map((k) => k.split(':')[1]).join(' ').slice(0, 160));
+  check('he channels and never shows his cast picture (that is his plain attack, roadmap 1.57)', seen.findIndex((k) => /chant/.test(k)) >= 0 && seen.findIndex((k) => /_cast_/.test(k)) < 0, seen.map((k) => k.split(':')[1]).join(' ').slice(0, 160));
   const hp1 = tayo.hp; const bite = St.tickPoison(tayo);
   check('the mark bites at the start of its turn', bite === 2 && tayo.hp === hp1 - 2, bite);
   park(); put(kofi, 1, 8); put(tayo, 4, 8); const sp0 = tayo.speed + St.statMod(tayo, 'speed');

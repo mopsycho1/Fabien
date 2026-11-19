@@ -125,19 +125,20 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   const spiral = images('fx:buff_renewal_cast')[0];
   check('the spiral is 1.3 body heights tall, its base on the feet', !!spiral && Math.abs(drawnH(spiral, slots.buffs.renewal.fit.cast) / (1.3 * body(sudeen)) - 1) < 0.03);
   await sleep(1700);
-  // Haunt: the comet, then the smoke at the foot of the mark, and the smoke stays while it lasts
+  // Haunt (1.57, Suleiman 16 Nov): no comet and no cast picture (that is his plain attack); he holds his chant, his
+  // Haunt smoke plays once on the target and is gone; nothing stands on the haunted unit afterwards
   park(); put(kofi, 5, 8); put(bull, 5, 5); kofi.lastRead = null;
-  const oldComets = new Set(images('fx:sfx_spirit_bolt'));
+  const oldComets = new Set(images('fx:sfx_spirit_bolt')), oldSmoke = new Set(images('fx:buff_haunt_loop'));
+  const kofiKeys = new Set(); const kiv = setInterval(() => kofiKeys.add(kofi.sprite.texture.key), 20);
   b.busy = true; b.castHaunt(kofi, bull, JSON.parse(fs.readFileSync(__dirname + '/../../src/data/spells.json', 'utf8')).haunt, () => { b.busy = false; });
-  let hauntComet = false; for (let i = 0; i < 40 && !hauntComet; i++) { await sleep(40); hauntComet = images('fx:sfx_spirit_bolt').some((o) => !oldComets.has(o)); }
-  await sleep(700);
-  check('Haunt sends his teal spirit comet', hauntComet);
-  const smoke = bull.drawnAura_haunt && bull.drawnAura_haunt.objects[0];
-  check('the haunted foe stands in his Haunt smoke', !!smoke && smoke.texture.key.startsWith('fx:buff_haunt_loop'));
-  check('the smoke is 1.2 body heights tall, its base on the feet', !!smoke && Math.abs(drawnH(smoke, slots.buffs.haunt.fit.loop) / (1.2 * body(bull)) - 1) < 0.03);
-  await idle();
-  bull.status.poison = null; b.refreshStatusTags();
-  check('the smoke goes when the mark is gone', !bull.drawnAura_haunt);
+  let hauntComet = false, smokeOnce = null;
+  for (let i = 0; i < 30; i++) { await sleep(40); hauntComet = hauntComet || images('fx:sfx_spirit_bolt').some((o) => !oldComets.has(o)); smokeOnce = smokeOnce || images('fx:buff_haunt_loop').find((o) => !oldSmoke.has(o)); }
+  check('Haunt sends no comet (that is his attack)', !hauntComet);
+  check('his Haunt smoke plays on the target at the cast', !!smokeOnce);
+  check('the smoke is 1.2 body heights tall, its base on the feet', !!smokeOnce && Math.abs(drawnH(smokeOnce, slots.buffs.haunt.fit.loop) / (1.2 * body(bull)) - 1) < 0.03);
+  await idle(); await sleep(900); clearInterval(kiv);
+  check('Kofi holds his chant and never shows his cast (attack) picture', [...kofiKeys].some((k) => /chant/.test(k)) && ![...kofiKeys].some((k) => /_cast_/.test(k)), [...kofiKeys].join(','));
+  check('the mark is on (the status tag), but no smoke stands on the haunted unit', !!(bull.status.poison && bull.status.poison.id === 'haunt') && !bull.drawnAura_haunt && !images('fx:buff_haunt_loop').some((o) => !oldSmoke.has(o) && o.active));
   // the Tide Bolt is the comet too, with no orb and no strike
   park(); put(kofi, 2, 3); put(bull, 2, 6); kofi.lastRead = null;
   const variant = readJson('src/data/spells.json').spiritBoltWater;
