@@ -34,7 +34,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.showPose(bull, 'throw', 1);
   check('6.33 the shield throw has its own picture', /bull_n6b_throw1/.test(key(bull)), key(bull));
   check('6.33 the shield in flight is a four-picture move', game.textures.exists('e2:bull_n6b_shield_f4.png'));
-  check('6.30 Tayo has his new battle stance', game.textures.exists('e1:tayo_n6b_battle_f3.png') && game.textures.exists('e1:tayo_n6b_punchFire_f3.png'));
+  // (the battle loads only the fighters on the board since 18.47, and Tayo may sit this one out: so look at his art entry and the files, not at loaded textures)
+  const tayoArt = JSON.stringify(require('../../src/data/art.json').e1); const onDisk = (f) => require('fs').existsSync(require('path').resolve(__dirname, '../../public/art/' + f));
+  check('6.30 Tayo has his new battle stance', ['tayo_n6b_battle_f3.png', 'tayo_n6b_punchFire_f3.png'].every((f) => tayoArt.includes(f) && onDisk(f)));
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);
 })();
