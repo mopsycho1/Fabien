@@ -7,6 +7,7 @@
 //   - every lightning bolt: a short bright blue-white flash over the board
 import Phaser from 'phaser';
 import { setLitMode, flamePoints } from './boardArt.js';
+import { artUrl } from './artUrl.js';
 
 export const lightingOn = () => typeof window !== 'undefined' && /[?&]light/.test(window.location.search);
 
@@ -15,7 +16,7 @@ export const NORMAL_FILES = ['gaha_iso_stand_upRight', 'gaha_iso_stand_downRight
 
 export function preloadNormals(scene) {
   if (!lightingOn()) return;
-  for (const n of NORMAL_FILES) scene.load.image('normal:' + n, './art/normals/' + n + '.png');
+  for (const n of NORMAL_FILES) scene.load.image('normal:' + n, artUrl('./art/normals/' + n + '.png'));
 }
 
 // A normal map for a picture we only have as a canvas (the floor tiles are bent into

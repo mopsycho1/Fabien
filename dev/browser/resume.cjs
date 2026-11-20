@@ -52,15 +52,26 @@ const { openBattle } = require('./lib/play.cjs');
   await p2.goto('http://localhost:' + (process.env.PORT || 4173) + '/', { waitUntil: 'commit' });
   await p2.waitForFunction(() => { const s = window.__game && window.__game.scene.getScene('StartScene'); return s && s.titleText; }, null, { timeout: 120000 });
   const tTitle = (Date.now() - t0) / 1000;
-  await p2.waitForFunction(() => { const s = window.__game.scene.getScene('StartScene'); return s.loadProgress > 0.05 || s.artReady; }, null, { timeout: 120000 });
-  await p2.waitForTimeout(1500);
-  const mid = await p2.evaluate(() => { const s = window.__game.scene.getScene('StartScene'); return { p: s.loadProgress, bar: !!(s.loadBar && s.loadBar.active) }; });
-  await p2.screenshot({ path: out + '/loading_bar.png' });
-  await p2.waitForFunction(() => window.__game.scene.getScene('StartScene').artReady, null, { timeout: 300000 });
+  // 18.47: the title loads nothing, so "Tap to begin" is ready at once; the bar is on Start battle instead
+  await p2.waitForFunction(() => { const s = window.__game.scene.getScene('StartScene'); return s && s.artReady; }, null, { timeout: 120000 });
   const tReady = (Date.now() - t0) / 1000;
+  const box = await p2.locator('canvas').boundingBox();
+  for (let i = 0; i < 200; i++) { // tap through the story to the character select
+    if (await p2.evaluate(() => window.__game.scene.isActive('SelectScene'))) break;
+    await p2.touchscreen.tap(box.x + box.width / 2, box.y + box.height * 0.8); await p2.waitForTimeout(250);
+  }
+  await p2.waitForTimeout(500);
+  await p2.evaluate(() => { const s = window.__game.scene.getScene('SelectScene'); s.startBattle(s.pick); }); // Start battle
+  await p2.waitForFunction(() => { const b = window.__game.scene.getScene('BattleScene'); return b && b.loadProgress > 0.05 || (b && b.units); }, null, { timeout: 120000 });
+  await p2.waitForTimeout(1500);
+  const mid = await p2.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { p: b.loadProgress, bar: !!(b.loadBarObjects && b.loadBarObjects.length) }; });
+  await p2.screenshot({ path: out + '/loading_bar.png' });
+  await p2.waitForFunction(() => { const b = window.__game.scene.getScene('BattleScene'); return b && b.units && b.activeUnit; }, null, { timeout: 300000 });
+  const tBattle = (Date.now() - t0) / 1000;
   check('H4 the title is on screen in under 10 seconds on a phone connection', tTitle < 10, tTitle.toFixed(1) + ' s');
-  check('H4 a progress bar shows while the pictures load', mid.bar && mid.p > 0 && mid.p < 1, 'at ' + Math.round((mid.p || 0) * 100) + '%');
-  console.log('INFO  "Tap to begin" after ' + tReady.toFixed(1) + ' s (all the battle\'s pictures in, 9 megabits a second)');
+  check('H4 "Tap to begin" is ready in under 10 seconds (nothing to load for the title)', tReady < 10, tReady.toFixed(1) + ' s');
+  check('H4 a progress bar shows while the battle\'s pictures load', mid.bar && mid.p > 0 && mid.p < 1, 'at ' + Math.round((mid.p || 0) * 100) + '%');
+  console.log('INFO  battle on screen after ' + tBattle.toFixed(1) + ' s from opening the page (9 megabits a second, nothing cached)');
   await b2.close();
   console.log(bad ? 'FAILED' : 'ALL PASSED (pictures in ' + out + ')'); process.exit(bad ? 1 : 0);
 })();

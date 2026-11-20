@@ -26,7 +26,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the battle with a chosen line-up, the newcomer included
   w.__bench = undefined; delete w.__bench;
   game.scene.start('BattleScene', { stepIndex: null, map: 'cavern', lineUp: { hero: ['h2', 'h9'], enemy: ['e3'] } });
-  let b = null; for (let i = 0; i < 100 && !(b && b.units && b.units.length); i++) { await sleep(100); b = game.scene.getScene('BattleScene'); }
+  let b = null; for (let i = 0; i < 900 && !(b && b.units && b.units.length); i++) { await sleep(100); b = game.scene.getScene('BattleScene'); }
   await sleep(800);
   const ids = b.units.map((u) => u.id).sort().join();
   check('the battle fields exactly the chosen line-up', ids === 'e3,h2,h9', ids);

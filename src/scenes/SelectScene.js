@@ -10,6 +10,7 @@ import { framePanel, goldDiamond } from '../battleCard.js';
 import { textStyle } from '../hud.js';
 import { playTrack, play } from '../audio.js';
 import { allCharacters, startingLineUp, saveLineUp, forgetLineUp, defaultLineUp, testMode, setTestMode, MAX_PER_SIDE } from '../lineup.js';
+import { artUrl } from '../artUrl.js';
 
 // The character select (roadmap 18.30): a screen before every battle where the tester picks who fights.
 // Every character in units.json is a card (portrait, name, class, a short line), so one added later shows
@@ -44,7 +45,7 @@ export default class SelectScene extends Phaser.Scene {
     // the portraits only (the battle loads everything else)
     for (const c of allCharacters()) {
       const file = art[c.id] && art[c.id].portrait;
-      if (file && !this.textures.exists('sel:' + c.id)) this.load.image('sel:' + c.id, './art/' + file);
+      if (file && !this.textures.exists('sel:' + c.id)) this.load.image('sel:' + c.id, artUrl('./art/' + file));
     }
   }
 

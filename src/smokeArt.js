@@ -1,5 +1,6 @@
 import smoke from './data/smoke.json';
 import { TILE_WIDTH } from './config.js';
+import { artUrl } from './artUrl.js';
 
 // The archer's Smoke Bomb cloud (roadmap 13.26, redone in 1.34).
 // Suleiman's 6-stage cloud grows on the tile, holds (drifting and breathing) with a few soft grey
@@ -15,8 +16,8 @@ const CUT_TILE = 172;          // the pictures were cut with the tile 172 px wid
 const SIZE = 1.25;             // a little over one tile wide and about head height on the archer
 
 export function preloadSmokeArt(scene) {
-  smoke.cloud.forEach((f, i) => scene.load.image(keyOf('cloud', i), './art/fx/' + f.file));
-  smoke.clear.forEach((f, i) => scene.load.image(keyOf('clear', i), './art/fx/' + f.file));
+  smoke.cloud.forEach((f, i) => scene.load.image(keyOf('cloud', i), artUrl('./art/fx/' + f.file)));
+  smoke.clear.forEach((f, i) => scene.load.image(keyOf('clear', i), artUrl('./art/fx/' + f.file)));
 }
 
 const ready = (scene, set) => smoke[set].every((f, i) => scene.textures.exists(keyOf(set, i)));

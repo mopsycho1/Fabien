@@ -8,7 +8,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '../../public');
 const port = Number(process.argv[2]) || 8800;
-const types = { '.png': 'image/png', '.json': 'application/json', '.js': 'text/javascript', '.html': 'text/html' };
+const types = { '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.json': 'application/json', '.js': 'text/javascript', '.html': 'text/html' };
 
 http
   .createServer((req, res) => {

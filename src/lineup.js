@@ -103,3 +103,30 @@ export function testMode() {
 export function setTestMode(on) {
   try { window.localStorage.setItem(TEST_KEY, on ? 'on' : 'off'); } catch (e) { /* not remembered */ }
 }
+
+// Who is on the board for a battle, as units.json entries with their side for this battle (18.47).
+// The battle builds its fighters from this list, and the loader reads the same list to fetch only
+// those fighters' pictures, so the two can never disagree.
+//   chosenLineUp: what the character select picked ({ hero, enemy }), or null for the map's own team.
+// (the bot tests can name who sits out instead: window.__bench, a list of ids; window.__sides moves a
+// character to the other side.)
+export function fieldedEntries(mapData, chosenLineUp) {
+  const bench = typeof window !== 'undefined' ? window.__bench : null;
+  const sides = typeof window !== 'undefined' ? window.__sides : null;
+  const fallback = !chosenLineUp && !bench ? defaultLineUp(mapData) : null;
+  const picked = chosenLineUp ? [...chosenLineUp.hero, ...chosenLineUp.enemy] : fallback ? [...fallback.hero, ...fallback.enemy] : null;
+  const benched = (entry) =>
+    sitsOut(entry.id) ||
+    (bench
+      ? bench.includes(entry.id)
+      : picked
+        ? !picked.includes(entry.id)
+        : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id));
+  const lineSides = sidesOf(chosenLineUp);
+  return unitData
+    .filter((entry) => !benched(entry))
+    .map((entry) => {
+      const side = (sides && sides[entry.id]) || lineSides[entry.id] || entry.side;
+      return side !== entry.side ? { ...entry, side } : entry;
+    });
+}

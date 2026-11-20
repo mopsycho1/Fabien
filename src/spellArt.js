@@ -8,6 +8,7 @@ import { preloadSmokeArt } from './smokeArt.js';
 // keeps the effect it drew before.
 
 import fxSlots from './data/fxSlots.json';
+import { artUrl } from './artUrl.js';
 
 const FILES = [
   'clash_burst_0', 'clash_burst_1', 'clash_burst_2', 'clash_burst_3', 'clash_burst_4', 'clash_burst_5', // his clash burst (16.4)
@@ -72,12 +73,12 @@ const ICONS = ['drenched', 'slow', 'poison', 'stunned', 'offbalance', 'exposed',
 export const CARDS = ['offbalance', 'swiftness', 'fury', 'stone', 'press', 'empower'];
 
 export function preloadSpellArt(scene) {
-  for (const f of FILES) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
-  for (const f of buffFxFiles()) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
-  for (const f of sfxFiles()) scene.load.image('fx:' + f, './art/fx/' + f + '.png');
+  for (const f of FILES) scene.load.image('fx:' + f, artUrl('./art/fx/' + f + '.png'));
+  for (const f of buffFxFiles()) scene.load.image('fx:' + f, artUrl('./art/fx/' + f + '.png'));
+  for (const f of sfxFiles()) scene.load.image('fx:' + f, artUrl('./art/fx/' + f + '.png'));
   scene.load.image('fx:empower_aura', './art/fx/empower_aura.jpg'); // drawn on black: it glows (added light)
-  for (const f of ICONS) scene.load.image('icon:' + f, './art/icons/' + f + '.png');
-  for (const f of CARDS) scene.load.image('card:' + f, './art/cards/' + f + '.png');
+  for (const f of ICONS) scene.load.image('icon:' + f, artUrl('./art/icons/' + f + '.png'));
+  for (const f of CARDS) scene.load.image('card:' + f, artUrl('./art/cards/' + f + '.png'));
   preloadSmokeArt(scene); // the archer's Smoke Bomb cloud (13.26)
 }
 

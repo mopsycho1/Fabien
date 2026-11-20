@@ -1,6 +1,7 @@
 import { buttonTip, showTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from './tooltip.js';
 import Phaser from 'phaser';
 import { play } from './audio.js';
+import { artUrl } from './artUrl.js';
 
 // The look of the battle interface. Since 29 Oct it uses Suleiman's UI art
 // (public/art/ui, cut from his UI COMPONENTS sheets): the textile-draped
@@ -23,14 +24,14 @@ export const UI_ICONS = ['walk', 'sword', 'spear', 'lightning', 'crossed', 'star
 const EXTRA_GLYPHS = ['charge', 'bag'];
 
 export function preloadUiArt(scene) {
-  for (const f of UI_FILES) scene.load.image('ui:' + f, './art/ui/' + f + '.png');
+  for (const f of UI_FILES) scene.load.image('ui:' + f, artUrl('./art/ui/' + f + '.png'));
   for (const f of UI_ICONS) {
-    scene.load.image('ui:icon_' + f, './art/ui/icon_' + f + '.png');
-    scene.load.image('ui:glyph_' + f, './art/ui/glyph_' + f + '.png');
+    scene.load.image('ui:icon_' + f, artUrl('./art/ui/icon_' + f + '.png'));
+    scene.load.image('ui:glyph_' + f, artUrl('./art/ui/glyph_' + f + '.png'));
   }
-  for (const f of EXTRA_GLYPHS) scene.load.image('ui:glyph_' + f, './art/ui/glyph_' + f + '.png');
+  for (const f of EXTRA_GLYPHS) scene.load.image('ui:glyph_' + f, artUrl('./art/ui/glyph_' + f + '.png'));
   // his action emblems (roadmap 6.53, cut by dev/tools/make_ui_emblems.py without their words)
-  for (const f of UI_EMBLEMS) scene.load.image('ui:emblem_' + f, './art/ui/emblem_' + f + '.png');
+  for (const f of UI_EMBLEMS) scene.load.image('ui:emblem_' + f, artUrl('./art/ui/emblem_' + f + '.png'));
 }
 export const UI_EMBLEMS = ['meditate', 'husk', 'hexes', 'blessings', 'skills', 'digup', 'summon', 'haunt', 'infuse', 'press', 'empower'];
 

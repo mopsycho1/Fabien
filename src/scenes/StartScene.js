@@ -1,13 +1,8 @@
 import { readSave } from '../saveGame.js';
-import { classPlateFiles } from '../nameplate.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
 import { startStep } from '../story.js';
-import { preloadArt } from '../art.js';
-import { preloadNormals } from '../lighting.js';
-import { preloadBoardArt } from '../boardArt.js';
-import { preloadSpellArt } from '../spellArt.js';
-import { createHudTextures, preloadUiArt } from '../hud.js';
+import { createHudTextures } from '../hud.js';
 import { fitDesign } from '../layout.js';
 import { startAudio, play, playTrack } from '../audio.js';
 import { tryFullscreen } from '../layout.js';
@@ -17,18 +12,6 @@ import { tryFullscreen } from '../layout.js';
 export default class StartScene extends Phaser.Scene {
   constructor() {
     super('StartScene');
-  }
-
-  // Nothing is loaded before the title shows (M16, checklist H4): the title is words only, so
-  // it is on screen at once, and the battle's pictures (about 860 files, 38 MB) load behind
-  // it with a progress bar. "Tap to begin" appears when they are all in.
-  loadEverything() {
-    preloadArt(this);
-    preloadBoardArt(this);
-    preloadNormals(this); // bump pictures for the ?light test
-    preloadSpellArt(this); // lightning and Verse effects from the effect sheets
-    preloadUiArt(this); // Suleiman's battle-screen frames, buttons and icons
-    for (const f of classPlateFiles()) this.load.image(f.key, './' + f.file); // his class nameplates, once they are named in nameplates.json (M6)
   }
 
   create() {
@@ -68,29 +51,14 @@ export default class StartScene extends Phaser.Scene {
       .setOrigin(0.5);
     const pulse = this.tweens.add({ targets: prompt, alpha: 0.25, duration: 900, yoyo: true, repeat: -1, paused: true });
 
-    // The pictures load now, behind the title, with a bar (M16). Coming back to the title
-    // later in the same visit, they are already there.
-    this.artReady = false;
-    const ready = () => {
-      this.artReady = true;
-      this.registry.set('artLoaded', true);
-      this.loadSeconds = (performance.now() - this.loadStart) / 1000;
-      prompt.setText('Tap to begin');
-      pulse.resume();
-      if (this.loadBar) { this.loadBar.destroy(); this.loadBack.destroy(); }
-      if (this.offerContinue()) prompt.setText('or tap anywhere else for a new game');
-    };
-    this.loadStart = performance.now();
-    if (this.registry.get('artLoaded')) ready();
-    else {
-      prompt.setText('Loading  0%');
-      this.loadBack = this.add.rectangle(GAME_WIDTH / 2, 950, 404, 16, 0x2a1d12).setStrokeStyle(2, 0xb88a4a);
-      this.loadBar = this.add.rectangle(GAME_WIDTH / 2 - 200, 950, 400, 12, 0xffe08a).setOrigin(0, 0.5).setScale(0, 1);
-      this.load.on('progress', (v) => { this.loadProgress = v; if (this.loadBar.active) this.loadBar.setScale(v, 1); prompt.setText('Loading  ' + Math.round(v * 100) + '%'); });
-      this.load.once('complete', ready);
-      this.loadEverything();
-      this.load.start();
-    }
+    // Nothing is loaded for the title (18.47): it is words and drawn shapes only, so it is ready at once.
+    // The character select loads the portraits, and Start battle loads the picked fighters' pictures
+    // with a loading bar (BattleScene.preload, src/battleLoad.js). Before 18.47 the title fetched all
+    // 1050 files (39 MB) first.
+    this.artReady = true;
+    this.loadSeconds = 0;
+    if (this.offerContinue()) prompt.setText('or tap anywhere else for a new game');
+    pulse.resume();
 
     // First tap: fade to black, then start the story (taps on the Continue button are its own)
     this.input.on('pointerdown', (pointer, over) => { if (!over || over.length === 0) this.begin(); });
@@ -120,7 +88,7 @@ export default class StartScene extends Phaser.Scene {
   }
 
   begin() {
-    if (this.starting || !this.artReady) return; // (not while the pictures are still loading)
+    if (this.starting) return;
     this.starting = true;
     startAudio(); // browsers only allow sound after a tap
     playTrack('theme'); // Suleiman's theme (roadmap A.1)

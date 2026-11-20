@@ -87,7 +87,9 @@ import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enem
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
-import { testMode, setTestMode, defaultLineUp, sitsOut, sidesOf } from '../lineup.js';
+import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
+import { queueBattleArt, fighterIds, showLoadBar } from '../battleLoad.js';
+import { artUrl } from '../artUrl.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
 import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
 // The maps a battle can be fought on. A battle in story.json can name one
@@ -173,6 +175,14 @@ export default class BattleScene extends Phaser.Scene {
     this.resumeAsked = !!(data && data.resume); // "Continue the battle" on the title screen (M16)
     // the line-up picked on the character select (18.30): { hero: [ids], enemy: [ids] }, or null for the map's own
     this.chosenLineUp = data && data.lineUp ? data.lineUp : null;
+  }
+
+  // Phaser calls preload() before create(): the pictures of the fighters picked plus the board,
+  // effects and HUD pictures load here, with a loading bar (18.47, src/battleLoad.js).
+  preload() {
+    const asked = this.mapName;
+    queueBattleArt(this, fighterIds(MAPS[asked], this.chosenLineUp));
+    showLoadBar(this);
   }
 
   // Phaser calls create() once, when the scene starts.
@@ -303,29 +313,10 @@ export default class BattleScene extends Phaser.Scene {
       taken.add(best[0] + ',' + best[1]);
       return { ...entry, col: best[0], row: best[1] };
     };
-    // (a map can change who fights: "alsoFighting" brings benched units in,
-    // "sittingOut" benches others, for that map only)
-    // (the bot tests can name who sits out instead: window.__bench, a list of ids)
-    // (the character select, 18.30, names exactly who fights: this.chosenLineUp)
-    // (with no line-up given and no bench list, the map's default team: at most four a side, lineup.js)
-    const fallback = !this.chosenLineUp && !window.__bench ? defaultLineUp(mapData) : null;
-    const picked = this.chosenLineUp ? [...this.chosenLineUp.hero, ...this.chosenLineUp.enemy] : fallback ? [...fallback.hero, ...fallback.enemy] : null;
-    const benched = (entry) =>
-      sitsOut(entry.id) ||
-      (window.__bench
-        ? window.__bench.includes(entry.id)
-        : picked
-          ? !picked.includes(entry.id)
-          : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id));
+    // (who fights: the character select's line-up, else the map's own team; lineup.js fieldedEntries,
+    // which the loader reads too, so only these fighters' pictures were fetched, 18.47)
     this.lineUp = { alsoFighting: mapData.alsoFighting || [], sittingOut: mapData.sittingOut || [] };
-    const fielded = (entry) => !benched(entry);
-    // (a character can fight on either side: the select's line-up says which, 20 Nov; the balance runs can too: window.__sides = { h5: 'enemy' })
-    const lineSides = sidesOf(this.chosenLineUp);
-    const sided = (entry) => {
-      const side = (window.__sides && window.__sides[entry.id]) || lineSides[entry.id] || entry.side;
-      return side !== entry.side ? { ...entry, side } : entry;
-    };
-    this.units = unitData.filter(fielded).map(sided).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
+    this.units = fieldedEntries(mapData, this.chosenLineUp).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
     for (const u of this.units) if (u.grip) u.attackName = gripAttackName(u); // Gadara: Fork Strike or Blade Strike
 
     installLighting(this); // only with ?light in the address (roadmap 1.38)
@@ -8643,7 +8634,7 @@ export default class BattleScene extends Phaser.Scene {
       if (!c) continue;
       for (const [key, file] of [[c.key, c.file], [c.nameKey, c.nameFile]]) {
         if (!key || this.textures.exists(key)) continue;
-        this.load.image(key, './art/' + file);
+        this.load.image(key, artUrl('./art/' + file));
         queued++;
       }
     }

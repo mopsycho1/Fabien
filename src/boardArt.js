@@ -1,5 +1,6 @@
 import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT, GAME_WIDTH, GAME_HEIGHT, LEVEL_HEIGHT, BASE_DEPTH, BOARD_CENTER_X, BOARD_TOP_Y } from './config.js';
 import { tileToScreen, getHeight, tileSideDepth, depthFor, toView, fromView, viewToScreen } from './grid.js';
+import { artUrl } from './artUrl.js';
 
 // How the battlefield LOOKS: ground, cliff sides, shadows, the rocky
 // underside, the sky behind, and scenery around the edges. It uses the terrain
@@ -150,12 +151,12 @@ function sceneryKey(scene, key) {
 // Gives every terrain picture to the loader (called from StartScene).
 export function preloadBoardArt(scene) {
   for (const [key, file] of Object.entries(TERRAIN_FILES)) {
-    scene.load.image('terrain:' + key, './art/terrain/' + file);
+    scene.load.image('terrain:' + key, artUrl('./art/terrain/' + file));
   }
   // Suleiman's 8 looping flame frames (roadmap 6.41), for every brazier and lamp
-  for (let i = 1; i <= FLAME_FRAMES; i++) scene.load.image('flame:' + i, './art/fx/flame_f' + i + '.png');
+  for (let i = 1; i <= FLAME_FRAMES; i++) scene.load.image('flame:' + i, artUrl('./art/fx/flame_f' + i + '.png'));
   // the waterfall loops (roadmap 18.3): 12 frames side by side in one picture each
-  for (const [name, w, h] of WATER_SHEETS) scene.load.spritesheet('water:' + name, './art/fx/' + name + '.png', { frameWidth: w, frameHeight: h });
+  for (const [name, w, h] of WATER_SHEETS) scene.load.spritesheet('water:' + name, artUrl('./art/fx/' + name + '.png'), { frameWidth: w, frameHeight: h });
 }
 
 const FLAME_FRAMES = 8;

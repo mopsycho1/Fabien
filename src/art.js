@@ -1,4 +1,5 @@
 import art from './data/art.json';
+import { artUrl } from './artUrl.js';
 
 // Character pictures. Which picture belongs to which unit is written in
 // src/data/art.json, and the picture files live in the folder public/art.
@@ -87,11 +88,13 @@ function lookEntry(id) {
   return (look && art[id] && art[id][look]) || null;
 }
 
-export function preloadArt(scene) {
+// ids: only these characters' pictures (the fighters picked for the battle, 18.47); no list loads everyone.
+export function preloadArt(scene, ids = null) {
   for (const [id, entry] of Object.entries(art)) {
+    if (ids && !ids.includes(id)) continue;
     if (entry.unwired) continue; // cut but not in the game yet (Kofi's spirits): do not load their pictures
     for (const file of allFiles(entry)) {
-      scene.load.image(textureKey(id, file), './art/' + file);
+      scene.load.image(textureKey(id, file), artUrl('./art/' + file));
     }
   }
 }

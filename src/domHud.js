@@ -20,6 +20,7 @@ import { skillWords, emblemFor } from './battleCard.js';
 import { portraitKey } from './art.js';
 import { previewTurns } from './turnOrder.js';
 import clashMeterData from './data/clashMeter.json';
+import { artUrl } from './artUrl.js';
 
 // Our icon names that use another of his glyph pictures (as hud.js GLYPH_FOR)
 const GLYPH_FOR = { back: 'undo' };
@@ -254,7 +255,7 @@ export class DomHud {
     return u;
   }
 
-  uiUrl(name) { return './art/ui/' + name + '.png'; }
+  uiUrl(name) { return artUrl('./art/ui/' + name + '.png'); }
 
   // The picture for a menu row: his emblem, else his glyph for the icon (as MenuRow.draw).
   rowIcon(r) {

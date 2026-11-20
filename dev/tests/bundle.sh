@@ -25,6 +25,9 @@ import * as saveGame from './src/saveGame.js';
 import * as tooltip from './src/tooltip.js';
 import SelectScene from './src/scenes/SelectScene.js';
 import * as lineup from './src/lineup.js';
+import * as artUrlLib from './src/artUrl.js';
+import * as battleLoad from './src/battleLoad.js';
+window.__artUrl = artUrlLib; window.__battleLoad = battleLoad; // loading (18.47)
 import unitList from './src/data/units.json';
 window.__lineup = lineup; window.__unitList = unitList; // the character select (18.30)
 window.__tooltip = tooltip; window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__grid = grid; window.__combat = combat; window.__items = items; window.__fx = spellArt; window.__knockback = knockback; window.__ai = enemyAi; window.__art = artLib; window.__layers = fxLayers; window.__walk = codeWalk; window.__ending = ending; window.__save = saveGame;
