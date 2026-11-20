@@ -448,7 +448,7 @@ export default class BattleScene extends Phaser.Scene {
     // 44 real pixels (minTap). Since the second pass of the UI rework (16 Nov, Baiyee: "match his
     // mock-ups closely") the text is small and elegant like his: 11 real pixels at least (minText).
     const real = this.scale.displaySize.width / W || 1;
-    const minText = Math.ceil(11 / real);
+    const minText = Math.ceil((portrait ? 10 : 11.5) / real);
     const minTap = Math.ceil(44 / real);
     // px: game pixels per design pixel. The new panels are drawn in design pixels: real screen
     // pixels on a phone, a fifth bigger on a wide screen. F: the letter sizes (11, 12, 13.5, 15).
@@ -456,8 +456,19 @@ export default class BattleScene extends Phaser.Scene {
     // screen the unit card is 25 percent of the width and everything else grows with it (body text 16 to
     // 19 real pixels on a laptop or a 1440 x 900 screen); on an upright phone a design pixel is 1.1 real
     // pixels (body text 13), and the board keeps over three quarters of the height.
-    const px = portrait ? 1.1 / real : Math.max(1 / real, (W * 0.25) / CARD_ROOMY.w);
-    const F = { small: Math.round(12 * px), mid: Math.round(13.5 * px), name: Math.round(16 * px), big: Math.round(19 * px) };
+    // 20 Nov, polish pass (Baiyee, from Suleiman's mock-ups): the whole HUD at 55 to 60 percent of what it was
+    // (HUD_K: 0.64 on an upright phone, 0.58 on a wide screen), so the board has the screen. Panels shrink by that;
+    // the LETTERS do not shrink with them: they stop at a floor, 10.5 real pixels on a phone, 11.5 on a desktop.
+    const HUD_K = portrait ? 0.64 : 0.58;
+    const f = (css) => Math.round(css / real); // real (page) pixels to game pixels
+    const pxK = portrait ? HUD_K / real : HUD_K * Math.max(1 / real, (W * 0.25) / CARD_ROOMY.w);
+    // the letters: a floor in real pixels (the panels were drawn for 12 design pixels of small text)
+    const F = portrait
+      ? { small: f(10.5), mid: f(11), name: f(13), big: f(15.5) }
+      : { small: Math.max(f(11.5), Math.round(12 * pxK)), mid: Math.max(f(12.5), Math.round(13.5 * pxK)), name: Math.max(f(15), Math.round(16 * pxK)), big: Math.max(f(18), Math.round(19 * pxK)) };
+    // A panel cannot shrink below what its words need: a design pixel is the bigger of the 55 to 60 percent one and
+    // 0.9 of what the small text asks for (the panels are tightened to match, so they stay slim)
+    const px = Math.max(pxK, 0.9 * F.small / 12);
     const m = Math.round(6 * px);
     const cardW = Math.round((portrait ? CARD : CARD_ROOMY).w * px);
     const skillW = Math.round((portrait ? SKILL_PANEL.w : 220) * px); // (18.44: on a wide screen about as wide as the card)
@@ -758,7 +769,7 @@ export default class BattleScene extends Phaser.Scene {
     this.unitListLayer = keep(dom(this.add.container(0, 0)));
 
     // Top right: the turn number, the ground in focus and its height, and a picture of it (his mock-up)
-    const bw = D(this.lay.portrait ? 124 : 150), bh = D(this.lay.portrait ? 58 : 62); // (18.44: roomier on a wide screen)
+    const bw = D(this.lay.portrait ? 124 : 150), bh = D(68); // (20 Nov polish: tall enough for TURN, the ground and its height at the small-letter floor) // (18.44: roomier on a wide screen)
     const bx = W - m - bw;
     this.turnGeo = { x: bx, y: m, w: bw, h: bh };
     framePanel(keep(dom(this.add.graphics())), bx, m, bw, bh, P);
@@ -992,10 +1003,10 @@ export default class BattleScene extends Phaser.Scene {
     // (the lit row of the main menu beside it says which list it is). Rows are 30 design pixels
     // apart; each row's touch area is its whole band, with no gaps, so it is easy to hit.
     const P = this.lay.px, D = (n) => Math.round(n * P);
-    const pad = D(3);
-    const gripH = D(7);
+    const pad = D(2);
+    const gripH = D(6);
     const word = this.lay.F.mid;
-    const icon = D(13);
+    const icon = Math.round(word * 0.8); // (the HTML row draws it a quarter bigger: as tall as the word)
     // his list has no Back row: while the main commands stand beside it, the lit row closes it
     // (a group of skills, like Blessings, keeps Back: it goes up to the whole list)
     if (header && this.mainSpec && this.mainSpec.unit === this.activeUnit && !this.spellGroup && this.mode !== 'itemTarget') {
@@ -1006,9 +1017,10 @@ export default class BattleScene extends Phaser.Scene {
     for (const r of rows) {
       r.word.setFontSize(word);
       r.cost.setFontSize(this.lay.F.small);
-      need = Math.max(need, r.word.width + (r.cost.text ? r.cost.width + D(14) : 0));
+      need = Math.max(need, r.word.width + (r.cost.text ? r.cost.width + D(7) : 0));
     }
-    const mW = Math.round(2 * pad + D(6) + icon + D(7) + need + D(10));
+    // (20 Nov polish: a slim column, about 15 percent of a phone's width: 4 left, the picture, 3.5, the word, 5 right)
+    const mW = Math.round(2 * pad + D(4) + icon * 1.25 + D(3.5) + need + D(5));
     const rH = this.lay.rowH;
     const colW = mW - 2 * pad;
     rows.forEach((r, i) => {
@@ -1062,7 +1074,7 @@ export default class BattleScene extends Phaser.Scene {
       r.set(d.label, d.icon, d.enabled, tap, { selected: lit, accent: d.accent, emblem: d.emblem, shown: d.shown });
       r.compact = true;
       r.compactFont = spec.font;
-      r.iconSize = Math.round(13 * P);
+      r.iconSize = Math.round(this.lay.F.mid * 0.8);
       r.costFont = this.lay.F.small;
       r.place(pad, pad + gripH + i * rH, spec.w - 2 * pad, rH, P, this.lay.minText);
     });
@@ -1529,7 +1541,7 @@ export default class BattleScene extends Phaser.Scene {
     const { s, m, W, H, cardW, skillW, portrait, minText } = this.lay;
     const { items, h } = drawSkillPanel(this, id, this.lay.px, this.lay.F);
     L.add(items);
-    this.skillPanelH = portrait ? h : Math.round(74 * this.lay.px); // (the HTML panel's box, 18.44)
+    this.skillPanelH = portrait ? h : Math.round(80 * this.lay.px); // (the HTML panel's box, 18.44)
     this.placeSkillPanel();
     this.ui(L);
   }

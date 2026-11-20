@@ -304,7 +304,7 @@ async function playView(view) {
     s = await heroTurn();
     if (s) {
       const g = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { gx: b.menu.x + b.menuGripHit.width / 2, gy: b.menu.y + b.menuGripHit.y + b.menuGripHit.height / 2, mx: b.menu.x, my: b.menu.y }; });
-      const from = await screenPoint(g.gx, g.gy), to = { x: from.x - 120, y: from.y - 160 };
+      const from = await screenPoint(g.gx, g.gy), toRight = g.mx < 100, to = { x: from.x + (toRight ? 120 : -120), y: from.y - 160 }; // (the slim menu can stand at the left edge: then drag right)
       if (desktop) {
         await page.mouse.move(from.x, from.y); await page.mouse.down();
         for (let i = 1; i <= 8; i++) await page.mouse.move(from.x + (to.x - from.x) * i / 8, from.y + (to.y - from.y) * i / 8);
@@ -319,7 +319,7 @@ async function playView(view) {
       }
       await sleep(400);
       const after = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { mx: b.menu.x, my: b.menu.y, saved: window.localStorage.getItem('fabien.menuPin') }; });
-      check(after.mx < g.mx - 20 && after.my < g.my - 20, tag + 'the grip drags the menu');
+      check(Math.abs(after.mx - g.mx) > 20 && after.my < g.my - 20, tag + 'the grip drags the menu');
       check(!!after.saved, tag + 'the spot is remembered on the device');
     }
     check(errors.length === 0, tag + 'no page errors' + (errors.length ? ': ' + errors[0] : ''));

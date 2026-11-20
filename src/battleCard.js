@@ -62,7 +62,7 @@ export function squarePortrait(scene, unit, faceKey, size) {
 // 18.44 (20 Nov): the card is the centrepiece. Drawn in HTML now (src/domHud.js); these sizes are its box.
 // Phone: 214 by 92 design pixels (60 percent of the width, 12 percent of the height; the skill panel stands above it). Wide screen: a quarter
 // of the width (BattleScene.computeLayout sizes the design pixel so this card is 25 percent of the screen).
-export const CARD = { w: 214, h: 92 };
+export const CARD = { w: 218, h: 106 }; // (20 Nov polish: slimmer, the letters kept at 10.5 real pixels)
 export const CARD_ROOMY = { w: 240, h: 116 };
 
 // The unit card, bottom left, as in his mock-up but compact: a square portrait, the name and Lv.,
@@ -136,7 +136,7 @@ export function emblemFor(id) {
 
 // The skill panel, bottom right, as his: the emblem, the name and MP, the area as a small grid at
 // the right, and under a faint rule "1 foe  |  Inflicts Burn". P and F as for the card.
-export const SKILL_PANEL = { w: 172, h: 62 };
+export const SKILL_PANEL = { w: 200, h: 72 }; // (20 Nov polish: wide enough for "Verse of Swiftness" whole)
 export function drawSkillPanel(scene, id, P, F) {
   const D = (n) => Math.round(n * P);
   const k = skillWords(id);

@@ -112,15 +112,18 @@ const CSS = `
 #fabien-hud .card .icons { position: absolute; left: calc(var(--u) * 2); bottom: calc(var(--u) * 2); display: flex; gap: calc(var(--u) * 1.5); }
 #fabien-hud .card .icons img { width: calc(var(--u) * 13); height: calc(var(--u) * 13); filter: drop-shadow(0 0 2px #000); }
 #fabien-hud .card .body { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+/* the closed card, as his mock-up: the face and the name and bars in a row, the class line across the whole card under them */
+#fabien-hud .card:not(.open) { flex-direction: column; gap: calc(var(--u) * 3); }
+#fabien-hud .card .crow { display: flex; gap: calc(var(--u) * 8); flex: 1; min-height: 0; }
 #fabien-hud .card .namerow { display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--u) * 4); white-space: nowrap; }
-#fabien-hud .card .name { color: #f6ead0; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px #000, 0 0 calc(var(--u) * 8) rgba(255,215,140,0.25); line-height: 1.05; }
+#fabien-hud .card .name { color: #f6ead0; letter-spacing: 0.01em; font-weight: 600; flex: 1 1 auto; min-width: 0; text-shadow: 0 1px 2px #000, 0 0 calc(var(--u) * 8) rgba(255,215,140,0.25); line-height: 1.05; }
 #fabien-hud .card .bars { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4); }
 #fabien-hud .bar { display: grid; grid-template-columns: calc(var(--u) * 19) 1fr auto; align-items: center; column-gap: calc(var(--u) * 5); line-height: 1; }
 #fabien-hud .bar .w { color: #cdbb92; font-weight: 600; letter-spacing: 0.04em; }
 #fabien-hud .bar .t { position: relative; height: max(3px, calc(var(--u) * 4.2)); background: rgba(0,0,0,0.65); border-radius: 99px; box-shadow: inset 0 0 0 1px rgba(201,163,90,0.35); overflow: hidden; }
 #fabien-hud .bar .f { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
 #fabien-hud .bar .n { color: #f1e6c8; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; text-align: right; min-width: calc(var(--u) * 34); }
-#fabien-hud .card .job { display: flex; align-items: center; gap: calc(var(--u) * 6); color: #c9b07a; white-space: nowrap; overflow: hidden; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
+#fabien-hud .card .job { display: flex; align-items: center; gap: calc(var(--u) * 6); color: #c9b07a; white-space: nowrap; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
 #fabien-hud .card.open { flex-direction: column; gap: calc(var(--u) * 4); }
 #fabien-hud .card.open .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(201,163,90,0.3); padding-top: calc(var(--u) * 4); }
 #fabien-hud .card.open .stat { display: flex; align-items: baseline; justify-content: center; gap: calc(var(--u) * 4); }
@@ -134,12 +137,12 @@ const CSS = `
 #fabien-hud .menu .grip { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: calc(var(--u) * 3); cursor: grab; touch-action: none; }
 #fabien-hud .menu .grip i { width: calc(var(--u) * 2); height: calc(var(--u) * 2); border-radius: 50%; background: #c9a35a; opacity: 0.6; }
 #fabien-hud .menu .grip.pinned i { background: #ffd27a; opacity: 0.95; }
-#fabien-hud .mrow { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 6); padding: 0 calc(var(--u) * 7) 0 calc(var(--u) * 5); white-space: nowrap; touch-action: manipulation; }
+#fabien-hud .mrow { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 3.5); padding: 0 calc(var(--u) * 5) 0 calc(var(--u) * 4); white-space: nowrap; touch-action: manipulation; }
 #fabien-hud .mrow + .mrow::before { content: ''; position: absolute; left: calc(var(--u) * 4); right: calc(var(--u) * 4); top: 0; height: 1px; background: rgba(201,163,90,0.15); }
 #fabien-hud .mrow .ic { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
 #fabien-hud .mrow .ic img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 calc(var(--u) * 1.2) rgba(0,0,0,0.9)); }
 #fabien-hud .mrow .ic .ring { position: absolute; inset: -18%; border-radius: 50%; opacity: 0.55; }
-#fabien-hud .mrow .wd { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; letter-spacing: 0.02em; color: #f1e6c8; text-shadow: 0 1px 2px #000; }
+#fabien-hud .mrow .wd { flex: 1; min-width: 0; font-weight: 600; letter-spacing: 0.02em; color: #f1e6c8; text-shadow: 0 1px 2px #000; }
 #fabien-hud .mrow .ct { color: #e8dcc0; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 #fabien-hud .mrow.off .wd { color: #7d6e58; } #fabien-hud .mrow.off .ct { opacity: 0.5; } #fabien-hud .mrow.off .ic img { opacity: 0.4; }
 #fabien-hud .mrow.lit, #fabien-hud .mrow.cur:not(.off) { background: linear-gradient(90deg, rgba(201,163,90,0.30), rgba(201,163,90,0.10) 70%, rgba(201,163,90,0.04));
@@ -163,11 +166,11 @@ const CSS = `
 #fabien-hud .skill .em .ring { position: absolute; inset: -15%; border-radius: 50%; }
 #fabien-hud .skill .em img { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 0 2px #000); }
 #fabien-hud .skill .nm { flex: 1; min-width: 0; line-height: 1.15; }
-#fabien-hud .skill .nm .n { color: #f6ead0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#fabien-hud .skill .nm .n { color: #f6ead0; white-space: nowrap; }
 #fabien-hud .skill .grid { display: grid; gap: max(1px, calc(var(--u) * 0.8)); flex: none; }
 #fabien-hud .skill .grid i { display: block; background: rgba(255,255,255,0.07); }
 #fabien-hud .skill .grid i.c { background: #ffe08a; transform: scale(0.55); }
-#fabien-hud .skill .foot { display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; overflow: hidden; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
+#fabien-hud .skill .foot { display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
 #fabien-hud .btn { display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em; color: #e8d5a8; }
 #fabien-hud .btn:hover { color: #fff4d6; }
 #fabien-hud .veil { position: absolute; inset: 0; background: rgba(0,0,0,0.55); pointer-events: auto; }
@@ -272,7 +275,22 @@ export class DomHud {
     if (this.keys[name] === key) return false;
     this.keys[name] = key;
     el.innerHTML = build();
+    this.fit(el);
     return true;
+  }
+
+  // No cut-off words anywhere (Baiyee 20 Nov): a word that does not fit its place first shrinks, one half pixel at
+  // a time, down to the small-letter floor (10 real pixels on a phone, 11 on a desktop), and if it still does not
+  // fit it wraps onto a second line. Nothing is clipped and nothing ends in "...". Marked with the class "fit".
+  fit(el) {
+    if (!el.getClientRects().length) return; // hidden now: it is fitted when it shows (the panel redraws then)
+    const floor = this.scene.lay && this.scene.lay.portrait ? 10 : 11;
+    for (const n of el.querySelectorAll('.fit')) {
+      n.style.whiteSpace = 'nowrap';
+      let f = parseFloat(getComputedStyle(n).fontSize) || 12;
+      while (n.scrollWidth > n.clientWidth + 1 && f > floor) { f = Math.max(floor, f - 0.5); n.style.fontSize = f + 'px'; }
+      if (n.scrollWidth > n.clientWidth + 1) { n.style.whiteSpace = 'normal'; n.style.lineHeight = '1.05'; }
+    }
   }
 
   // Places an element at a box given in game pixels.
@@ -422,7 +440,7 @@ export class DomHud {
     this.show(this.tipBox, on);
     if (!on) return;
     this.box(this.tipBox, t.x, t.y, t.tipW);
-    this.html('tip', this.tipBox, t.tip.title + '|' + t.tip.body, () => CORNERS + '<div class="cinzel" style="font-size:var(--f-mid);color:#ffe08a;font-weight:600;margin-bottom:calc(var(--u)*4)">' + esc(t.tip.title) + '</div><div style="font-size:var(--f-small);line-height:1.3">' + esc(t.tip.body).replace(/\n/g, '<br>') + '</div>');
+    this.html('tip', this.tipBox, t.tip.title + '|' + t.tip.body, () => CORNERS + '<div style="font-size:var(--f-name);color:#ffe08a;font-weight:700;margin-bottom:calc(var(--u)*3)">' + esc(t.tip.title) + '</div><div style="font-size:var(--f-small);line-height:1.3">' + esc(t.tip.body).replace(/\n/g, '<br>') + '</div>');
   }
 
   // Top left: the title and the turn strip (as BattleScene.refreshTurnStrip lays them out)
@@ -509,8 +527,8 @@ export class DomHud {
     this.box(this.card, L.x, L.y, w, sc.cardHeight);
     const d = sc.cardData(unit, sc.cardViewing);
     const key = JSON.stringify(d) + '|' + w;
+    this.card.classList.toggle('open', !!d.open); // (before the words are drawn and fitted: the open card lays them out differently)
     this.html('card', this.card, key, () => (d.open ? this.openCard(d) : this.closedCard(d)));
-    this.card.classList.toggle('open', !!d.open);
   }
 
   barHtml(word, value, max, color, numbers) {
@@ -526,17 +544,16 @@ export class DomHud {
 
   closedCard(d) {
     const sc = this.scene;
-    // the portrait: as tall as the card allows, but never more than 40 percent of its width (the bars need room)
-    const ps = 'min(calc(' + Math.round(sc.cardHeight * this.k) + 'px - var(--u) * 12), ' + Math.round(sc.lay.cardW * this.k * 0.4) + 'px)';
+    // the face: as tall as the card allows (the class line takes the bottom), but never more than 40 percent of its width
+    const ps = 'min(calc(' + Math.round(sc.cardHeight * this.k) + 'px - var(--u) * 15 - var(--f-small) * 1.4), ' + Math.round(sc.lay.cardW * this.k * 0.4) + 'px)';
     const bars = this.barHtml('HP', d.hp, d.maxHp, d.hpColor, d.hp + ' / ' + d.maxHp)
       + (d.mp ? this.barHtml('MP', d.mp.mp, d.mp.max, d.mp.color, d.mp.mp + ' / ' + d.mp.max) : this.barHtml('MP', 0, 0, '#4f8fe8', '-'))
       + this.barHtml('CT', d.ct, 100, '#e0a944', String(d.ct));
-    return CORNERS + this.portrait(d, ps) + '<div class="body">'
-      + '<div class="namerow"><span class="name cinzel" style="font-size:var(--f-name)">' + esc(d.name) + '</span>' + (d.roomy ? '' : '<span class="dim" style="font-size:var(--f-small)">Lv. ' + d.level + '</span>') + '</div>'
-      + (d.roomy ? '<div class="dim" style="font-size:var(--f-small);margin-top:calc(var(--u)*-2)">Lv. ' + d.level + (d.viewing ? '  ·  viewing' : '') + '</div>' : '')
+    return CORNERS + '<div class="crow">' + this.portrait(d, ps) + '<div class="body">'
+      + '<div class="namerow"><span class="name fit" style="font-size:var(--f-name)">' + esc(d.name) + '</span><span class="dim" style="font-size:var(--f-small)">Lv. ' + d.level + (d.viewing ? ' (viewing)' : '') + '</span></div>'
       + '<div class="bars">' + bars + '</div>'
-      + '<div class="job" style="font-size:var(--f-small)"><span class="dia"></span><span>' + esc(d.job) + (!d.roomy && d.viewing ? '  (viewing)' : '') + '</span></div>'
-      + '</div>';
+      + '</div></div>'
+      + '<div class="job" style="font-size:var(--f-small)"><span class="dia"></span><span class="fit" style="flex:1;min-width:0">' + esc(d.job) + '</span></div>';
   }
 
   openCard(d) {
@@ -545,7 +562,7 @@ export class DomHud {
       return '<div class="stat"><span class="dim" style="font-size:var(--f-small)">' + w + '</span><b class="' + (up ? 'up' : down ? 'down' : '') + '" style="font-size:var(--f-big)">' + esc(v) + (up ? ' ▲' : down ? ' ▼' : '') + '</b></div>';
     };
     const top = '<div style="display:flex;gap:calc(var(--u)*8);align-items:center">' + this.portrait(d, 'calc(var(--u)*44)')
-      + '<div style="flex:1;min-width:0"><div class="namerow"><span class="name cinzel" style="font-size:var(--f-name)">' + esc(d.name) + '</span><span style="font-size:var(--f-small);color:' + (d.side === 'hero' ? '#7fd6cf' : '#ff8a6a') + '">' + (d.side === 'hero' ? 'ALLY' : 'FOE') + '</span></div>'
+      + '<div style="flex:1;min-width:0"><div class="namerow"><span class="name fit" style="font-size:var(--f-name)">' + esc(d.name) + '</span><span style="font-size:var(--f-small);color:' + (d.side === 'hero' ? '#7fd6cf' : '#ff8a6a') + '">' + (d.side === 'hero' ? 'ALLY' : 'FOE') + '</span></div>'
       + '<div class="gold" style="font-size:var(--f-small)">' + esc(d.job) + (d.viewing ? '  ·  viewing' : '') + '</div>'
       + '<div class="bars" style="margin-top:calc(var(--u)*3)">' + this.barHtml('HP', d.hp, d.maxHp, d.hpColor, d.hp + ' / ' + d.maxHp) + (d.mp ? this.barHtml('MP', d.mp.mp, d.mp.max, d.mp.color, d.mp.mp + ' / ' + d.mp.max) : '') + '</div></div></div>';
     const rows = d.pages.map((p) => '<div class="stats">' + p.map(stat).join('') + '</div>').join('');
@@ -564,23 +581,16 @@ export class DomHud {
     this.show(this.skill, on);
     if (!on) return;
     this.box(this.skill, L.x, L.y, sc.lay.skillW, sc.skillPanelH);
-    const drawn = this.html('skill', this.skill, id + '|' + sc.skillPanelH + '|' + sc.lay.skillW, () => {
+    this.html('skill', this.skill, id + '|' + sc.skillPanelH + '|' + sc.lay.skillW, () => {
       const k = skillWords(id);
       const rows = k.grid, cols = Math.max(...rows.map((r) => r.length));
       const cell = 'calc(var(--u)*' + Math.max(4, Math.floor(30 / Math.max(3, rows.length, cols))) + ')';
       const cells = rows.map((r) => [...r.padEnd(cols, '.')].map((c) => (c === 'x' ? '<i style="background:' + k.color + ';box-shadow:0 0 4px ' + k.color + '"></i>' : c === 'c' ? '<i class="c"></i>' : '<i></i>')).join('')).join('');
       return CORNERS + '<div class="top"><div class="em" style="width:calc(var(--u)*30);height:calc(var(--u)*30)"><span class="ring" style="background:radial-gradient(circle,' + k.color + '90,' + k.color + '00 70%)"></span><img src="' + this.uiUrl('emblem_' + emblemFor(id)) + '" alt=""></div>'
-        + '<div class="nm"><div class="n" style="font-size:var(--f-name);font-weight:700">' + esc(k.name) + '</div><div class="dim" style="font-size:var(--f-small)">MP ' + (k.mp || 0) + '</div></div>'
+        + '<div class="nm"><div class="n fit" style="font-size:var(--f-name);font-weight:700">' + esc(k.name) + '</div><div class="dim" style="font-size:var(--f-small)">MP ' + (k.mp || 0) + '</div></div>'
         + '<div class="grid" style="grid-template-columns:repeat(' + cols + ',' + cell + ');grid-auto-rows:' + cell + '">' + cells + '</div></div>'
-        + '<div class="foot" style="font-size:var(--f-small)"><span style="color:#d8c8a4">' + esc(k.area) + '</span>' + (k.effect ? '<span style="color:#7a6848">|</span><span style="color:' + k.color + ';overflow:hidden;text-overflow:ellipsis">' + esc(k.effect) + '</span>' : '') + '</div>';
+        + '<div class="foot" style="font-size:var(--f-small)"><span style="color:#d8c8a4">' + esc(k.area) + '</span>' + (k.effect ? '<span style="color:#7a6848">|</span><span class="fit" style="color:' + k.color + ';flex:1;min-width:0">' + esc(k.effect) + '</span>' : '') + '</div>';
     });
-    if (drawn) {
-      // a long name shrinks (down to the small letters) so it is never cut short
-      const n = this.skill.querySelector('.nm .n');
-      let f = sc.lay.F.name * this.k;
-      const floor = sc.lay.portrait ? 12 : 16; // (Baiyee's smallest letters: 12 on a phone, 16 on a desktop)
-      while (n && n.scrollWidth > n.clientWidth + 1 && f > floor) { f = Math.max(floor, f - 0.5); n.style.fontSize = f + 'px'; }
-    }
   }
 
   // The command menu beside the unit, the main commands beside an open list, and the cancel tag
@@ -628,7 +638,7 @@ export class DomHud {
         const ring = r.ringColor !== null && r.ringColor !== undefined && r.emblem ? '<span class="ring" style="background:radial-gradient(circle,' + hex(r.ringColor) + 'cc,' + hex(r.ringColor) + '00 72%)"></span>' : '';
         h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="left:' + Math.round(r.x * k) + 'px;top:' + Math.round(r.y * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
           + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + ring + (icon ? '<img src="' + icon + '" alt="">' : '') + '</span>'
-          + '<span class="wd" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
+          + '<span class="wd fit" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
       });
       return h;
     });

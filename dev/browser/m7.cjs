@@ -17,8 +17,8 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
     await page.waitForFunction(() => { const b = window.__game.scene.getScene('BattleScene'); return b.activeUnit && b.activeUnit.side === 'hero' && !b.busy && b.menu.visible; }, null, { timeout: 60000 });
     // 18.44 (20 Nov): the HUD is HTML over the canvas. The letters are measured as the browser draws
     // them (computed size, real pixels), with what is still drawn on the canvas; the floor is Baiyee's:
-    // 12 real pixels on a phone, 16 on a desktop.
-    const least = view === 'phone' ? 12 : 16;
+    // 10 real pixels on a phone, 11 on a desktop (the polish pass of 20 Nov; before it 12 and 16).
+    const least = view === 'phone' ? 10 : 11; // 20 Nov (Baiyee, HUD polish): the HUD at 55 to 60 percent, letters 10 to 11 real pixels at least
     const measure = () => page.evaluate((least) => {
       const b = window.__game.scene.getScene('BattleScene');
       const real = b.scale.displaySize.width / b.scale.width;
@@ -37,7 +37,7 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
         if (px < least - 0.05) small.push(el.textContent.trim().slice(0, 18) + ' ' + px.toFixed(1));
       }
       const rows = [...document.querySelectorAll('#fabien-hud .mrow')].filter((r) => r.getClientRects().length);
-      for (const r of rows) { const h = r.getBoundingClientRect().height; if (h < 30) low.push(r.dataset.word + ' ' + h.toFixed(1)); }
+      for (const r of rows) { const h = r.getBoundingClientRect().height; if (h < (least < 11 ? 20 : 21)) low.push(r.dataset.word + ' ' + h.toFixed(1)); }
       const u = b.activeUnit, cam = b.cameras.main, v = cam.worldView;
       const ux = (u.view.x - v.x) * cam.zoom, uy = (u.view.y - u.centerY - v.y) * cam.zoom;
       const box = b.menu.visible ? { x0: b.menu.x, y0: b.menu.y, x1: b.menu.x + b.menuSize.w, y1: b.menu.y + b.menuSize.h } : null;
@@ -50,7 +50,7 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
     const m1 = await measure();
     await page.screenshot({ path: out + '/m7_' + view + '_turn.png' });
     check(view + ' D4: no interface word under ' + least + ' real pixels', m1.small.length === 0, m1.small.slice(0, 6).join(' | ') + ' (one game pixel = ' + m1.real.toFixed(2) + ' real)');
-    check(view + ' D4: every menu row 30 real pixels tall or more (his compact rows, 16 Nov), each row\'s whole band taps it', m1.low.length === 0 && m1.rows > 0, m1.low.join(' | '));
+    check(view + ' D4: every menu row 20 real pixels tall or more on a phone, 21 on a desktop (his compact rows; the 20 Nov polish made them slimmer), each row\'s whole band taps it', m1.low.length === 0 && m1.rows > 0, m1.low.join(' | '));
     check(view + ' 18.44: the menu stands beside the unit whose turn it is', m1.pinned || (m1.away !== null && m1.away < 0.2), 'gap ' + (m1.away === null ? 'none' : (m1.away * 100).toFixed(1) + '% of the width'));
     check(view + ' 18.44: the menu never covers the card', m1.menuBottom !== null && m1.menuBottom <= m1.cardTop + 1, m1.menuBottom + ' / ' + m1.cardTop);
     // the card: open it
