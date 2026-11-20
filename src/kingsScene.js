@@ -12,6 +12,7 @@ import { tileToScreen, isInsideGrid, getHeight, depthFor } from './grid.js';
 import { getHitChance, getDamage, distance } from './combat.js';
 import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMomentum } from './engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
+import { TURN_COST } from './turnOrder.js';
 import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
 import { sfxHas, sfxAt, sfxLoop } from './spellArt.js';
 import { play } from './audio.js';
@@ -297,6 +298,10 @@ export const kingMethods = {
   // Part 1: he dons the mask. It takes his whole turn; the area is marked until it resolves.
   castSingularity(caster, spell, onDone) {
     caster.channel = { spellId: 'singularity' };
+    // A fixed charge, like a spell's charge time in FFT (20 Nov): his next turn comes after chargeTicks ticks of the
+    // turn clock (about one turn for each other fighter), whatever his speed. "His next turn" at speed 6 used to be
+    // 13 turns away, and Singularity was nearly always broken, or its foes gone, before it went off.
+    caster.ct = Math.max(caster.ct, TURN_COST - caster.speed * G.singularity.chargeTicks);
     caster.hasMoved = true;
     caster.stepsUsed = Infinity;
     play('spell');
@@ -304,6 +309,7 @@ export const kingMethods = {
     this.floatText(caster, 'The mask goes on', spell.color, { pop: true });
     this.drawTelegraph(caster);
     this.refreshStatusTags();
+    this.refreshTurnStrip(); // he comes round sooner: the strip shows it
     this.refreshButtons();
     this.time.delayedCall(1000, () => {
       onDone();
