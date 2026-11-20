@@ -189,6 +189,7 @@
    "scale": 0.5,
    "feetY": 0.4,
    "loopMs": 140,
+   "weaponAxis": { "cx": 115, "cy": 111, "angle": 29, "len": 200, "note": "The weapon aura loop is a staff drawn in light: its bright line runs through (cx, cy) of the 254 pixel frame at this angle (degrees, down-right is positive) and is len pixels long; src/spellArt.js weaponAuraFx lays that line on the staff marked in art.json e5.weapon (10.37)." },
    "fit": {
     "loop": {
      "h": 188,

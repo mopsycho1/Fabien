@@ -148,6 +148,14 @@ export function shoutKey(id) {
   return portraitKey(id);
 }
 
+// Where the weapon is in a picture (10.37): [x1, y1, x2, y2], the staff's two ends in the picture's own pixels
+// (art.json "weapon", dev/tools/make_weapon_marks.py), or null. key is the texture key now on the sprite.
+export function weaponMarks(id, key) {
+  const marks = art[id] && art[id].weapon;
+  if (!marks || !key) return null;
+  return marks[key.slice(id.length + 1)] || null;
+}
+
 // True for a set of facings ({ downRight: ..., upLeft: ... }) rather than one picture.
 function isFacingSet(value) {
   return !!value && typeof value === 'object' && !value.file;

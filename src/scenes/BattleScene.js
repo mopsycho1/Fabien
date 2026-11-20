@@ -31,7 +31,7 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
 import { startStep } from '../story.js';
@@ -8232,7 +8232,7 @@ export default class BattleScene extends Phaser.Scene {
       this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.disoriented && unit.status.disoriented.by === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       // Gadara holding the blade end: his purple weapon aura (6.75)
-      this.keepAura(unit, 'drawnAura_blade', unit.alive && unit.grip === 'blade' && hasBuffLoop(this, 'blade'), () => buffLoopFx(this, unit, 'blade'));
+      this.keepAura(unit, 'drawnAura_blade', unit.alive && unit.grip === 'blade' && hasBuffLoop(this, 'blade'), () => weaponAuraFx(this, unit, 'blade') || buffLoopFx(this, unit, 'blade')); // (laid on his staff in every picture, 10.37)
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
       if (!swift && unit.swiftAura) {

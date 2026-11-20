@@ -5141,7 +5141,201 @@
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "portrait": "gadara_face.png"
+    "portrait": "gadara_face.png",
+    "weapon": {
+      "gadara_stand_f4.png": [
+        5,
+        25,
+        165,
+        97
+      ],
+      "gadara_stand_f1.png": [
+        170,
+        22,
+        5,
+        98
+      ],
+      "gadara_stand_f2.png": [
+        150,
+        25,
+        2,
+        92
+      ],
+      "gadara_stand_f3.png": [
+        8,
+        22,
+        155,
+        100
+      ],
+      "gadara_battle_f1.png": [
+        165,
+        15,
+        5,
+        98
+      ],
+      "gadara_battle_f4.png": [
+        25,
+        15,
+        180,
+        100
+      ],
+      "gadara_battle_f2.png": [
+        145,
+        18,
+        3,
+        78
+      ],
+      "gadara_battle_f3.png": [
+        8,
+        22,
+        170,
+        92
+      ],
+      "gadara_weak_f3.png": [
+        170,
+        20,
+        3,
+        120
+      ],
+      "gadara_weak_f2.png": [
+        150,
+        22,
+        35,
+        75
+      ],
+      "gadara_guard_f1.png": [
+        185,
+        15,
+        15,
+        200
+      ],
+      "gadara_guard_f3.png": [
+        215,
+        15,
+        148,
+        80
+      ],
+      "gadara_cleave_rear_f1.png": [
+        57,
+        8,
+        195,
+        78
+      ],
+      "gadara_cleave_rear_f3.png": [
+        31,
+        45,
+        172,
+        10
+      ],
+      "gadara_strike_f1.png": [
+        172,
+        55,
+        5,
+        175
+      ],
+      "gadara_strike_f3.png": [
+        185,
+        70,
+        244,
+        72
+      ],
+      "gadara_cleave_land_f1.png": [
+        120,
+        145,
+        15,
+        200
+      ],
+      "gadara_cleave_land_f3.png": [
+        118,
+        112,
+        5,
+        172
+      ],
+      "gadara_hook_reach_f1.png": [
+        124,
+        66,
+        18,
+        96
+      ],
+      "gadara_hook_reach_f3.png": [
+        125,
+        45,
+        15,
+        28
+      ],
+      "gadara_hook_pull_f1.png": [
+        106,
+        58,
+        20,
+        33
+      ],
+      "gadara_hook_pull_f3.png": [
+        105,
+        60,
+        178,
+        18
+      ],
+      "gadara_sunder_slash_f1.png": [
+        152,
+        85,
+        15,
+        182
+      ],
+      "gadara_sunder_slash_f3.png": [
+        230,
+        32,
+        17,
+        160
+      ],
+      "gadara_mask_f1.png": [
+        28,
+        8,
+        28,
+        230
+      ],
+      "gadara_mask_f3.png": [
+        150,
+        6,
+        155,
+        240
+      ],
+      "gadara_unleash_f4.png": [
+        186,
+        8,
+        92,
+        200
+      ],
+      "gadara_unleash_f3.png": [
+        22,
+        10,
+        105,
+        175
+      ],
+      "gadara_hurt_f3.png": [
+        178,
+        22,
+        12,
+        113
+      ],
+      "gadara_hurt_f2.png": [
+        165,
+        22,
+        75,
+        68
+      ],
+      "gadara_down_f1.png": [
+        3,
+        131,
+        120,
+        185
+      ],
+      "gadara_down_f2.png": [
+        228,
+        102,
+        20,
+        52
+      ]
+    }
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three looks). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\"); the Echo shows only in the interface.",

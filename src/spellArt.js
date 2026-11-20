@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { TILE_WIDTH } from './config.js';
 import { preloadSmokeArt } from './smokeArt.js';
+import { weaponMarks } from './art.js';
 
 // Spell pictures from Suleiman's effect sheets (public/art/fx). They are
 // drawn with "ADD" blending, so their black background disappears and only
@@ -247,6 +248,40 @@ export function buffLoopFx(scene, unit, id, part = 'loop') {
   if (layer === 'front') inFront(unit, main); else behind(unit, main);
   objects.push(main);
   return { objects, tweens: [] };
+}
+// A weapon aura (10.37): the loop is a staff drawn in light, so it is laid ON the unit's weapon, in every picture and facing.
+// art.json "weapon" gives the two ends of the staff in each picture (weaponMarks); fxSlots.json "weaponAxis" is the bright line
+// of the loop (its middle, angle and length). Every frame the aura is moved, turned and sized so its line lies on the staff of the
+// picture the unit shows now (mirrored pictures and the breathing squash included). A picture with no mark hides it: an aura
+// floating beside him was the fault this fixes. Returns { objects, tweens } for BattleScene.keepAura, or null (no marks: the
+// plain body aura is used instead).
+export function weaponAuraFx(scene, unit, id) {
+  const axis = BUFF_FX[id] && BUFF_FX[id].weaponAxis;
+  if (!axis || !unit.sprite || !hasBuffPart(scene, id, 'loop') || !weaponMarks(unit.id, unit.sprite.texture.key + '')) return null;
+  const keys = buffFrames(id, 'loop');
+  const anim = 'buffloop-' + id;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: keys.map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / slotMs(id, 'loop'), repeat: -1 });
+  const aura = scene.add.sprite(0, 0, 'fx:' + keys[0]).setBlendMode(Phaser.BlendModes.ADD).setOrigin(axis.cx / 254, axis.cy / 254);
+  aura.play(anim);
+  inFront(unit, aura);
+  const axisAngle = (axis.angle * Math.PI) / 180;
+  const tick = () => {
+    if (!aura.active) return;
+    const sp = unit.sprite;
+    const m = sp && sp.active ? weaponMarks(unit.id, sp.texture.key) : null;
+    if (!m || !unit.alive || !sp.visible || unit.hidden || sp.alpha < 0.5) { aura.setVisible(false); return; }
+    const w = sp.width, h = sp.height;
+    // a point of the picture, in the unit's container (the sprite's own place, origin, scale and mirror)
+    const at = (px, py) => ({ x: sp.x + ((sp.flipX ? w - px : px) - sp.originX * w) * sp.scaleX, y: sp.y + (py - sp.originY * h) * sp.scaleY });
+    const a = at(m[0], m[1]), b = at(m[2], m[3]);
+    let turn = Math.atan2(b.y - a.y, b.x - a.x) - axisAngle;
+    while (turn > Math.PI / 2) turn -= Math.PI; // (the aura is the same at both ends: turn the short way)
+    while (turn < -Math.PI / 2) turn += Math.PI;
+    aura.setVisible(true).setPosition((a.x + b.x) / 2, (a.y + b.y) / 2).setRotation(turn).setScale(Math.hypot(b.x - a.x, b.y - a.y) / axis.len);
+  };
+  tick();
+  scene.events.on(Phaser.Scenes.Events.POST_UPDATE, tick);
+  return { objects: [aura], tweens: [{ remove: () => scene.events.off(Phaser.Scenes.Events.POST_UPDATE, tick) }] };
 }
 // The figure itself lit by its Verse (fusing the aura to the body): a soft tint and a rim light in the Verse's colour, both
 // pulsing gently with the loop. Two copies of the figure's picture kept on it every frame (the picture changes, breathes,

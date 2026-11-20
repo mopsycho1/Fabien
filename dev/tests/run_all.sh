@@ -38,7 +38,7 @@ settings_for() {
     n39) echo "FABIEN_MAP=cavern FABIEN_BENCH=e1" ;;
     n41|n42|n43|n44|n45|n53|n54|n56|n58|n59|n64|n65|n66|n67|n68|n69|n70|n71|n72|n75|n76|n77|n78|n79|n81|n82|n84|n85|n91) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
     n50|n51) echo "FABIEN_BENCH=" ;;
-    n86|n87|n89|n90|n93) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # the two kings (Phase 10)
+    n86|n87|n89|n90|n93|n94) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # the two kings (Phase 10)
     n62) echo "FABIEN_MAP=cavern" ;; # the map's own line-up: 4 against 4
   esac
 }
