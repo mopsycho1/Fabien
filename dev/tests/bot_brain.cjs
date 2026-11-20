@@ -214,7 +214,7 @@ module.exports = function makeBrain(w, tally) {
       if (plan) {
         await walkTo(plan.t.col, plan.t.row);
         // Kofi marks a healthy foe with Haunt before bolting it
-        if (u.spells.includes('haunt') && St.canAfford(u, 'haunt') && !St.isPoisoned(plan.target) && plan.target.hp > plan.target.maxHp * 0.6 && dist(u, plan.target) <= 4 && Math.random() < 0.5 && await cast('haunt', plan.target)) { await stepBack(); return; }
+        if (u.spells.includes('haunt') && St.canAfford(u, 'haunt') && !St.isDisoriented(plan.target) && plan.target.hp > plan.target.maxHp * 0.6 && dist(u, plan.target) <= 4 && Math.random() < 0.5 && await cast('haunt', plan.target)) { await stepBack(); return; }
         // a fighter starts a clash only where it is the stronger one and a friend can use it
         const pins = melee ? E.engageTargets(u, b.units).filter((p) => p === plan.target && E.contestEdge(u, p) >= 1 && friends.some((f) => f !== u && dist(f, p) <= 4)) : [];
         if (pins.length && plan.target.hp > 12 && Math.random() < 0.3) {

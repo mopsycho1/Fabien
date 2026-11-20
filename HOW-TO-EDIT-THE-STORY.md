@@ -534,7 +534,7 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 
 - Who fights on the cavern: `src/data/maps/cavern.json`, `alsoFighting` (benched fighters who join) and `sittingOut`. For 3 v 3 again: `"alsoFighting": ["e1"]`, `"sittingOut": ["e2"]`. Start tiles are in `starts`.
 - Kofi's numbers: `shaman` in `src/data/jobs.json`. `readingRules` there says how many points each thing near him gives each element (water tiles, lamps, sand, allies under a Verse, ...).
-- His four bolts, Haunt and Infuse are in `src/data/spells.json`: `spiritBoltFire`, `spiritBoltWater`, `spiritBoltEarth`, `spiritBoltStorm`, `haunt`, `infuse`. Change damage over time with `poison` and `turns` in `haunt`; which Verse Infuse gives per element is `verses` in `infuse`.
+- His four bolts, Haunt and Infuse are in `src/data/spells.json`: `spiritBoltFire`, `spiritBoltWater`, `spiritBoltEarth`, `spiritBoltStorm`, `haunt`, `infuse`. Haunt is a hex (20 Nov): how many turns the target stays Disoriented is `hexTurns`, and the chance to land against magic defense is `resist` (`base`, `perPoint`, `min`, `max`) in `haunt`; what Disoriented does is in `src/data/conditions.json`; which Verse Infuse gives per element is `verses` in `infuse`.
 - His casting pictures per element: `elementPoses` under `h4` in `src/data/art.json`.
 
 ## 14 Nov batch: pace and enemy play (roadmap 18.11, 18.15, 13.25, 13.38)

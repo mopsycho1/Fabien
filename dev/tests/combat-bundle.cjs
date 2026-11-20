@@ -207,7 +207,8 @@ var spells_default = {
     kind: "haunt",
     color: "#8fe0b0",
     range: 4,
-    poison: 2,
+    hexTurns: 2,
+    resist: { base: 60, perPoint: 8, min: 25, max: 95, note: "13.60: the chance to land, in percent: 60 plus 8 for each point of Kofi's magic attack over the target's magic defense, kept between 25 and 95 (92 against a fighter, 68 against Layra)." },
     turns: 3,
     delay: 0,
     speedLoss: 2,
@@ -215,7 +216,7 @@ var spells_default = {
     burnAs: "spiritBoltFire",
     mp: 2,
     use: "enemy",
-    text: "A spirit mark: 2 damage at the start of each of the target's next 3 turns (never the last point; Herbs lift it). What Kofi reads adds to it. Fire: it also burns. Water: Drenched. Earth: bound, slower for 3 turns. Storm: shaken, its aim or trance breaks and it is Off-Balance."
+    text: "A hex: the spirits leave the target Disoriented for its next 2 turns (attack -2, defense -2, evade -10, magic hits it harder; Herbs lift it). It rolls against the target's magic defense first: a strong mind can shake it off. What Kofi reads adds to it when it lands. Fire: it also burns. Water: Drenched. Earth: bound, slower for 3 turns. Storm: shaken, its aim or trance breaks and it is Off-Balance."
   },
   infuse: {
     name: "Infuse",

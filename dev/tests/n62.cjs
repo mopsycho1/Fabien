@@ -82,22 +82,22 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   out = await bolt(() => { put(kofi, 8, 1); put(layra, 8, 2); put(gaha, 9, 1); St.applyBuff(gaha, 'swiftness'); put(tayo, 8, 4); put(bull, 8, 5); }, tayo);
   check('Gale Bolt (Storm): it hurts, and it is the one bolt that can jump to the foe beside the target', out.hurt && b.readingMove(kofi) === 'spiritBoltStorm' && combat.chainTarget(kofi, tayo, b.units) === bull && w.__game && true, JSON.stringify(out));
 
-  // ---------- Haunt ----------
+  // ---------- Haunt (a hex since 20 Nov, 13.60; the old look back, 1.71) ----------
+  const sureLand = (fn) => { const real = w.Math.random; let n = 0; w.Math.random = () => (n++ < 1 ? 0.01 : real()); try { return fn(); } finally { w.Math.random = real; } }; // the Haunt roll lands (13.60)
   park(); put(kofi, 2, 3); put(tayo, 2, 6);
   b.activeUnit = kofi; b.cancelMode(); b.onSpellButton && b.onSpellButton(); b.chooseSpell('haunt');
   check('Haunt can be aimed at a foe within 4 tiles, not at an ally', b.mode === 'spellTarget' && b.targetsInRange.includes(tayo) && !b.targetsInRange.some((u) => u.side === 'hero'), b.mode);
   b.cancelMode();
   const seen = []; const shown = b.showFrame.bind(b); b.showFrame = (u, f) => { const ok = shown(u, f); if (u === kofi && ok) seen.push(f.key); return ok; };
-  await new Promise((res) => { b.busy = true; b.castSpell(kofi, tayo, 'haunt', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
+  await new Promise((res) => { b.busy = true; sureLand(() => b.castSpell(kofi, tayo, 'haunt', () => { b.busy = false; res(); })); setTimeout(res, 6000); });
   b.showFrame = shown;
-  check('Haunt costs 2 MP and marks the foe: 2 damage a turn for 3 turns', kofi.mp === kofi.maxMp - 2 && St.isPoisoned(tayo) && tayo.status.poison.turnsLeft === 3, JSON.stringify(tayo.status.poison));
+  check('Haunt costs 2 MP and leaves the foe Disoriented for 2 turns (a hex, no poison)', kofi.mp === kofi.maxMp - 2 && St.isDisoriented(tayo) && tayo.status.disoriented.by === 'haunt' && tayo.status.disoriented.turnsLeft === 2 && !St.isPoisoned(tayo), JSON.stringify(tayo.status.disoriented));
   check('read in Water it also leaves the foe Drenched', St.isDrenched(tayo));
-  check('he channels and never shows his cast picture (that is his plain attack, roadmap 1.57)', seen.findIndex((k) => /chant/.test(k)) >= 0 && seen.findIndex((k) => /_cast_/.test(k)) < 0, seen.map((k) => k.split(':')[1]).join(' ').slice(0, 160));
-  const hp1 = tayo.hp; const bite = St.tickPoison(tayo);
-  check('the mark bites at the start of its turn', bite === 2 && tayo.hp === hp1 - 2, bite);
+  check('he channels, then casts (his first Haunt look, back for 1.71)', seen.findIndex((k) => /chant/.test(k)) >= 0 && seen.findIndex((k) => /_cast_/.test(k)) > seen.findIndex((k) => /chant/.test(k)), seen.map((k) => k.split(':')[1]).join(' ').slice(0, 160));
+  check('Disoriented: the foe fights worse (attack -2, evade -10)', St.statMod(tayo, 'attack') <= -2 && St.statMod(tayo, 'evade') <= -10);
   park(); put(kofi, 1, 8); put(tayo, 4, 8); const sp0 = tayo.speed + St.statMod(tayo, 'speed');
-  await new Promise((res) => { b.busy = true; b.castSpell(kofi, tayo, 'haunt', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
-  check('read in Earth it binds: the foe is slower', tayo.speed + St.statMod(tayo, 'speed') < sp0 && St.isPoisoned(tayo), sp0 + ' -> ' + (tayo.speed + St.statMod(tayo, 'speed')));
+  await new Promise((res) => { b.busy = true; sureLand(() => b.castSpell(kofi, tayo, 'haunt', () => { b.busy = false; res(); })); setTimeout(res, 6000); });
+  check('read in Earth it binds: the foe is slower', tayo.speed + St.statMod(tayo, 'speed') < sp0 && St.isDisoriented(tayo), sp0 + ' -> ' + (tayo.speed + St.statMod(tayo, 'speed')));
 
   // ---------- Infuse ----------
   park(); put(kofi, 4, 4); put(gaha, 4, 6);

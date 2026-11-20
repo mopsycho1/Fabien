@@ -84,7 +84,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, defaultLineUp, sitsOut, sidesOf } from '../lineup.js';
@@ -4312,31 +4312,50 @@ export default class BattleScene extends Phaser.Scene {
     this.showPose(caster, 'chant', dx);
     chargeUp(this, caster.view.x + Math.sign(dx || 1) * 12, caster.view.y - caster.topY * 0.7, tone, { ms: 420, size: 0.9, depth: caster.view.depth + 2 });
     play('select');
-    applyPoison(target, 'haunt');
+    // 13.60 (Suleiman 15 Nov): Haunt is a hex. It rolls against the target's magic defense; when it lands the target
+    // is Disoriented (no more poison), plus what Kofi reads. A miss: the spirits are shaken off ("Resisted").
+    const chance = hexChance(caster, target, spell.resist);
+    const lands = Math.random() * 100 < chance;
     let word = null;
-    if (read === 'fire' && !isDrenched(target)) { applyBurn(target, spell.burnAs); word = ['Burning!', '#ff8a3c']; }
-    if (read === 'water') { applyDrenched(target, spell.drench); word = ['Drenched', '#7fd6c4']; }
-    if (read === 'earth') { applySlow(target, 'haunt'); word = ['Bound', '#d9b77a']; }
-    if (read === 'storm') { applyOffBalance(target); word = ['Shaken', '#bfd8ff']; }
-    // Roadmap 1.57 (Suleiman 16 Nov: "the spell's effects should be the only thing that fires"): Haunt used to end
-    // in his cast picture and his spirit comet, which is exactly his plain attack. Now he holds his chant (he works
-    // the spirits from where he stands), and only his Haunt effect plays, once, on the target. The mark stays as the
-    // status tag; no smoke lingers on the unit (that loop is gone from refreshStatusTags).
+    if (lands) {
+      applyDisoriented(target, this.activeUnit === target, spell.hexTurns, 'haunt');
+      if (read === 'fire' && !isDrenched(target)) { applyBurn(target, spell.burnAs); word = ['Burning!', '#ff8a3c']; }
+      if (read === 'water') { applyDrenched(target, spell.drench); word = ['Drenched', '#7fd6c4']; }
+      if (read === 'earth') { applySlow(target, 'haunt'); word = ['Bound', '#d9b77a']; }
+      if (read === 'storm') { applyOffBalance(target); word = ['Shaken', '#bfd8ff']; }
+    }
+    // 1.71 (Suleiman 19 Nov: "I miss the old haunt effect ... your original implementation was the right move"): the
+    // first look is back. His cast picture, his teal spirit comet flies to the target and his Haunt smoke rises where
+    // it lands; while the hex lasts the smoke stands round the haunted unit's feet (refreshStatusTags). This undoes 1.57.
     this.time.delayedCall(420, () => {
       if (!caster.alive) return onDone();
+      this.showPose(caster, 'cast', dx);
       play('spell');
       const to = this.centerOf(target);
-      buffCastFx(this, target.view.x, target.view.y, 'haunt', target);
-      floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
-      lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
-      afterglow(this, target.view.x, target.view.y - 10, tone, { level: 3, depth: target.view.depth + 2 });
-      this.floatText(target, 'Haunted', spell.color, { pop: true });
-      if (word) this.time.delayedCall(420, () => target.alive && this.floatText(target, word[0], word[1], { rise: 46 }));
-      if (read === 'storm') this.interrupt(target);
-      this.refreshStatusTags();
-      this.refreshTurnStrip();
-      this.time.delayedCall(700, () => caster.alive && this.showStanding(caster));
-      this.time.delayedCall(1000, onDone);
+      const from = { x: caster.view.x + Math.sign(dx || 1) * 14, y: caster.view.y - caster.topY * 0.7 };
+      const hasComet = sfxHas(this, 'spirit_bolt');
+      if (hasComet) sfxBeam(this, 'spirit_bolt', from.x, from.y, to.x, to.y);
+      else lightning(this, from.x, from.y, to.x, to.y);
+      // the mark lands when the comet arrives (its hitMs), not when it leaves his hand
+      const hit = hasComet ? sfxInfo('spirit_bolt').hitMs || 0 : 0;
+      this.time.delayedCall(hit, () => {
+        if (lands) {
+          buffCastFx(this, target.view.x, target.view.y, 'haunt', target);
+          floorLight(this, target.view.x, target.view.y, elementOf(tone).glow, { size: 1.4, peak: 0.6, ms: 700 });
+          lightNearby(this, to.x, to.y, elementOf(tone).glow, { radius: 110, peak: 0.55, ms: 480 });
+          afterglow(this, target.view.x, target.view.y - 10, tone, { level: 3, depth: target.view.depth + 2 });
+          this.floatText(target, 'Haunted', spell.color, { pop: true });
+          this.time.delayedCall(380, () => target.alive && this.floatText(target, 'Disoriented', '#e3a8ff', { rise: 46 }));
+          if (word) this.time.delayedCall(800, () => target.alive && this.floatText(target, word[0], word[1], { rise: 60 }));
+          if (read === 'storm') this.interrupt(target);
+        } else {
+          this.floatText(target, 'Resisted', '#e8d5a8', { pop: true });
+        }
+        this.refreshStatusTags();
+        this.refreshTurnStrip();
+      });
+      this.time.delayedCall(520 + hit, () => caster.alive && this.showStanding(caster));
+      this.time.delayedCall(900 + hit, onDone);
     });
   }
 
@@ -8217,9 +8236,9 @@ export default class BattleScene extends Phaser.Scene {
       // the figure itself lit in the Verse's colour, pulsing with the loop (fxSlots.json "fuse")
       for (const id of ['swiftness', 'fury', 'stone', 'renewal']) this.keepAura(unit, 'fuse_' + id, unit.alive && verseNow === id, () => buffFuseFx(this, unit, id));
       this.keepAura(unit, 'drawnAura_stoneRooted', unit.alive && rootedNow, () => buffLoopFx(this, unit, 'stone', 'rooted'));
-      // Kofi's Haunt: its smoke plays once at the cast and does not stand on the haunted unit (1.57, Suleiman 16 Nov:
-      // "it shouldn't linger on the enemy"); the mark is the status tag. (An old loop is cleared here.)
-      this.keepAura(unit, 'drawnAura_haunt', false, () => null);
+      // Kofi's Haunt: the teal and violet smoke stands round the feet of a haunted unit while the hex lasts (6.63;
+      // back on 20 Nov, 1.71: Suleiman wants his original look; 1.57 had made it play once only)
+      this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.disoriented && unit.status.disoriented.by === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       // Gadara holding the blade end: his purple weapon aura (6.75)
       this.keepAura(unit, 'drawnAura_blade', unit.alive && unit.grip === 'blade' && hasBuffLoop(this, 'blade'), () => buffLoopFx(this, unit, 'blade'));

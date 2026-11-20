@@ -318,8 +318,18 @@ export function rootedShare() {
 // (see statMod) and magic hurts it more (combat.js). The numbers are in
 // conditions.json. ownTurn: it happened during the unit's own turn, so the
 // "next turn" is the one after this.
-export function applyDisoriented(unit, ownTurn = false) {
-  statusOf(unit).disoriented = { turnsLeft: ownTurn ? 2 : 1 };
+// turns: how many of its turns it lasts (1 for a slam; Kofi's Haunt sets its own, 13.60). by: what caused it
+// ('haunt' keeps his Haunt smoke standing on the unit while it lasts, 1.71).
+export function applyDisoriented(unit, ownTurn = false, turns = 1, by = null) {
+  statusOf(unit).disoriented = { turnsLeft: turns + (ownTurn ? 1 : 0), by };
+}
+
+// Kofi's Haunt is a hex (13.60, Suleiman 15 Nov): it rolls against the target's magic defense before it lands.
+// The chance in percent: base + perPoint for each point of the caster's magic attack over the target's magic
+// defense (fewer when the target's is higher), kept between min and max (spells.json "haunt.resist").
+export function hexChance(caster, target, rule) {
+  const edge = ((caster.magicAttack || 0) + statMod(caster, 'magicAttack')) - ((target.magicDefense || 0) + statMod(target, 'magicDefense'));
+  return Math.max(rule.min, Math.min(rule.max, Math.round(rule.base + rule.perPoint * edge)));
 }
 
 // ---------- Blinded (the archer's Smoke Bomb, roadmap 13.26) ----------

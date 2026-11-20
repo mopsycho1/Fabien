@@ -135,7 +135,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
           // Kofi (4 v 4, M10b) has Infuse in place of the Verses, and Haunt for a foe in reach that is not marked yet
           const bless = u.spells.includes('infuse') ? 'infuse' : E.styleOf(friend || u) === 'evasion' ? 'swiftness' : 'stone';
           const canBless = friend && u.spells.includes(bless) && St.canAfford(u, bless) && St.cooldownOf(u, bless) === 0;
-          const mark = u.spells.includes('haunt') && St.canAfford(u, 'haunt') ? foes.filter((f) => dist(u, f) <= 4 && !St.isPoisoned(f) && !f.hidden).sort((a, c) => c.hp - a.hp)[0] : null;
+          const mark = u.spells.includes('haunt') && St.canAfford(u, 'haunt') ? foes.filter((f) => dist(u, f) <= 4 && !St.isDisoriented(f) && !f.hidden).sort((a, c) => c.hp - a.hp)[0] : null;
           if (canBless) {
             b.onSpellButton(); b.chooseSpell(bless);
             b.handleTap(friend.col, friend.row); b.handleTap(friend.col, friend.row); tally.spells++; await waitIdle();
