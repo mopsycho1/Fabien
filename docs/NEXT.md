@@ -1,4 +1,4 @@
-# NEXT: everything open, in build order (19 Nov 2026)
+# NEXT: everything open, in build order (20 Nov 2026)
 
 One batch at a time: build, test, tick the roadmap, push, stop. Numbers point to docs/ROADMAP.md.
 Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the cause" work.
@@ -15,6 +15,11 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **1.57** Haunt: effect only at the cast, and Kofi must not play his plain attack. Art: none. **Sonnet**.
 - **1.52** Infuse shows "+0 MP". Art: none. **Sonnet**.
 - **1.64** Wrong-facing figures on mirrored sheets: add a facing check to the cutters. Art: none. **Sonnet**.
+- **1.68** (new 20 Nov) Knock-back: the figure vanishes and appears where it was sent. Art: none. **Opus** (find the cause; dev/browser/knock.cjs).
+- **1.69** (new 20 Nov) An Herb cannot target an ally in a clash (the 1.65 fix probably blocks every heal on an engaged unit). Art: none. **Sonnet**.
+- **1.70** (new 20 Nov) On a phone the skills list resets when a skill is picked. Art: none. **Sonnet**.
+- **1.71** (new 20 Nov) Haunt: he wants the original effect back (reverses 1.57). Art: none. **Sonnet** (answer Q22 first; with 13.60).
+- **1.72** (new 20 Nov) Alagara in Swift shows his attack stance, not his neutral one. Art: maybe (a neutral Swift picture). **Sonnet**.
 - **1.58** "Vertical and horizontal lightning again". Art: none. Ask Suleiman first (Q6), then **Sonnet**.
 - **1.62** Sudeen's weapon missing in his battle stance. Art: yes, new Sudeen attack sheets from Suleiman. Wait.
 
@@ -44,6 +49,8 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **6.80** Gaha and Bull clash GIF should play on the battlefield. Art: no. **Sonnet** (decided 19 Nov: over the two fighters on the board, no panel).
 
 ## Batch 5: teams and the character select
+- **18.45** DONE 20 Nov. Any character on either side (one shared pool, a home-side tag on each card, a Test mode switch on the select itself; default teams back to the 4 v 4 with Kofi and the archer, the kings pickable). Test: swap_sides.cjs, n85.
+- **18.46** (new 20 Nov) Five a side, default still four (he wants a full party with a king in it). Art: none. **Opus**, after 6.61 and the slinger (19.1).
 - **18.30** DONE 19 Nov. Character select before each battle (he wants it early, for testing). Art: his bios are coming; portraits exist. **Sonnet**.
 - **6.61** Male archer joins the heroes, Kofi moves to the enemies as support (needs Kofi's AI). Art: partly (the male archer's missing poses, 6.31). **Opus**.
 - **18.32** Battle length on the 11 by 11 cavern (about 125 turns; his best is 63). Art: none. **Opus** (measure with the new teams).
@@ -60,9 +67,10 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **19.6** Archer: Pinning Shot, Pinned status, Patient Hunter. Art: none. **Sonnet**.
 - **6.73** Bull charge pictures and impact GIFs, wired with 19.5. Art: no. **Sonnet**.
 
-## Batch 8: the two kings (Suleiman wants these before the slinger)
+## Batch 8: the two kings (Suleiman wants these before the slinger; built 20 Nov, but OUT of the default teams because the heroes lost 10 of 10, 10.31; pick them on the select)
 - **Phase 10 (10.17 to 10.22)** King Alagara: Active and Echo Verses, Claim, Mantle, Drawn Blade, Gale Cut, Rending Draw, Unmoved. Art: mostly here (6.74); missing Rending Draw, Unmoved and Crowned Cut poses. **Opus**.
 - **Phase 10 (10.23 to 10.29)** Gadara: Fork and Blade, Snare Hook, Sunder Boon, Heavy Cleave, Mask Gauge, Singularity. Art: skill sheets here (6.75); missing Singularity, Reverse Grip and the Blade attack. **Opus**.
+- **6.81** (new 20 Nov) Sudeen's new sheets (expressions, herb toss, slash poses, four-view with the scimitar showing, bash): cut and wire them; probably settles 1.62. Art: here. **Sonnet** (do with Batch 4).
 - **6.74 / 6.75** Cut and wire their sheets and eleven GIFs, including the weapon aura. Art: no. **Sonnet** (do before the kit work).
 
 ## Batch 9: the new classes
@@ -86,10 +94,10 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 4. "Rejuvenate is op": which skill (Renewal or Herbs), and what should change?
 5. DECIDED 19 Nov: yes, Kofi's spirits.
 6. "The vertical and horizontal lightning issue again": what did he see?
-7. Gravity: what does it do beyond a stronger Slow? Do the other echoed Verses get names?
+7. PARTLY ANSWERED 20 Nov (Layra Gravity PDF: Kneeling, -2 Defense, a resistance roll with the higher of Defense and Magic Defense, 2 turns; see 13.65). Still open: do the other echoed Verses get names? Is the 3d6 roll acceptable, or should it be our usual hit roll?
 8. Critical hits: wanted? How often, how big?
 9. Poise: it "works well now". Is the stamina swap still wanted?
-10. Haunt: any mark left on the target after the cast? Any number for the hex roll?
+10. Haunt: any mark left on the target after the cast? Any number for the hex roll? (20 Nov: he still wants it a Disoriented hex with psychic damage over time, or else a plain poison; but on 19 Nov he also wants the old effect back, 1.71: which is it?)
 11. The Gaha and Bull clash GIF "plays like its own cutscene": smaller, on the tile, or no frame?
 12. Gadara: is the "already generated" Twin Prongs sheet coming, and how should the Blade basic attack be drawn?
 13. Hit effects and spell sounds: are the 2 frame flashes and the 5 second sounds final?
@@ -100,3 +108,6 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 18. Alagara's numbers: his stats (the sheet gives only high, medium, low; ours are HP 34, attack 7, defense 2, evade 18, speed 11, move 4), is +50 percent on the Active Verse enough, is 75 percent and one more turn the right price for the Echo, are the Surges balanced?
 19. Art still missing for the kings: Rending Draw and Unmoved poses, Crowned Cut, Reverse Grip, Singularity's own cast pose (we use the 31 Oct mask and staff-raised pictures), a Fork Strike sheet, and back views for Claim and Alagara's injured pose.
 20. Who gives Alagara his Verses on the enemy side, where no Enchanter fights with him? (For now he Claims them from heroes.)
+21. Five a side (18.46): his voice note asks for Baiyee's thoughts. Do we go to 5 v 5 now, or after the slinger and Kofi's move (6.61)?
+22. Haunt (1.71): the old effect lingers on the target for 3 turns. Does Kofi's plain-attack animation fix from 1.57 stay while the effect goes back?
+23. Sudeen's new sheets (6.81): are they meant to replace his whole set (battle stance, attacks, Herb toss, faces), and are the bash sheets the same four frames as the 13 Nov ones?

@@ -9,14 +9,19 @@ const MAPS = { cavern: cavernMap, yoba: yobaMap };
 import { framePanel, goldDiamond } from '../battleCard.js';
 import { textStyle } from '../hud.js';
 import { playTrack, play } from '../audio.js';
-import { allCharacters, startingLineUp, saveLineUp, forgetLineUp, defaultLineUp, testMode, MAX_PER_SIDE } from '../lineup.js';
+import { allCharacters, startingLineUp, saveLineUp, forgetLineUp, defaultLineUp, testMode, setTestMode, MAX_PER_SIDE } from '../lineup.js';
 
 // The character select (roadmap 18.30): a screen before every battle where the tester picks who fights.
 // Every character in units.json is a card (portrait, name, class, a short line), so one added later shows
 // by itself; one with no portrait gets a placeholder. Two sides, Heroes and Enemies, up to 4 each: tap a
 // card to add or remove it. "Start battle" starts the battle with exactly that line-up on the map.
+// The roster is one shared pool (20 Nov): both sides list every character, so a hero can be put on the
+// enemies' side and an enemy on the heroes'. A small tag on each card shows its home side (HERO or ENEMY) and
+// does not limit where it can go. A character stands on one side only: tapping it on the other side moves it.
+// The enemy AI plays whoever is on its side; the player plays whoever is on his.
 // The last line-up is remembered on the device; "Reset to default" goes back to the map's own.
-// With Test mode off (Settings), the enemy side is locked to the map's default (for the story later).
+// With Test mode off, the enemy side is locked to the map's default (for the story later). Test mode is on by
+// default; its switch is on this screen (under the title) as well as in the battle's Settings.
 // Laid out on the real screen size: on a phone the two sides are stacked, on a wide screen side by side.
 // Started by story.js with { stepIndex, map }; window.__skipSelect (browser checks) goes straight on.
 const GOLD = 0xe4c27c;
@@ -52,7 +57,7 @@ export default class SelectScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#140f0b');
     this.cameras.main.fadeIn(300, 0, 0, 0);
     this.pick = startingLineUp(mapData);
-    if (!testMode()) this.pick.enemy = defaultLineUp(mapData).enemy;
+    this.lockEnemies();
     this.draw();
     const onLayout = () => this.draw();
     this.events.on('layout', onLayout);
@@ -64,6 +69,13 @@ export default class SelectScene extends Phaser.Scene {
       this.cameras.main.scrollY = Phaser.Math.Clamp(this.cameras.main.scrollY - (p.y - p.prevPosition.y), 0, this.maxScroll);
     });
     this.input.on('wheel', (p, o, dx, dy) => { this.cameras.main.scrollY = Phaser.Math.Clamp(this.cameras.main.scrollY + dy, 0, Math.max(0, this.maxScroll)); });
+  }
+
+  // Test mode off (the story): the enemy side is the map's own, and none of those characters can be on the heroes' side
+  lockEnemies() {
+    if (testMode()) return;
+    this.pick.enemy = defaultLineUp(this.mapData).enemy;
+    this.pick.hero = this.pick.hero.filter((id) => !this.pick.enemy.includes(id));
   }
 
   // Draws the whole screen again (after every tap, and when the window changes shape)
@@ -91,15 +103,27 @@ export default class SelectScene extends Phaser.Scene {
     goldDiamond(tg, W / 2 - tw / 2 - S(22), m + S(22), S(6));
     goldDiamond(tg, W / 2 + tw / 2 + S(22), m + S(22), S(6));
     const test = testMode();
-    add(this.add.text(W / 2, m + S(56), test ? 'Test mode: both sides can be picked (Settings in battle)' : 'Story mode: the enemies are set', textStyle(F.small, '#bfae88')).setOrigin(0.5));
+    // the Test mode switch: tap it to turn Test mode on or off (it was only in the battle's Settings before)
+    const tl = add(this.add.text(W / 2, m + S(56), test ? 'Test mode: ON, any character on either side  (tap to switch off)' : 'Test mode: OFF, the enemies are set  (tap to switch on)', textStyle(F.small, test ? '#e4c27c' : '#bfae88')).setOrigin(0.5));
+    const thw = Math.max(tl.width + S(24), S(300)), thh = Math.max(S(40), Math.ceil(46 / (shown || 1)));
+    const th = add(this.add.rectangle(W / 2 - thw / 2, tl.y - thh / 2, thw, thh, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true })); // (top left origin, like the cards and buttons)
+    th.label = 'Test mode';
+    th.on('pointerup', (ptr) => {
+      if (Math.abs(ptr.y - ptr.downY) > 12) return;
+      setTestMode(!testMode());
+      this.lockEnemies();
+      play('click');
+      this.draw();
+    });
 
     // the two sides
     const top = m + S(84);
     const footH = S(92);
     const chars = allCharacters();
     const sides = [
-      { side: 'hero', title: 'HEROES', color: HERO, list: chars.filter((c) => c.side === 'hero'), locked: false },
-      { side: 'enemy', title: 'ENEMIES', color: ENEMY, list: chars.filter((c) => c.side === 'enemy'), locked: !test },
+      // both sides list everyone (one shared pool); with Test mode off, the set enemies leave the heroes' list
+      { side: 'hero', title: 'HEROES', color: HERO, list: chars.filter((c) => test || !this.pick.enemy.includes(c.id)), locked: false },
+      { side: 'enemy', title: 'ENEMIES', color: ENEMY, list: test ? chars : chars.filter((c) => this.pick.enemy.includes(c.id)), locked: !test },
     ];
     const cols = wide ? 2 : 1; // a phone: one column of wide cards; a wide screen: two columns a side
     const gap = S(12);
@@ -123,7 +147,7 @@ export default class SelectScene extends Phaser.Scene {
       sd.list.forEach((c, j) => {
         const cx = x0 + (j % cols) * (cardW + gap);
         const cy = yy + Math.floor(j / cols) * (cardH + gap);
-        this.drawCard(add, c, cx, cy, cardW, cardH, S, F, sd, chosen.includes(c.id));
+        this.drawCard(add, c, cx, cy, cardW, cardH, S, F, sd, chosen.includes(c.id), this.pick[sd.side === 'hero' ? 'enemy' : 'hero'].includes(c.id));
       });
       const rows = Math.ceil(sd.list.length / cols);
       const end = yy + rows * (cardH + gap);
@@ -152,7 +176,8 @@ export default class SelectScene extends Phaser.Scene {
   }
 
   // One character card: portrait (or a placeholder), name, class, a short line; gold edge and a tick when chosen
-  drawCard(add, c, x, y, w, h, S, F, sd, on) {
+  // "away" is true when the character is on the other side now (the card is dim; a tap moves it here)
+  drawCard(add, c, x, y, w, h, S, F, sd, on, away) {
     const g = add(this.add.graphics());
     framePanel(g, x, y, w, h, S(1) || 1, { alpha: on ? 0.86 : 0.62, line: on ? GOLD : 0x6a5434 });
     if (on) g.fillStyle(sd.color, 0.16).fillRect(x + 2, y + 2, w - 4, h - 4);
@@ -166,7 +191,7 @@ export default class SelectScene extends Phaser.Scene {
       img.setScale(scale);
       const shape = this.make.graphics({ add: false }).fillRect(px, py, p, p);
       img.setMask(shape.createGeometryMask());
-      if (!on) img.setAlpha(0.55);
+      if (!on) img.setAlpha(away ? 0.3 : 0.55);
     } else {
       // no portrait yet: a placeholder diamond with the first letter
       g.fillStyle(sd.color, 0.35).fillRect(px, py, p, p);
@@ -174,6 +199,12 @@ export default class SelectScene extends Phaser.Scene {
       add(this.add.text(px + p / 2, py + p / 2, c.name.charAt(0), textStyle(F.big, '#f3e7c6')).setOrigin(0.5));
     }
     g.lineStyle(Math.max(1, S(1.5)), on ? GOLD : 0x5a4630, 1).strokeRect(px, py, p, p);
+    // the home tag: a small pill on the foot of the portrait (HERO or ENEMY), whichever side the card is on
+    const homeCol = c.side === 'enemy' ? ENEMY : HERO;
+    const tag = add(this.add.text(px + p / 2, py + p - S(3), c.side === 'enemy' ? 'ENEMY' : 'HERO', textStyle(F.small, '#f3e7c6')).setOrigin(0.5, 1).setLetterSpacing(1));
+    tag.setBackgroundColor(c.side === 'enemy' ? '#7d3326' : '#2d6f6a').setPadding(S(5), 0, S(5), 0);
+    tag.setAlpha(on ? 1 : 0.8);
+    tag.homeSide = c.side;
     const tx = px + p + S(10), tw = x + w - tx - S(8);
     // a long name wraps (never shrinks under the smallest readable size)
     const name = add(this.add.text(tx, py, c.name, textStyle(F.mid, on ? '#f3e7c6' : '#bfae88', { wordWrap: { width: tw } })).setLineSpacing(-4));
@@ -182,7 +213,8 @@ export default class SelectScene extends Phaser.Scene {
     add(this.add.text(tx, py + below + F.mid * 1.3, job, textStyle(F.small, on ? '#e4c27c' : '#9c8a66')));
     // the short line: Suleiman's from bios.json, else the skills by their button names
     const b = bios.characters && bios.characters[c.id];
-    const line = (b && b.line) || ((jobs[c.job] && jobs[c.job].spells) || []).map((id) => (spells[id] ? spells[id].button || spells[id].name : id)).join(' · ');
+    let line = (b && b.line) || ((jobs[c.job] && jobs[c.job].spells) || []).map((id) => (spells[id] ? spells[id].button || spells[id].name : id)).join(' · ');
+    if (away) line = 'Fighting on the ' + (sd.side === 'hero' ? 'enemies' : 'heroes') + ' side. Tap to bring it here.';
     const ly = py + below + F.mid * 1.3 + F.small * 1.35;
     const lines = Math.max(1, Math.floor((y + h - S(8) - ly) / (F.small * 1.2)));
     const lt = add(this.add.text(tx, ly, line, textStyle(F.small, '#d8c8a4', { wordWrap: { width: tw }, maxLines: lines })).setLineSpacing(-2));
@@ -200,11 +232,13 @@ export default class SelectScene extends Phaser.Scene {
       this.toggle(sd.side, c.id);
     });
     hit.charId = c.id;
+    hit.side = sd.side; // (which column the card is in)
     (this.cardHits = this.cardHits || []).push(hit);
   }
 
-  // Adds or removes a character from its side (a full side says so)
+  // Adds a character to a side, or takes it off. A character already on the other side moves over (a full side says so)
   toggle(side, id) {
+    const other = side === 'hero' ? 'enemy' : 'hero';
     const list = this.pick[side];
     const i = list.indexOf(id);
     if (i >= 0) {
@@ -215,6 +249,7 @@ export default class SelectScene extends Phaser.Scene {
       this.flash((side === 'hero' ? 'Heroes' : 'Enemies') + ' are full: tap one to take it out first');
       return;
     } else {
+      this.pick[other] = this.pick[other].filter((x) => x !== id); // one character, one side
       list.push(id);
       play('select');
     }

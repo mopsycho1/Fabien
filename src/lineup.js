@@ -1,7 +1,8 @@
 // The line-up for a battle (roadmap 18.30, the character select): who fights on each side.
 //
 // Every character in src/data/units.json can be picked, so one added later shows up by itself.
-// Each keeps its own side from units.json ("hero" or "enemy"), up to MAX_PER_SIDE a side.
+// Each has a home side in units.json ("hero" or "enemy"), shown as a tag; it does not limit where it can go:
+// the roster is one shared pool and any character can fight on either side (20 Nov). Up to MAX_PER_SIDE a side.
 // The default is the map's own line-up (today's 4 v 4 on the cavern): everyone not benched, with the
 // map's "alsoFighting" and "sittingOut" applied, as the battle used to work it out.
 // The last line-up is remembered on this device. A character added since then joins its side's
@@ -63,16 +64,35 @@ export function startingLineUp(mapData = {}) {
   const saved = readSaved();
   if (!saved) return def;
   const chars = allCharacters();
-  const sideOf = Object.fromEntries(chars.map((c) => [c.id, c.side]));
-  const out = {};
-  for (const side of ['hero', 'enemy']) out[side] = saved[side].filter((id) => sideOf[id] === side).slice(0, MAX_PER_SIDE);
+  const exists = new Set(chars.map((c) => c.id));
+  // Any character can stand on either side (20 Nov): a saved id only has to still exist, and be on one side only
+  const out = { hero: [], enemy: [] };
+  const used = new Set();
+  for (const side of ['hero', 'enemy']) {
+    for (const id of saved[side]) {
+      if (!exists.has(id) || used.has(id) || out[side].length >= MAX_PER_SIDE) continue;
+      out[side].push(id);
+      used.add(id);
+    }
+  }
   const known = new Set(saved.known || []);
   for (const c of chars) {
-    if (known.has(c.id) || !def[c.side].includes(c.id) || out[c.side].includes(c.id)) continue;
+    if (known.has(c.id) || !def[c.side].includes(c.id) || used.has(c.id)) continue;
     // a character added since the last saved line-up joins its side's default team
     if (out[c.side].length >= MAX_PER_SIDE) out[c.side][MAX_PER_SIDE - 1] = c.id;
     else out[c.side].push(c.id);
+    used.add(c.id);
   }
+  return out;
+}
+
+// Which side each picked character fights on: { id: 'hero' | 'enemy' } (the battle uses this, so a character
+// from one side can stand on the other)
+export function sidesOf(lineUp) {
+  const out = {};
+  if (!lineUp) return out;
+  for (const id of lineUp.hero || []) out[id] = 'hero';
+  for (const id of lineUp.enemy || []) out[id] = 'enemy';
   return out;
 }
 

@@ -87,7 +87,7 @@ import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enem
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
-import { testMode, setTestMode, defaultLineUp, sitsOut } from '../lineup.js';
+import { testMode, setTestMode, defaultLineUp, sitsOut, sidesOf } from '../lineup.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
 import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
 // The maps a battle can be fought on. A battle in story.json can name one
@@ -287,7 +287,8 @@ export default class BattleScene extends Phaser.Scene {
     // the nearest free tile to its side's start tiles, so it lines up with its team.
     const taken = new Set(Object.values(mapData.starts || {}).map((t) => t[0] + ',' + t[1]));
     const startAt = (entry) => {
-      const swapped = window.__sides && window.__sides[entry.id]; // (a balance run moved it to the other side: no start tile of its own there)
+      const home = unitData.find((u) => u.id === entry.id);
+      const swapped = home && home.side !== entry.side; // (moved to the other side, by the select or a balance run: no start tile of its own there)
       const at = !swapped && mapData.starts && mapData.starts[entry.id];
       if (at) return { ...entry, col: at[0], row: at[1] };
       const mine = unitData.filter((u) => u.side === entry.side && mapData.starts && mapData.starts[u.id]).map((u) => mapData.starts[u.id]);
@@ -318,8 +319,12 @@ export default class BattleScene extends Phaser.Scene {
           : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id));
     this.lineUp = { alsoFighting: mapData.alsoFighting || [], sittingOut: mapData.sittingOut || [] };
     const fielded = (entry) => !benched(entry);
-    // (the balance runs can put a character on the other side: window.__sides = { h5: 'enemy' })
-    const sided = (entry) => (window.__sides && window.__sides[entry.id] ? { ...entry, side: window.__sides[entry.id] } : entry);
+    // (a character can fight on either side: the select's line-up says which, 20 Nov; the balance runs can too: window.__sides = { h5: 'enemy' })
+    const lineSides = sidesOf(this.chosenLineUp);
+    const sided = (entry) => {
+      const side = (window.__sides && window.__sides[entry.id]) || lineSides[entry.id] || entry.side;
+      return side !== entry.side ? { ...entry, side } : entry;
+    };
     this.units = unitData.filter(fielded).map(sided).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
     for (const u of this.units) if (u.grip) u.attackName = gripAttackName(u); // Gadara: Fork Strike or Blade Strike
 

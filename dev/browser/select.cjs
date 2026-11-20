@@ -2,6 +2,8 @@
 // it, picks a line-up by tapping cards (Heroes: Gaha and Layra; Enemies: Tayo and the Archer), presses Start battle
 // and checks the battle has exactly those four. Then reloads and checks the line-up was remembered, and that
 // "Reset to default" brings back the map's 4 v 4. Phone and desktop.
+// (Both columns list every character since 20 Nov; a card id like h1 is looked for in its home column here.
+// Swapping sides is checked by swap_sides.cjs.)
 //   node dev/browser/select.cjs <out dir> [phone|desktop|both]      (preview running on 4173)
 const fs = require('fs');
 const path = require('path');
@@ -37,14 +39,14 @@ async function run(view) {
   const spot = (pred) => page.evaluate((pred) => {
     const s = window.__game.scene.getScene('SelectScene'), c = s.game.canvas.getBoundingClientRect(), cam = s.cameras.main;
     const hits = [...(s.cardHits || []), s.startButton, ...s.layer.list.filter((o) => o.label)];
-    const h = hits.find((o) => o && (o.charId === pred || o.label === pred));
+    const h = hits.find((o) => o && ((o.charId === pred && (!o.side || o.side === (pred[0] === 'e' ? 'enemy' : 'hero'))) || o.label === pred));
     if (!h) return null;
     const gx = h.x + h.width / 2 - cam.scrollX, gy = h.y + h.height / 2 - cam.scrollY;
     return { x: c.left + gx * c.width / s.scale.width, y: c.top + gy * c.height / s.scale.height, inView: gy > 0 && gy < s.scale.height };
   }, pred);
   const tapThing = async (pred) => {
     let p = await spot(pred);
-    if (p && !p.inView) { await page.evaluate((pred) => { const s = window.__game.scene.getScene('SelectScene'); const h = [...s.cardHits, s.startButton, ...s.layer.list.filter((o) => o.label)].find((o) => o && (o.charId === pred || o.label === pred)); s.cameras.main.scrollY = Math.max(0, Math.min(s.maxScroll, h.y - s.scale.height / 2)); }, pred); await sleep(200); p = await spot(pred); }
+    if (p && !p.inView) { await page.evaluate((pred) => { const s = window.__game.scene.getScene('SelectScene'); const h = [...s.cardHits, s.startButton, ...s.layer.list.filter((o) => o.label)].find((o) => o && ((o.charId === pred && (!o.side || o.side === (pred[0] === 'e' ? 'enemy' : 'hero'))) || o.label === pred)); s.cameras.main.scrollY = Math.max(0, Math.min(s.maxScroll, h.y - s.scale.height / 2)); }, pred); await sleep(200); p = await spot(pred); }
     if (!p) return false;
     await press(p); return true;
   };

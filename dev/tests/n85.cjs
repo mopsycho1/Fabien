@@ -48,8 +48,27 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   s.scene.start = orig;
   // test mode off locks the enemies to the map's
   L.setTestMode(false); s.scene.restart({ stepIndex: null, map: 'cavern' }); await sleep(600); s = game.scene.getScene('SelectScene');
-  check('with Test mode off the enemy cards cannot be tapped', !s.cardHits.some((h) => h.charId.startsWith('e')) && s.pick.enemy.join() === L.defaultLineUp(cavern).enemy.join());
+  const setEnemies = L.defaultLineUp(cavern).enemy;
+  check('with Test mode off the set enemies cannot be tapped, on either side', !s.cardHits.some((h) => setEnemies.includes(h.charId)) && s.pick.enemy.join() === setEnemies.join());
   L.setTestMode(true);
+  // any character on either side (20 Nov): both sides list everyone, a tap moves a character over, a saved line-up keeps it
+  s.scene.restart({ stepIndex: null, map: 'cavern' }); await sleep(600); s = game.scene.getScene('SelectScene');
+  const tappable = (side) => s.cardHits.filter((h) => h.side === side).map((h) => h.charId);
+  check('both sides list every character', units.every((u) => tappable('hero').includes(u.id) && tappable('enemy').includes(u.id)), tappable('hero').length + ' / ' + tappable('enemy').length);
+  s.pick = { hero: ['h1'], enemy: ['e2'] };
+  s.toggle('hero', 'e2');
+  check('tapping an enemy on the heroes\' side moves it there', s.pick.hero.join() === 'h1,e2' && s.pick.enemy.length === 0, JSON.stringify(s.pick));
+  s.toggle('enemy', 'h1');
+  check('...and a hero on the enemies\' side', s.pick.hero.join() === 'e2' && s.pick.enemy.join() === 'h1', JSON.stringify(s.pick));
+  s.pick = { hero: ['h1', 'h2', 'h3', 'e4'], enemy: ['e2'] };
+  s.toggle('hero', 'e2');
+  check('a full side refuses, and the character stays where it was', s.pick.enemy.join() === 'e2' && s.pick.hero.length === 4, JSON.stringify(s.pick));
+  s.pick = { hero: ['e2', 'e3'], enemy: ['h1', 'h4'] };
+  L.saveLineUp(s.pick);
+  check('a saved line-up keeps characters on the far side', JSON.stringify(L.startingLineUp(cavern)) === JSON.stringify(s.pick), JSON.stringify(L.startingLineUp(cavern)));
+  check('every card shows its home side tag', s.layer.list.filter((o) => o.homeSide).length >= units.length * 2);
+  L.saveLineUp({ hero: ['h1', 'h2'], enemy: ['e1'] });
+  w.localStorage.removeItem('fabien.lineup');
   units.pop();
   const real = errors.filter((e) => !/Not implemented/.test(String(e)));
   check('no page errors', real.length === 0, real.join('|').slice(0, 200));

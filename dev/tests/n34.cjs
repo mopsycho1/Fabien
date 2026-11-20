@@ -51,8 +51,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'fury');
   check('6.18 Sudeen under Fury: his ring, embers, tint and sparks (1.25)', sudeen.furyAura && sudeen.furyAura.objects.length === 4 && sudeen.furyAura.objects[0].list && sudeen.furyAura.objects[0].list[0].texture.key === 'fx:fury_ground');
-  const ring = sudeen.furyAura.objects[0].list[0]; const a0 = ring.alpha; await sleep(300);
-  check('6.18 the ring glows (it no longer turns, 1 Nov)', Math.abs(ring.alpha - a0) > 0.01 && ring.angle === 0, a0.toFixed(2) + ' -> ' + ring.alpha.toFixed(2));
+  const ring = sudeen.furyAura.objects[0].list[0]; const a0 = ring.alpha;
+  // (several looks over a second: two looks one fixed gap apart can land on the same point of the glow, which made this shaky)
+  let lo = a0, hi = a0; for (let i = 0; i < 8; i++) { await sleep(130); lo = Math.min(lo, ring.alpha); hi = Math.max(hi, ring.alpha); }
+  check('6.18 the ring glows (it no longer turns, 1 Nov)', hi - lo > 0.01 && ring.angle === 0, lo.toFixed(2) + ' to ' + hi.toFixed(2));
   reset([[layra, 2, 6], [sudeen, 3, 6]]);
   layra.mp = layra.maxMp;
   const p2 = cast(layra, sudeen, 'stone'); await sleep(870);
