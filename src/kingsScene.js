@@ -32,6 +32,14 @@ const foeOf = (a, b) => b && a && b.alive && !b.isDecoy && b.side !== a.side;
 const hasBlessing = (u) => !!(u && u.status && ((u.status.buff && spells[u.status.buff.id] && spells[u.status.buff.id].kind === 'buff') || u.status.enchant));
 const straight = (a, b) => a.col === b.col || a.row === b.row;
 
+// The Gale Cut GIF for Alagara's form now: Fury's flame cut, Swiftness's wind cut, else the gold one (no Stone art yet).
+export function galeFx(scene, unit) {
+  const verse = unit.status && unit.status.buff ? unit.status.buff.id : null;
+  if (verse === 'fury' && sfxHas(scene, 'gale_fury')) return 'gale_fury';
+  if (verse === 'swiftness' && sfxHas(scene, 'gale_swift')) return 'gale_swift';
+  return 'gale';
+}
+
 export const kingMethods = {
   // ---------- Can this skill be used now? ----------
   // Returns null when it can, or a short reason (shown on the button and when tapped).
@@ -524,10 +532,14 @@ export const kingMethods = {
     return out;
   },
 
+  // Gale Cut (10.34, Suleiman 20 Nov): in every form, not only under Swiftness. A slash across a distance: he dashes
+  // along the line and cuts every foe on it. The Gale Cut GIF of his form (Fury's flame, Swift's wind, else the
+  // gold one; Stone has no art yet) is laid on every tile of the path, each one as he passes it.
   castGaleCut(caster, target, spell, onDone, power) {
     const plan = this.galePlan(caster, target);
     if (!plan.land) return onDone();
     const results = plan.hits.map((f) => ({ f, r: this.kingStrike(caster, f, { share: spell.damageShare * power }) }));
+    const from = { col: caster.col, row: caster.row };
     const start = { x: caster.view.x, y: caster.view.y };
     caster.col = plan.land.col;
     caster.row = plan.land.row;
@@ -536,22 +548,33 @@ export const kingMethods = {
     const end = tileToScreen(plan.land.col, plan.land.row);
     const dx = end.x - start.x, dy = end.y - start.y;
     this.faceToward(caster, dx, dy);
-    if (this.hasPose(caster, 'gale')) this.showPose(caster, 'gale', dx);
-    const verse = caster.status.buff ? caster.status.buff.id : null;
-    const fx = verse === 'fury' && sfxHas(this, 'gale_fury') ? 'gale_fury' : verse === 'swiftness' && sfxHas(this, 'gale_swift') ? 'gale_swift' : 'gale';
+    if (this.hasPose(caster, 'gale')) this.showPose(caster, 'gale', dx); // his form's Gale Cut picture (art.json buffPoses)
+    const fx = galeFx(this, caster);
+    const rotation = dx < 0 ? Math.atan2(-dy, -dx) : Math.atan2(dy, dx);
     play('whoosh');
+    const n = plan.tiles.length;
+    const dash = 120 + 70 * n;
+    // one slash per tile of the path, from the tile he left to the tile he lands on, timed as he passes it
+    const tiles = [from, ...plan.tiles];
+    for (let i = 1; i < tiles.length; i++) {
+      const a = tileToScreen(tiles[i - 1].col, tiles[i - 1].row), b = tileToScreen(tiles[i].col, tiles[i].row);
+      const at = dash * Math.cbrt(i / n); // (the dash eases in: Cubic.easeIn reaches i/n at the cube root of the time)
+      this.time.delayedCall(Math.max(0, at - 60), () => {
+        sfxAt(this, fx, (a.x + b.x) / 2, (a.y + b.y) / 2 - caster.centerY * 0.6, { rotation, flip: dx < 0, depth: 90 });
+      });
+    }
+    // each foe on the line is cut as he goes through it
+    const hitAt = (f) => dash * Math.cbrt(Math.max(1, plan.tiles.findIndex((t) => t.col === f.col && t.row === f.row) + 1) / n);
+    results.forEach(({ f, r }) => this.time.delayedCall(hitAt(f), () => this.showImpact(caster, f, r, dx, f.hp === 0)));
     this.tweens.add({
-      targets: caster.view, x: end.x, y: end.y, duration: 120 + 70 * plan.tiles.length, ease: 'Cubic.easeIn',
+      targets: caster.view, x: end.x, y: end.y, duration: dash, ease: 'Cubic.easeIn',
       onUpdate: () => this.afterimage(caster),
       onComplete: () => {
         caster.view.setDepth(depthFor(caster.col, caster.row) + 1);
-        const mid = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - caster.centerY * 0.6 };
-        sfxAt(this, fx, mid.x, mid.y, { rotation: dx < 0 ? Math.atan2(-dy, -dx) : Math.atan2(dy, dx), flip: dx < 0, depth: 90, size: Math.max(1, plan.tiles.length / 2) });
-        results.forEach(({ f, r }, i) => this.time.delayedCall(60 * i, () => this.showImpact(caster, f, r, dx, f.hp === 0)));
         this.time.delayedCall(700, () => caster.alive && this.showStanding(caster));
       },
     });
-    this.kingFinish(onDone, 1500);
+    this.kingFinish(onDone, Math.max(1500, dash + 900));
   },
 
   // ---------- Alagara: Unmoved (Stone, a reaction) ----------

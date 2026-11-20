@@ -2,7 +2,7 @@
 // Every skill: his numbers, Attunement (Active and Echo slots, the Active one 50 percent stronger, the Echo gives
 // no stat bonus, it takes over when the Active one wears off), Swap Verse (free, once a turn) and its three Surges,
 // Drawn Blade (a hit locks a clash with the momentum his way), Claim (a blessing from an ally or a foe), Mantle
-// (his Verse at half strength on allies beside him), Gale Cut (Swiftness: a dash through a line of foes), Rending
+// (his Verse at half strength on allies beside him), Gale Cut (any form: a dash through a line of foes), Rending
 // Draw (Fury: ignores 2 defense, throws 2 back; from the Echo 75 percent and a longer cooldown), Unmoved (Stone:
 // a push cancelled and answered), his look per Verse, the skills list's pages, and the AI.
 // Run:  FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 node n87.cjs
@@ -128,9 +128,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('...at half strength (attack +1)', St.buffOf(gaha).boosts.attack === 1, St.buffOf(gaha).boosts.attack);
   check('...for one turn', gaha.status.buff.turnsLeft === 1, gaha.status.buff.turnsLeft);
 
-  // 7. Gale Cut (Swiftness): a dash through a line of foes
+  // 7. Gale Cut: a dash through a line of foes (in every form since 20 Nov, 10.34; more in n90)
   park();
-  check('Gale Cut needs Swiftness (Active or Echo)', b.kingBlock(a, 'galeCut') === 'needs Swiftness');
+  check('Gale Cut needs no Verse (10.34)', b.kingBlock(a, 'galeCut') === null, b.kingBlock(a, 'galeCut'));
   St.applyBuff(a, 'swiftness');
   b.placeUnit(tayo, 6, 5); b.placeUnit(bull, 7, 5);
   const plan = b.galePlan(a, tayo);

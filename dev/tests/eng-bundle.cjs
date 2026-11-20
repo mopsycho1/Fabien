@@ -915,13 +915,12 @@ var spells_default = {
     button: "Gale Cut",
     short: "GALE",
     kind: "gale",
-    verseSkill: "swiftness",
     color: "#e8f2ff",
     damageShare: 0.8,
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    text: "Swiftness. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes 0.8 of his damage, rolled on its own), and stops on the first free tile past the last one. Uses his move. From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
+    text: "In any form. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes 0.8 of his damage, rolled on its own), and stops on the first free tile past the last one. Uses his move. Ready again after 3 turns."
   },
   rendingDraw: {
     name: "Rending Draw",
@@ -970,7 +969,8 @@ var kings_default = {
     activeBonus: 1.5,
     echoPower: 0.75,
     echoCooldownExtra: 1,
-    verseSkills: { swiftness: "galeCut", fury: "rendingDraw", stone: "unmoved" },
+    verseSkills: { fury: "rendingDraw", stone: "unmoved" },
+    verseSkillsNote: "Gale Cut is his own skill in every form since 20 Nov (Suleiman, 10.34); it was the Swiftness Verse skill.",
     surge: {
       swiftness: { steps: 1, text: "Surge: a free step" },
       fury: { pressSteps: 1, text: "Surge: his next Press pushes the momentum one step further" },
