@@ -4191,8 +4191,11 @@ export default class BattleScene extends Phaser.Scene {
     }
     const buff = buffOf(unit);
     const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT;
+    // which look stands: Gadara's mask while Singularity charges (art.json "buffed.masked", the Hollow Rite pictures;
+    // 10.33: only his poses used it, so he stood unmasked), a Verse, or the Bloodied Press stacks
+    const lookId = unit.channel ? 'masked' : buff ? buff.id : (unit.fury > 0 ? 'bloodied' : null);
     // Gaha standing his ground under Earth's Bulwark shows his rooted guard (roadmap 6.17)
-    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), buff ? buff.id : (unit.fury > 0 ? 'bloodied' : null), weak, isRooted(unit)));
+    this.showFrame(unit, standingFrame(unit.id, unit.facing, this.isAlert(unit), lookId, weak, isRooted(unit)));
   }
 
   // The foe standing next to a unit that has a close weapon (the archer's dagger), or null.

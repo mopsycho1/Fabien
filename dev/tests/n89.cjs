@@ -55,6 +55,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     b.kingAiAct(g, () => { b.busy = false; b.endTurn(); });
   }
   check('the cast: the mask goes on, Singularity charges', !!g.channel);
+  await sleep(400);
+  check('...he stands in his mask (the Hollow Rite pictures)', /gadara_mask/.test(g.sprite.texture.key), g.sprite.texture.key);
+  check('...at his size (the ruler scale)', Math.abs(g.sprite.scaleX) > 0 && Math.abs(Math.abs(g.sprite.scaleX) - g.artScale) < 0.02 || !!g.idleTween, g.sprite.scaleX.toFixed(3) + ' vs ' + g.artScale.toFixed(3));
   check('...his turn clock is moved on (a fixed charge, not his speed)', g.ct >= 100 - g.speed * 8 - 1, Math.round(g.ct));
   // the Umbra vortex: note every effect picture made while it resolves
   const made = []; const realSprite = b.add.sprite.bind(b.add), realImage = b.add.image.bind(b.add);
@@ -66,6 +69,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('it goes off at the start of his next turn', resolvedOnHisTurn);
   check('...within about one turn of each other fighter (7 others)', turnsBetween >= 1 && turnsBetween <= 9, turnsBetween);
   await sleep(2400);
+  check('the mask comes off after it resolves', !/gadara_mask/.test(g.sprite.texture.key), g.sprite.texture.key);
   check('the far foe is pulled next to him', Math.abs(foes[0].col - g.col) + Math.abs(foes[0].row - g.row) === 1, at[0] + ' -> ' + foes[0].col + ',' + foes[0].row);
   check('...and is Off-Balance', St.isOffBalance(foes[0]));
   check('the foe behind slams into the one in front: 2 damage', hp[2] - foes[2].hp === 2, hp[2] + ' -> ' + foes[2].hp);
@@ -74,6 +78,16 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the Umbra vortex is shown', made.some((k) => k.includes('umbra_vortex')), made.filter((k) => k.includes('umbra')).slice(0, 3).join(','));
   check('his allies are not pulled', mates.every((m) => m.col === 0 || m.col === 10 || m.col === 1 || m.col === 9));
   check('after: Exposed (defense -2, evade -10), gauge 0, used, no charge', St.statMod(g, 'defense') <= -2 && St.statMod(g, 'evade') <= -10 && g.mask === 0 && g.singularityUsed && !g.channel);
+  // a Stun on him while it charges breaks it: the mask comes off at once
+  stage(); for (const u of b.units) u.ct = u === g ? 0 : Math.min(u.ct, 60);
+  g.status.used = {}; b.activeUnit = g; b.busy = false; b.cancelMode(); resolvedOnHisTurn = false; casting = false;
+  b.runEnemyTurn = () => {}; b.startTurn = () => {};
+  b.castKingSkill(g, g, 'singularity', () => {});
+  await sleep(400);
+  check('cast again (a test reset): masked', !!g.channel && /gadara_mask/.test(g.sprite.texture.key));
+  b.breakChannel(g, 'Stunned');
+  await sleep(900);
+  check('broken: the mask comes off', !g.channel && !/gadara_mask/.test(g.sprite.texture.key), g.sprite.texture.key);
   check('no page errors', errors.filter((e) => !/focus\(\)/.test(e)).length === 0, errors.slice(0, 2).join(' | '));
   console.log(fails ? 'FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);
