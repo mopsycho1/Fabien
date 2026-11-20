@@ -52,14 +52,15 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
       check(name + ': and he is back on the middle of his tile, standing', Math.hypot(who.view.x - p.x, who.view.y - p.y) < 0.5 && !/fall/.test(who.sprite.texture.key), who.sprite.texture.key);
     }
   }
-  // a miss shows the dodge, then the unit stands again
+  // a miss shows the dodge, then the unit stands again. Since 1.66 one side of a pair may be the other view mirrored
+  const MIRROR_VIEW = { downLeft: 'downRight', downRight: 'downLeft', upLeft: 'upRight', upRight: 'upLeft' };
   for (const [who, name, rx] of [[layra, 'Layra', /layra_dodge_/], [archer, 'The archer', /archer_dodge_/]]) {
     for (const [facing, dx, want] of [['downRight', -50, 'downRight'], ['downLeft', 50, 'downLeft'], ['upRight', -50, 'upRight'], ['upLeft', 50, 'upLeft']]) {
       clear(); put(who, 4, 7); put(tayo, 5, 7); who.facing = facing; b.showStanding(who);
       b.showImpact(tayo, who, { hit: false, damage: 0 }, dx, false);
-      await sleep(60);
+      // read at once: showImpact sets the dodge picture itself (in jsdom the scene clock can catch up and end it within 60 ms)
       const key = who.sprite.texture.key;
-      check(name + ' facing ' + facing + ', attacker ' + (dx < 0 ? 'on the right' : 'on the left') + ': a miss shows her dodge picture for that view', rx.test(key) && key.endsWith(want + '.png'), key.split(':')[1]);
+      check(name + ' facing ' + facing + ', attacker ' + (dx < 0 ? 'on the right' : 'on the left') + ': a miss shows her dodge picture for that view', rx.test(key) && (key.endsWith(want + '.png') || (key.endsWith(MIRROR_VIEW[want] + '.png') && who.sprite.flipX === true)), key.split(':')[1]);
       await sleep(900);
       const p = G.tileToScreen(who.col, who.row);
       check(name + ': and after a moment she stands again, on her tile', !/dodge/.test(who.sprite.texture.key) && Math.hypot(who.view.x - p.x, who.view.y - p.y) < 0.5, who.sprite.texture.key.split(':')[1]);

@@ -14,7 +14,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // 1.28 the block uses the four true views of his block sheet
   const key = (facing, dx) => { sudeen.facing = facing; b.showPose(sudeen, 'guard', dx); return sudeen.sprite.texture.key; };
   const keys = [key('upLeft', -1), key('upRight', 1), key('downLeft', -1), key('downRight', 1)];
-  check('1.28 guard: four different true views, none mirrored', new Set(keys).size === 4 && keys.every((k) => /n8_guard_/.test(k)), keys.join());
+  check('1.28 guard: his true views (1.66: his two front views both face down-right, so down-left is that one mirrored)', new Set(keys).size === 3 && keys.every((k) => /n8_guard_/.test(k)) && keys[2] === keys[3], keys.join());
   check('1.28 guard sprite is not flipped for any facing', true);
 
   // 1.27 the push pictures are the Intercept pose; a clash Press shows his ready stance, not the push

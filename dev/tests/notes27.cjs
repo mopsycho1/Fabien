@@ -32,7 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the archer aims up-left with her up-left picture', /archer_hq_fire_f1/.test(key(archer)) /* 18.26: her sharp pictures; f1 is the view from behind, up-left */, key(archer));
   // weakened
   park(); gaha.hp = Math.floor(gaha.maxHp * 0.3); gaha.facing = 'downLeft'; b.showStanding(gaha);
-  check('badly hurt Gaha stands bloodied', /gaha_n6_weak_downLeft/.test(key(gaha)), key(gaha));
+  check('badly hurt Gaha stands bloodied', /gaha_n6_weak_upLeft/.test(key(gaha)) /* 1.66: his sheet's figure 1 is the down-left front view */, key(gaha));
   layra.hp = 5; b.showStanding(layra);
   check('badly hurt Layra leans on her staff', /layra_n6_hurt/.test(key(layra)), key(layra));
   layra.hp = layra.maxHp; gaha.hp = gaha.maxHp; b.showStanding(layra); b.showStanding(gaha);

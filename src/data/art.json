@@ -73,8 +73,9 @@
           "originX": 0.693
         },
         "downLeft": {
-          "file": "sudeen_n8_guard_downLeft.png",
-          "originX": 0.227
+          "file": "sudeen_n8_guard_downRight.png",
+          "originX": 0.25,
+          "flip": true
         },
         "downRight": {
           "file": "sudeen_n8_guard_downRight.png",
@@ -125,30 +126,30 @@
           "originX": 0.397
         },
         "upRight": {
-          "file": "sudeen_n6_bash_upRight.png",
-          "originX": 0.932
+          "file": "sudeen_n6_bash_upLeft.png",
+          "originX": 0.397,
+          "flip": true
         },
         "downLeft": {
-          "file": "sudeen_n6_bash_downLeft.png",
-          "originX": 0.936
+          "file": "sudeen_n6_bash2_downLeft.png",
+          "flip": true
         },
         "downRight": {
-          "file": "sudeen_n6_bash_downRight.png",
-          "originX": 0.421
+          "file": "sudeen_n6_bash2_downLeft.png"
         }
       },
       "push": {
         "upLeft": {
-          "file": "sudeen_n6_bash2_upLeft.png",
-          "originX": 0.123
+          "file": "sudeen_n6_bash_upRight.png"
         },
         "upRight": {
-          "file": "sudeen_n6_bash2_upRight.png",
-          "originX": 0.466
+          "file": "sudeen_n6_bash_upRight.png",
+          "flip": true
         },
         "downLeft": {
-          "file": "sudeen_n6_bash2_downLeft.png",
-          "originX": 0.442
+          "file": "sudeen_n6_bash2_downRight.png",
+          "originX": 0.107,
+          "flip": true
         },
         "downRight": {
           "file": "sudeen_n6_bash2_downRight.png",
@@ -209,8 +210,9 @@
           "originX": 0.516
         },
         "downLeft": {
-          "file": "sudeen_n6_stone_downLeft.png",
-          "originX": 0.25
+          "file": "sudeen_n6_stone_downRight.png",
+          "originX": 0.231,
+          "flip": true
         },
         "downRight": {
           "file": "sudeen_n6_stone_downRight.png",
@@ -245,8 +247,9 @@
           "originX": 0.726
         },
         "downLeft": {
-          "file": "sudeen_n6_swift_downLeft.png",
-          "originX": 0.287
+          "file": "sudeen_n6_swift_downRight.png",
+          "originX": 0.274,
+          "flip": true
         },
         "downRight": {
           "file": "sudeen_n6_swift_downRight.png",
@@ -340,16 +343,18 @@
         "originX": 0.313
       },
       "upRight": {
-        "file": "sudeen_n6_weak_upRight.png",
-        "originX": 0.748
+        "file": "sudeen_n6_weak_upLeft.png",
+        "originX": 0.313,
+        "flip": true
       },
       "downLeft": {
         "file": "sudeen_n6_weak_downLeft.png",
         "originX": 0.245
       },
       "downRight": {
-        "file": "sudeen_n6_weak_downRight.png",
-        "originX": 0.267
+        "file": "sudeen_n6_weak_downLeft.png",
+        "originX": 0.245,
+        "flip": true
       }
     },
     "note_nov6": "Nov set (roadmap 6.26, 1.17), true views in all four facings: Stone, Swift and weakened stances; the Shield Bash lunge is his attack for every shield strike (the aura shows the kind) and the second bash picture is the wind-up; defeated and victory.",
@@ -439,10 +444,6 @@
         "scale": 0.83,
         "footX": 0.571
       },
-      "sudeen_n8_guard_downLeft.png": {
-        "scale": 0.83,
-        "footX": 0.564
-      },
       "sudeen_n8_guard_downRight.png": {
         "scale": 0.83,
         "footX": 0.582
@@ -469,20 +470,6 @@
       "sudeen_n6_bash_upRight.png": {
         "scale": 0.69,
         "footX": 0.816
-      },
-      "sudeen_n6_bash_downLeft.png": {
-        "scale": 0.69,
-        "footX": 0.467
-      },
-      "sudeen_n6_bash_downRight.png": {
-        "scale": 0.69,
-        "footX": 0.458
-      },
-      "sudeen_n6_bash2_upLeft.png": {
-        "footX": 0.4
-      },
-      "sudeen_n6_bash2_upRight.png": {
-        "footX": 0.388
       },
       "sudeen_n6_bash2_downLeft.png": {
         "footX": 0.601
@@ -513,11 +500,6 @@
         "scale": 0.8,
         "feet": 0.96
       },
-      "sudeen_n6_stone_downLeft.png": {
-        "scale": 0.8,
-        "feet": 0.96,
-        "footX": 0.577
-      },
       "sudeen_n6_stone_downRight.png": {
         "scale": 0.8,
         "feet": 0.96,
@@ -542,10 +524,6 @@
       "sudeen_n6_swift_upRight.png": {
         "scale": 0.82,
         "footX": 0.598
-      },
-      "sudeen_n6_swift_downLeft.png": {
-        "scale": 0.82,
-        "footX": 0.552
       },
       "sudeen_n6_swift_downRight.png": {
         "scale": 0.82,
@@ -596,14 +574,8 @@
       "sudeen_n6_weak_upLeft.png": {
         "footX": 0.433
       },
-      "sudeen_n6_weak_upRight.png": {
-        "footX": 0.617
-      },
       "sudeen_n6_weak_downLeft.png": {
         "footX": 0.568
-      },
-      "sudeen_n6_weak_downRight.png": {
-        "footX": 0.569
       },
       "sudeen_n9_furyAttack_upRight.png": {
         "footX": 0.242
@@ -751,8 +723,9 @@
       },
       "dodge": {
         "upLeft": {
-          "file": "gaha_n6_dodge_upLeft.png",
-          "originX": 0.319
+          "file": "gaha_n6_dodge_upRight.png",
+          "originX": 0.495,
+          "flip": true
         },
         "upRight": {
           "file": "gaha_n6_dodge_upRight.png",
@@ -763,8 +736,9 @@
           "originX": 0.483
         },
         "downRight": {
-          "file": "gaha_n6_dodge_downRight.png",
-          "originX": 0.42
+          "file": "gaha_n6_dodge_downLeft.png",
+          "originX": 0.483,
+          "flip": true
         }
       },
       "throw": {
@@ -879,8 +853,9 @@
       },
       "clashSlip": {
         "upLeft": {
-          "file": "gaha_n6_dodge_upLeft.png",
-          "originX": 0.319
+          "file": "gaha_n6_dodge_upRight.png",
+          "originX": 0.495,
+          "flip": true
         },
         "upRight": {
           "file": "gaha_n6_dodge_upRight.png",
@@ -891,8 +866,9 @@
           "originX": 0.483
         },
         "downRight": {
-          "file": "gaha_n6_dodge_downRight.png",
-          "originX": 0.42
+          "file": "gaha_n6_dodge_downLeft.png",
+          "originX": 0.483,
+          "flip": true
         }
       },
       "sonicWindup": {
@@ -941,8 +917,9 @@
           "originX": 0.146
         },
         "downLeft": {
-          "file": "gaha_n6_sonicThrow_downLeft.png",
-          "originX": 0.508
+          "file": "gaha_n6_sonicThrow_downRight.png",
+          "originX": 0.797,
+          "flip": true
         },
         "downRight": {
           "file": "gaha_n6_sonicThrow_downRight.png",
@@ -974,16 +951,17 @@
     "shout": "gaha_shout.png",
     "weak": {
       "upLeft": {
-        "file": "gaha_n6_weak_upLeft.png",
-        "originX": 0.546
+        "file": "gaha_n6_weak_downLeft.png",
+        "originX": 0.625,
+        "flip": true
       },
       "upRight": {
-        "file": "gaha_n6_weak_upRight.png",
-        "originX": 0.486
-      },
-      "downLeft": {
         "file": "gaha_n6_weak_downLeft.png",
         "originX": 0.625
+      },
+      "downLeft": {
+        "file": "gaha_n6_weak_upLeft.png",
+        "originX": 0.546
       },
       "downRight": {
         "file": "gaha_n6_weak_downRight.png",
@@ -1307,8 +1285,9 @@
             "originX": 0.441
           },
           "downRight": {
-            "file": "gaha_n6_swiftDodge_downRight.png",
-            "originX": 0.499
+            "file": "gaha_n6_swiftDodge_downLeft.png",
+            "originX": 0.441,
+            "flip": true
           }
         }
       }
@@ -1391,10 +1370,6 @@
         "scale": 0.9,
         "footX": 0.383
       },
-      "gaha_n6_dodge_upLeft.png": {
-        "scale": 1.13,
-        "footX": 0.382
-      },
       "gaha_n6_dodge_upRight.png": {
         "scale": 1.13,
         "footX": 0.536
@@ -1402,10 +1377,6 @@
       "gaha_n6_dodge_downLeft.png": {
         "scale": 1.13,
         "footX": 0.443
-      },
-      "gaha_n6_dodge_downRight.png": {
-        "scale": 1.13,
-        "footX": 0.466
       },
       "gaha_wind_downLeft.png": {
         "footX": 0.495
@@ -1501,16 +1472,9 @@
         "scale": 1.6,
         "footX": 0.285
       },
-      "gaha_n6_sonicThrow_downLeft.png": {
-        "scale": 1.6,
-        "footX": 0.489
-      },
       "gaha_n6_sonicThrow_downRight.png": {
         "scale": 1.6,
         "footX": 0.502
-      },
-      "gaha_n6_weak_upRight.png": {
-        "footX": 0.518
       },
       "gaha_n6_weak_downLeft.png": {
         "footX": 0.534
@@ -1709,10 +1673,6 @@
       "gaha_n6_swiftDodge_downLeft.png": {
         "scale": 1.2,
         "footX": 0.527
-      },
-      "gaha_n6_swiftDodge_downRight.png": {
-        "scale": 1.2,
-        "footX": 0.535
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
@@ -1827,12 +1787,14 @@
           "originX": 0.281
         },
         "upRight": {
-          "file": "layra_dodge_upRight.png",
-          "originX": 0.76
+          "file": "layra_dodge_upLeft.png",
+          "originX": 0.281,
+          "flip": true
         },
         "downLeft": {
-          "file": "layra_dodge_downLeft.png",
-          "originX": 0.474
+          "file": "layra_dodge_downRight.png",
+          "originX": 0.614,
+          "flip": true
         },
         "downRight": {
           "file": "layra_dodge_downRight.png",
@@ -1857,8 +1819,9 @@
         "originX": 0.509
       },
       "downRight": {
-        "file": "layra_n6_hurt_downRight.png",
-        "originX": 0.523
+        "file": "layra_n6_hurt_downLeft.png",
+        "originX": 0.509,
+        "flip": true
       }
     },
     "battle": {
@@ -1954,12 +1917,6 @@
       "layra_dodge_upLeft.png": {
         "footX": 0.427
       },
-      "layra_dodge_upRight.png": {
-        "footX": 0.675
-      },
-      "layra_dodge_downLeft.png": {
-        "footX": 0.382
-      },
       "layra_dodge_downRight.png": {
         "footX": 0.377
       },
@@ -1968,9 +1925,6 @@
       },
       "layra_n6_hurt_downLeft.png": {
         "footX": 0.472
-      },
-      "layra_n6_hurt_downRight.png": {
-        "footX": 0.492
       },
       "layra_iso_blessed_upRight.png": {
         "scale": 1.08,
@@ -2471,8 +2425,9 @@
         "originX": 0.324
       },
       "downRight": {
-        "file": "archer_hq_stand_f4.png",
-        "originX": 0.496
+        "file": "archer_hq_stand_f3.png",
+        "originX": 0.324,
+        "flip": true
       }
     },
     "battle": {
@@ -2705,8 +2660,9 @@
           "originX": 0.523
         },
         "downRight": {
-          "file": "archer_hq_wound2_f2.png",
-          "originX": 0.504
+          "file": "archer_hq_wound2_f1.png",
+          "originX": 0.523,
+          "flip": true
         }
       },
       "victory": {
@@ -2715,12 +2671,14 @@
           "originX": 0.392
         },
         "upRight": {
-          "file": "archer_hq_victory_f2.png",
-          "originX": 0.648
+          "file": "archer_hq_victory_f1.png",
+          "originX": 0.392,
+          "flip": true
         },
         "downLeft": {
-          "file": "archer_hq_victory_f3.png",
-          "originX": 0.304
+          "file": "archer_hq_victory_f4.png",
+          "originX": 0.468,
+          "flip": true
         },
         "downRight": {
           "file": "archer_hq_victory_f4.png",
@@ -2745,8 +2703,9 @@
         "originX": 0.493
       },
       "downRight": {
-        "file": "archer_hq_wound1_f4.png",
-        "originX": 0.474
+        "file": "archer_hq_wound1_f3.png",
+        "originX": 0.493,
+        "flip": true
       }
     },
     "enchanted": {
@@ -2982,26 +2941,14 @@
       "archer_hq_wound2_f1.png": {
         "footX": 0.57
       },
-      "archer_hq_wound2_f2.png": {
-        "footX": 0.545
-      },
       "archer_hq_victory_f1.png": {
         "footX": 0.455
-      },
-      "archer_hq_victory_f2.png": {
-        "footX": 0.604
-      },
-      "archer_hq_victory_f3.png": {
-        "footX": 0.368
       },
       "archer_hq_wound1_f1.png": {
         "footX": 0.621
       },
       "archer_hq_wound1_f3.png": {
         "footX": 0.455
-      },
-      "archer_hq_wound1_f4.png": {
-        "footX": 0.43
       },
       "archer_ench_downRight.png": {
         "scale": 2.68,
@@ -3051,8 +2998,9 @@
         "originX": 0.604
       },
       "downLeft": {
-        "file": "tayo_n6b_stand_f3.png",
-        "originX": 0.473
+        "file": "tayo_n6b_stand_f4.png",
+        "originX": 0.492,
+        "flip": true
       },
       "downRight": {
         "file": "tayo_n6b_stand_f4.png",
@@ -3150,8 +3098,9 @@
           "originX": 0.113
         },
         "downRight": {
-          "file": "tayo_n6b_hurt_f4.png",
-          "originX": 0.891
+          "file": "tayo_n6b_hurt_f3.png",
+          "originX": 0.113,
+          "flip": true
         }
       },
       "knocked": {
@@ -3168,8 +3117,9 @@
           "originX": 0.113
         },
         "downRight": {
-          "file": "tayo_n6b_hurt_f4.png",
-          "originX": 0.891
+          "file": "tayo_n6b_hurt_f3.png",
+          "originX": 0.113,
+          "flip": true
         }
       },
       "down": {
@@ -3200,8 +3150,9 @@
           "originX": 0.625
         },
         "downLeft": {
-          "file": "tayo_n6b_victory_f3.png",
-          "originX": 0.362
+          "file": "tayo_n6b_victory_f4.png",
+          "originX": 0.29,
+          "flip": true
         },
         "downRight": {
           "file": "tayo_n6b_victory_f4.png",
@@ -3311,12 +3262,11 @@
         "originX": 0.739
       },
       "downLeft": {
-        "file": "tayo_n6b_weak_f3.png",
-        "originX": 0.162
-      },
-      "downRight": {
         "file": "tayo_n6b_weak_f4.png",
         "originX": 0.346
+      },
+      "downRight": {
+        "file": "tayo_n6b_weak_f3.png"
       }
     },
     "enchanted": {
@@ -3331,8 +3281,9 @@
           "originX": 0.586
         },
         "downLeft": {
-          "file": "tayo_n6c_gauntlet_f3.png",
-          "originX": 0.541
+          "file": "tayo_n6c_gauntlet_f4.png",
+          "originX": 0.45,
+          "flip": true
         },
         "downRight": {
           "file": "tayo_n6c_gauntlet_f4.png",
@@ -3386,8 +3337,9 @@
             "originX": 0.082
           },
           "downLeft": {
-            "file": "tayo_n6b_block_f3.png",
-            "originX": 0.867
+            "file": "tayo_n6b_block_f4.png",
+            "originX": 0.888,
+            "flip": true
           },
           "downRight": {
             "file": "tayo_n6b_block_f4.png",
@@ -3516,10 +3468,6 @@
         "scale": 0.88,
         "footX": 0.32
       },
-      "tayo_n6b_hurt_f4.png": {
-        "scale": 0.88,
-        "footX": 0.715
-      },
       "tayo_n6b_down_f1.png": {
         "scale": 0.65,
         "footX": 0.482
@@ -3540,9 +3488,6 @@
       },
       "tayo_n6b_victory_f2.png": {
         "footX": 0.555
-      },
-      "tayo_n6b_victory_f3.png": {
-        "footX": 0.449
       },
       "tayo_n6b_victory_f4.png": {
         "footX": 0.385
@@ -3611,9 +3556,6 @@
         "scale": 0.91,
         "footX": 0.53
       },
-      "tayo_n6c_gauntlet_f3.png": {
-        "scale": 0.91
-      },
       "tayo_n6c_gauntlet_f4.png": {
         "scale": 0.91,
         "footX": 0.527
@@ -3657,10 +3599,6 @@
       "tayo_n6b_block_f2.png": {
         "scale": 0.75,
         "footX": 0.343
-      },
-      "tayo_n6b_block_f3.png": {
-        "scale": 0.75,
-        "footX": 0.629
       },
       "tayo_n6b_block_f4.png": {
         "scale": 0.75,
@@ -4022,8 +3960,9 @@
         "originX": 0.479
       },
       "downRight": {
-        "file": "kofi_stand_f3.png",
-        "originX": 0.425
+        "file": "kofi_stand_f4.png",
+        "originX": 0.472,
+        "flip": true
       },
       "downLeft": {
         "file": "kofi_stand_f4.png",
@@ -4040,8 +3979,9 @@
         "originX": 0.679
       },
       "downRight": {
-        "file": "kofi_battle_f3.png",
-        "originX": 0.768
+        "file": "kofi_battle_f4.png",
+        "originX": 0.776,
+        "flip": true
       },
       "downLeft": {
         "file": "kofi_battle_f4.png",
@@ -4059,8 +3999,9 @@
           "originX": 0.679
         },
         "downRight": {
-          "file": "kofi_battle_f3.png",
-          "originX": 0.768
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_battle_f4.png",
@@ -4077,8 +4018,9 @@
           "originX": 0.83
         },
         "downRight": {
-          "file": "kofi_cast_f3.png",
-          "originX": 0.497
+          "file": "kofi_cast_f4.png",
+          "originX": 0.497,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_cast_f4.png",
@@ -4110,12 +4052,14 @@
           "originX": 0.377
         },
         "upLeft": {
-          "file": "kofi_hurt_f2.png",
-          "originX": 0.638
+          "file": "kofi_hurt_f1.png",
+          "originX": 0.377,
+          "flip": true
         },
         "downLeft": {
-          "file": "kofi_hurt_f3.png",
-          "originX": 0.259
+          "file": "kofi_hurt_f4.png",
+          "originX": 0.458,
+          "flip": true
         },
         "downRight": {
           "file": "kofi_hurt_f4.png",
@@ -4146,12 +4090,14 @@
           "originX": 0.377
         },
         "upLeft": {
-          "file": "kofi_hurt_f2.png",
-          "originX": 0.638
+          "file": "kofi_hurt_f1.png",
+          "originX": 0.377,
+          "flip": true
         },
         "downLeft": {
-          "file": "kofi_hurt_f3.png",
-          "originX": 0.259
+          "file": "kofi_hurt_f4.png",
+          "originX": 0.458,
+          "flip": true
         },
         "downRight": {
           "file": "kofi_hurt_f4.png",
@@ -4206,8 +4152,9 @@
           "originX": 0.83
         },
         "downRight": {
-          "file": "kofi_cast_f3.png",
-          "originX": 0.497
+          "file": "kofi_cast_f4.png",
+          "originX": 0.497,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_cast_f4.png",
@@ -4224,8 +4171,9 @@
           "originX": 0.679
         },
         "downRight": {
-          "file": "kofi_battle_f3.png",
-          "originX": 0.768
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_battle_f4.png",
@@ -4242,8 +4190,9 @@
           "originX": 0.679
         },
         "downRight": {
-          "file": "kofi_battle_f3.png",
-          "originX": 0.768
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_battle_f4.png",
@@ -4260,8 +4209,9 @@
           "originX": 0.679
         },
         "downRight": {
-          "file": "kofi_battle_f3.png",
-          "originX": 0.768
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_battle_f4.png",
@@ -4278,8 +4228,9 @@
           "originX": 0.679
         },
         "downRight": {
-          "file": "kofi_battle_f3.png",
-          "originX": 0.768
+          "file": "kofi_battle_f4.png",
+          "originX": 0.776,
+          "flip": true
         },
         "downLeft": {
           "file": "kofi_battle_f4.png",
@@ -4553,9 +4504,6 @@
       "kofi_battle_f2.png": {
         "footX": 0.523
       },
-      "kofi_battle_f3.png": {
-        "footX": 0.517
-      },
       "kofi_battle_f4.png": {
         "footX": 0.56
       },
@@ -4564,9 +4512,6 @@
       },
       "kofi_cast_f2.png": {
         "footX": 0.488
-      },
-      "kofi_cast_f3.png": {
-        "footX": 0.459
       },
       "kofi_cast_f4.png": {
         "footX": 0.456
@@ -4585,12 +4530,6 @@
       },
       "kofi_hurt_f1.png": {
         "footX": 0.49
-      },
-      "kofi_hurt_f2.png": {
-        "footX": 0.58
-      },
-      "kofi_hurt_f3.png": {
-        "footX": 0.372
       },
       "kofi_down_f1.png": {
         "footX": 0.501

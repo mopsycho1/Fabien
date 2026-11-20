@@ -24,8 +24,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('Kofi is a Shaman with Haunt and Infuse, and his attack is Spirit Bolt', kofi.jobName === 'Shaman' && kofi.spells.join() === 'haunt,infuse' && kofi.attackName === 'Spirit Bolt' && kofi.reading === true && kofi.maxMp === 10);
   const keys = game.textures.getTextureKeys();
   const want = []; for (const el of ['water', 'fire', 'storm', 'earth']) for (const k of ['chant', 'cast']) for (let i = 1; i <= 4; i++) want.push('h4:kofi_' + el + '_' + k + '_f' + i + '.png');
-  for (let i = 1; i <= 4; i++) want.push('h4:kofi_hurt_f' + i + '.png', 'h4:kofi_down_f' + i + '.png');
-  check('his 40 new pictures are loaded (casting in four elements, hurt, down)', want.every((k) => keys.includes(k)), want.filter((k) => !keys.includes(k)).slice(0, 3).join(' '));
+  for (let i = 1; i <= 4; i++) want.push('h4:kofi_down_f' + i + '.png');
+  want.push('h4:kofi_hurt_f1.png', 'h4:kofi_hurt_f4.png'); /* 1.66: his hurt figures 2 and 3 faced the same way as 1 and 4; those two are shown mirrored */
+  check('his 38 new pictures are loaded (casting in four elements, hurt, down)', want.every((k) => keys.includes(k)), want.filter((k) => !keys.includes(k)).slice(0, 3).join(' '));
 
   b.endTurn = () => {}; b.runEnemyTurn = () => {};
   const park = () => {
