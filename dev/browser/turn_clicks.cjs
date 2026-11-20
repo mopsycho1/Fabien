@@ -15,6 +15,7 @@
 //   The menu's grip drags the menu, and the spot is remembered on the device.
 // The only things set up by code: a foe placed next to the hero, a hero hurt so a
 // potion has a use, and the enemies passing their turns (so no clash gets in the way).
+// Since 18.44 (20 Nov) the menu is HTML over the canvas: each tapped row is checked to be the HTML row.
 // Ends with ALL PASSED or FAILED.
 const { openBattle } = require('./lib/play.cjs');
 
@@ -28,6 +29,7 @@ async function playView(view) {
   const desktop = view === 'desktop';
   const tag = '[' + view + '] ';
   try {
+    const rowsSeen = new Set();
     // A real click or tap at a point on the page.
     const press = async (p) => { if (desktop) await page.mouse.click(p.x, p.y); else await page.touchscreen.tap(p.x, p.y); };
 
@@ -68,7 +70,11 @@ async function playView(view) {
     const pressRow = async (word) => {
       const r = await rowAt(word);
       if (!r) return null;
-      await press(await screenPoint(r.gx, r.gy));
+      const p = await screenPoint(r.gx, r.gy);
+      // 18.44: the menu is HTML over the canvas; what is under the finger must be that row
+      const under = await page.evaluate(([x, y]) => { const el = document.elementFromPoint(x, y); const row = el && el.closest('#fabien-hud .mrow'); return row ? row.dataset.word : (el ? el.tagName : 'nothing'); }, [p.x, p.y]);
+      if (!rowsSeen.has(word)) { rowsSeen.add(word); check(under === word, tag + 'the HTML row "' + word + '" is what the tap lands on (' + under + ')'); }
+      await press(p);
       await sleep(600);
       return r;
     };

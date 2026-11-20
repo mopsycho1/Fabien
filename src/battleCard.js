@@ -59,8 +59,11 @@ export function squarePortrait(scene, unit, faceKey, size) {
 // The card's size in design pixels (real screen pixels on a phone; BattleScene multiplies by lay.px).
 // compact on a phone (the board needs the room: 85 percent of the height), roomier on a wide screen,
 // where it follows his mock-up more closely (Lv. on its own line, more space between the bars).
-export const CARD = { w: 188, h: 64 };
-export const CARD_ROOMY = { w: 220, h: 104 };
+// 18.44 (20 Nov): the card is the centrepiece. Drawn in HTML now (src/domHud.js); these sizes are its box.
+// Phone: 214 by 92 design pixels (60 percent of the width, 12 percent of the height; the skill panel stands above it). Wide screen: a quarter
+// of the width (BattleScene.computeLayout sizes the design pixel so this card is 25 percent of the screen).
+export const CARD = { w: 214, h: 92 };
+export const CARD_ROOMY = { w: 240, h: 116 };
 
 // The unit card, bottom left, as in his mock-up but compact: a square portrait, the name and Lv.,
 // thin HP, MP and CT bars with their numbers, and the class line along the bottom.
@@ -133,7 +136,7 @@ export function emblemFor(id) {
 
 // The skill panel, bottom right, as his: the emblem, the name and MP, the area as a small grid at
 // the right, and under a faint rule "1 foe  |  Inflicts Burn". P and F as for the card.
-export const SKILL_PANEL = { w: 178, h: 56 };
+export const SKILL_PANEL = { w: 172, h: 62 };
 export function drawSkillPanel(scene, id, P, F) {
   const D = (n) => Math.round(n * P);
   const k = skillWords(id);

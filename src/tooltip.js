@@ -61,9 +61,14 @@ export function showTip(scene, tip, sx, sy) {
   panel.tipW = width; panel.tipH = h; panel.tip = tip;
   // never over the action menu (15 Nov): if it would cover it, it stands to the left of it
   if (scene.menu && scene.menu.visible && scene.menuSize) {
-    const mx = scene.menu.x, my = scene.menu.y, mw = scene.menuSize.w, mh = scene.menuSize.h;
-    if (panel.x < mx + mw && panel.x + width > mx && panel.y < my + mh && panel.y + h > my) panel.x = Math.max(m, mx - width - 8 * s);
+    // (with the main commands standing beside a list, the two are one block: 18.44)
+    const side = scene.sideMenu && scene.sideMenu.visible && scene.sideSize;
+    const mx = side ? Math.min(scene.sideMenu.x, scene.menu.x) : scene.menu.x, my = scene.menu.y;
+    const mw = (side ? Math.max(scene.sideMenu.x + scene.sideSize.w, scene.menu.x + scene.menuSize.w) : scene.menu.x + scene.menuSize.w) - mx;
+    const mh = Math.max(scene.menuSize.h, side ? scene.sideSize.h : 0);
+    if (panel.x < mx + mw && panel.x + width > mx && panel.y < my + mh && panel.y + h > my) panel.x = mx - width - 8 * s >= m ? mx - width - 8 * s : Math.min(W - m - width, mx + mw + 8 * s);
   }
+  panel.domHidden = true; // drawn by the HTML HUD when there is one (18.44, src/domHud.js)
   scene.ui(panel);
   scene.tip = panel;
   panel.hideTimer = setTimeout(() => { if (scene.tip === panel) hideTip(scene); }, TIP_MAX_MS); // at most 3 seconds

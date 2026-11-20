@@ -7,6 +7,7 @@ const { chromium } = require('playwright');
 // Opens the game and waits until the battle is on screen.
 //   view : 'phone' (390 x 844, touch) or 'desktop' (1440 x 900, mouse)
 // Gives back { browser, page, errors }; errors fills with every page error.
+//   opts.dsf      : the desktop's pixel ratio (2 = a Retina screen; 18.44)
 //   opts.everyone : true puts all seven fighters on the board (nobody sits out), for filming every skill
 //   opts.select   : true stops at the character select (dev/browser/select.cjs); otherwise it is skipped
 //   opts.water    : 'drawn' (Suleiman's waterfall) or 'blender' (the Blender loops), to compare them
@@ -14,7 +15,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
   const desktop = view === 'desktop';
   const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
   const ctx = await browser.newContext(desktop
-    ? { viewport: { width: 1440, height: 900 } }
+    ? { viewport: { width: 1440, height: 900 }, deviceScaleFactor: opts.dsf || 1 }
     : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   if (opts.everyone) await page.addInitScript(() => { window.__bench = []; });

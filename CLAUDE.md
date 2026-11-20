@@ -49,6 +49,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - src/data: jobs.json (classes, stats, skills), spells.json (every skill's numbers and text), units.json (who fights), art.json (every picture per character: standing, battle, poses, moves, "enchanted" looks), maps/cavern.json (the game's map) and maps/yoba.json (old map for tests), terrain.json, story.json, dialogue.json.
 - src/fxLayers.js: the layers round every effect (flash, floor light, light on fighters, afterglow, energy waves), the colour set per element and the hit levels. src/data/fxSlots.json: slots for Suleiman's buff effect frames.
 - src/codeWalk.js: the walk made in code for fighters without walk pictures, and Layra's sand walk (M13). `node dev/browser/walk_sheet.cjs <out dir>` makes a walk sheet per fighter.
+- src/domHud.js (18.44): the battle HUD in HTML and CSS over the canvas (title, turn strip, diamond list, turn panel, card, menu and lists, skill panel, hint, settings, tooltips, clash meter). BattleScene still builds the HUD objects and places them (tests read them); objects marked dom() in buildHud are not drawn on the canvas, and the overlay copies them every frame and taps the same handlers. Not made in jsdom (the tests see the canvas HUD as before). `node dev/browser/hud.cjs <out dir> [phone|desktop|both]` checks it; `node dev/browser/ui_compare.cjs <out dir>` makes the side-by-side sheets with his mock-ups (phone, desktop, Retina).
 - src/status.js (buffs, statuses), src/combat.js (damage, line of sight), src/engagement.js (clashes), src/art.js (picks pictures), src/spellArt.js (effects), src/boardArt.js (map drawing, lights), src/enemyAi.js (where enemies walk).
 - dev/tools: Python cutters that turn Suleiman's sheets into game pictures (make_*.py; fxcut.cut, iso31.clean and cells are the helpers). public/art: the pictures.
 - HOW-TO-EDIT-THE-STORY.md: plain guide to the data files, one section per batch.
@@ -76,6 +77,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - Between turns an archer swaps dagger and bow by herself (`readyCloseWeapons`, 1.46), and her AI stabs a foe next to her before walking. A test that needs her to keep the bow keeps foes 2 tiles away.
 - `landHit` shows a hidden unit again (1.47). It does not take the health off: the caller does.
 - An enemy that has acted may walk again with its leftover steps (13.53). A test that needs it to stay put sets `b.enemySecondWalk = false`.
+- The HTML HUD (18.44): a press on an HTML panel must stop there (domHud stops touchstart and mousedown), or Phaser reads it as a tap outside the canvas and cancels the choice. A new HUD part: build it in BattleScene as before, mark it with dom(), give the overlay a sync function that reads it. Board hover checks `domHud.overPanel`. A new font weight must be added to the list domHud loads at the start.
 - With `b.setSpeed` above 1, `knockUntil` still waits in real milliseconds (the scene clock is not scaled): tests wait on `unit.knock`, and M11's fast speed must scale it.
 
 ## Suleiman's files (inbox)

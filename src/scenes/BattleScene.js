@@ -42,6 +42,7 @@ import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamon
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
+import { DomHud, domHudWanted } from '../domHud.js'; // the HUD in HTML over the canvas, sharp on every screen (18.44)
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { installLighting } from '../lighting.js';
@@ -370,10 +371,7 @@ export default class BattleScene extends Phaser.Scene {
     this.menuPin = loadMenuPin();
     this.menuDrag = null;
     this.input.on('pointermove', (pointer) => this.dragMenu(pointer));
-    this.input.on('pointerup', () => {
-      if (this.menuDrag && this.menuDrag.moved) saveMenuPin(this.menuPin);
-      this.menuDrag = null;
-    });
+    this.input.on('pointerup', () => this.dropMenu());
 
     this.events.once('shutdown', () => stopMusic());
     startBattleMusic();
@@ -418,6 +416,9 @@ export default class BattleScene extends Phaser.Scene {
       if (o.list) o.list.forEach(mark);
     };
     mark(go);
+    // Drawn by the HTML overlay instead (18.44, src/domHud.js): seen by no camera, so it is not
+    // drawn on the canvas and real taps pass it by. It still exists: the game and the tests read it.
+    if (go.domHidden && this.domHud) go.cameraFilter = this.cameras.main.id | this.uiCam.id;
     return go;
   }
 
@@ -440,11 +441,15 @@ export default class BattleScene extends Phaser.Scene {
     const minTap = Math.ceil(44 / real);
     // px: game pixels per design pixel. The new panels are drawn in design pixels: real screen
     // pixels on a phone, a fifth bigger on a wide screen. F: the letter sizes (11, 12, 13.5, 15).
-    const px = (portrait ? 1 : 1.2) / real;
-    const F = { small: Math.round(11 * px), mid: Math.round(12 * px), name: Math.round(13.5 * px), big: Math.round(16 * px) };
+    // 18.44 (20 Nov, Baiyee: "blurry and tiny on desktop"): sizes are a share of the screen. On a wide
+    // screen the unit card is 25 percent of the width and everything else grows with it (body text 16 to
+    // 19 real pixels on a laptop or a 1440 x 900 screen); on an upright phone a design pixel is 1.1 real
+    // pixels (body text 13), and the board keeps over three quarters of the height.
+    const px = portrait ? 1.1 / real : Math.max(1 / real, (W * 0.25) / CARD_ROOMY.w);
+    const F = { small: Math.round(12 * px), mid: Math.round(13.5 * px), name: Math.round(16 * px), big: Math.round(19 * px) };
     const m = Math.round(6 * px);
     const cardW = Math.round((portrait ? CARD : CARD_ROOMY).w * px);
-    const skillW = Math.round(SKILL_PANEL.w * px);
+    const skillW = Math.round((portrait ? SKILL_PANEL.w : 220) * px); // (18.44: on a wide screen about as wide as the card)
     const menuW = Math.round(150 * px);
     const infoW = Math.round(portrait ? W - 2 * m : Math.min(420 * px, W - cardW - skillW - 4 * m));
     this.lay = { W, H, s, m, portrait, cardW, infoW, real, px, F, minText, minTap, rowH: Math.round((portrait ? 28 : 26) * px), menuW, skillW, top: 0, bottom: H };
@@ -453,10 +458,10 @@ export default class BattleScene extends Phaser.Scene {
     const b = this.boardBounds();
     // the top bar (his mock-up): the title, then the turn strip of round faces, a thin line under it
     const titleSize = F.small;
-    const stripR = Math.round(13 * px);
+    const stripR = Math.round((portrait ? 19 : 22) * px); // the medal of the one acting (18.44: bigger, as his)
     this.lay.titleSize = titleSize;
     this.lay.stripR = stripR;
-    this.lay.stripY = m + Math.round(14 * px) + Math.round(2 * px) + stripR;
+    this.lay.stripY = m + Math.round(18 * px) + Math.round(4 * px) + stripR;
     const top = portrait ? this.lay.stripY + stripR + Math.round(4 * px) : m;
     const bottom = portrait ? H - this.cardMetrics().slimH - m - Math.round(3 * px) : H - m; // above the card
     // (the floor was 0.7; the 11 by 11 cavern, roadmap 14.2, needs about 0.56 to show whole on an upright phone)
@@ -720,33 +725,41 @@ export default class BattleScene extends Phaser.Scene {
     };
     const T = (n) => Math.max(S(n), this.lay.minText); // letters: never under 11 real pixels (M7)
     this.stripY = this.lay.stripY;
+    // 18.44: the HUD in HTML over the canvas (src/domHud.js), made once. The parts it draws are marked
+    // with dom(): still built here and read by the game and the tests, but no longer drawn on the canvas.
+    if (!this.domHud && domHudWanted()) {
+      this.domHud = new DomHud(this);
+      this.events.once('shutdown', () => { if (this.domHud) this.domHud.destroy(); this.domHud = null; });
+    }
+    const dom = (o) => { o.domHidden = true; return o; };
 
     // Top left (his mock-up): the title with his small sigil, then the turn strip, a thin gold line under it
     const P = this.lay.px, F = this.lay.F, D = (n) => Math.round(n * P);
-    const tg = keep(this.add.graphics());
+    const tg = keep(dom(this.add.graphics()));
     const ty = m + D(8);
     goldDiamond(tg, m + D(5), ty, D(4.5));
     tg.lineStyle(1, 0xe4c27c, 0.6).strokeCircle(m + D(5), ty, D(6.5));
-    this.titleText = keep(this.add.text(m + D(16), ty, 'FABIEN  ·  OF GODS & MEN', textStyle(F.small, '#d9c592')).setOrigin(0, 0.5).setLetterSpacing(Math.max(1, D(1.6))));
-    const line = keep(this.add.graphics());
+    this.titleText = keep(dom(this.add.text(m + D(16), ty, 'FABIEN  ·  OF GODS & MEN', textStyle(F.small, '#d9c592')).setOrigin(0, 0.5).setLetterSpacing(Math.max(1, D(1.6)))));
+    const line = keep(dom(this.add.graphics()));
     this.stripLine = line;
-    this.turnStripLayer = keep(this.add.container(0, 0));
+    this.turnStripLayer = keep(dom(this.add.container(0, 0)));
     // Down the left on a wide screen: every fighter as a diamond, heroes then enemies (see refreshUnitList)
-    this.unitListLayer = keep(this.add.container(0, 0));
+    this.unitListLayer = keep(dom(this.add.container(0, 0)));
 
     // Top right: the turn number, the ground in focus and its height, and a picture of it (his mock-up)
-    const bw = D(118), bh = D(50);
+    const bw = D(this.lay.portrait ? 124 : 150), bh = D(this.lay.portrait ? 58 : 62); // (18.44: roomier on a wide screen)
     const bx = W - m - bw;
-    framePanel(keep(this.add.graphics()), bx, m, bw, bh, P);
-    const turnWord = keep(this.add.text(bx + D(8), m + D(11), 'TURN', textStyle(F.small, '#bfae86')).setLetterSpacing(Math.max(1, D(1.5))).setOrigin(0, 0.5));
+    this.turnGeo = { x: bx, y: m, w: bw, h: bh };
+    framePanel(keep(dom(this.add.graphics())), bx, m, bw, bh, P);
+    const turnWord = keep(dom(this.add.text(bx + D(8), m + D(11), 'TURN', textStyle(F.small, '#bfae86')).setLetterSpacing(Math.max(1, D(1.5))).setOrigin(0, 0.5)));
     // the title never runs under this panel: on a narrow screen it loses its letter spacing
     if (this.titleText.x + this.titleText.width > bx - D(6)) this.titleText.setLetterSpacing(0).setText('FABIEN · OF GODS & MEN');
-    this.turnText = keep(this.add.text(turnWord.x + turnWord.width + D(6), m + D(11), '01', textStyle(F.big, '#f3e7c6')).setOrigin(0, 0.5));
-    const rule = keep(this.add.graphics());
+    this.turnText = keep(dom(this.add.text(turnWord.x + turnWord.width + D(6), m + D(11), '01', textStyle(F.big, '#f3e7c6')).setOrigin(0, 0.5)));
+    const rule = keep(dom(this.add.graphics()));
     rule.lineStyle(1, 0xc9a35a, 0.35).lineBetween(this.turnText.x + D(24), m + D(11), bx + bw - D(8), m + D(11));
-    this.tileText = keep(this.add.text(bx + D(8), m + D(27), '', textStyle(F.mid, '#e8dcc0')).setOrigin(0, 0.5));
-    this.elevText = keep(this.add.text(bx + D(8), m + D(40), '', textStyle(F.small, '#bfae86')).setLetterSpacing(Math.max(1, D(1))).setOrigin(0, 0.5));
-    this.tilePic = keep(this.add.graphics());
+    this.tileText = keep(dom(this.add.text(bx + D(8), m + D(27), '', textStyle(F.mid, '#e8dcc0')).setOrigin(0, 0.5)));
+    this.elevText = keep(dom(this.add.text(bx + D(8), m + D(40), '', textStyle(F.small, '#bfae86')).setLetterSpacing(Math.max(1, D(1))).setOrigin(0, 0.5)));
+    this.tilePic = keep(dom(this.add.graphics()));
     this.tilePicAt = { x: bx + bw - D(24), y: m + D(31), w: D(30) };
 
     // Under it: turn the camera (his curved arrows) either side of the little
@@ -782,14 +795,15 @@ export default class BattleScene extends Phaser.Scene {
     // sheet now, opened by this button, with the new Health bars choice (M6). Every choice is
     // remembered on the device.
     // a slim button (his style); its touch area is a finger tall and wide, invisible
-    const setW = D(62), setH = D(20);
+    const setW = D(70), setH = D(22);
     const setX = W - m - setW, setY = iy + r + D(6);
-    framePanel(keep(this.add.graphics()), setX, setY, setW, setH, P);
-    keep(this.add.text(setX + setW / 2, setY + setH / 2, 'Settings', textStyle(F.small, '#e8d5a8')).setOrigin(0.5));
+    this.settingsGeo = { x: setX, y: setY, w: setW, h: setH };
+    framePanel(keep(dom(this.add.graphics())), setX, setY, setW, setH, P);
+    keep(dom(this.add.text(setX + setW / 2, setY + setH / 2, 'Settings', textStyle(F.small, '#e8d5a8')).setOrigin(0.5)));
     const tapH = Math.max(setH, this.lay.minTap), tapW = Math.max(setW, this.lay.minTap);
-    const setHit = keep(this.add.rectangle(setX - (tapW - setW) / 2, setY - (tapH - setH) / 2, tapW, tapH, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true }));
+    const setHit = keep(dom(this.add.rectangle(setX - (tapW - setW) / 2, setY - (tapH - setH) / 2, tapW, tapH, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true })));
     this.settingsButton = setHit;
-    const sheet = keep(this.add.container(0, 0).setDepth(350).setVisible(false));
+    const sheet = keep(dom(this.add.container(0, 0).setDepth(350).setVisible(false)));
     this.settingsSheet = sheet;
     const rowH2 = Math.max(S(48), this.lay.minTap + S(6));
     const sheetW = Math.min(W - 2 * m, Math.max(S(380), T(15) * 20));
@@ -836,6 +850,7 @@ export default class BattleScene extends Phaser.Scene {
     const showTest = () => testLabel.setText('Test mode: ' + (testMode() ? 'On (pick enemies)' : 'Off'));
     showTest();
     sheetRow(4, () => openSheet(false)).setText('Close');
+    this.settingsRows = sheetRows; // (the HTML sheet shows these words and taps these rows, 18.44)
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
     fxWatchFrameRate(this);
@@ -879,16 +894,16 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     // Bottom left: the unit's profile (see refreshCard)
-    this.cardLayer = keep(this.add.container(0, 0));
+    this.cardLayer = keep(dom(this.add.container(0, 0)));
     this.cardTop = H;
 
     // Bottom right: the skill panel (UI rework 16 Nov), shown while a skill is chosen
-    this.skillLayer = keep(this.add.container(0, 0));
+    this.skillLayer = keep(dom(this.add.container(0, 0)));
     this.skillTop = H;
 
     // Bottom right: the info card (hints, and the preview of a move or skill)
-    this.infoPanel = keep(this.add.graphics());
-    this.statusText = keep(this.add.text(0, 0, '', textStyle(S(19), '#f1e6c8', { wordWrap: { width: this.lay.infoW - S(24) }, lineSpacing: S(2) })));
+    this.infoPanel = keep(dom(this.add.graphics()));
+    this.statusText = keep(dom(this.add.text(0, 0, '', textStyle(S(19), '#f1e6c8', { wordWrap: { width: this.lay.infoW - S(24) }, lineSpacing: S(2) }))));
     this.infoText = null;
     this.infoTop = H;
 
@@ -909,13 +924,13 @@ export default class BattleScene extends Phaser.Scene {
     this.menuGrip = this.add.graphics();
     this.menuGripHit = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive();
     this.menuGripHit.on('pointerdown', (pointer) => this.grabMenu(pointer));
-    this.menu = keep(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5));
+    this.menu = keep(dom(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5)));
     // UI rework 16 Nov: while the skills or items list is open, the main commands stay beside it
     // (as in his mock-up). These rows copy the main menu; a tap on another command closes the list first.
     this.sidePanel = this.add.graphics();
     this.sideRows = [0, 1, 2, 3, 4, 5].map(() => new MenuRow(this));
     for (const r of this.sideRows) r.set(null);
-    this.sideMenu = keep(this.add.container(0, 0, [this.sidePanel, ...this.sideRows.map((r) => r.view)]).setDepth(5).setVisible(false));
+    this.sideMenu = keep(dom(this.add.container(0, 0, [this.sidePanel, ...this.sideRows.map((r) => r.view)]).setDepth(5).setVisible(false)));
     this.mainSpec = null;
     this.menuRows = [];
     this.menuSize = { w: 0, h: 0 };
@@ -930,7 +945,7 @@ export default class BattleScene extends Phaser.Scene {
     this.pillHit.on('pointerdown', () => {
       if (this.pill.visible && !this.busy) this.cancelMode();
     });
-    this.pill = keep(this.add.container(0, 0, [this.pillBack, this.pillText, this.pillHit]).setDepth(5).setVisible(false));
+    this.pill = keep(dom(this.add.container(0, 0, [this.pillBack, this.pillText, this.pillHit]).setDepth(5).setVisible(false)));
     this.moveButton = this.slots[0];
     this.attackButton = this.slots[1];
     this.endButton = this.slots[3];
@@ -1117,26 +1132,26 @@ export default class BattleScene extends Phaser.Scene {
     x = Math.min(Math.max(x, m), W - m - total);
     y = Math.min(Math.max(y, this.lay.top), floor - tallest);
     y = Math.max(y, m);
-    // on the left the order turns round: the list outside, the main commands next to the unit
-    const mainX = onLeft && side ? x + w + gap2 : x;
-    const listX = onLeft && side ? x : x + sw;
+    // the list always opens to the right of the main commands, as in War of the Lions (18.44)
+    const mainX = x;
+    const listX = x + sw;
     if (side) this.sideMenu.setPosition(Math.round(mainX), Math.round(y));
     this.menu.setPosition(Math.round(listX), Math.round(y));
-    this.placeSkillPanel(side ? { x: listX, y, w, h } : null);
+    this.placeSkillPanel();
   }
 
   // The skill panel: bottom right; on a wide screen, while the skills list is open, just under the
   // list (Baiyee 16 Nov, following ui_target.png: "the skill panel by the skills list").
-  placeSkillPanel(list) {
+  // 18.44 (20 Nov): always bottom right on a wide screen (Baiyee's layout); on an upright phone just above
+  // the card, at the right, so the card can take the bottom's width.
+  placeSkillPanel() {
     const L = this.skillLayer;
     if (!L || !L.list.length) return;
     const { W, H, m, portrait, skillW } = this.lay;
     const h = this.skillPanelH || 0;
-    if (!portrait && list) {
-      const x = Math.min(Math.max(list.x, m), W - m - skillW);
-      const y = Math.min(list.y + list.h + Math.round(6 * this.lay.px), H - m - h);
-      L.setPosition(Math.round(x), Math.round(y));
-    } else L.setPosition(Math.round(W - m - skillW), Math.round(H - m - h));
+    const y = portrait ? Math.min(this.cardTop || H, H - m - this.cardClosedH()) - Math.round(4 * this.lay.px) - h : H - m - h;
+    L.setPosition(Math.round(W - m - skillW), Math.round(y));
+    this.skillTop = y;
   }
 
   // The bottom right corner of the menu's home: above the card on an upright phone, above the
@@ -1183,6 +1198,12 @@ export default class BattleScene extends Phaser.Scene {
     }
     this.menuPin = { fx: (d.mx + dx) / this.lay.W, fy: (d.my + dy) / this.lay.H };
     this.placeMenu();
+  }
+
+  // The grip is let go: a menu that was dragged stays there, remembered on the device.
+  dropMenu() {
+    if (this.menuDrag && this.menuDrag.moved) saveMenuPin(this.menuPin);
+    this.menuDrag = null;
   }
 
   // The small cancel tag shown while a target is being picked (roadmap 8.9).
@@ -1235,6 +1256,7 @@ export default class BattleScene extends Phaser.Scene {
     this.hoverBoard();    // ...and the tile and the fighter under it (M8)
     if (this.statusText && this.statusText.text !== this.infoText) this.fitStatus();
     this.placeMenu();
+    if (this.domHud) this.domHud.sync(); // the HTML HUD copies what the HUD objects show (18.44)
     const u = this.activeUnit;
     // breathing rests during actions (moves, attacks, cinematics) and resumes after
     const still = !!(this.busy || this.inCinematic || this.battleOver);
@@ -1440,6 +1462,45 @@ export default class BattleScene extends Phaser.Scene {
     this.ui(L);
   }
 
+  // What the unit card shows, for the HTML card (18.44, src/domHud.js): the same values the canvas
+  // card is built from (refreshCard and drawSlimCard), as plain data.
+  cardData(unit, viewing = false) {
+    const role = isMelee(unit) ? STYLE_NAMES[styleOf(unit)] : unit.attackType === 'magic' ? 'Magic' : unit.spells && unit.spells.length ? 'Support' : 'Ranged';
+    const mpNow = mpShown(unit);
+    const buff = buffOf(unit);
+    const active = unit === this.activeUnit;
+    const frac = Math.max(0, unit.hp / unit.maxHp);
+    const iconUrl = (tag) => (tag.icon && this.textures.exists('icon:' + tag.icon) && this.domHud ? this.domHud.url('icon:' + tag.icon) : null);
+    const tags = statusTags(unit);
+    const d = {
+      name: unit.name, level: unit.level || 1, side: unit.side === 'hero' ? 'hero' : 'enemy', active, viewing: !!viewing,
+      face: portraitKey(unit.id, unit), job: unit.jobName + '  ·  ' + role, roomy: !this.lay.portrait,
+      hp: Math.max(0, unit.hp), maxHp: unit.maxHp, hpColor: frac <= 0.35 ? '#e05a47' : '#5cc46a',
+      mp: mpNow ? { mp: mpNow.mp, max: mpNow.max, color: mpNow.lent ? buff.color : '#4f8fe8' } : null,
+      ct: active ? 100 : Math.max(0, Math.min(100, Math.round(unit.ct || 0))),
+      icons: tags.map(iconUrl).filter(Boolean),
+      open: !!this.cardOpen,
+    };
+    if (!d.open) return d;
+    const now = (stat) => unit[stat] + statMod(unit, stat);
+    const hexNow = hexOf(unit);
+    const speedNow = unit.speed - (hexNow && hexNow.speedLoss ? hexNow.speedLoss : 0);
+    const magic = unit.attackType === 'magic';
+    const atk = ['ATK', now('attack'), unit.attack], mag = ['MAG', now('magicAttack'), unit.magicAttack];
+    const rest = [magic ? atk : mag, ['MDF', now('magicDefense'), unit.magicDefense], ['RNG', unit.range, unit.range]];
+    if (unit.contest && isStanceDuel()) rest.push(['POISE', poiseOf(unit) + '/' + engagementRules.poise.max, null]);
+    d.pages = [[magic ? mag : atk, ['DEF', now('defense'), unit.defense], ['SPD', speedNow, unit.speed], ['MOV', moveOf(unit), unit.move]], rest];
+    d.buffLine = buff ? { text: (buff.effect || buff.name) + ': ' + buff.turnsLeft + ' turn' + (buff.turnsLeft === 1 ? '' : 's') + ' left', color: buff.color } : null;
+    d.chips = tags.map((t) => ({ text: t.text, color: t.color, icon: iconUrl(t) }));
+    if (!active && unit.alive) { const wait = this.turnsUntil(unit); d.next = wait === 1 ? 'next' : wait ? 'in ' + wait : 'later'; }
+    return d;
+  }
+
+  // In a stance duel (the clash meter has its bar then): for the HTML clash meter (18.44)
+  stanceDuelOn() {
+    return isStanceDuel();
+  }
+
   // The skill panel, bottom right (UI rework 16 Nov): shown while a skill is chosen.
   refreshSkillPanel() {
     if (!this.skillLayer || !this.lay) return;
@@ -1453,9 +1514,8 @@ export default class BattleScene extends Phaser.Scene {
     const { s, m, W, H, cardW, skillW, portrait, minText } = this.lay;
     const { items, h } = drawSkillPanel(this, id, this.lay.px, this.lay.F);
     L.add(items);
-    L.setPosition(Math.round(W - m - skillW), Math.round(H - m - h));
-    this.skillTop = H - m - h;
-    this.skillPanelH = h;
+    this.skillPanelH = portrait ? h : Math.round(74 * this.lay.px); // (the HTML panel's box, 18.44)
+    this.placeSkillPanel();
     this.ui(L);
   }
 
@@ -2068,20 +2128,23 @@ export default class BattleScene extends Phaser.Scene {
     // His mock-up: one row of round faces under the title. The one acting now is bigger, in his
     // glowing medal, with a small gold arrow either side; then each fighter once, in the order of
     // their next turn (M7, 17.7), as many as fit left of the turn panel.
-    const r = Math.round(stripR * 0.78);
-    const step = 2 * r + D(7);
-    const startX = m + D(9) + stripR;
-    const room = W - m - D(118) - D(10) - (startX + stripR + D(12));
+    const r = Math.round(stripR * 0.66); // the next ones smaller (18.44)
+    const step = 2 * r + D(8);
+    const startX = m + D(11) + stripR;
+    const room = W - m - (this.turnGeo ? this.turnGeo.w : D(118)) - D(10) - (startX + stripR + D(12));
     const count = Math.max(2, Math.min(7, Math.floor(room / step)));
     const lineup = [this.activeUnit];
     for (const u of previewTurns(this.units, this.units.length * 3)) if (!lineup.includes(u) && lineup.length <= count) lineup.push(u);
     this.stripLineup = lineup;
     const arrows = this.add.graphics();
     const a = D(3);
-    const arrow = (x) => arrows.fillStyle(0xe4c27c, 0.95).fillTriangle(x - a, y - a * 1.5, x + a, y, x - a, y + a * 1.5);
+    // where each part is, for the HTML strip (18.44, src/domHud.js)
+    const geo = { y, arrows: [], medals: [] };
+    const arrow = (x) => { geo.arrows.push(x); arrows.fillStyle(0xe4c27c, 0.95).fillTriangle(x - a, y - a * 1.5, x + a, y, x - a, y + a * 1.5); };
     arrow(m + a);
     let x = startX;
     lineup.forEach((unit, i) => {
+      geo.medals.push({ x, r: i === 0 ? stripR : r - 2 });
       const now = i === 0;
       const medal = now
         ? medalPortrait(this, x, y, stripR, unit, portraitKey(unit.id, unit), { active: true })
@@ -2096,6 +2159,8 @@ export default class BattleScene extends Phaser.Scene {
     arrow(endX);
     this.turnStripLayer.add(arrows);
     if (this.stripLine) this.stripLine.clear().lineStyle(1, 0xc9a35a, 0.45).lineBetween(m, y + stripR + D(4), endX + D(14), y + stripR + D(4));
+    Object.assign(geo, { lineX0: m, lineX1: endX + D(14), lineY: y + stripR + D(4) });
+    this.stripGeo = geo;
     this.refreshUnitList();
     this.ui(this.turnStripLayer);
     if (this.turnText) this.turnText.setText(String(Math.max(1, this.turnCount)).padStart(2, '0'));
@@ -2133,17 +2198,19 @@ export default class BattleScene extends Phaser.Scene {
     const L = this.unitListLayer;
     if (!L) return;
     L.removeAll(true);
+    this.listGeo = [];
     const { m, portrait, H, px: P } = this.lay;
     if (portrait) return; // (Baiyee 16 Nov: on a phone the board needs the room; his phone mock-up has no list)
     const D = (n) => Math.round(n * P);
-    const d = D(12); // half the diamond's height
-    const gap = D(4);
+    const d = D(15); // half the diamond's height (18.44: bigger)
+    const gap = D(5);
     const list = [...this.units.filter((u) => u.side === 'hero'), ...this.units.filter((u) => u.side !== 'hero')];
     const y0 = this.stripY + this.lay.stripR + D(16) + d;
     const x = m + d + D(2);
     list.forEach((u, i) => {
       const y = y0 + i * (2 * d + gap);
-      if (y > H * 0.7) return;
+      if (y > (this.cardTop || H) - d - D(8)) return; // (above the card)
+      this.listGeo.push({ id: u.id, unit: u, x, y, d, state: (u.side === 'hero' ? 'hero' : 'enemy') + (u === this.activeUnit ? ' now' : '') + (u.alive ? '' : ' dead') });
       const g = this.add.graphics();
       const pts = (k) => [{ x, y: y - d - k }, { x: x + d + k, y }, { x, y: y + d + k }, { x: x - d - k, y }];
       g.fillStyle(0x000000, 0.35).fillPoints(pts(D(2)), true);
@@ -2165,6 +2232,8 @@ export default class BattleScene extends Phaser.Scene {
     const t = this.hoverTile || this.pendingTarget || (this.approach && this.approach.tile) || this.activeUnit; // (the tile under the mouse first, M8)
     const ground = groundName(terrainAt(mapData, t.col, t.row));
     this.tileText.setText(ground);
+    const gc = groundColors(terrainAt(mapData, t.col, t.row));
+    this.tileInfo = { ground, elev: 'ELEV ' + String(getHeight(t.col, t.row)).padStart(2, '0'), top: gc.top, side: gc.side }; // (for the HTML panel, 18.44)
     if (this.elevText) this.elevText.setText('ELEV ' + String(getHeight(t.col, t.row)).padStart(2, '0'));
     // and a small picture of that ground (UI rework 16 Nov)
     if (this.tilePic && this.tilePicAt) {
@@ -2603,7 +2672,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     const x = portrait ? m : Math.round((W - t.width) / 2);
-    const y = Math.min(this.cardTop, H - m - this.cardClosedH()) - Math.round(5 * this.lay.px) - t.height;
+    const y = Math.min(this.cardTop, H - m - this.cardClosedH(), portrait && this.selectedSpell ? this.skillTop || H : H) - Math.round(5 * this.lay.px) - t.height;
     t.setPosition(Math.round(x), Math.round(y));
     this.infoTop = y;
     // fade: shown once per turn, gone after 2 seconds
@@ -4838,6 +4907,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   showResultPanel(won) {
+    this.resultShown = true; // (the HTML HUD steps aside for the result, 18.44)
     play(won ? 'victory' : 'defeat'); // the sting, as the word arrives
     // laid out around the middle of the screen, whatever its shape
     const W = this.scale.width;
@@ -7885,7 +7955,10 @@ export default class BattleScene extends Phaser.Scene {
       const my = Math.min(u.view.y - u.topY, v.view.y - v.topY) - 50; // above both health bars and tags
       // His clash meter (roadmap 8.21, UI rework step 4): the raven skull over the bar of seven slots
       if (this.textures.exists('ui:clash_skull') && this.textures.exists('ui:clash_bar')) {
-        this.engageMarks.push(ground, this.clashMeter(u, v, mx, my));
+        const meter = this.clashMeter(u, v, mx, my);
+        // drawn by the HTML HUD instead, sharp at any zoom (18.44): not drawn on the canvas
+        if (this.domHud) meter.cameraFilter = this.cameras.main.id | this.uiCam.id;
+        this.engageMarks.push(ground, meter);
         continue;
       }
       const icon = this.add.graphics().setDepth(85);
@@ -8701,10 +8774,14 @@ export default class BattleScene extends Phaser.Scene {
       const t = this.tileAtPoint(world.x, world.y);
       if (isInsideGrid(t.col, t.row)) tile = t;
     }
-    const key = tile ? tile.col + ',' + tile.row : null;
+    // the mouse over an HTML HUD panel (18.44) is not over the board: no tile, and the panel's own
+    // tooltip (a menu row's) must not be put away by the board
+    const overHud = !!(this.domHud && this.domHud.overPanel);
+    if (overHud) tile = null;
+    const key = tile ? tile.col + ',' + tile.row : overHud ? 'hud' : null;
     if (key === this.hoverKey) return;
     this.hoverKey = key;
-    hoverTipEnd(this); // the mouse moved to another tile: any tooltip goes
+    if (!overHud) hoverTipEnd(this); // the mouse moved to another tile: any tooltip goes
     if (this.hoverMark) this.hoverMark.destroy();
     this.hoverMark = null;
     this.hoverTile = tile;

@@ -11,6 +11,7 @@ const { chromium } = require('playwright');
   const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
   const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => { window.__skipSelect = true; }); // the character select (18.30) goes straight on, as in the other checks
   await page.goto('http://localhost:' + (process.env.PORT || 4173) + '/', { waitUntil: 'load' });
   await page.waitForTimeout(3500);
   // ----- E2: title and story -----
@@ -37,7 +38,7 @@ const { chromium } = require('playwright');
   const spot = (id) => page.evaluate((id) => { const b = window.__game.scene.getScene('BattleScene'); const u = b.units.find((x) => x.id === id); const c = b.cameras.main; const real = b.scale.displaySize.width / b.scale.width; const box = b.game.canvas.getBoundingClientRect(); return { x: box.x + (u.view.x - c.worldView.x) * c.zoom * real, y: box.y + (u.view.y - 20 - c.worldView.y) * c.zoom * real, name: u.name }; }, id);
   const foe = await spot('e4');
   await page.mouse.move(foe.x, foe.y); await page.waitForTimeout(400);
-  const hov = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const card = b.cardLayer.list.filter((o) => o.type === 'Text').map((o) => o.text); return { unit: b.hoverUnit && b.hoverUnit.name, tile: b.tileText.text, mark: !!b.hoverMark, card: card.slice(0, 3).join(' '), plate: b.hoverUnit && b.hoverUnit.plate.alpha }; });
+  const hov = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const card = b.cardLayer.list.filter((o) => o.type === 'Text').map((o) => o.text); return { unit: b.hoverUnit && b.hoverUnit.name, tile: b.tileText.text + ' ' + (b.elevText ? b.elevText.text : ''), mark: !!b.hoverMark, card: card.slice(0, 3).join(' '), plate: b.hoverUnit && b.hoverUnit.plate.alpha }; });
   await page.screenshot({ path: out + '/desktop_hover.png' });
   check('E3 hover on a foe: the tile is outlined and named, his card and health show', hov.unit === foe.name && hov.mark && /ELEV/.test(hov.tile) && hov.card.includes(foe.name) && hov.plate > 0.5, JSON.stringify(hov));
   await page.mouse.move(700, 60); await page.waitForTimeout(300);
