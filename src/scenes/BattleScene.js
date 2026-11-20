@@ -6576,17 +6576,17 @@ export default class BattleScene extends Phaser.Scene {
 
     // Roadmap 1.54: his old 29 Oct Earth Drive pictures (a different, smaller look) are out of art.json.
     // Roadmap 1.60 (Suleiman 16 Nov: "he just throws a punch"): Earth Drive is a ground pound again, from his
-    // current sheet. He draws back (blastCharge), slams his fist into the floor (groundPound: kneeling, fist
+    // current sheet. He raises his fist (fistRaised, 1.73), slams it into the floor (groundPound: kneeling, fist
     // planted), a shockwave runs from his fist, and a beat later the rock erupts under the foe.
     // (A drawn 'earthDrive' move in art.json still wins, when Suleiman sends one.)
     const m = moveFrames(user.id, 'earthDrive', dx >= 0 ? 'right' : 'left');
     const frameMs = m ? m.frameMs : 110;
-    const slamAt = frameMs * 2; // the fist meets the floor
+    const slamAt = frameMs * 3; // the fist meets the floor (a beat longer, 1.73: the raised fist has to be seen)
     const eruptAt = slamAt + 90; // the rock bursts up under the foe
     this.floatText(user, spell.name, spell.color, { rise: 40 });
     play('whoosh');
     const pose = (names) => names.find((n) => poseFrame(user.id, n, 'right', user.facing)) || 'attack';
-    const drawnBack = pose(['blastCharge', 'blastWind', 'windup']);
+    const drawnBack = pose(['fistRaised', 'windup']); // his raised fist (1.73: it was the arms-open rear-up of Element Blast, blastCharge)
     const pound = pose(['groundPound', 'attack']);
     const played = this.playMove(user, 'earthDrive', dx);
     if (!played) this.showPose(user, drawnBack, dx);

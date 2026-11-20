@@ -89,7 +89,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   park(); put(tayo, 5, 5); put(gaha, 5, 6); const seenKeys = new Set(); const iv = setInterval(() => seenKeys.add(tayo.sprite.texture.key), 20);
   const sizeBefore = tayo.artScale; b.busy = true;
   b.castEarthDrive(tayo, gaha, { name: 'Earth Drive', color: '#d9a066', damageShare: 0.5, push: 1, turns: 2 }, () => { b.busy = false; }); await idle(); await sleep(900); clearInterval(iv);
-  check('Earth Drive (1.60): drawn back, then the ground pound (fist on the floor) of his current sheet', [...seenKeys].some((k) => /blastCharge/.test(k)) && [...seenKeys].some((k) => /n6b_down/.test(k)) && ![...seenKeys].some((k) => /tayo_drive/.test(k)), [...seenKeys].map((k) => k.replace('e1:tayo_', '')).join(','));
+  check('Earth Drive (1.60, 1.73): the raised fist, then the ground pound (fist on the floor) of his current sheet, never the Element Blast rear-up', [...seenKeys].some((k) => /n6b_victory/.test(k)) && ![...seenKeys].some((k) => /blastCharge|blastWind/.test(k)) && [...seenKeys].some((k) => /n6b_down/.test(k)) && ![...seenKeys].some((k) => /tayo_drive/.test(k)), [...seenKeys].map((k) => k.replace('e1:tayo_', '')).join(','));
   check('and he is back at his standing size afterwards', Math.abs(tayo.sprite.scaleX / tayo.artScale - 1) < 0.04 && /n6b_(stand|battle)/.test(tayo.sprite.texture.key), tayo.sprite.texture.key);
   // the same at the bot's speed (8 times): the 1.60 ground pound once tweened the sprite's own scale and left him
   // at the kneeling picture's size (0.75 of his own) whenever a pose changed under it (bot SIZE OFF, 19 Nov)

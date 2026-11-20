@@ -110,7 +110,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   seen.clear();
   await new Promise((res) => { b.activeUnit = tayo; b.castEarthDrive(tayo, gaha, { name: 'Earth Drive', color: '#d9a066', damageShare: 0.5, push: 1, turns: 2 }, res); setTimeout(res, 5000); });
   // 1.54: his old 29 Oct drive pictures (another look, drawn small) are out: he draws back (blastWind) and punches on his current sheet
-  check('4.2 (1.60) his Earth Drive is a ground pound from his current sheet (drawn back, then fist on the floor), never the old drive pictures', shown(tayo).some((k) => /blastCharge/.test(k)) && shown(tayo).some((k) => /n6b_down/.test(k)) && !shown(tayo).some((k) => /tayo_drive_/.test(k)), shown(tayo).join(','));
+  check('4.2 (1.60, 1.73) his Earth Drive is a ground pound from his current sheet (the raised fist, then fist on the floor), never the old drive pictures nor the Element Blast rear-up', shown(tayo).some((k) => /n6b_victory/.test(k)) && !shown(tayo).some((k) => /blastCharge|blastWind/.test(k)) && shown(tayo).some((k) => /n6b_down/.test(k)) && !shown(tayo).some((k) => /tayo_drive_/.test(k)), shown(tayo).join(','));
   check('4.2 half damage', hp0 - gaha.hp === Math.max(1, Math.round(full * 0.5)), (hp0 - gaha.hp) + ' of ' + full);
   check('4.2 thrown back a tile', gaha.col === 5 && gaha.row === 7, gaha.col + ',' + gaha.row);
   check('4.2 the spike stands where he was', !!b.spikeAt(4, 7) && b.spikeAt(4, 7).view && b.spikeAt(4, 7).view.texture.key.indexOf('fx:spike') === 0);

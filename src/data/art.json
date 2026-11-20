@@ -3164,6 +3164,25 @@
           "originX": 0.29
         }
       },
+      "fistRaised": {
+        "upLeft": {
+          "file": "tayo_n6b_victory_f1.png",
+          "originX": 0.402
+        },
+        "upRight": {
+          "file": "tayo_n6b_victory_f2.png",
+          "originX": 0.625
+        },
+        "downLeft": {
+          "file": "tayo_n6b_victory_f4.png",
+          "originX": 0.29,
+          "flip": true
+        },
+        "downRight": {
+          "file": "tayo_n6b_victory_f4.png",
+          "originX": 0.29
+        }
+      },
       "blastWind": {
         "upLeft": {
           "file": "tayo_n6d_blastWind_f1.png",
@@ -3401,7 +3420,7 @@
     },
     "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
-    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later.",
+    "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later. 20 Nov (roadmap 1.73): the Earth Drive wind-up was blastCharge (the arms-open rear-up of Element Blast); it is now 'fistRaised', his raised fist (the same four pictures as 'victory', tayo_n6b_victory_f1 to f4, with the same ruler scales since they are the same files), then groundPound as the fist hits the floor.",
     "ruler": {
       "tayo_n6b_stand_f1.png": {
         "footX": 0.422
