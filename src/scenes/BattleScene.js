@@ -44,6 +44,7 @@ import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamon
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
 import { createAtmosphere } from '../atmosphere.js';
 import { uiScaleFor, isPhone } from '../layout.js';
+import { skillElement } from '../skillIcons.js';
 import { DomHud, domHudWanted } from '../domHud.js'; // the HUD in HTML over the canvas, sharp on every screen (18.44)
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
@@ -817,7 +818,7 @@ export default class BattleScene extends Phaser.Scene {
     // sheet now, opened by this button, with the new Health bars choice (M6). Every choice is
     // remembered on the device.
     // a slim button (his style); its touch area is a finger tall and wide, invisible
-    const setW = D(70), setH = D(22);
+    const setW = D(22), setH = D(22); // (a small gear since 20 Nov; the word is only on the canvas copy the tests read)
     const setX = W - m - setW, setY = iy + r + D(6);
     this.settingsGeo = { x: setX, y: setY, w: setW, h: setH };
     framePanel(keep(dom(this.add.graphics())), setX, setY, setW, setH, P);
@@ -1006,10 +1007,11 @@ export default class BattleScene extends Phaser.Scene {
     const pad = D(2);
     const gripH = D(6);
     const word = this.lay.F.mid;
-    const icon = Math.round(word * 0.8); // (the HTML row draws it a quarter bigger: as tall as the word)
+    const icon = Math.round(word * 0.9); // (the HTML row draws it a quarter bigger: a little taller than the word)
     // his list has no Back row: while the main commands stand beside it, the lit row closes it
     // (a group of skills, like Blessings, keeps Back: it goes up to the whole list)
-    if (header && this.mainSpec && this.mainSpec.unit === this.activeUnit && !this.spellGroup && this.mode !== 'itemTarget') {
+    // 20 Nov polish: no Back row anywhere while the main commands stand beside the list: a tap outside goes back one step
+    if (header && this.mainSpec && this.mainSpec.unit === this.activeUnit) {
       const back = rows.findIndex((r) => r.label.text === 'Back');
       if (back >= 0 && rows.length > 1) { rows[back].view.setVisible(false); if (rows[back].hit.input) rows[back].hit.input.enabled = false; rows.splice(back, 1); }
     }
@@ -1070,11 +1072,11 @@ export default class BattleScene extends Phaser.Scene {
       const r = this.sideRows[i];
       const word = d.label.split('  ')[0];
       const lit = open ? word === open : word === 'Skills' || word === 'Verses';
-      const tap = lit ? () => this.cancelMode() : () => { this.cancelMode(); if (d.onTap) d.onTap(); };
+      const tap = lit ? () => (this.spellGroup ? this.spellBack() : this.cancelMode()) : () => { this.cancelMode(); if (d.onTap) d.onTap(); };
       r.set(d.label, d.icon, d.enabled, tap, { selected: lit, accent: d.accent, emblem: d.emblem, shown: d.shown });
       r.compact = true;
       r.compactFont = spec.font;
-      r.iconSize = Math.round(this.lay.F.mid * 0.8);
+      r.iconSize = Math.round(this.lay.F.mid * 0.9);
       r.costFont = this.lay.F.small;
       r.place(pad, pad + gripH + i * rH, spec.w - 2 * pad, rH, P, this.lay.minText);
     });
@@ -2586,7 +2588,7 @@ export default class BattleScene extends Phaser.Scene {
       [a, b, c].forEach((slot, i) => {
         const e = shown[i];
         if (paged && i === 2) slot.set('More  >', 'gem', true, () => { this.spellPage = (page + 1) % pages; this.refreshStatus(); });
-        else if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring });
+        else if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring, el: e.el });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -2992,6 +2994,7 @@ export default class BattleScene extends Phaser.Scene {
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
         tip: spellTip(id), // long press: what the skill does (13.49)
         emblem: emblemFor(id), // his emblem, on a ring in the skill's colour (UI rework 16 Nov)
+        el: skillElement(id), // a small icon by element in the HTML list (20 Nov polish)
         ring: Phaser.Display.Color.HexStringToColor(spell.color).color,
       };
     };
@@ -3408,7 +3411,8 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     if (this.mode === 'spell' || this.mode === 'rest') {
-      this.cancelMode();
+      if (this.mode === 'spell' && this.spellGroup) this.spellBack(); // a group (Blessings) goes up to the whole list
+      else this.cancelMode();
       return;
     }
 

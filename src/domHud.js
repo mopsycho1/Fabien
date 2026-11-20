@@ -21,6 +21,7 @@ import { portraitKey } from './art.js';
 import { previewTurns } from './turnOrder.js';
 import clashMeterData from './data/clashMeter.json';
 import { artUrl } from './artUrl.js';
+import { skillElement, skillIconSvg } from './skillIcons.js';
 
 // Our icon names that use another of his glyph pictures (as hud.js GLYPH_FOR)
 const GLYPH_FOR = { back: 'undo' };
@@ -38,7 +39,7 @@ export function domHudWanted() {
 // a faint grain inside every panel (a small noise picture made by the browser, no file)
 const GRAIN = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.7 0 0 0 0 0.45 0 0 0 0.09 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>\")";
 // a small gold corner ornament: an L of two lines with a diamond at the corner
-const CORNER = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M1 13 V1 H13' fill='none' stroke='%23e4c27c' stroke-width='1.4'/><path d='M4 9 V4 H9' fill='none' stroke='%23e4c27c' stroke-width='0.8' opacity='0.7'/><path d='M1 -1.6 L3.6 1 L1 3.6 L-1.6 1 Z' transform='translate(0 0)' fill='%23ffe3a0'/></svg>\")";
+const CORNER = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M1 13 V1 H13' fill='none' stroke='%23e4c27c' stroke-width='1'/><path d='M4 9 V4 H9' fill='none' stroke='%23e4c27c' stroke-width='0.6' opacity='0.6'/><path d='M1 -1.6 L3.6 1 L1 3.6 L-1.6 1 Z' transform='translate(0 0)' fill='%23ffe3a0'/></svg>\")";
 
 const CSS = `
 #fabien-hud { position: absolute; left: 0; top: 0; pointer-events: none; overflow: hidden; z-index: 5;
@@ -47,18 +48,24 @@ const CSS = `
 #fabien-hud * { box-sizing: border-box; }
 #fabien-hud .abs { position: absolute; }
 #fabien-hud .hide { display: none !important; }
-/* the framed panel */
-#fabien-hud .fp { position: absolute; border-radius: calc(var(--u) * 3);
-  background: ${GRAIN}, linear-gradient(180deg, rgba(26,19,12,0.84), rgba(10,7,5,0.80));
-  border: max(1px, calc(var(--u) * 1.1)) solid rgba(201,163,90,0.9);
-  box-shadow: inset 0 0 0 calc(var(--u) * 2.5) rgba(0,0,0,0.35), inset 0 0 0 calc(var(--u) * 3.2) rgba(228,194,124,0.16),
-    0 calc(var(--u) * 3) calc(var(--u) * 14) rgba(0,0,0,0.55); }
-#fabien-hud .fp > .c { position: absolute; width: calc(var(--u) * 11); height: calc(var(--u) * 11); background: ${CORNER} no-repeat center / contain; pointer-events: none;
-  filter: drop-shadow(0 0 calc(var(--u) * 1.5) rgba(255,200,110,0.45)); }
-#fabien-hud .fp > .c.tl { left: calc(var(--u) * -2.5); top: calc(var(--u) * -2.5); }
-#fabien-hud .fp > .c.tr { right: calc(var(--u) * -2.5); top: calc(var(--u) * -2.5); transform: scaleX(-1); }
-#fabien-hud .fp > .c.bl { left: calc(var(--u) * -2.5); bottom: calc(var(--u) * -2.5); transform: scaleY(-1); }
-#fabien-hud .fp > .c.br { right: calc(var(--u) * -2.5); bottom: calc(var(--u) * -2.5); transform: scale(-1, -1); }
+/* the framed panel (20 Nov polish, from his mock-ups): a thin faint gold line that is brightest at its solid end and fades
+   out toward the open end (to the right by default, "fl" fades to the left), a few small corner marks, no heavy rim */
+#fabien-hud .fp { position: absolute; border-radius: calc(var(--u) * 2);
+  background: ${GRAIN}, linear-gradient(180deg, rgba(24,18,12,0.74), rgba(10,7,5,0.70));
+  box-shadow: 0 calc(var(--u) * 2) calc(var(--u) * 10) rgba(0,0,0,0.38); }
+#fabien-hud .fp::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  border: max(1px, calc(var(--u) * 0.7)) solid rgba(228,194,124,0.62);
+  -webkit-mask-image: linear-gradient(100deg, #000 0%, #000 28%, rgba(0,0,0,0.10) 100%); mask-image: linear-gradient(100deg, #000 0%, #000 28%, rgba(0,0,0,0.10) 100%); }
+#fabien-hud .fp.fl::before { -webkit-mask-image: linear-gradient(260deg, #000 0%, #000 28%, rgba(0,0,0,0.10) 100%); mask-image: linear-gradient(260deg, #000 0%, #000 28%, rgba(0,0,0,0.10) 100%); }
+#fabien-hud .fp.full::before { -webkit-mask-image: none; mask-image: none; }
+#fabien-hud .fp > .c { position: absolute; width: calc(var(--u) * 8); height: calc(var(--u) * 8); background: ${CORNER} no-repeat center / contain; pointer-events: none; opacity: 0.8; }
+#fabien-hud .fp > .c.tl { left: calc(var(--u) * -1.5); top: calc(var(--u) * -1.5); }
+#fabien-hud .fp > .c.tr { right: calc(var(--u) * -1.5); top: calc(var(--u) * -1.5); transform: scaleX(-1); }
+#fabien-hud .fp > .c.bl { left: calc(var(--u) * -1.5); bottom: calc(var(--u) * -1.5); transform: scaleY(-1); }
+#fabien-hud .fp > .c.br { right: calc(var(--u) * -1.5); bottom: calc(var(--u) * -1.5); transform: scale(-1, -1); }
+/* the marks stand only at the solid end */
+#fabien-hud .fp:not(.fl):not(.full) > .c.tr, #fabien-hud .fp:not(.fl):not(.full) > .c.br { display: none; }
+#fabien-hud .fp.fl > .c.tl, #fabien-hud .fp.fl > .c.bl { display: none; }
 #fabien-hud .tap { pointer-events: auto; cursor: pointer; }
 #fabien-hud .cinzel { font-family: 'Cinzel', 'Trajan Pro', Georgia, serif; }
 #fabien-hud .gold { color: #e4c27c; }
@@ -158,8 +165,8 @@ const CSS = `
 /* the cancel tag, the hint, the skill panel, the settings */
 #fabien-hud .pill { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 8); white-space: nowrap; }
 #fabien-hud .pill .x { color: #ff9c7a; font-weight: 700; }
-#fabien-hud .hint { text-align: center; color: #efe3c2; font-weight: 600; transition: opacity 0.3s;
-  text-shadow: 0 0 calc(var(--u) * 2) #000, 0 1px 2px #000, 0 0 calc(var(--u) * 8) rgba(0,0,0,0.85); }
+#fabien-hud .hint { text-align: center; color: rgba(239,227,194,0.66); font-weight: 500; font-style: italic; transition: opacity 0.3s;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 calc(var(--u) * 6) rgba(0,0,0,0.7); }
 #fabien-hud .skill { padding: calc(var(--u) * 6) calc(var(--u) * 8); display: flex; flex-direction: column; justify-content: space-between; }
 #fabien-hud .skill .top { display: flex; align-items: center; gap: calc(var(--u) * 8); }
 #fabien-hud .skill .em { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
@@ -167,11 +174,15 @@ const CSS = `
 #fabien-hud .skill .em img { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 0 2px #000); }
 #fabien-hud .skill .nm { flex: 1; min-width: 0; line-height: 1.15; }
 #fabien-hud .skill .nm .n { color: #f6ead0; white-space: nowrap; }
-#fabien-hud .skill .grid { display: grid; gap: max(1px, calc(var(--u) * 0.8)); flex: none; }
-#fabien-hud .skill .grid i { display: block; background: rgba(255,255,255,0.07); }
+#fabien-hud .skill .grid { display: grid; gap: max(1px, calc(var(--u) * 0.6)); flex: none; }
+#fabien-hud .skill .grid i { display: block; background: rgba(255,255,255,0.06); border-radius: 1px; box-shadow: inset 0 0 0 1px rgba(228,194,124,0.14); }
 #fabien-hud .skill .grid i.c { background: #ffe08a; transform: scale(0.55); }
 #fabien-hud .skill .foot { display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
 #fabien-hud .btn { display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em; color: #e8d5a8; }
+#fabien-hud .gear { color: #d9b878; opacity: 0.85; position: absolute; }
+#fabien-hud .gear svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #000); }
+#fabien-hud .gear::after { content: ''; position: absolute; inset: -9px; } /* a finger-sized touch area around the small gear */
+#fabien-hud .gear:hover { opacity: 1; color: #fff4d6; }
 #fabien-hud .btn:hover { color: #fff4d6; }
 #fabien-hud .veil { position: absolute; inset: 0; background: rgba(0,0,0,0.55); pointer-events: auto; }
 #fabien-hud .sheet { display: flex; flex-direction: column; align-items: stretch; padding: calc(var(--u) * 14) calc(var(--u) * 16); gap: calc(var(--u) * 6); pointer-events: auto; }
@@ -195,6 +206,8 @@ function injectStyle() {
 // HTML-safe text
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0').slice(-6);
+// the Settings button: a small gold gear (20 Nov polish; it was the word "Settings" in a box)
+const GEAR = '<svg viewBox="0 0 24 24" aria-label="Settings" role="img"><path d="M12 8.2A3.8 3.8 0 1 0 12 15.8A3.8 3.8 0 1 0 12 8.2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.3 2.5H13.7L14.2 5.1L16.1 6L18.4 4.6L20.4 6.6L19 8.9L19.9 10.8L22.5 11.3V14.7L19.9 15.2L19 17.1L20.4 19.4L18.4 21.4L16.1 20L14.2 20.9L13.7 23.5H10.3L9.8 20.9L7.9 20L5.6 21.4L3.6 19.4L5 17.1L4.1 15.2L1.5 14.7V11.3L4.1 10.8L5 8.9L3.6 6.6L5.6 4.6L7.9 6L9.8 5.1Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 const CORNERS = '<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>';
 
 export class DomHud {
@@ -215,11 +228,11 @@ export class DomHud {
     this.title = el('abs title cinzel');
     this.strip = el('abs');
     this.list = el('abs');
-    this.turnp = el('fp turnp');
-    this.settingsBtn = el('fp btn tap cinzel');
+    this.turnp = el('fp fl turnp');
+    this.settingsBtn = el('btn tap gear');
     this.hint = el('abs hint');
     this.card = el('fp card tap');
-    this.skill = el('fp skill');
+    this.skill = el('fp fl skill');
     this.side = el('fp menu');
     this.menu = el('fp menu');
     this.pill = el('fp pill tap');
@@ -583,10 +596,18 @@ export class DomHud {
     this.box(this.skill, L.x, L.y, sc.lay.skillW, sc.skillPanelH);
     this.html('skill', this.skill, id + '|' + sc.skillPanelH + '|' + sc.lay.skillW, () => {
       const k = skillWords(id);
-      const rows = k.grid, cols = Math.max(...rows.map((r) => r.length));
-      const cell = 'calc(var(--u)*' + Math.max(4, Math.floor(30 / Math.max(3, rows.length, cols))) + ')';
+      // the area as a small grid of ground tiles: at least 3 by 3, the skill's own shape in the middle, so even a single
+      // target shows as one lit tile among dim ones (20 Nov polish)
+      let rows = k.grid, cols = Math.max(...rows.map((r) => r.length));
+      const side = Math.max(3, rows.length, cols);
+      if (rows.length < side || cols < side) {
+        const top = Math.floor((side - rows.length) / 2), left = Math.floor((side - cols) / 2);
+        rows = Array.from({ length: side }, (_, y) => [...'.'.repeat(side)].map((_c, x) => { const r = rows[y - top]; return r && r[x - left] !== undefined ? r[x - left] : '.'; }).join(''));
+        cols = side;
+      }
+      const cell = 'calc(var(--u)*' + Math.max(3.5, Math.floor(26 / side * 2) / 2) + ')';
       const cells = rows.map((r) => [...r.padEnd(cols, '.')].map((c) => (c === 'x' ? '<i style="background:' + k.color + ';box-shadow:0 0 4px ' + k.color + '"></i>' : c === 'c' ? '<i class="c"></i>' : '<i></i>')).join('')).join('');
-      return CORNERS + '<div class="top"><div class="em" style="width:calc(var(--u)*30);height:calc(var(--u)*30)"><span class="ring" style="background:radial-gradient(circle,' + k.color + '90,' + k.color + '00 70%)"></span><img src="' + this.uiUrl('emblem_' + emblemFor(id)) + '" alt=""></div>'
+      return CORNERS + '<div class="top"><div class="em" style="width:calc(var(--u)*28);height:calc(var(--u)*28)">' + skillIconSvg(skillElement(id), 'calc(var(--u)*28)') + '</div>'
         + '<div class="nm"><div class="n fit" style="font-size:var(--f-name);font-weight:700">' + esc(k.name) + '</div><div class="dim" style="font-size:var(--f-small)">MP ' + (k.mp || 0) + '</div></div>'
         + '<div class="grid" style="grid-template-columns:repeat(' + cols + ',' + cell + ');grid-auto-rows:' + cell + '">' + cells + '</div></div>'
         + '<div class="foot" style="font-size:var(--f-small)"><span style="color:#d8c8a4">' + esc(k.area) + '</span>' + (k.effect ? '<span style="color:#7a6848">|</span><span class="fit" style="color:' + k.color + ';flex:1;min-width:0">' + esc(k.effect) + '</span>' : '') + '</div>';
@@ -624,7 +645,7 @@ export class DomHud {
     this.box(el, cont.x, cont.y, size.w, size.h);
     el.style.transform = cont.scaleX !== 1 || cont.scaleY !== 1 ? 'scale(' + cont.scaleX + ',' + cont.scaleY + ')' : '';
     el.style.opacity = String(cont.alpha);
-    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.iconName, r.ringColor, r.x, r.y, r.w, r.h].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin;
+    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.el, r.iconName, r.ringColor, r.x, r.y, r.w, r.h].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin;
     this.html(name, el, key, () => {
       let h = CORNERS;
       if (withGrip) {
@@ -637,7 +658,7 @@ export class DomHud {
         const d = Math.round((r.iconSize || 13 * sc.lay.px) * k * 1.25);
         const ring = r.ringColor !== null && r.ringColor !== undefined && r.emblem ? '<span class="ring" style="background:radial-gradient(circle,' + hex(r.ringColor) + 'cc,' + hex(r.ringColor) + '00 72%)"></span>' : '';
         h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="left:' + Math.round(r.x * k) + 'px;top:' + Math.round(r.y * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
-          + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + ring + (icon ? '<img src="' + icon + '" alt="">' : '') + '</span>'
+          + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + (r.el ? skillIconSvg(r.el, d) : ring + (icon ? '<img src="' + icon + '" alt="">' : '')) + '</span>'
           + '<span class="wd fit" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
       });
       return h;
@@ -671,7 +692,7 @@ export class DomHud {
     const ww = L.infoW;
     const x = L.portrait ? t.x : (L.W - ww) / 2;
     this.box(this.hint, x, t.y, ww);
-    this.hint.style.opacity = String(Math.min(1, t.alpha / 0.85));
+    this.hint.style.opacity = String(Math.min(1, t.alpha / 0.85) * 0.8); // (fainter, 20 Nov polish)
     this.hint.style.textAlign = L.portrait ? 'left' : 'center';
     this.hint.style.fontSize = 'var(--f-mid)';
     this.html('hint', this.hint, t.text, () => esc(t.text).replace(/\n/g, '<br>'));
@@ -684,8 +705,7 @@ export class DomHud {
     this.show(this.settingsBtn, !!g);
     if (g) {
       this.box(this.settingsBtn, g.x, g.y, g.w, g.h);
-      this.settingsBtn.style.fontSize = 'var(--f-small)';
-      this.html('setbtn', this.settingsBtn, 'Settings', () => CORNERS + 'Settings');
+      this.html('setbtn', this.settingsBtn, 'gear', () => GEAR);
     }
     const open = !!(sc.settingsSheet && sc.settingsSheet.visible);
     this.show(this.sheetBox, open);
@@ -694,7 +714,7 @@ export class DomHud {
     const labels = (sc.settingsRows || []).map((l) => l.text);
     const L = sc.lay;
     const w = Math.min(L.W - 2 * L.m, L.px * 300);
-    this.html('sheet', this.sheetBox, labels.join('|') + '|' + w, () => '<div class="veil"></div><div class="fp sheet" style="left:50%;top:50%;transform:translate(-50%,-50%);width:' + Math.round(w * this.k) + 'px">' + CORNERS + '<h2 class="cinzel" style="font-size:var(--f-big)">SETTINGS</h2>'
+    this.html('sheet', this.sheetBox, labels.join('|') + '|' + w, () => '<div class="veil"></div><div class="fp full sheet" style="left:50%;top:50%;transform:translate(-50%,-50%);width:' + Math.round(w * this.k) + 'px">' + CORNERS + '<h2 class="cinzel" style="font-size:var(--f-big)">SETTINGS</h2>'
       + labels.map((t, i) => '<div class="opt" data-opt="' + i + '" style="font-size:var(--f-mid)">' + esc(t) + '</div>').join('') + '</div>');
   }
 
