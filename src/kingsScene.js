@@ -246,7 +246,7 @@ export const kingMethods = {
       }
     }
     if (this.relayQueue && (path.length > 0 || (fall && fall.slam)) && loser.hp > 0) this.relayQueue.push({ unit: loser, by: puller });
-    if (path.length > 0 || fall) loser.knockPending = true;
+    if (path.length > 0 || fall) { loser.knockPending = true; loser.pushedFrom = from; } // drawn on its old tile until the pull is drawn (1.68)
     return { from, path, fall };
   },
 

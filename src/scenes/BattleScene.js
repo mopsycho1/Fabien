@@ -1965,6 +1965,7 @@ export default class BattleScene extends Phaser.Scene {
     // the turn being played. (Tests switch it off with window.__noSave.)
     if (!(typeof window !== 'undefined' && window.__noSave)) writeSave(this);
 
+    for (const u of this.units) if (u.knockPending && !u.knock) u.knockPending = false; // (a push never drawn: its body goes by its tile again, 1.68)
     this.turnCount++;
     this.activeUnit = startNextTurn(this.units);
     clearOffBalance(this.activeUnit); // it has found its footing again
@@ -4512,7 +4513,7 @@ export default class BattleScene extends Phaser.Scene {
     const place = () => {
       const v = attacker.view;
       if (!v || !v.active || attacker.knock) return;
-      const home = tileToScreen(attacker.col, attacker.row);
+      const home = this.bodyHome(attacker);
       v.setPosition(home.x + ux * reach.d, home.y + uy * reach.d * 0.5);
     };
     this.tweens.add({
@@ -4619,10 +4620,20 @@ export default class BattleScene extends Phaser.Scene {
     const o = { t: 0 };
     const place = () => {
       if (!view.active || unit.knock) return;
-      const home = tileToScreen(unit.col, unit.row);
+      const home = this.bodyHome(unit);
       view.setPosition(home.x + offX * o.t, home.y + offY * o.t);
     };
     this.tweens.add({ targets: o, t: 1, duration, ease, hold, yoyo: true, onUpdate: place, onComplete: () => { o.t = 0; place(); } });
+  }
+
+  // Where a unit's body is drawn from: the middle of its tile. But a push moves the unit on the board at once
+  // (the rules), while its knockback is drawn later (a clash shows the strike first). Until the knockback starts
+  // (unit.knockPending) the body still belongs on the tile it was pushed from. Roadmap 1.68: the lunges and recoils
+  // measured from the NEW tile (13.54), so the body jumped there, then the knockback flew it in from the old one:
+  // it seemed to vanish and reappear where it was sent.
+  bodyHome(unit) {
+    const t = unit.knockPending && unit.pushedFrom ? unit.pushedFrom : unit;
+    return tileToScreen(t.col, t.row);
   }
 
   // Where the middle of a unit's tile is on the board, in pixels.
@@ -5527,7 +5538,7 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
     if (this.relayQueue && (path.length > 0 || (fall && fall.slam)) && loser.hp > 0) this.relayQueue.push({ unit: loser, by: winner }); // Relay Strike may follow
-    if (path.length > 0 || fall) loser.knockPending = true; // showImpact leaves the body to the knockback
+    if (path.length > 0 || fall) { loser.knockPending = true; loser.pushedFrom = from; } // showImpact leaves the body to the knockback; drawn on its old tile till then (1.68)
     return { from, path, fall };
   }
 

@@ -9,7 +9,7 @@
 const KEY = 'fabien.save.v1';
 
 // Fields of a fighter that are pictures or working values, never saved.
-const SKIP = new Set(['view', 'body', 'sprite', 'hpFill', 'plate', 'rims', 'tagRow', 'idleTargets', 'idleTween', 'orderNumber', 'lowGlow', 'knock', 'knockPending', 'plateHold', 'plateUntil', 'shownHp', 'cardFreeAt', 'dodgeToken', 'hidden', 'smokeHidden', 'echoReady', 'wasWeak', 'restY', 'engagement',
+const SKIP = new Set(['view', 'body', 'sprite', 'hpFill', 'plate', 'rims', 'tagRow', 'idleTargets', 'idleTween', 'orderNumber', 'lowGlow', 'knock', 'knockPending', 'pushedFrom', 'plateHold', 'plateUntil', 'shownHp', 'cardFreeAt', 'dodgeToken', 'hidden', 'smokeHidden', 'echoReady', 'wasWeak', 'restY', 'engagement',
   // sizes worked out from the pictures when the battle is built
   'artScale', 'baseScale', 'frameScale', 'topY', 'centerY', 'hitRadius', 'bodyHalfWidth', 'ringColor', 'hasEnchantedArt']);
 
