@@ -328,8 +328,10 @@ export default class BattleScene extends Phaser.Scene {
     this.loadClashArt(); // his clash banners, in the background (roadmap 8.15)
     // A small gold diamond floats over the unit whose turn it is (roadmap 8.4)
     this.activeMarker = this.add.graphics().setDepth(77);
-    this.activeMarker.fillStyle(GOLD, 1).fillPoints([{ x: 0, y: -9 }, { x: 7, y: 0 }, { x: 0, y: 9 }, { x: -7, y: 0 }], true);
-    this.activeMarker.lineStyle(2, 0x2a1a0c, 1).strokePoints([{ x: 0, y: -9 }, { x: 7, y: 0 }, { x: 0, y: 9 }, { x: -7, y: 0 }], true);
+    // 20 Nov polish (his mock-up): a small gold arrow pointing down at the fighter whose turn it is (it was a diamond)
+    const ARROW = [{ x: -7, y: -6 }, { x: 7, y: -6 }, { x: 0, y: 7 }];
+    this.activeMarker.fillStyle(GOLD, 1).fillPoints(ARROW, true);
+    this.activeMarker.lineStyle(1.5, 0x2a1a0c, 0.9).strokePoints(ARROW, true);
     this.markerBob = { v: 0 };
     this.tweens.add({ targets: this.markerBob, v: 1, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     // The phone was turned or the window resized (layout.js): lay everything out again
@@ -503,7 +505,7 @@ export default class BattleScene extends Phaser.Scene {
     // On a wide screen the 9 by 9 board showed whole with tiles about 130 real pixels wide (fighters 99 to 127
     // pixels tall, checklist E1). The 11 by 11 cavern (roadmap 14.2) would shrink them to fit, so a wide
     // screen keeps that tile size and follows the unit too; the wheel or the little map shows the whole board.
-    const MIN_TILE = portrait ? 88 : 130;
+    const MIN_TILE = portrait ? 104 : 130; // (20 Nov polish: on a phone the camera sits a little closer, 104 was 88, now the HUD takes less room)
     this.follow = mapData.camera === 'follow';
     const want = MIN_TILE / (TILE_WIDTH * shown);
     this.playZoom = this.follow ? Math.min(2.2, Math.max(zoom, want)) : zoom;

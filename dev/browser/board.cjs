@@ -29,7 +29,7 @@ const { openBattle } = require('./lib/play.cjs');
     });
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${out}/${prefix}_${view}_whole.png` });
-    const ok = errors.length === 0 && fit.fits && fit.tile >= (view === 'phone' ? 88 : 125);
+    const ok = errors.length === 0 && fit.fits && fit.tile >= (view === 'phone' ? 100 : 125);
     info.fit = fit;
     if (!ok) bad++;
     console.log((ok ? 'PASS ' : 'FAIL ') + view + ' ' + JSON.stringify(info) + (errors.length ? ' errors: ' + errors.join(' | ') : ''));
