@@ -58,6 +58,8 @@ VIEWS = {
     'alagara_down': {'downLeft': 3, 'upLeft': 1},
     'alagara_fury': {'downLeft': 1, 'upLeft': 3},
     'alagara_swift': {'downLeft': 1, 'upLeft': 3},
+    'alagara_swift_stand': {'downLeft': 3, 'upLeft': 1},   # 1 Nov calm stances (1.72): 3 faces down-left, 1 up-left
+    'alagara_fury_stand': {'downLeft': 3, 'upLeft': 1},
     'alagara_claim_reach': {'downLeft': 2, 'upLeft': 2},
     'alagara_claim_snatch': {'downLeft': 1, 'upLeft': 1},
     'alagara_claim_store': {'downLeft': 1, 'upLeft': 1},
@@ -85,6 +87,8 @@ HAND = {
     'alagara_down': 1.2,         # lying: the head reads small; a body as long as he is tall
     'alagara_mantle_swift': 1.25,
     'alagara_gale_swift': 1 / 0.74,   # reads 0.39: his white Swift hair hides the head; same set as the Fury Gale Cut (0.74)
+    'alagara_fury_stand': 1 / 0.55,   # 1 Nov photo, half the size of his sheets; the head reads 0.55 ("_stand" would count it as his base)
+    'alagara_swift_stand': 1 / 0.55,  # the same 1 Nov set; the white hair hides the head (reads 0.46)
     'alagara_swift': 1 / 0.66,        # reads 0.61: the white hair again; the Fury sheet of the same set reads 0.68    # reads 0.60: the hand and mask cover the face; upright, drawn at 0.78 of the standing height
 }
 
@@ -142,7 +146,7 @@ def king(prefix):
                 cl, box = parts[fig - 1]
                 keep = 0.02 if sheet.endswith('_down') else 0.15
                 final_cut(cl, box, OUT + name, base * k, keep=keep)
-                if sheet in ('alagara_fury', 'alagara_swift', 'alagara_mantle_swift', 'alagara_claim_store'): wipe_dust(OUT + name)
+                if sheet in ('alagara_fury', 'alagara_swift', 'alagara_swift_stand', 'alagara_fury_stand', 'alagara_mantle_swift', 'alagara_claim_store'): wipe_dust(OUT + name)
             out[facing] = {'file': name, 'originX': feet_x(OUT + name)}
         sets[sheet[len(prefix) + 1:]] = out
     return sets
@@ -186,10 +190,11 @@ if __name__ == '__main__':
             'chant': a['mantle_prep'], 'cast': a['mantle_cast'], 'gale': a['gale'],
             'hurt': a['hurt'], 'knocked': a['hurt'], 'down': a['down'],
         },
-        'buffed': {'fury': a['fury'], 'swiftness': a['swift']},
+        # standing under a Verse: his calm 1 Nov stances, not the attack pictures (1.72)
+        'buffed': {'fury': a['fury_stand'], 'swiftness': a['swift_stand']},
         'buffPoses': {
-            'fury': {'attack': a['fury'], 'gale': a['gale_fury'], 'ready': a['fury']},
-            'swiftness': {'attack': a['swift'], 'gale': a['gale_swift'], 'cast': a['mantle_swift'], 'chant': a['mantle_swift'], 'ready': a['swift']},
+            'fury': {'attack': a['fury'], 'gale': a['gale_fury'], 'ready': a['fury_stand']},
+            'swiftness': {'attack': a['swift'], 'gale': a['gale_swift'], 'cast': a['mantle_swift'], 'chant': a['mantle_swift'], 'ready': a['swift_stand']},
         },
         'auraPainted': ['fury', 'swiftness'],
         'clash': {'file': 'clash/alagara_clash.webp', 'tip': 0.894, 'name': {'file': 'clash/alagara_clash_name.webp', 'x': 0.535, 'y': 0.0267}},

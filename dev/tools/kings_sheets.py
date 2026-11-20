@@ -39,6 +39,9 @@ SHEETS = {
     'alagara_down':   (ALA + 'Fallen Warrior Isometric Study Sheet.png', 'row'),
     'alagara_fury':   (ALA + 'Attacking under the effects of fury.png', 'row'),
     'alagara_swift':  (ALA + 'Attacking under the effects of swift.png', 'row'),
+    # his calm stances per Verse (1 Nov 08:52 Swift mode, 09:18 flaming hair = Fury; roadmap 1.72): standing, not attacking
+    'alagara_swift_stand': (OLD + '00000919-PHOTO-2026-11-01-08-52-09.jpg', 'row'),
+    'alagara_fury_stand':  (OLD + '00000922-PHOTO-2026-11-01-09-18-36.jpg', 'row'),
     'alagara_claim_reach': (ALA + 'Skill and Effects- claim/1-reach.png', 'grid'),
     'alagara_claim_snatch': (ALA + 'Skill and Effects- claim/2-snatch.png', 'grid'),
     'alagara_claim_store': (ALA + 'Skill and Effects- claim/3-store.png', 'grid'),

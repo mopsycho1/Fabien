@@ -187,6 +187,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check('under Fury he stands in his Fury picture', f && /alagara_fury/.test(f.key), f && f.key);
     const s = A.standingFrame('h5', 'downLeft', true, 'swiftness');
     check('under Swiftness in his Swift picture', s && /alagara_swift/.test(s.key), s && s.key);
+    // 1.72: standing is his calm Verse stance (1 Nov sheets), never the attack picture; the attack keeps its own
+    check('1.72: standing under Fury is his calm Fury stance, not the attack', /alagara_fury_stand/.test(f.key), f.key);
+    check('1.72: standing under Swiftness is his calm Swift stance, not the attack', /alagara_swift_stand/.test(s.key), s.key);
+    for (const facing of ['downLeft', 'downRight', 'upLeft', 'upRight']) for (const v of ['fury', 'swiftness']) {
+      const k = A.standingFrame('h5', facing, false, v).key;
+      if (!/_stand_/.test(k)) check('1.72: ' + v + ' ' + facing + ' stands calm', false, k);
+    }
+    St.applyBuff(a, 'swiftness'); b.showStanding(a);
+    check('1.72: in the battle he stands in it (Swiftness)', /alagara_swift_stand/.test(a.sprite.texture.key), a.sprite.texture.key);
+    const atk = A.poseFrame('h5', 'attack', 'left', 'downLeft');
+    check('...and his Swift attack is still the attack picture', atk && /alagara_swift_f/.test(atk.key), atk && atk.key);
   }
 
   // 11. the skills list: more than three skills go on pages (More)

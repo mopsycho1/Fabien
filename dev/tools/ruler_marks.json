@@ -186,7 +186,9 @@
       "alagara_ready": 1.0,
       "alagara_stand": 1.0,
       "alagara_strike": 1.0,
-      "alagara_swift": 1.0
+      "alagara_swift": 1.0,
+      "alagara_swift_stand": 1.0,
+      "alagara_fury_stand": 1.0
     },
     "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
   }
