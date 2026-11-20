@@ -11,6 +11,8 @@ import { preloadUiArt } from './hud.js';
 import { classPlateFiles } from './nameplate.js';
 import { fieldedEntries } from './lineup.js';
 import { artUrl } from './artUrl.js';
+import art from './data/art.json';
+import { allCharacters } from './lineup.js';
 
 // ids: the fighters' ids. Everything not yet in the cache is queued (Phaser skips a key it already has).
 export function queueBattleArt(scene, ids) {
@@ -20,6 +22,14 @@ export function queueBattleArt(scene, ids) {
   preloadSpellArt(scene); // lightning and Verse effects from the effect sheets
   preloadUiArt(scene); // Suleiman's battle-screen frames, buttons and icons
   for (const f of classPlateFiles()) scene.load.image(f.key, artUrl('./' + f.file)); // his class nameplates (M6)
+}
+
+// The select's own pictures: the portraits (SelectScene.preload and the background downloader both call this).
+export function queueSelectArt(scene) {
+  for (const c of allCharacters()) {
+    const file = art[c.id] && art[c.id].portrait;
+    if (file && !scene.textures.exists('sel:' + c.id)) scene.load.image('sel:' + c.id, artUrl('./art/' + file));
+  }
 }
 
 // The fighters a battle will use, by id (the same list the battle builds its units from).

@@ -8,7 +8,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const U = (l) => b.units.find((u) => u.label === l);
   const H = require(path.join(__dirname, '../../src/data/maps/yoba.json')).heights; // the real map
   const put = (u, c, r) => { u.col = c; u.row = r; u.view.setPosition(360 + (c - r) * 43, 400 + (c + r) * 27 - H[r][c] * 22); u.view.setDepth((c + r) * 2 + 1); };
-  const tap = (x, y) => b.input.emit('pointerdown', { x, y }, []);
+  // (the camera works out where a tap is in the world from its matrix, which is only refreshed when a frame is drawn; a camera that had just settled at zoom 1 still carried the matrix of a nearly-1 zoom, so a tap landed 3 pixels off and this test failed about half the runs: refresh the matrix first)
+  const tap = (x, y) => { b.cameras.main.preRender(); b.input.emit('pointerdown', { x, y }, []); };
   const mid = (u) => ({ x: u.view.x, y: u.view.y - u.centerY });
   const park = () => { put(U('H1'), 0, 7); put(U('H2'), 7, 7); put(U('E2'), 7, 0); };
   let picks = 0, tries = 0, misses = [];

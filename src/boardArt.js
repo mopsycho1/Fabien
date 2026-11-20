@@ -156,7 +156,12 @@ export function preloadBoardArt(scene) {
   // Suleiman's 8 looping flame frames (roadmap 6.41), for every brazier and lamp
   for (let i = 1; i <= FLAME_FRAMES; i++) scene.load.image('flame:' + i, artUrl('./art/fx/flame_f' + i + '.png'));
   // the waterfall loops (roadmap 18.3): 12 frames side by side in one picture each
-  for (const [name, w, h] of WATER_SHEETS) scene.load.spritesheet('water:' + name, artUrl('./art/fx/' + name + '.png'), { frameWidth: w, frameHeight: h });
+  // (18.48: the Blender loops are only shown with ?water=blender, so the game does not fetch them otherwise: 0.5 MB)
+  const blender = waterStyle() === 'blender' || (typeof window !== 'undefined' && window.__loadBlenderWater); // (the flag is for the n56 test, which looks at both styles)
+  for (const [name, w, h] of WATER_SHEETS) {
+    if (!blender && (name === 'waterfall_tall' || name === 'waterfall')) continue;
+    scene.load.spritesheet('water:' + name, artUrl('./art/fx/' + name + '.png'), { frameWidth: w, frameHeight: h });
+  }
 }
 
 const FLAME_FRAMES = 8;

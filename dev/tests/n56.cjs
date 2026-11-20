@@ -6,6 +6,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
   const { w, game, errors } = await start();
+  w.__loadBlenderWater = true; // the game only fetches the Blender loops when asked for them (18.48); this test looks at both styles
   const b = await battle(game); await sleep(500);
   const G = w.__grid;
   check('the three Blender water loops are loaded, 12 frames each', ['waterfall_tall', 'waterfall', 'splash_ring'].every((n) => game.textures.exists('water:' + n) && game.textures.get('water:' + n).frameTotal - 1 === 12), ['waterfall_tall', 'waterfall', 'splash_ring'].map((n) => game.textures.exists('water:' + n) && game.textures.get('water:' + n).frameTotal - 1).join());

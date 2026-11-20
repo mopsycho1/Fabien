@@ -1,6 +1,6 @@
 // Roadmap 18.47 (20 Nov): faster loading. The title loads nothing, the select loads only portraits, and Start battle
 // loads just the picked fighters' pictures (and the shared board, effects and HUD pictures) behind a loading bar.
-// Pictures are fetched as lossless WebP twins (the jsdom canvas cannot read WebP, so the test browser asks for PNG).
+// Pictures are fetched as WebP twins (lossy at quality 90 since 18.48) (the jsdom canvas cannot read WebP, so the test browser asks for PNG).
 // Run:  node n92.cjs
 const { start } = require('./boot.cjs');
 const { execSync } = require('child_process');

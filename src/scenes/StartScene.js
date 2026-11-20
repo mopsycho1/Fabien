@@ -1,3 +1,4 @@
+import { startBackgroundDownload } from '../prefetch.js';
 import { readSave } from '../saveGame.js';
 import Phaser from 'phaser';
 import { GAME_WIDTH } from '../config.js';
@@ -56,6 +57,7 @@ export default class StartScene extends Phaser.Scene {
     // with a loading bar (BattleScene.preload, src/battleLoad.js). Before 18.47 the title fetched all
     // 1050 files (39 MB) first.
     this.artReady = true;
+    startBackgroundDownload(); // the battle's pictures come down quietly while the player reads on (18.48)
     this.loadSeconds = 0;
     if (this.offerContinue()) prompt.setText('or tap anywhere else for a new game');
     pulse.resume();

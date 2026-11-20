@@ -89,6 +89,7 @@ import unitData from '../data/units.json'; // the list of units lives in its own
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
 import { queueBattleArt, fighterIds, showLoadBar } from '../battleLoad.js';
+import { pauseBackgroundDownload } from '../prefetch.js';
 import { artUrl } from '../artUrl.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
 import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
@@ -180,6 +181,7 @@ export default class BattleScene extends Phaser.Scene {
   // Phaser calls preload() before create(): the pictures of the fighters picked plus the board,
   // effects and HUD pictures load here, with a loading bar (18.47, src/battleLoad.js).
   preload() {
+    pauseBackgroundDownload(); // the loader takes over from the quiet download (18.48)
     const asked = this.mapName;
     queueBattleArt(this, fighterIds(MAPS[asked], this.chosenLineUp));
     showLoadBar(this);
