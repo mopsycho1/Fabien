@@ -68,6 +68,10 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     }
     if (!b.__engageCounted) { b.__engageCounted = true; const origEngage = b.performEngage.bind(b);
       b.performEngage = (a, t, d) => { if (a.side === 'enemy') tally.enemyEngages++; return origEngage(a, t, d); }; }
+    // Gadara's Singularity (10.32): how many went off and how many were broken while charging
+    if (!b.__singCounted && b.resolveSingularity) { b.__singCounted = true; const r = b.resolveSingularity.bind(b), k = b.breakChannel.bind(b);
+      b.resolveSingularity = (c, d) => { tally.singularityWentOff = (tally.singularityWentOff || 0) + 1; return r(c, d); };
+      b.breakChannel = (u, why) => { if (u && u.channel) tally.singularityBroken = (tally.singularityBroken || 0) + 1; return k(u, why); }; }
     const waitIdle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 6000) await sleep(5); };
     const alive = (s) => b.units.filter((u) => u.alive && u.side === s);
     const t0 = Date.now(); let lastSig = '', lastChange = Date.now(), stuck = false;
