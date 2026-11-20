@@ -5140,7 +5140,8 @@
         "footX": 0.496
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "portrait": "gadara_face.png"
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three looks). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\"); the Echo shows only in the interface.",
@@ -5593,6 +5594,7 @@
         "footX": 0.416
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "portrait": "alagara_face.png"
   }
 }
