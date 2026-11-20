@@ -9010,13 +9010,16 @@ export default class BattleScene extends Phaser.Scene {
   // Cancels whatever the player was choosing and refreshes the screen.
   // The pose a skill is held in while its target is being chosen (roadmap 13.12):
   // Gaha draws the javelin back, Layra gathers with her element rising, Tayo
-  // gathers the orb. Skills without a charge picture stay standing.
+  // gathers the orb, Gadara puts his mask on (10.38). Skills without a charge picture stay standing.
   chargePoseFor(unit, spell) {
     const has = (p) => this.hasPose(unit, p);
     if (spell.kind === 'javelin') return has('sonicWindup') ? 'sonicWindup' : null;
     if (spell.kind === 'throw' || spell.kind === 'toss') return has('throw') ? 'throw' : null;
     if (spell.kind === 'elementBlast') return has('blastCharge') ? 'blastCharge' : null;
     if (['buff', 'hex', 'enchant'].includes(spell.kind)) return has('chant') ? 'chant' : null;
+    // Gadara's Singularity (10.38): the mask goes on as soon as the player picks it, and stays on through the confirm (the cast then
+    // keeps it as his masked look). The AI has no choosing step, so it only ever showed the cast's own mask; the player never saw it.
+    if (spell.kind === 'singularity') return has('mask') ? 'mask' : null;
     return null;
   }
 

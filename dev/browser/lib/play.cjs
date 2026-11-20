@@ -9,6 +9,7 @@ const { chromium } = require('playwright');
 // Gives back { browser, page, errors }; errors fills with every page error.
 //   opts.dsf      : the desktop's pixel ratio (2 = a Retina screen; 18.44)
 //   opts.everyone : true puts all seven fighters on the board (nobody sits out), for filming every skill
+//   opts.sides    : put characters on the other side, { e5: 'hero' } puts Gadara on the heroes' side (10.38)
 //   opts.select   : true stops at the character select (dev/browser/select.cjs); otherwise it is skipped
 //   opts.water    : 'drawn' (Suleiman's waterfall) or 'blender' (the Blender loops), to compare them
 exports.openBattle = async function openBattle(view, opts = {}) {
@@ -22,6 +23,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
   if (opts.noKings) await page.addInitScript(() => { window.__sitOut = ['h5', 'e5']; }); // a check written for the line-up before the kings (Phase 10)
   // the character select (18.30) goes straight on with the remembered line-up, unless a check is about it (opts.select)
   if (!opts.select) await page.addInitScript(() => { window.__skipSelect = true; });
+  if (opts.sides) await page.addInitScript((sd) => { window.__sides = sd; }, opts.sides); // put a character on the other side: { e5: 'hero' } (10.38)
   if (opts.ringSet) await page.addInitScript((r) => { window.__ringSet = r; }, opts.ringSet); // team ring colours to try (boardRead.js)
   if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)
   const errors = [];
