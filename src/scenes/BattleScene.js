@@ -287,7 +287,8 @@ export default class BattleScene extends Phaser.Scene {
     // the nearest free tile to its side's start tiles, so it lines up with its team.
     const taken = new Set(Object.values(mapData.starts || {}).map((t) => t[0] + ',' + t[1]));
     const startAt = (entry) => {
-      const at = mapData.starts && mapData.starts[entry.id];
+      const swapped = window.__sides && window.__sides[entry.id]; // (a balance run moved it to the other side: no start tile of its own there)
+      const at = !swapped && mapData.starts && mapData.starts[entry.id];
       if (at) return { ...entry, col: at[0], row: at[1] };
       const mine = unitData.filter((u) => u.side === entry.side && mapData.starts && mapData.starts[u.id]).map((u) => mapData.starts[u.id]);
       if (!mine.length) return entry;

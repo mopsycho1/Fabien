@@ -155,6 +155,13 @@ module.exports = function makeBrain(w, tally) {
           const id = u.spells.includes('infuse') ? 'infuse' : E.styleOf(inClash) === 'evasion' ? 'swiftness' : E.styleOf(inClash) === 'overpower' ? 'fury' : 'stone';
           if (await cast(id, inClash)) { await stepBack(); return; }
         }
+        // King Alagara (Phase 10) is weak bare and strong blessed: fill his two Verse slots (Fury, then Swiftness)
+        const king = friends.find((f) => f.attune && dist(u, f) <= 3 && !(f.status.buff && f.attune.echo));
+        if (king && u.mp >= 3) {
+          const have = [king.status.buff && king.status.buff.id, king.attune.echo && king.attune.echo.id];
+          const id = u.spells.includes('infuse') ? 'infuse' : !have.includes('fury') ? 'fury' : 'swiftness';
+          if (u.spells.includes(id) && await cast(id, king)) { note('bot bless king'); await stepBack(); return; }
+        }
         // Infuse heals too: a hurt friend in reach
         if (u.spells.includes('infuse')) {
           const hurt = friends.filter((f) => dist(u, f) <= 3 && f.hp <= f.maxHp * 0.6).sort((a, c) => a.hp - c.hp)[0];
