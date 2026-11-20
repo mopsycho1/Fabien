@@ -42,6 +42,30 @@ const { openBattle } = require('./lib/play.cjs');
           return { text: t.textContent.slice(0, 40), over };
         });
         check(view + ': a mouse resting on a row shows its tooltip in HTML, not over the menu', tip && !tip.over && tip.text.length > 3, JSON.stringify(tip));
+        // 1.74 (Baiyee 20 Nov): the tooltip stays for as long as the mouse stays on the row (it used to go after 3 seconds),
+        // and Esc puts it away
+        await sleep(3300);
+        const stays = await page.evaluate(() => { const t = document.querySelector('#fabien-hud .tipp'); return !!(t && t.getClientRects().length); });
+        check(view + ': the tooltip is still open 4 seconds later while the mouse rests on the row (1.74)', stays);
+        await page.keyboard.press('Escape'); await sleep(200);
+        const escGone = await page.evaluate(() => { const t = document.querySelector('#fabien-hud .tipp'); return !(t && t.getClientRects().length); });
+        check(view + ': Esc puts the tooltip away (1.74)', escGone);
+        await page.mouse.move(5, 450); await sleep(300);
+        // it comes after about 300 ms (not before 200, there by 600) and goes when the mouse leaves
+        await page.mouse.move(row.x - 2, row.y); await page.mouse.move(row.x, row.y); await sleep(150);
+        const early = await page.evaluate(() => { const t = document.querySelector('#fabien-hud .tipp'); return !!(t && t.getClientRects().length); });
+        await sleep(450);
+        const late = await page.evaluate(() => { const t = document.querySelector('#fabien-hud .tipp'); return !!(t && t.getClientRects().length); });
+        check(view + ': the tooltip comes after a short hover, not at once (1.74)', !early && late, 'at 150 ms ' + early + ', at 600 ms ' + late);
+        await page.mouse.move(5, 450); await sleep(300);
+        const left = await page.evaluate(() => { const t = document.querySelector('#fabien-hud .tipp'); return !(t && t.getClientRects().length); });
+        check(view + ': the tooltip goes when the mouse leaves the row (1.74)', left);
+        // 1.75: the gold pointer follows the mouse over every row of a menu (it used to stay on the first row)
+        const rowsBox = await page.evaluate(() => { const ms = [...document.querySelectorAll('#fabien-hud .menu')].filter((m) => m.getClientRects().length); const m = ms[ms.length - 1]; return [...m.querySelectorAll('.mrow')].map((r) => { const b = r.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2, off: r.classList.contains('off') }; }); });
+        const curNow = () => page.evaluate(() => { const ms = [...document.querySelectorAll('#fabien-hud .menu')].filter((m) => m.getClientRects().length); const m = ms[ms.length - 1]; return [...m.querySelectorAll('.mrow')].findIndex((r) => r.classList.contains('cur')); });
+        let followed = true; const seenAt = [];
+        for (let i = rowsBox.length - 1; i >= 0; i--) { if (rowsBox[i].off) continue; await page.mouse.move(rowsBox[i].x, rowsBox[i].y, { steps: 4 }); await sleep(120); const c = await curNow(); seenAt.push(i + '>' + c); if (c !== i) followed = false; }
+        check(view + ': the pointer follows the mouse over every row, not stuck on the first (1.75)', followed && rowsBox.length > 2, seenAt.join(' '));
         await page.mouse.move(5, 450); await sleep(300);
       }
       // a clash: the hero next to a foe, Engage, and the banner plays. A clash can end in its first exchange,
@@ -101,7 +125,7 @@ const { openBattle } = require('./lib/play.cjs');
           const el = document.querySelector('#fabien-hud .clash');
           if (!el) return null;
           const r = el.getBoundingClientRect();
-          const skull = el.querySelector('img[src*="clash_skull"]');
+          const skull = [...el.querySelectorAll('img')].pop(); /* the skull is the last picture in the meter (its src is a blob address since 18.48) */
           return { dx: Math.abs(r.left - want.x), dy: Math.abs(r.top - want.y), skull: skull ? Math.round(skull.getBoundingClientRect().height) : 0, canvasDrawn: b.engageMarks.some((o) => o.type === 'Container' && (o.willRender(cam) || o.willRender(b.uiCam))) };
         });
         await page.screenshot({ path: out + '/hud_' + view + '_clash.png' });

@@ -1,5 +1,5 @@
 // 1.65 (Suleiman 17 Nov: "why this mofo heal while we were clashing"): a fighter locked in a clash cannot use items or
-// be healed. Enemy and hero alike: no item handed to or used by a locked fighter, no Herbs on one, no Renewal blessing
+// be healed. Enemy and hero alike: no item handed to or used by a locked fighter, Herbs are allowed on one (1.69), no Renewal blessing
 // on one, and a Renewal already on him does not heal while he is locked (it still counts down).
 // Run on the cavern:  FABIEN_MAP=cavern FABIEN_BENCH= node n79.cjs
 const { start, battle } = require('./boot.cjs');
@@ -36,7 +36,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   I.giveItem(sudeen, 'sheaBalm');
   check('items: Sudeen cannot hand a balm to Gaha while Gaha is locked', !b.itemTargets(sudeen, 'sheaBalm').includes(gaha));
   b.activeUnit = sudeen; b.refreshButtons(); b.onSpellButton(); b.chooseSpell('herbs');
-  check('Herbs: Gaha is not a target while he is locked', !(b.targetsInRange || []).includes(gaha), (b.targetsInRange || []).map((u) => u.id).join(','));
+  /* 1.69: Herbs MAY heal a friend who is locked in a clash (Suleiman 20 Nov); items and Renewal still may not */
+  check('Herbs: Gaha is a target while he is locked (1.69)', (b.targetsInRange || []).includes(gaha), (b.targetsInRange || []).map((u) => u.id).join(','));
   b.cancelMode();
   sudeen.hp = sudeen.maxHp - 10; lock(sudeen, rabdul); put(rabdul, 3, 5);
   check('items: a locked fighter cannot use one on himself', b.itemTargets(sudeen, 'sheaBalm').length === 0);

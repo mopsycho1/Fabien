@@ -234,6 +234,7 @@ export class DomHud {
   }
 
   destroy() {
+    if (this.onMove) window.removeEventListener('pointermove', this.onMove);
     if (this.root) this.root.remove();
     this.root = null;
   }
@@ -302,6 +303,10 @@ export class DomHud {
     for (const t of ['touchstart', 'mousedown']) this.root.addEventListener(t, (e) => e.stopPropagation(), { passive: true });
     // is the mouse over one of the panels? (the root itself lets the mouse through, so only panels see it)
     this.overPanel = false;
+    // where the mouse is (page pixels), for the pointer on the rows (paintCursor); a finger leaves it alone
+    this.mouse = null;
+    this.onMove = (e) => { if (e.pointerType === 'mouse') this.mouse = { x: e.clientX, y: e.clientY, over: !!(e.target && e.target.closest && e.target.closest('#fabien-hud .mrow')) }; };
+    window.addEventListener('pointermove', this.onMove, { passive: true });
     this.root.addEventListener('pointerover', (e) => { if (e.pointerType === 'mouse') this.overPanel = true; });
     this.root.addEventListener('pointerout', (e) => { if (!e.relatedTarget || !this.root.contains(e.relatedTarget)) this.overPanel = false; });
     // a pointer event as Phaser's handlers expect it (x, y in game pixels; a mouse is not a touch)
@@ -320,7 +325,7 @@ export class DomHud {
       panel.addEventListener('pointerover', (e) => {
         const t = e.target.closest('.mrow');
         if (!t || e.pointerType !== 'mouse') return;
-        this.cursor = { panel, i: Number(t.dataset.i) };
+        this.mouse = { x: e.clientX, y: e.clientY, over: true };
         this.paintCursor();
         const r = rows()[Number(t.dataset.i)];
         // the same row, redrawn under a mouse that has not left it, is not a new hover
@@ -627,18 +632,21 @@ export class DomHud {
       });
       return h;
     });
-    // the pointer: on the row the mouse rests on; else, in a list, on its first row that can be used
-    if (this.cursor && this.cursor.panel === el && this.cursor.key !== this.keys[name]) this.cursor = null;
-    if (this.cursor && this.cursor.panel === el) this.cursor.key = this.keys[name];
     this.paintCursor();
   }
 
+  // The gold pointer (11, Baiyee 20 Nov: it stayed on the first row). It is on the row the MOUSE is over, found from
+  // the mouse's real place every frame, so it follows the mouse after a redraw, a page change or a scroll under a
+  // mouse that did not move. Otherwise (touch, keyboard, mouse elsewhere) the row the game itself lit stays lit, and a
+  // list with the main commands beside it starts on its first usable row.
   paintCursor() {
+    const m = this.mouse;
+    const under = m ? document.elementFromPoint(m.x, m.y) : null;
+    const hit = under && under.closest ? under.closest('#fabien-hud .mrow') : null;
     for (const el of [this.menu, this.side]) {
       const rows = el.querySelectorAll('.mrow');
-      let cur = this.cursor && this.cursor.panel === el ? this.cursor.i : -1;
-      // a list (the main commands stand beside it) starts with the pointer on its first usable row
-      if (cur < 0 && el === this.menu && !this.side.classList.contains('hide')) cur = [...rows].findIndex((r) => !r.classList.contains('off'));
+      let cur = hit && el.contains(hit) ? Number(hit.dataset.i) : -1;
+      if (cur < 0 && !(m && m.over) && el === this.menu && !this.side.classList.contains('hide')) cur = [...rows].findIndex((r) => !r.classList.contains('off'));
       rows.forEach((r, i) => r.classList.toggle('cur', i === cur));
     }
   }

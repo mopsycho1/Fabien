@@ -954,7 +954,11 @@ export default class BattleScene extends Phaser.Scene {
     this.pillText = this.add.text(0, 0, '', textStyle(S(17), '#f1e6c8')).setOrigin(0, 0.5);
     this.pillHit = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive({ useHandCursor: true });
     this.pillHit.on('pointerdown', () => {
-      if (this.pill.visible && !this.busy) this.cancelMode();
+      if (!this.pill.visible || this.busy) return;
+      // 1.70: from a skill's or an item's target the tag goes back to that list (its group and page kept)
+      if (this.mode === 'spellTarget' || this.mode === 'huskTile') this.spellBack();
+      else if (this.mode === 'itemTarget') this.itemBack();
+      else this.cancelMode();
     });
     this.pill = keep(dom(this.add.container(0, 0, [this.pillBack, this.pillText, this.pillHit]).setDepth(5).setVisible(false)));
     this.moveButton = this.slots[0];
@@ -3149,7 +3153,9 @@ export default class BattleScene extends Phaser.Scene {
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
-        !(this.healsTarget(unit, id) && u.engagedWith) // no healing a fighter locked in a clash (1.65)
+        // 1.65: no Renewal blessing on a fighter locked in a clash (it does not tick there). 1.69: Herbs may heal a locked
+        // friend (the caster stands free beside him), which 1.65 had blocked by mistake
+        !(spell.kind === 'infuse' && this.healsTarget(unit, id) && u.engagedWith)
     );
     if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
       this.showMessage('Nobody in reach needs healing');
@@ -3283,7 +3289,10 @@ export default class BattleScene extends Phaser.Scene {
 
     // Tapped outside the board: cancel the current choice
     if (!isInsideGrid(col, row)) {
-      this.cancelMode();
+      // 1.70: from a skill's or an item's target, back to that list (its group and page kept)
+      if (this.mode === 'spellTarget' || this.mode === 'huskTile') this.spellBack();
+      else if (this.mode === 'itemTarget') this.itemBack();
+      else this.cancelMode();
       return;
     }
 
@@ -3346,7 +3355,7 @@ export default class BattleScene extends Phaser.Scene {
         else this.previewAttack(target);
         return;
       }
-      this.cancelMode();
+      this.itemBack(); // 1.70: back to the bag, not out of the whole menu
       return;
     }
     if (this.mode === 'item') {
@@ -3365,7 +3374,7 @@ export default class BattleScene extends Phaser.Scene {
         }
         return;
       }
-      this.cancelMode();
+      this.spellBack(); // 1.70: back to the skills list (same group and page), not out of the whole menu
       return;
     }
     // Choosing where Husk slips away to: first tap picks the tile, second casts
@@ -3383,7 +3392,7 @@ export default class BattleScene extends Phaser.Scene {
         }
         return;
       }
-      this.cancelMode();
+      this.spellBack();
       return;
     }
     if (this.mode === 'spell' || this.mode === 'rest') {

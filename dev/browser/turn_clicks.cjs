@@ -268,6 +268,38 @@ async function playView(view) {
     check(s.seen.includes('useItem'), tag + 'an item is used by taps (' + (r ? r.label : 'none') + ')');
     if ((await state()).id === hero3) check(await endTurn(hero3), tag + 'End turn after the item');
 
+    // ----- 1.70: the cancel tag and a tap on empty ground go back to the list, not out of the whole menu -----
+    // (Suleiman 20 Nov on a phone: picking a skill and cancelling sent him back to the main menu every time)
+    s = await heroTurn();
+    if (s) {
+      // (set-up only: Layra's turn, her Blessings list has a group, so "back" has somewhere to go)
+      await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const u = b.units.find((x) => x.name === 'Layra' && x.alive); if (!u) return; b.activeUnit = u; u.hasActed = false; b.busy = false; b.cancelMode(); b.refreshStatus(); b.refreshCard(u); });
+      await sleep(500);
+      await pressRow('Verses'); if (!(await state()).mode.startsWith('spell')) await pressRow('Skills');
+      const group = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const g = b.menuRows.find((r) => r.view.visible && /^Blessings/.test(r.label.text)); return g ? { gx: b.menu.x + (g.x + g.w / 2) * b.menu.scaleX, gy: b.menu.y + (g.y + g.h / 2) * b.menu.scaleY } : null; });
+      if (group) {
+        await press(await screenPoint(group.gx, group.gy)); await sleep(500);
+        const first = await pressFirstEnabled();
+        await press(await screenPoint(first.gx, first.gy)); await sleep(600);
+        let st = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { mode: b.mode, group: b.spellGroup, sel: b.selectedSpell }; });
+        check(st.mode === 'spellTarget' && st.group === 'Blessings', tag + 'a skill picked: the list gives way to the cancel tag (' + JSON.stringify(st) + ')');
+        const tagAt = () => page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return b.pill.visible ? { gx: b.pill.x + b.pillSize.w / 2, gy: b.pill.y + b.pillSize.h / 2 } : null; });
+        const pill = await tagAt();
+        if (pill) await press(await screenPoint(pill.gx, pill.gy));
+        await sleep(600);
+        st = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { mode: b.mode, group: b.spellGroup, sel: b.selectedSpell, shown: b.menu.visible, rows: b.menuRows.filter((r) => r.view.visible).map((r) => r.label.text.split('  ')[0]).join(',') }; });
+        check(st.mode === 'spell' && st.group === 'Blessings' && st.shown && /Swiftness/.test(st.rows), tag + 'the cancel tag goes back to the same list, not to the main menu (1.70) ' + JSON.stringify(st));
+        // the second skill is quick: pick again, then tap empty ground: back to the list again
+        const again = await pressFirstEnabled();
+        if (again) { await press(await screenPoint(again.gx, again.gy)); await sleep(600); }
+        const empty = await screenPoint(8, 8); await press(empty); await sleep(600);
+        st = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { mode: b.mode, group: b.spellGroup, rows: b.menuRows.filter((r) => r.view.visible).map((r) => r.label.text.split('  ')[0]).join(',') }; });
+        check(st.mode === 'spell' && st.group === 'Blessings', tag + 'a tap on empty ground also goes back to the list (1.70) ' + JSON.stringify(st));
+      }
+      await page.evaluate(() => window.__game.scene.getScene('BattleScene').cancelMode());
+      await sleep(300);
+    }
+
     // ----- The grip: drag the menu, and it is remembered -----
     s = await heroTurn();
     if (s) {

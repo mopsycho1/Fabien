@@ -71,7 +71,6 @@ export function showTip(scene, tip, sx, sy) {
   panel.domHidden = true; // drawn by the HTML HUD when there is one (18.44, src/domHud.js)
   scene.ui(panel);
   scene.tip = panel;
-  panel.hideTimer = setTimeout(() => { if (scene.tip === panel) hideTip(scene); }, TIP_MAX_MS); // at most 3 seconds
   return panel;
 }
 
@@ -82,8 +81,10 @@ export function hideTip(scene) {
 // On a computer: a tooltip comes only after the mouse has rested on something for half a second,
 // and goes the moment the mouse leaves (15 Nov). Call hoverTipStart on mouse-over and hoverTipEnd on
 // mouse-out. "get" gives the tip's { title, body } when the time is up.
-export const TIP_HOVER_MS = 500;
-export const TIP_MAX_MS = 3000;
+// 20 Nov (roadmap 1.74, Baiyee): it comes after 300 ms and stays for as long as the mouse stays on that row
+// (it used to go by itself after 3 seconds, before it could be read). It closes when the mouse leaves, when a
+// choice is made (any press), or on Esc. A finger's long press stays until the next tap.
+export const TIP_HOVER_MS = 300;
 export function hoverTipStart(scene, get, x, y) {
   hoverTipEnd(scene);
   scene.hoverTipTimer = setTimeout(() => {

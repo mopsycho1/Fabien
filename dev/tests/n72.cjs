@@ -20,10 +20,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const show = () => { T.showTip(b, { title: 'Press', body: 'test' }, 300, 400); return !!b.tip; };
   check('a tooltip shows in a normal turn', show());
   await sleep(3200);
-  check('a tooltip goes by itself after 3 seconds at most', !b.tip);
-  T.hoverTipStart(b, () => ({ title: 'Hover', body: 'x' }), 300, 400); await sleep(300);
-  check('a hover tooltip does not show before half a second', !b.tip);
-  await sleep(350);
+  /* 1.74 (20 Nov): a tooltip no longer goes by itself; it stays until the mouse leaves, a press, or Esc */
+  check('a tooltip stays open (no 3 second limit, 1.74)', !!b.tip);
+  b.keyCancel();
+  check('Esc puts a tooltip away (1.74)', !b.tip);
+  T.hoverTipStart(b, () => ({ title: 'Hover', body: 'x' }), 300, 400); await sleep(150);
+  check('a hover tooltip does not show before a short hover (about 300 ms, 1.74)', !b.tip);
+  await sleep(300);
   check('...and shows after it', !!b.tip);
   T.hoverTipEnd(b);
   check('the mouse leaving puts it away at once', !b.tip);

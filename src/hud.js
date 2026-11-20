@@ -1,4 +1,4 @@
-import { buttonTip, showTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from './tooltip.js';
+import { buttonTip, showTip, hideTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from './tooltip.js';
 import Phaser from 'phaser';
 import { play } from './audio.js';
 import { artUrl } from './artUrl.js';
@@ -422,6 +422,7 @@ export class CommandButton {
         if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
       }, TIP_HOLD_MS);
       else hoverTipEnd(scene); // a click puts the hover tooltip away
+      if (touch) hideTip(scene); // a finger's tooltip stays until the next tap (1.74)
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
@@ -598,6 +599,7 @@ export class MenuRow {
         if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
       }, TIP_HOLD_MS);
       else hoverTipEnd(scene); // a click puts the hover tooltip away
+      if (touch) hideTip(scene); // a finger's tooltip stays until the next tap (1.74)
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
