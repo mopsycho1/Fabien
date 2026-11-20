@@ -218,6 +218,78 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.5
+    },
+    "buff_blade_loop": {
+      "frames": 6,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "sfx_cleave_impact": {
+      "frames": 6,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.85
+    },
+    "sfx_sunder_slash": {
+      "frames": 4,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.6
+    },
+    "sfx_buff_strip": {
+      "frames": 4,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "sfx_gale": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.6
+    },
+    "sfx_gale_fury": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.6
+    },
+    "sfx_gale_swift": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.6
+    },
+    "sfx_mantle": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.85
+    },
+    "sfx_claim_absorb": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "sfx_claim_take": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "sfx_umbra_orb": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
+    },
+    "sfx_umbra_vortex": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.75
     }
   }
 }

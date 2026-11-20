@@ -42,6 +42,8 @@ WANT_BUFF = {
     ('renewal', 'loop'): dict(k=1.0, anchor='centre', layer='split'),
     ('renewal', 'cast'): dict(k=1.3, anchor='base', layer='behind'),
     ('haunt', 'loop'): dict(k=1.2, anchor='base', layer='behind'),
+    # Gadara's weapon aura (6.75): purple energy round his sword-staff while he holds it blade first, over the figure
+    ('blade', 'loop'): dict(k=0.9, anchor='centre', layer='front'),
 }
 # Projectiles: "tiles" = how wide the drawn effect should be across the board, in tiles (about one).
 WANT_SPELL = {
@@ -49,6 +51,10 @@ WANT_SPELL = {
     'lightning_bolt': dict(tiles=0.8), 'wildfire_lance': dict(tiles=0.8),   # across the beam (its thickness)
     'lightning_strike': dict(tiles=1.0),                                   # the width of the bolt that comes down
     'spirit_bolt': dict(tiles=0.8),                                        # Kofi's comet, across its thickness
+    # the kings (6.74, 6.75)
+    'cleave_impact': dict(tiles=1.3), 'sunder_slash': dict(tiles=1.0), 'buff_strip': dict(tiles=1.0),
+    'gale': dict(tiles=1.6), 'gale_fury': dict(tiles=1.6), 'gale_swift': dict(tiles=1.6), 'mantle': dict(tiles=1.2),
+    'claim_absorb': dict(tiles=1.0), 'claim_take': dict(tiles=1.0), 'umbra_orb': dict(tiles=1.2), 'umbra_vortex': dict(tiles=3.0),
     'spirit_bolt_fire': dict(tiles=0.8), 'spirit_bolt_earth': dict(tiles=0.8), 'spirit_bolt_storm': dict(tiles=0.8),  # its tinted copies (1.55)
 }
 

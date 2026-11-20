@@ -147,5 +147,47 @@
       "kofi_down": 1.0
     },
     "feet": {}
+  },
+  "e5": {
+    "scale": {
+      "gadara_battle": 1.0,
+      "gadara_cleave_land": 1.0,
+      "gadara_cleave_rear": 1.0,
+      "gadara_down": 1.0,
+      "gadara_guard": 1.0,
+      "gadara_hook_pull": 1.0,
+      "gadara_hook_reach": 1.0,
+      "gadara_hurt": 1.0,
+      "gadara_mask": 1.0,
+      "gadara_stand": 1.0,
+      "gadara_strike": 1.0,
+      "gadara_sunder_slash": 1.0,
+      "gadara_unleash": 1.0,
+      "gadara_weak": 1.0
+    },
+    "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
+  },
+  "h5": {
+    "scale": {
+      "alagara_battle": 1.0,
+      "alagara_claim_reach": 1.0,
+      "alagara_claim_snatch": 1.0,
+      "alagara_claim_store": 1.0,
+      "alagara_down": 1.0,
+      "alagara_fury": 1.0,
+      "alagara_gale": 1.0,
+      "alagara_gale_fury": 1.0,
+      "alagara_gale_swift": 1.0,
+      "alagara_guard": 1.0,
+      "alagara_hurt": 1.0,
+      "alagara_mantle_cast": 1.0,
+      "alagara_mantle_prep": 1.0,
+      "alagara_mantle_swift": 1.0,
+      "alagara_ready": 1.0,
+      "alagara_stand": 1.0,
+      "alagara_strike": 1.0,
+      "alagara_swift": 1.0
+    },
+    "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
   }
 }

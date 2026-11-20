@@ -4719,5 +4719,805 @@
         "originX": 0.465
       }
     }
+  },
+  "e5": {
+    "note": "Gadara the Greater, the Hollow King (Phase 10, roadmap 6.75 and 10.23 to 10.29). Cut by dev/tools/make_kings.py from his 31 Oct isometric photos (standing, battle, guard, attack, mask on, staff raised), his 13 Nov hurt, injured and defeated sheets and his 19 Nov skill sheets (Heavy Cleave rearing and landing, Snare Hook reach and pull, Sunder Boon slash). True views only; the game mirrors the other side.",
+    "name": "Gadara",
+    "height": 118,
+    "standing": {
+      "downLeft": {
+        "file": "gadara_stand_f4.png",
+        "originX": 0.327
+      },
+      "downRight": {
+        "file": "gadara_stand_f1.png",
+        "originX": 0.457
+      },
+      "upLeft": {
+        "file": "gadara_stand_f2.png",
+        "originX": 0.394
+      },
+      "upRight": {
+        "file": "gadara_stand_f3.png",
+        "originX": 0.556
+      }
+    },
+    "battle": {
+      "downLeft": {
+        "file": "gadara_battle_f1.png",
+        "originX": 0.366
+      },
+      "downRight": {
+        "file": "gadara_battle_f4.png",
+        "originX": 0.34
+      },
+      "upLeft": {
+        "file": "gadara_battle_f2.png",
+        "originX": 0.444
+      },
+      "upRight": {
+        "file": "gadara_battle_f3.png",
+        "originX": 0.551
+      }
+    },
+    "weak": {
+      "downLeft": {
+        "file": "gadara_weak_f3.png",
+        "originX": 0.162
+      },
+      "upLeft": {
+        "file": "gadara_weak_f2.png",
+        "originX": 0.247
+      }
+    },
+    "poses": {
+      "ready": {
+        "downLeft": {
+          "file": "gadara_battle_f1.png",
+          "originX": 0.366
+        },
+        "downRight": {
+          "file": "gadara_battle_f4.png",
+          "originX": 0.34
+        },
+        "upLeft": {
+          "file": "gadara_battle_f2.png",
+          "originX": 0.444
+        },
+        "upRight": {
+          "file": "gadara_battle_f3.png",
+          "originX": 0.551
+        }
+      },
+      "guard": {
+        "downLeft": {
+          "file": "gadara_guard_f1.png",
+          "originX": 0.144
+        },
+        "upLeft": {
+          "file": "gadara_guard_f3.png",
+          "originX": 0.102
+        }
+      },
+      "dodge": {
+        "downLeft": {
+          "file": "gadara_guard_f1.png",
+          "originX": 0.144
+        },
+        "upLeft": {
+          "file": "gadara_guard_f3.png",
+          "originX": 0.102
+        }
+      },
+      "windup": {
+        "downLeft": {
+          "file": "gadara_cleave_rear_f1.png",
+          "originX": 0.448
+        },
+        "upLeft": {
+          "file": "gadara_cleave_rear_f3.png",
+          "originX": 0.129
+        }
+      },
+      "attack": {
+        "downLeft": {
+          "file": "gadara_strike_f1.png",
+          "originX": 0.266
+        },
+        "upRight": {
+          "file": "gadara_strike_f3.png",
+          "originX": 0.892
+        }
+      },
+      "bladeAttack": {
+        "downLeft": {
+          "file": "gadara_cleave_land_f1.png",
+          "originX": 0.069
+        },
+        "upLeft": {
+          "file": "gadara_cleave_land_f3.png",
+          "originX": 0.36
+        }
+      },
+      "cleaveWindup": {
+        "downLeft": {
+          "file": "gadara_cleave_rear_f1.png",
+          "originX": 0.448
+        },
+        "upLeft": {
+          "file": "gadara_cleave_rear_f3.png",
+          "originX": 0.129
+        }
+      },
+      "cleave": {
+        "downLeft": {
+          "file": "gadara_cleave_land_f1.png",
+          "originX": 0.069
+        },
+        "upLeft": {
+          "file": "gadara_cleave_land_f3.png",
+          "originX": 0.36
+        }
+      },
+      "hookReach": {
+        "downLeft": {
+          "file": "gadara_hook_reach_f1.png",
+          "originX": 0.398
+        },
+        "upLeft": {
+          "file": "gadara_hook_reach_f3.png",
+          "originX": 0.612
+        }
+      },
+      "hookPull": {
+        "downLeft": {
+          "file": "gadara_hook_pull_f1.png",
+          "originX": 0.471
+        },
+        "upLeft": {
+          "file": "gadara_hook_pull_f3.png",
+          "originX": 0.45
+        }
+      },
+      "sunderWindup": {
+        "downLeft": {
+          "file": "gadara_cleave_rear_f1.png",
+          "originX": 0.448
+        },
+        "upLeft": {
+          "file": "gadara_cleave_rear_f3.png",
+          "originX": 0.129
+        }
+      },
+      "sunder": {
+        "downLeft": {
+          "file": "gadara_sunder_slash_f1.png",
+          "originX": 0.498
+        },
+        "upLeft": {
+          "file": "gadara_sunder_slash_f3.png",
+          "originX": 0.324
+        }
+      },
+      "mask": {
+        "downRight": {
+          "file": "gadara_mask_f1.png",
+          "originX": 0.215
+        },
+        "upLeft": {
+          "file": "gadara_mask_f3.png",
+          "originX": 0.491
+        }
+      },
+      "chant": {
+        "downRight": {
+          "file": "gadara_mask_f1.png",
+          "originX": 0.215
+        },
+        "upLeft": {
+          "file": "gadara_mask_f3.png",
+          "originX": 0.491
+        }
+      },
+      "cast": {
+        "downLeft": {
+          "file": "gadara_unleash_f4.png",
+          "originX": 0.132
+        },
+        "upLeft": {
+          "file": "gadara_unleash_f3.png",
+          "originX": 0.273
+        }
+      },
+      "unleash": {
+        "downLeft": {
+          "file": "gadara_unleash_f4.png",
+          "originX": 0.132
+        },
+        "upLeft": {
+          "file": "gadara_unleash_f3.png",
+          "originX": 0.273
+        }
+      },
+      "hurt": {
+        "downLeft": {
+          "file": "gadara_hurt_f3.png",
+          "originX": 0.338
+        },
+        "upLeft": {
+          "file": "gadara_hurt_f2.png",
+          "originX": 0.258
+        }
+      },
+      "knocked": {
+        "downLeft": {
+          "file": "gadara_hurt_f3.png",
+          "originX": 0.338
+        },
+        "upLeft": {
+          "file": "gadara_hurt_f2.png",
+          "originX": 0.258
+        }
+      },
+      "down": {
+        "downLeft": {
+          "file": "gadara_down_f1.png",
+          "originX": 0.587
+        },
+        "upRight": {
+          "file": "gadara_down_f2.png",
+          "originX": 0.346
+        }
+      }
+    },
+    "clash": {
+      "file": "clash/gadara_clash.webp",
+      "tip": 0.894,
+      "name": {
+        "file": "clash/gadara_clash_name.webp",
+        "x": 0.535,
+        "y": 0.0267
+      }
+    },
+    "ruler": {
+      "gadara_stand_f4.png": {
+        "footX": 0.503
+      },
+      "gadara_stand_f1.png": {
+        "footX": 0.51
+      },
+      "gadara_stand_f2.png": {
+        "footX": 0.375
+      },
+      "gadara_stand_f3.png": {
+        "footX": 0.579
+      },
+      "gadara_battle_f1.png": {
+        "footX": 0.479
+      },
+      "gadara_battle_f4.png": {
+        "footX": 0.404
+      },
+      "gadara_battle_f2.png": {
+        "footX": 0.541
+      },
+      "gadara_battle_f3.png": {
+        "footX": 0.504
+      },
+      "gadara_weak_f3.png": {
+        "footX": 0.351
+      },
+      "gadara_weak_f2.png": {
+        "footX": 0.349
+      },
+      "gadara_guard_f1.png": {
+        "footX": 0.185
+      },
+      "gadara_guard_f3.png": {
+        "footX": 0.342
+      },
+      "gadara_cleave_rear_f1.png": {
+        "footX": 0.518
+      },
+      "gadara_cleave_rear_f3.png": {
+        "footX": 0.365
+      },
+      "gadara_strike_f1.png": {
+        "footX": 0.287
+      },
+      "gadara_strike_f3.png": {
+        "footX": 0.619
+      },
+      "gadara_cleave_land_f1.png": {
+        "footX": 0.219
+      },
+      "gadara_cleave_land_f3.png": {
+        "footX": 0.483
+      },
+      "gadara_hook_reach_f1.png": {
+        "footX": 0.552
+      },
+      "gadara_hook_pull_f1.png": {
+        "footX": 0.524
+      },
+      "gadara_hook_pull_f3.png": {
+        "footX": 0.435
+      },
+      "gadara_sunder_slash_f1.png": {
+        "footX": 0.528
+      },
+      "gadara_sunder_slash_f3.png": {
+        "footX": 0.48
+      },
+      "gadara_mask_f1.png": {
+        "footX": 0.432
+      },
+      "gadara_unleash_f4.png": {
+        "footX": 0.327
+      },
+      "gadara_unleash_f3.png": {
+        "footX": 0.464
+      },
+      "gadara_hurt_f3.png": {
+        "footX": 0.288
+      },
+      "gadara_hurt_f2.png": {
+        "footX": 0.367
+      },
+      "gadara_down_f1.png": {
+        "footX": 0.498
+      },
+      "gadara_down_f2.png": {
+        "footX": 0.496
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+  },
+  "h5": {
+    "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three looks). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\"); the Echo shows only in the interface.",
+    "name": "Alagara",
+    "height": 100,
+    "standing": {
+      "downLeft": {
+        "file": "alagara_stand_f1.png",
+        "originX": 0.668
+      },
+      "downRight": {
+        "file": "alagara_stand_f4.png",
+        "originX": 0.399
+      },
+      "upLeft": {
+        "file": "alagara_stand_f2.png",
+        "originX": 0.231
+      },
+      "upRight": {
+        "file": "alagara_stand_f3.png",
+        "originX": 0.528
+      }
+    },
+    "battle": {
+      "downLeft": {
+        "file": "alagara_battle_f1.png",
+        "originX": 0.176
+      },
+      "downRight": {
+        "file": "alagara_battle_f2.png",
+        "originX": 0.086
+      },
+      "upRight": {
+        "file": "alagara_battle_f3.png",
+        "originX": 0.495
+      }
+    },
+    "weak": {
+      "downLeft": {
+        "file": "alagara_ready_f1.png",
+        "originX": 0.351
+      },
+      "downRight": {
+        "file": "alagara_ready_f2.png",
+        "originX": 0.65
+      },
+      "upLeft": {
+        "file": "alagara_ready_f1.png",
+        "originX": 0.351
+      }
+    },
+    "poses": {
+      "ready": {
+        "downLeft": {
+          "file": "alagara_battle_f1.png",
+          "originX": 0.176
+        },
+        "downRight": {
+          "file": "alagara_battle_f2.png",
+          "originX": 0.086
+        },
+        "upRight": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.495
+        }
+      },
+      "guard": {
+        "downLeft": {
+          "file": "alagara_guard_f3.png",
+          "originX": 0.309
+        },
+        "upLeft": {
+          "file": "alagara_guard_f1.png",
+          "originX": 0.47
+        }
+      },
+      "dodge": {
+        "downLeft": {
+          "file": "alagara_guard_f3.png",
+          "originX": 0.309
+        },
+        "upLeft": {
+          "file": "alagara_guard_f1.png",
+          "originX": 0.47
+        }
+      },
+      "windup": {
+        "downLeft": {
+          "file": "alagara_battle_f1.png",
+          "originX": 0.176
+        },
+        "downRight": {
+          "file": "alagara_battle_f2.png",
+          "originX": 0.086
+        },
+        "upRight": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.495
+        }
+      },
+      "attack": {
+        "downLeft": {
+          "file": "alagara_strike_f1.png",
+          "originX": 0.21
+        },
+        "upRight": {
+          "file": "alagara_strike_f3.png",
+          "originX": 0.075
+        }
+      },
+      "drawn": {
+        "downLeft": {
+          "file": "alagara_battle_f1.png",
+          "originX": 0.176
+        },
+        "downRight": {
+          "file": "alagara_battle_f2.png",
+          "originX": 0.086
+        },
+        "upRight": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.495
+        }
+      },
+      "claimReach": {
+        "downLeft": {
+          "file": "alagara_claim_reach_f2.png",
+          "originX": 0.443
+        },
+        "upLeft": {
+          "file": "alagara_claim_reach_f2.png",
+          "originX": 0.443
+        }
+      },
+      "claimSnatch": {
+        "downLeft": {
+          "file": "alagara_claim_snatch_f1.png",
+          "originX": 0.181
+        },
+        "upLeft": {
+          "file": "alagara_claim_snatch_f1.png",
+          "originX": 0.181
+        }
+      },
+      "claimStore": {
+        "downLeft": {
+          "file": "alagara_claim_store_f1.png",
+          "originX": 0.201
+        },
+        "upLeft": {
+          "file": "alagara_claim_store_f1.png",
+          "originX": 0.201
+        }
+      },
+      "chant": {
+        "downRight": {
+          "file": "alagara_mantle_prep_f2.png",
+          "originX": 0.451
+        },
+        "upLeft": {
+          "file": "alagara_mantle_prep_f1.png",
+          "originX": 0.512
+        }
+      },
+      "cast": {
+        "downRight": {
+          "file": "alagara_mantle_cast_f1.png",
+          "originX": 0.43
+        },
+        "upLeft": {
+          "file": "alagara_mantle_cast_f2.png",
+          "originX": 0.591
+        }
+      },
+      "gale": {
+        "downLeft": {
+          "file": "alagara_gale_f2.png",
+          "originX": 0.366
+        },
+        "upLeft": {
+          "file": "alagara_gale_f1.png",
+          "originX": 0.11
+        }
+      },
+      "hurt": {
+        "downLeft": {
+          "file": "alagara_hurt_f3.png",
+          "originX": 0.299
+        },
+        "upRight": {
+          "file": "alagara_hurt_f1.png",
+          "originX": 0.288
+        }
+      },
+      "knocked": {
+        "downLeft": {
+          "file": "alagara_hurt_f3.png",
+          "originX": 0.299
+        },
+        "upRight": {
+          "file": "alagara_hurt_f1.png",
+          "originX": 0.288
+        }
+      },
+      "down": {
+        "downLeft": {
+          "file": "alagara_down_f3.png",
+          "originX": 0.533
+        },
+        "upLeft": {
+          "file": "alagara_down_f1.png",
+          "originX": 0.642
+        }
+      }
+    },
+    "buffed": {
+      "fury": {
+        "downLeft": {
+          "file": "alagara_fury_f1.png",
+          "originX": 0.184
+        },
+        "upLeft": {
+          "file": "alagara_fury_f3.png",
+          "originX": 0.613
+        }
+      },
+      "swiftness": {
+        "downLeft": {
+          "file": "alagara_swift_f1.png",
+          "originX": 0.183
+        },
+        "upLeft": {
+          "file": "alagara_swift_f3.png",
+          "originX": 0.688
+        }
+      }
+    },
+    "buffPoses": {
+      "fury": {
+        "attack": {
+          "downLeft": {
+            "file": "alagara_fury_f1.png",
+            "originX": 0.184
+          },
+          "upLeft": {
+            "file": "alagara_fury_f3.png",
+            "originX": 0.613
+          }
+        },
+        "gale": {
+          "downLeft": {
+            "file": "alagara_gale_fury_f2.png",
+            "originX": 0.381
+          },
+          "upLeft": {
+            "file": "alagara_gale_fury_f3.png",
+            "originX": 0.86
+          }
+        },
+        "ready": {
+          "downLeft": {
+            "file": "alagara_fury_f1.png",
+            "originX": 0.184
+          },
+          "upLeft": {
+            "file": "alagara_fury_f3.png",
+            "originX": 0.613
+          }
+        }
+      },
+      "swiftness": {
+        "attack": {
+          "downLeft": {
+            "file": "alagara_swift_f1.png",
+            "originX": 0.183
+          },
+          "upLeft": {
+            "file": "alagara_swift_f3.png",
+            "originX": 0.688
+          }
+        },
+        "gale": {
+          "downLeft": {
+            "file": "alagara_gale_swift_f2.png",
+            "originX": 0.382
+          },
+          "upLeft": {
+            "file": "alagara_gale_swift_f3.png",
+            "originX": 0.866
+          }
+        },
+        "cast": {
+          "downLeft": {
+            "file": "alagara_mantle_swift_f3.png",
+            "originX": 0.46
+          },
+          "upLeft": {
+            "file": "alagara_mantle_swift_f1.png",
+            "originX": 0.459
+          }
+        },
+        "chant": {
+          "downLeft": {
+            "file": "alagara_mantle_swift_f3.png",
+            "originX": 0.46
+          },
+          "upLeft": {
+            "file": "alagara_mantle_swift_f1.png",
+            "originX": 0.459
+          }
+        },
+        "ready": {
+          "downLeft": {
+            "file": "alagara_swift_f1.png",
+            "originX": 0.183
+          },
+          "upLeft": {
+            "file": "alagara_swift_f3.png",
+            "originX": 0.688
+          }
+        }
+      }
+    },
+    "auraPainted": [
+      "fury",
+      "swiftness"
+    ],
+    "clash": {
+      "file": "clash/alagara_clash.webp",
+      "tip": 0.894,
+      "name": {
+        "file": "clash/alagara_clash_name.webp",
+        "x": 0.535,
+        "y": 0.0267
+      }
+    },
+    "ruler": {
+      "alagara_stand_f1.png": {
+        "footX": 0.498
+      },
+      "alagara_stand_f4.png": {
+        "footX": 0.506
+      },
+      "alagara_stand_f2.png": {
+        "footX": 0.401
+      },
+      "alagara_stand_f3.png": {
+        "footX": 0.562
+      },
+      "alagara_battle_f1.png": {
+        "footX": 0.29
+      },
+      "alagara_battle_f2.png": {
+        "footX": 0.267
+      },
+      "alagara_battle_f3.png": {
+        "footX": 0.446
+      },
+      "alagara_ready_f1.png": {
+        "footX": 0.4
+      },
+      "alagara_ready_f2.png": {
+        "footX": 0.5
+      },
+      "alagara_guard_f3.png": {
+        "footX": 0.421
+      },
+      "alagara_guard_f1.png": {
+        "footX": 0.563
+      },
+      "alagara_strike_f1.png": {
+        "footX": 0.226
+      },
+      "alagara_strike_f3.png": {
+        "footX": 0.109
+      },
+      "alagara_claim_reach_f2.png": {
+        "footX": 0.462
+      },
+      "alagara_claim_snatch_f1.png": {
+        "footX": 0.306
+      },
+      "alagara_claim_store_f1.png": {
+        "footX": 0.315
+      },
+      "alagara_mantle_prep_f2.png": {
+        "footX": 0.521
+      },
+      "alagara_mantle_prep_f1.png": {
+        "footX": 0.468
+      },
+      "alagara_mantle_cast_f1.png": {
+        "footX": 0.373
+      },
+      "alagara_mantle_cast_f2.png": {
+        "footX": 0.629
+      },
+      "alagara_gale_f2.png": {
+        "footX": 0.383
+      },
+      "alagara_gale_f1.png": {
+        "footX": 0.201
+      },
+      "alagara_hurt_f3.png": {
+        "footX": 0.476
+      },
+      "alagara_hurt_f1.png": {
+        "footX": 0.375
+      },
+      "alagara_down_f3.png": {
+        "footX": 0.481
+      },
+      "alagara_down_f1.png": {
+        "footX": 0.523
+      },
+      "alagara_fury_f1.png": {
+        "footX": 0.271
+      },
+      "alagara_fury_f3.png": {
+        "footX": 0.589
+      },
+      "alagara_swift_f1.png": {
+        "footX": 0.433
+      },
+      "alagara_swift_f3.png": {
+        "footX": 0.575
+      },
+      "alagara_gale_fury_f2.png": {
+        "footX": 0.499
+      },
+      "alagara_gale_fury_f3.png": {
+        "footX": 0.818
+      },
+      "alagara_gale_swift_f2.png": {
+        "footX": 0.442
+      },
+      "alagara_gale_swift_f3.png": {
+        "footX": 0.842
+      },
+      "alagara_mantle_swift_f3.png": {
+        "footX": 0.505
+      },
+      "alagara_mantle_swift_f1.png": {
+        "footX": 0.416
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }

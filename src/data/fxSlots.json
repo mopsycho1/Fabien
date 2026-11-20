@@ -181,6 +181,28 @@
     }
    },
    "castUses": "loop"
+  },
+  "blade": {
+   "cast": 0,
+   "loop": 6,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4,
+   "loopMs": 140,
+   "fit": {
+    "loop": {
+     "h": 188,
+     "w": 240,
+     "mx": 124,
+     "my": 118,
+     "by": 214,
+     "W": 254,
+     "H": 254,
+     "k": 0.9,
+     "anchor": "centre",
+     "layer": "front"
+    }
+   }
   }
  },
  "spells": {
@@ -377,6 +399,226 @@
     "W": 220,
     "H": 220,
     "tiles": 0.8
+   }
+  },
+  "cleave_impact": {
+   "frames": 6,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.85,
+   "size": [
+    359,
+    178
+   ],
+   "fit": {
+    "h": 147,
+    "w": 301,
+    "mx": 182,
+    "my": 92,
+    "by": 166,
+    "W": 359,
+    "H": 178,
+    "tiles": 1.3
+   }
+  },
+  "sunder_slash": {
+   "frames": 4,
+   "frameMs": 230,
+   "originX": 0.5,
+   "originY": 0.6,
+   "size": [
+    270,
+    360
+   ],
+   "fit": {
+    "h": 213,
+    "w": 222,
+    "mx": 139,
+    "my": 174,
+    "by": 276,
+    "W": 270,
+    "H": 360,
+    "tiles": 1.0
+   }
+  },
+  "buff_strip": {
+   "frames": 4,
+   "frameMs": 140,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    312,
+    312
+   ],
+   "fit": {
+    "h": 228,
+    "w": 258,
+    "mx": 156,
+    "my": 148,
+    "by": 266,
+    "W": 312,
+    "H": 312,
+    "tiles": 1.0
+   }
+  },
+  "gale": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.6,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 80,
+    "w": 256,
+    "mx": 193,
+    "my": 53,
+    "by": 93,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.6
+   }
+  },
+  "gale_fury": {
+   "frames": 9,
+   "frameMs": 100,
+   "originX": 0.5,
+   "originY": 0.6,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 88,
+    "w": 297,
+    "mx": 186,
+    "my": 54,
+    "by": 97,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.6
+   }
+  },
+  "gale_swift": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.6,
+   "size": [
+    238,
+    178
+   ],
+   "fit": {
+    "h": 113,
+    "w": 226,
+    "mx": 121,
+    "my": 86,
+    "by": 142,
+    "W": 238,
+    "H": 178,
+    "tiles": 1.6
+   }
+  },
+  "mantle": {
+   "frames": 9,
+   "frameMs": 150,
+   "originX": 0.5,
+   "originY": 0.85,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 97,
+    "w": 293,
+    "mx": 180,
+    "my": 59,
+    "by": 111,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.2
+   }
+  },
+  "claim_absorb": {
+   "frames": 9,
+   "frameMs": 120,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    239,
+    178
+   ],
+   "fit": {
+    "h": 171,
+    "w": 211,
+    "mx": 119,
+    "my": 86,
+    "by": 171,
+    "W": 239,
+    "H": 178,
+    "tiles": 1.0
+   }
+  },
+  "claim_take": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    239,
+    179
+   ],
+   "fit": {
+    "h": 124,
+    "w": 161,
+    "mx": 122,
+    "my": 88,
+    "by": 153,
+    "W": 239,
+    "H": 179,
+    "tiles": 1.0
+   }
+  },
+  "umbra_orb": {
+   "frames": 9,
+   "frameMs": 130,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    214,
+    200
+   ],
+   "fit": {
+    "h": 139,
+    "w": 156,
+    "mx": 108,
+    "my": 96,
+    "by": 164,
+    "W": 214,
+    "H": 200,
+    "tiles": 1.2
+   }
+  },
+  "umbra_vortex": {
+   "frames": 9,
+   "frameMs": 180,
+   "originX": 0.5,
+   "originY": 0.75,
+   "size": [
+    214,
+    200
+   ],
+   "fit": {
+    "h": 140,
+    "w": 167,
+    "mx": 106,
+    "my": 100,
+    "by": 182,
+    "W": 214,
+    "H": 200,
+    "tiles": 3.0
    }
   }
  },

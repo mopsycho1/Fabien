@@ -31,7 +31,7 @@ Kofi's four (15 Nov, "Kofi's spell assets.7z", roadmap 6.63; run with ONLY=... a
   buff_renewal_cast     "Animated Aqua Healing Spiral"         where Renewal lands and at each heal at the start of the unit's turn
   buff_haunt_loop       "Ghostly Teal-Violet Haunt Aura"       at the feet of a unit that is Haunted (also played once when Haunt lands)
   sfx_spirit_bolt       "Teal Spirit Projectile Animation"     Kofi's Tide Bolt (Water) and Haunt: the teal comet to the target
-NOT used: the two Umbra GIFs (Gadara's spell; Gadara is not in the game and no spell in it is called Umbra).
+The two Umbra GIFs are Gadara's Singularity (Baiyee 16 Nov): sfx_umbra_orb (charge-up) and sfx_umbra_vortex (it resolves).
 
 Run:  ~/.fabien-tools/venv/bin/python dev/tools/make_gif_fx.py [<Spell effects folder>]
       ONLY=buff_renewal_loop,buff_renewal_cast,buff_haunt_loop,sfx_spirit_bolt ~/.fabien-tools/venv/bin/python dev/tools/make_gif_fx.py "<Kofi's spell assets folder>"
@@ -71,6 +71,20 @@ FILES = {
     'buff_renewal_cast': ('Animated Aqua Healing Spiral.gif', 'boxbase', 0.5, 0.9),
     'buff_haunt_loop': ('Ghostly Teal-Violet Haunt Aura.gif', 'boxbase', 0.5, 0.9),
     'sfx_spirit_bolt': ('Teal Spirit Projectile Animation.gif', 'keep', 0.5, 0.5),
+    # The two kings (6.74, 6.75; Phase 10). Run with their 19 Nov email folder (INBOX/2026-11-19/email) as the first
+    # argument and ONLY=<the families below>; the Umbra pair is in the 15 Nov folder (ONLY=sfx_umbra_orb,sfx_umbra_vortex).
+    'buff_blade_loop': ('Heavy cleave/Heavy cleave/Dark Energy for weapon.gif', 'keep', 0.5, 0.5),         # Gadara's weapon aura (Blade mode)
+    'sfx_cleave_impact': ('Heavy cleave/Heavy cleave/Purple Arc Impact Animation.gif', 'keep', 0.5, 0.85),  # Heavy Cleave landing
+    'sfx_sunder_slash': ('Gadara missing skill sheets/Gadara missing skill sheets/Sunder boon/Sunderboon slash effect.gif', 'keep', 0.5, 0.6),
+    'sfx_buff_strip': ('Gadara missing skill sheets/Gadara missing skill sheets/Sunder boon/buff being removed.gif', 'keep', 0.5, 0.5),
+    'sfx_gale': ('Alagara/Alagara/Skill and Effects-Gale Cut/Gale cut.gif', 'keep', 0.5, 0.6),
+    'sfx_gale_fury': ('Alagara/Alagara/Skill and Effects-Gale Cut/Furious Gale cut.gif', 'keep', 0.5, 0.6),
+    'sfx_gale_swift': ('Alagara/Alagara/Skill and Effects-Gale Cut/Swift gale cut .gif', 'keep', 0.5, 0.6),
+    'sfx_mantle': ('Alagara/Alagara/Skill and effects- mantle/Cinematic Golden Cloak Aura Animation.gif', 'keep', 0.5, 0.85),
+    'sfx_claim_absorb': ('Alagara/Alagara/Skill and Effects- claim/Alagara absorning the enemies buff.gif', 'keep', 0.5, 0.5),
+    'sfx_claim_take': ('Alagara/Alagara/Skill and Effects- claim/claim applying to enemy effect.gif', 'keep', 0.5, 0.5),
+    'sfx_umbra_orb': ('Umbra (Gadara\'s spell)/Dark Orb Formation Animation.gif', 'keep', 0.5, 0.5),        # Singularity's charge-up
+    'sfx_umbra_vortex': ('Umbra (Gadara\'s spell)/Purple Gravitational Vortex Animation.gif', 'keep', 0.5, 0.75),  # Singularity resolves
 }
 
 def to_alpha(rgb):
@@ -148,7 +162,7 @@ def main():
             slots['spells'][name[4:]] = {**slots['spells'].get(name[4:], {}), **info}
         else:
             _, verse, part = name.split('_')
-            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt'}[verse]
+            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt', 'blade': 'blade'}[verse]
             slot = slots['buffs'].setdefault(vid, {'cast': 0, 'loop': 0, 'frameMs': 80, 'scale': 0.5, 'feetY': 0.4})
             slot[part] = len(frs); slot[part + 'Ms'] = ms[0]
         made.append(name)
