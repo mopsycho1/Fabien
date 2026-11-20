@@ -789,10 +789,209 @@ var spells_default = {
     mp: 0,
     use: "battlefield",
     text: "Throw a smoke bomb at your own feet. Enemies next to you are Blinded for 1 turn (their attacks mostly miss, and they cannot start a clash or take aim). Then slip up to 2 tiles away for free: you are Hidden for 1 turn, so enemies cannot target you. The cloud stays until your next turn. Ready again after 3 turns. Not during a clash."
+  },
+  reverseGrip: {
+    name: "Reverse Grip",
+    button: "Reverse Grip",
+    short: "GRIP",
+    kind: "grip",
+    free: true,
+    color: "#c9a8ff",
+    range: 0,
+    mp: 0,
+    use: "self",
+    text: "Free, once a turn, no action: turn the sword-staff round. Fork leading: his attack (Fork Strike) also hits the next foe straight behind the target at half damage, and Snare Hook and Sunder Boon are ready. Blade leading: his attack (Blade Strike) does 2 more damage, and Heavy Cleave is ready."
+  },
+  snareHook: {
+    name: "Snare Hook",
+    button: "Snare Hook",
+    short: "HOOK",
+    kind: "hook",
+    grip: "fork",
+    color: "#a98bff",
+    range: 2,
+    lineOnly: true,
+    damageShare: 0.5,
+    pull: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Fork end. Hook a foe up to 2 tiles away in a straight line: half damage, and it is pulled 1 tile toward him (into a unit or a wall: a slam). A pulled foe next to his allies can take Relay Strikes. Ready again after 3 turns."
+  },
+  sunderBoon: {
+    name: "Sunder Boon",
+    button: "Sunder Boon",
+    short: "SUNDER",
+    kind: "sunder",
+    grip: "fork",
+    color: "#b07cff",
+    range: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Fork end. Tear one blessing off the foe next to him (Swiftness, Earth's Bulwark, Fury or an Enchanted weapon). No damage. Adds 2 to his Mask Gauge. Ready again after 3 turns."
+  },
+  heavyCleave: {
+    name: "Heavy Cleave",
+    button: "Heavy Cleave",
+    short: "CLEAVE",
+    kind: "cleave",
+    grip: "blade",
+    color: "#9b6bff",
+    range: 1,
+    damageTimes: 1.5,
+    ignoreDefense: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Blade end. A slow overhead strike at the foe next to him: one and a half times the damage, ignoring 2 of its defense. Ready again after 3 turns."
+  },
+  singularity: {
+    name: "Singularity",
+    button: "Singularity",
+    short: "SINGULARITY",
+    kind: "singularity",
+    color: "#8b5cff",
+    range: 0,
+    uses: 1,
+    mp: 0,
+    use: "self",
+    text: "Needs a full Mask Gauge (6). He dons the mask: it takes his whole turn, and the area within 3 tiles of him is marked. At the start of his next turn every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented, one that ends next to him is Off-Balance. Then he is Exposed for a turn (defense -2, evade -10) and the gauge is empty. A Stun, a fall or a slam on him while it charges breaks it. Once a battle."
+  },
+  verseSwap: {
+    name: "Swap Verse",
+    button: "Swap Verse",
+    short: "SWAP",
+    kind: "swap",
+    free: true,
+    color: "#ffd27a",
+    range: 0,
+    mp: 0,
+    use: "self",
+    text: "Free, once a turn, no action: his Echo Verse becomes Active and the Active one goes to the Echo. The incoming Verse Surges once: Swiftness a free step, Fury his next Press pushes the momentum one step further, Stone shakes off Off-Balance and cancels the next push this turn."
+  },
+  drawnBlade: {
+    name: "Drawn Blade",
+    button: "Drawn Blade",
+    short: "DRAW",
+    kind: "drawn",
+    color: "#ffcf6a",
+    range: 1,
+    damageShare: 1,
+    momentum: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "The sheathed draw: he feints, then cuts the foe next to him (full damage). A hit locks them in a clash with the momentum already one step his way, a free Press. Ready again after 3 turns."
+  },
+  claim: {
+    name: "Claim",
+    button: "Claim",
+    short: "CLAIM",
+    kind: "claim",
+    color: "#f2c14e",
+    range: 1,
+    turns: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "both",
+    text: "Take one blessing from the unit next to him, ally or foe (a Verse or an Enchanted weapon): it leaves them and is his for 2 turns. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
+  },
+  mantle: {
+    name: "Mantle",
+    button: "Mantle",
+    short: "MANTLE",
+    kind: "mantle",
+    color: "#ffc95a",
+    range: 1,
+    power: 0.5,
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    text: "Share his Active Verse with every ally next to him at half strength, for their next turn. Needs an Active Verse. Ready again after 3 turns."
+  },
+  galeCut: {
+    name: "Gale Cut",
+    button: "Gale Cut",
+    short: "GALE",
+    kind: "gale",
+    verseSkill: "swiftness",
+    color: "#e8f2ff",
+    damageShare: 0.8,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Swiftness. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes 0.8 of his damage, rolled on its own), and stops on the first free tile past the last one. Uses his move. From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
+  },
+  rendingDraw: {
+    name: "Rending Draw",
+    button: "Rending Draw",
+    short: "REND",
+    kind: "rending",
+    verseSkill: "fury",
+    color: "#ff7a4a",
+    range: 1,
+    damageShare: 1,
+    ignoreDefense: 2,
+    push: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    text: "Fury. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
+  },
+  unmoved: {
+    name: "Unmoved",
+    button: "Unmoved",
+    short: "UNMOVED",
+    kind: "unmoved",
+    verseSkill: "stone",
+    reaction: true,
+    color: "#d9b77a",
+    counterShare: 0.5,
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    text: "Stone, a reaction (no button): the first push or pull on him is cancelled, and he answers the one who pushed with a half-strength counter if they stand next to him. From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
   }
 };
 
+// src/data/kings.json
+var kings_default = {
+  note: "The two kings' own numbers (Phase 10). Gadara: the 19 Nov kit sheet 'Basic Attack Revision' (roadmap 10.23 to 10.29). Alagara: class sheet v2 'Active and Echo' (10.17 to 10.22) with cooldowns in place of SP, like Gadara's revision. Every number is a placeholder for playtesting. Their skills' own numbers are in spells.json.",
+  gadara: {
+    fork: { name: "Fork Strike", secondShare: 0.5, lineDepth: 2, note: "Fork mode basic attack: the target and the next foe straight behind it (an ally in between is skipped), each hit rolled on its own, the second at half damage." },
+    blade: { name: "Blade Strike", bonus: 2, note: "Blade mode basic attack: one target, +2 damage." },
+    mask: { max: 6, strip: 2, beat: 1, hit: 1, note: "+2 when he strips a buff, +1 for each clash beat he holds (wins or ties), +1 when he takes a hit." },
+    dominion: { radius: 2, step: { attack: 1, defense: 1, evade: 5, amount: 1 }, note: "Buffs on his foes within 2 tiles are one step weaker: Fury +2 to +1, Swift's evade +15 to +10, Earth's Bulwark +2 to +1, and the clash bonus of a Verse 1 lower. Rabdul's Enchant burns 1 less." },
+    singularity: { radius: 3, pull: 3, collisionDamage: 2, exposed: { defense: 2, evade: 10 }, note: "Every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented; one that ends next to him is Off-Balance. Then he is Exposed for a turn (defense -2, evade -10), the mask comes off and the gauge is 0. Once a battle. A Stun, a fall or a slam on him while it charges breaks it (the gauge empties, the once-a-battle use is kept)." },
+    ai: { clusterMin: 2, clusterAlways: 3, note: "The enemy AI casts Singularity when at least 2 foes stand within 3 tiles (always at 3 or more)." }
+  },
+  alagara: {
+    activeBonus: 1.5,
+    echoPower: 0.75,
+    echoCooldownExtra: 1,
+    verseSkills: { swiftness: "galeCut", fury: "rendingDraw", stone: "unmoved" },
+    surge: {
+      swiftness: { steps: 1, text: "Surge: a free step" },
+      fury: { pressSteps: 1, text: "Surge: his next Press pushes the momentum one step further" },
+      stone: { text: "Surge: Off-Balance shaken off, and the next push this turn is cancelled" }
+    },
+    note: "Attunement: two Verse slots, Active and Echo. Only the Active one gives stat bonuses (50 percent bigger on him). The Echo's Verse skill still works at 75 percent, with one more turn of cooldown. A swap is free, once a turn, and gives the incoming Verse a Surge. Left out for now (systems we do not have): the Renewal Verse's Surge and Sovereign's Grace, Hex, Counterspell, Anchor, Reveal, Crowned Cut (no art yet)."
+  }
+};
+
+// src/kings.js
+var MASK_MAX = kings_default.gadara.mask.max;
+function dominionStep(stat) {
+  return kings_default.gadara.dominion.step[stat] || 0;
+}
+var isAttuned = (unit) => !!(unit && unit.attune);
+function attuneTimes(unit, value) {
+  return isAttuned(unit) && value > 0 ? kings_default.alagara.activeBonus : 1;
+}
+
 // src/status.js
+var underDominion = () => false;
 function statusOf(unit) {
   if (!unit.status) unit.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
   return unit.status;
@@ -806,13 +1005,22 @@ function buffOf(unit) {
   const spell = spells_default[buff.id];
   const times = affinityTimes(unit, buff.id) * (buff.power || 1);
   const boosts = {};
-  for (const [stat, value] of Object.entries(spell.boosts || {})) boosts[stat] = value * times;
+  const weak = underDominion(unit);
+  const round = (stat, v) => stat === "move" ? Math.floor(v) : Math.round(v);
+  for (const [stat, value] of Object.entries(spell.boosts || {})) {
+    let v = value * times * attuneTimes(unit, value);
+    if (weak && v > 0) v = Math.max(0, v - dominionStep(stat));
+    boosts[stat] = round(stat, v);
+  }
+  let amount = Math.round((spell.amount || 0) * times * attuneTimes(unit, spell.amount || 0));
+  if (weak && amount > 0) amount = Math.max(0, amount - dominionStep("amount"));
   return {
     id: buff.id,
     turnsLeft: buff.turnsLeft,
     ...spell,
     boosts,
-    amount: (spell.amount || 0) * times,
+    amount,
+    dominion: weak,
     holdChance: spell.holdChance ? spell.holdChance * times : void 0,
     slipChance: spell.slipChance ? spell.slipChance * times : void 0,
     times
@@ -1096,6 +1304,10 @@ function resolveBeat(actor, actorStance, holder, holderStance, ctx = DEFAULT_CTX
   const winStance = winner === actor ? actorStance : holderStance;
   let shift = winStance === "press" ? engagement_default.momentum.pressWinShift : engagement_default.momentum.winShift;
   if (Math.abs(margin) >= engagement_default.decisiveMargin) shift += engagement_default.momentum.decisiveExtra;
+  if (winStance === "press" && winner.surgePress) {
+    shift += winner.surgePress;
+    winner.surgePress = 0;
+  }
   shiftMomentum(winner, shift);
   const decisive = momentumOf(winner) >= engagement_default.momentum.max;
   return { ...base, kind: "win", winner, loser, shift, decisive };

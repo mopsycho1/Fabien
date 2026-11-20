@@ -51,14 +51,18 @@
     "e4": [4, 2],
     "e2": [6, 2],
     "e3": [5, 1],
-    "e1": [5, 2]
+    "e1": [5, 2],
+    "h5": [3, 9],
+    "e5": [6, 1]
   },
   "alsoFighting": [
     "e1",
-    "h4"
+    "h4",
+    "h5",
+    "e5"
   ],
   "sittingOut": [],
-  "lineUpNote": "M10b (roadmap 18.22, 14 Nov): 4 against 4. Kofi (h4, benched in units.json so the old test map stays 3 v 3) fights here, and the bull is back (he used to sit out). To go back to 3 v 3: alsoFighting [\"e1\"], sittingOut [\"e2\"]. Older note: Roadmap 4.3 (Suleiman 29 Oct): Tayo swaps in for the bull, 3 against 3: Rabdul, Tayo and the archer. Units benched in units.json who fight here go in alsoFighting; units who sit this map out go in sittingOut. Four enemies were tried 1 Nov (the bull too): the heroes lost every test battle.",
+  "lineUpNote": "Phase 10 (20 Nov): the two kings fight here too, Alagara (h5) with the heroes and Gadara (e5) with the enemies; four a side is the most, so in the default team they take the last place (Kofi and the archer sit out; pick them on the character select). M10b (roadmap 18.22, 14 Nov): 4 against 4. Kofi (h4, benched in units.json so the old test map stays 3 v 3) fights here, and the bull is back (he used to sit out). To go back to 3 v 3: alsoFighting [\"e1\"], sittingOut [\"e2\"]. Older note: Roadmap 4.3 (Suleiman 29 Oct): Tayo swaps in for the bull, 3 against 3: Rabdul, Tayo and the archer. Units benched in units.json who fight here go in alsoFighting; units who sit this map out go in sittingOut. Four enemies were tried 1 Nov (the bull too): the heroes lost every test battle.",
   "startsNote": "Where each unit starts (column, row), by its id in units.json. On the 11 by 11 map (14.2) both sides stand where they stood on the old 9 by 9 map, one tile further in: the walk to the first fight is the same, and the new room is on the flanks and behind.",
   "waterfalls": [[4, 6, 4, 7], [6, 6, 6, 7], [6, 6, 7, 6], [6, 4, 7, 4], [4, 4, 4, 3], [6, 4, 6, 3], [4, 4, 3, 4], [4, 6, 3, 6], [1, 5, 1, 4], [1, 5, 1, 6], [0, 4, 1, 4], [0, 6, 1, 6], [9, 5, 9, 4], [9, 5, 9, 6], [10, 4, 9, 4], [10, 6, 9, 6]],
   "waterfallsNote": "Water pouring off a ledge: [column, row] of the ledge, then [column, row] of the water below. The first eight pour off the platform; the last eight feed the spring pools by the side towers. Only the faces turned towards the camera show.",

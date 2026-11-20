@@ -36,6 +36,8 @@ import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clash
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
+import { kingMethods, KING_KINDS, KING_SELF_KINDS } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
+import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES } from '../kings.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamond, emblemFor, framePanel, diamondPortrait, tileBlock } from '../battleCard.js';
@@ -82,10 +84,10 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
-import { testMode, setTestMode } from '../lineup.js';
+import { testMode, setTestMode, defaultLineUp, sitsOut } from '../lineup.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
 import yobaMap from '../data/maps/yoba.json';     // the first cave map (kept for the rule tests)
 // The maps a battle can be fought on. A battle in story.json can name one
@@ -204,9 +206,13 @@ export default class BattleScene extends Phaser.Scene {
     // a unit under a Verse can have its own attack, guard and dodge pictures (art.json "buffPoses")
     setBuffLookup((id) => {
       const u = this.units && this.units.find((x) => x.id === id);
+      if (u && u.alive && u.channel) return 'masked'; // Gadara with the mask on, Singularity charging (Phase 10)
+      if (u && u.alive && u.grip === 'blade') return 'blade'; // Gadara holding the blade end: its own strike pictures
       const b = u && u.alive ? buffOf(u) : null;
       return b ? b.id : (u && u.alive && u.fury > 0 ? 'bloodied' : null); // Bloodied Press stacks have their own look
     });
+    // Gadara's Dominion (Phase 10): a foe's buff within 2 tiles of him is a step weaker
+    setDominionLookup((u) => !!(this.units && u && u.side && this.units.some((g) => g.alive && g.dominion && g.side !== u.side && distance(g, u) <= KING_RULES.gadara.dominion.radius)));
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
     this.inHitStop = false;
@@ -299,16 +305,22 @@ export default class BattleScene extends Phaser.Scene {
     // "sittingOut" benches others, for that map only)
     // (the bot tests can name who sits out instead: window.__bench, a list of ids)
     // (the character select, 18.30, names exactly who fights: this.chosenLineUp)
-    const picked = this.chosenLineUp ? [...this.chosenLineUp.hero, ...this.chosenLineUp.enemy] : null;
+    // (with no line-up given and no bench list, the map's default team: at most four a side, lineup.js)
+    const fallback = !this.chosenLineUp && !window.__bench ? defaultLineUp(mapData) : null;
+    const picked = this.chosenLineUp ? [...this.chosenLineUp.hero, ...this.chosenLineUp.enemy] : fallback ? [...fallback.hero, ...fallback.enemy] : null;
     const benched = (entry) =>
-      window.__bench
+      sitsOut(entry.id) ||
+      (window.__bench
         ? window.__bench.includes(entry.id)
         : picked
           ? !picked.includes(entry.id)
-          : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id);
+          : (entry.bench && !(mapData.alsoFighting || []).includes(entry.id)) || (mapData.sittingOut || []).includes(entry.id));
     this.lineUp = { alsoFighting: mapData.alsoFighting || [], sittingOut: mapData.sittingOut || [] };
     const fielded = (entry) => !benched(entry);
-    this.units = unitData.filter(fielded).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
+    // (the balance runs can put a character on the other side: window.__sides = { h5: 'enemy' })
+    const sided = (entry) => (window.__sides && window.__sides[entry.id] ? { ...entry, side: window.__sides[entry.id] } : entry);
+    this.units = unitData.filter(fielded).map(sided).map((entry) => this.createUnit(buildUnit(startAt(entry), jobs)));
+    for (const u of this.units) if (u.grip) u.attackName = gripAttackName(u); // Gadara: Fork Strike or Blade Strike
 
     installLighting(this); // only with ?light in the address (roadmap 1.38)
     createHudTextures(this);
@@ -1581,6 +1593,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // Puts every figure, decoy and marker back on its tile (after the camera turns).
   placeEveryone() {
+    if (this.redrawTelegraphs) this.redrawTelegraphs(); // Singularity's marked tiles follow the camera
     for (const u of this.units) {
       if (!u.view || !u.view.active) continue;
       const p = tileToScreen(u.col, u.row);
@@ -1980,6 +1993,10 @@ export default class BattleScene extends Phaser.Scene {
     this.wakeDecoy(this.activeUnit); // a decoy nobody struck is ready to echo her next spell
     this.wakeSmoke(this.activeUnit); // her Smoke Bomb clears and she shows herself (13.26)
     this.activeUnit.weaponSwitched = false; // one free weapon switch a turn (13.29)
+    this.activeUnit.gripSwitched = false; // Gadara: one free Reverse Grip a turn (Phase 10)
+    this.spellPage = 0; // the skills list opens on its first page
+    if (this.activeUnit.attune) this.activeUnit.attune.swapped = false; // Alagara: one free Verse swap a turn
+    this.activeUnit.surgeStone = false; // (a Stone Surge lasts only the turn it came in)
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     this.readyCloseWeapons(); // archers: dagger out for a foe next to them, bow otherwise (1.46)
     for (const unit of this.units) this.faceNearestOpponent(unit);
@@ -2010,6 +2027,20 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(1100, () => {
         this.busy = false;
         if (!this.battleOver && this.activeUnit === dazed) this.endTurn();
+      });
+      return;
+    }
+
+    // Gadara's Singularity, cast last turn, resolves now (Phase 10). Then he has his turn (Exposed).
+    const king = this.activeUnit;
+    if (king.channel) {
+      this.busy = true;
+      this.resolveSingularity(king, () => {
+        this.busy = false;
+        if (this.battleOver || !king.alive || this.activeUnit !== king) return;
+        this.refreshButtons();
+        this.refreshStatus();
+        if (king.side === 'enemy') this.time.delayedCall(ENEMY_THINK_MS, () => this.activeUnit === king && this.runEnemyTurn());
       });
       return;
     }
@@ -2531,9 +2562,15 @@ export default class BattleScene extends Phaser.Scene {
     // Choosing a spell: the spells (or groups of spells, like Verse) and Back
     if (isHero && (this.mode === 'spell' || this.mode === 'spellTarget' || this.mode === 'huskTile')) {
       const entries = this.spellMenu(unit);
+      // more than three (the kings): two at a time and More (like the bag)
+      const paged = entries.length > 3;
+      const pages = Math.ceil(entries.length / 2);
+      const page = paged ? (this.spellPage || 0) % pages : 0;
+      const shown = paged ? entries.slice(page * 2, page * 2 + 2) : entries;
       [a, b, c].forEach((slot, i) => {
-        const e = entries[i];
-        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring });
+        const e = shown[i];
+        if (paged && i === 2) slot.set('More  >', 'gem', true, () => { this.spellPage = (page + 1) % pages; this.refreshStatus(); });
+        else if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -2928,9 +2965,12 @@ export default class BattleScene extends Phaser.Scene {
       const spell = spells[id];
       const wait = spell.verse ? 0 : cooldownOf(unit, id);
       const left = usesLeft(unit, id); // pouches left this battle (Herbs), or null
+      // the kings (Phase 10): why a skill cannot be used now (Fork end, Mask 3/6, once a turn...)
+      const block = this.kingBlock(unit, id);
+      const free = spell.kind === 'grip' ? '  to ' + (unit.grip === 'blade' ? 'Fork' : 'Blade') : '';
       return {
-        label: spell.button + (left !== null ? ' x' + left : '') + (wait ? '  (' + wait + ')' : spell.mp ? '  ' + spell.mp + ' MP' : ''),
-        enabled: canAfford(unit, id) && !this.busy,
+        label: spell.button + free + (left !== null && spell.kind !== 'singularity' ? ' x' + left : '') + (wait ? '  (' + wait + ')' : block ? '  ' + block : spell.mp ? '  ' + spell.mp + ' MP' : ''),
+        enabled: canAfford(unit, id) && !block && !this.busy,
         onTap: () => this.chooseSpell(id),
         selected: this.selectedSpell === id,
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
@@ -2945,6 +2985,9 @@ export default class BattleScene extends Phaser.Scene {
     const seen = new Set();
     for (const id of unit.spells) {
       if (spells[id].kind === 'rest') continue; // Meditate has its own row on the main menu (8.10)
+      if (spells[id].reaction) continue; // Alagara's Unmoved happens by itself
+      if (spells[id].grip && spells[id].grip !== unit.grip) continue; // Gadara: only the skills of the end he holds
+      if (spells[id].verseSkill && this.kingBlock(unit, id)) continue; // Alagara: a Verse skill only with its Verse
       const group = spells[id].group;
       if (!group) {
         list.push(entry(id));
@@ -3003,6 +3046,22 @@ export default class BattleScene extends Phaser.Scene {
   chooseSpell(id) {
     const unit = this.activeUnit;
     const spell = spells[id];
+    // the kings (Phase 10): a reason it cannot be used now; Reverse Grip and Swap Verse are free and happen at once
+    const kingWhy = this.kingBlock(unit, id);
+    if (kingWhy) {
+      this.showMessage(spell.button + ': ' + kingWhy);
+      return;
+    }
+    if (spell.free) {
+      this.useFreeKingAction(unit, id);
+      return;
+    }
+    // a skill on himself (Singularity, Mantle): tap it again, or his own tile, to use it
+    if (KING_SELF_KINDS.includes(spell.kind) && this.selectedSpell === id && this.mode === 'spellTarget' && canAfford(unit, id)) {
+      this.pendingTarget = unit;
+      this.confirmSpell();
+      return;
+    }
     if (!canAfford(unit, id)) {
       if (usesLeft(unit, id) === 0) {
         this.showMessage(spell.button + ': none left this battle');
@@ -3083,7 +3142,7 @@ export default class BattleScene extends Phaser.Scene {
     this.mode = 'spellTarget';
     const foesOnly = ['haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse';
-    this.targetsInRange = this.units.filter(
+    this.targetsInRange = KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
         u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
@@ -3106,7 +3165,9 @@ export default class BattleScene extends Phaser.Scene {
     }
     // UI rework 16 Nov: the target tiles in the skill's own colour (fire orange, lightning violet...)
     const color = spell.color ? Phaser.Display.Color.HexStringToColor(spell.color).color : GOLD;
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color);
+    // Singularity shows the area it will pull from (3 tiles round him), then his own tile to confirm
+    if (spell.kind === 'singularity') this.showHighlights(this.kingAreaTiles(unit), color, { alpha: 0.25 });
+    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color, { keep: spell.kind === 'singularity' });
     this.holdCharge(unit, id);
     this.refreshOutlines();
     this.refreshStatus();
@@ -3757,6 +3818,7 @@ export default class BattleScene extends Phaser.Scene {
   performAttack(attacker, target, onDone) {
     attacker.hasActed = true;
     const result = rollAttack(attacker, target);
+    if (result.hit && !target.isDecoy) result.damage += gripBonus(attacker); // Gadara's Blade Strike: +2 (Phase 10)
     if (attacker.lungeBonus) { // Gaha's Lunge: 1 more damage for each tile he ran (castLunge sets it)
       if (result.hit) result.damage += attacker.lungeBonus;
       attacker.lungeBonus = 0;
@@ -3820,6 +3882,23 @@ export default class BattleScene extends Phaser.Scene {
         jump = { target: next, result: { hit, damage } };
       }
     }
+    // Gadara's Fork Strike (Phase 10): the second prong hits the next foe straight behind the target, at half
+    // damage, rolled on its own (an ally in the line is skipped, never hurt)
+    let prong = null;
+    const second = !target.isDecoy ? forkSecond(attacker, target, this.units) : null;
+    if (second) {
+      const hit = Math.random() * 100 < getHitChance(attacker, second);
+      let damage = hit ? Math.max(1, Math.round(getDamage(attacker, second) * KING_RULES.gadara.fork.secondShare)) : 0;
+      let note = null;
+      if (hit) {
+        const landed = this.landHit(second, damage);
+        damage = landed.damage;
+        note = landed.note;
+        second.hp = Math.max(0, second.hp - damage);
+        if (second.hp === 0) this.defeat(second);
+      }
+      prong = { target: second, result: { hit, damage, note } };
+    }
     // Husk echo: the decoy nobody struck fires a second bolt at the same target
     let echo = null;
     const echoDecoy = attacker.echoReady ? this.decoys.find((d) => d.owner === attacker) : null;
@@ -3853,6 +3932,14 @@ export default class BattleScene extends Phaser.Scene {
           this.time.delayedCall(120, () => this.showImpact(attacker, echo.target, echo.result, to.x - from.x, echo.target.hp === 0));
         }
         this.time.delayedCall(300, () => this.burstDecoys(attacker));
+      });
+    };
+    const playProng = () => {
+      if (!prong) return;
+      this.time.delayedCall(lead + 300, () => {
+        const b = this.centerOf(prong.target);
+        hitSpark(this, b.x, b.y);
+        this.showImpact(attacker, prong.target, prong.result, prong.target.view.x - attacker.view.x, prong.target.hp === 0);
       });
     };
     const playJump = () => {
@@ -3891,6 +3978,7 @@ export default class BattleScene extends Phaser.Scene {
       this.cutIn(attacker, 'FINISHING BLOW', () => {
         this.playAttack(attacker, target, result, true, variant);
         playJump();
+        playProng();
         playEcho();
         if (echo) this.time.delayedCall(500, finish);
         else finish();
@@ -3898,9 +3986,10 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       this.playAttack(attacker, target, result, false, variant);
       playJump();
+      playProng();
       playEcho();
       playPush();
-      const extra = (jump ? 450 : 0) + (echo ? 600 : 0) + (pushed && pushed.path.length ? 500 : 0);
+      const extra = (jump ? 450 : 0) + (prong ? 400 : 0) + (echo ? 600 : 0) + (pushed && pushed.path.length ? 500 : 0);
       if (extra) this.time.delayedCall(extra, finish);
       else finish();
     }
@@ -3914,6 +4003,7 @@ export default class BattleScene extends Phaser.Scene {
     const landed = takeHit(target, damage);
     this.damageTaken[target.id] = (this.damageTaken[target.id] || 0) + (landed.damage || 0); // for the result screen (M12)
     if (landed.damage > 0) this.interrupt(target);
+    if (landed.damage > 0) feedMask(target, KING_RULES.gadara.mask.hit); // Gadara's Mask Gauge: +1 for a hit taken
     if (landed.damage > 0 && target.hidden) this.revealHidden(target); // caught by an area attack: found out (1.47)
     return landed;
   }
@@ -3978,6 +4068,8 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.aiming && unit.aiming.target.markedBy === unit) unit.aiming.target.markedBy = null; // her aim dies with her
     unit.aiming = null;
     unit.meditating = null;
+    unit.channel = null; // Gadara's Singularity dies with him
+    this.clearTelegraph(unit);
     this.wakeSmoke(unit); // her cloud blows away with her
     if (unit.status) unit.status.stunned = false;
     if (unit.engagedWith) {
@@ -5139,6 +5231,8 @@ export default class BattleScene extends Phaser.Scene {
       this.busy = false;
       this.enemyWrapUp(unit);
     };
+    // the two kings play their own kits (src/kingsScene.js)
+    if ((unit.grip || unit.attune) && this.kingAiAct(unit, finish)) return;
     // Rabdul sets Shango's symbol on the weapon that will do most with it:
     // the hardest-hitting ally (or himself) who is in the fight (roadmap 4.1)
     if (unit.spells.includes('enchant') && canAfford(unit, 'enchant')) {
@@ -5394,6 +5488,7 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   pushLoser(loser, winner, steps) {
+    if (this.unmovedCatch(loser, winner)) return { path: [], fall: null, held: true }; // Alagara's Unmoved (Stone)
     const plan = this.pushPlan(loser, winner, steps);
     if (plan.held) {
       // Gaha standing his ground under Stone: nothing moves him
@@ -5420,7 +5515,10 @@ export default class BattleScene extends Phaser.Scene {
     if (fall) {
       loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
-      else this.interrupt(loser); // a fall or a slam breaks a trance or an aim too
+      else {
+        this.interrupt(loser); // a fall or a slam breaks a trance or an aim too
+        this.breakChannel(loser, 'Slammed'); // and Gadara's Singularity
+      }
     }
     if (this.relayQueue && (path.length > 0 || (fall && fall.slam)) && loser.hp > 0) this.relayQueue.push({ unit: loser, by: winner }); // Relay Strike may follow
     if (path.length > 0 || fall) loser.knockPending = true; // showImpact leaves the body to the knockback
@@ -5545,6 +5643,8 @@ export default class BattleScene extends Phaser.Scene {
     actor.hasActed = true;
     this.refreshButtons();
     const beat = resolveBeat(actor, stance, holder, holderStance, CONTEST_CTX, empowered, opening);
+    // Gadara's Mask Gauge: +1 for each clash beat he holds (wins, or stands even)
+    for (const u of [actor, holder]) if (beat.kind !== 'break' && beat.loser !== u) feedMask(u, KING_RULES.gadara.mask.beat);
     const outcome = this.applyBeat(beat);
     if (opening) {
       this.beginCinematic();
@@ -6173,6 +6273,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'enchant') return this.castEnchant(caster, target, spell, onDone);
     if (spell.kind === 'earthDrive') return this.castEarthDrive(caster, target, spell, onDone);
     if (spell.kind === 'clap') return this.castClap(caster, spell, onDone);
+    if (KING_KINDS.includes(spell.kind)) return this.castKingSkill(caster, target, id, onDone); // the kings (Phase 10)
 
     // Husk echo: the decoy nobody struck casts it too, so it works twice as well
     const echoed = caster.echoReady && this.decoys.some((d) => d.owner === caster);
@@ -6756,7 +6857,7 @@ export default class BattleScene extends Phaser.Scene {
       note = landed.note;
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) this.defeat(target);
-      else applyStun(target);
+      else { applyStun(target); this.breakChannel(target, 'Stunned'); }
     }
     const outcome = this.checkBattleEnd();
     if (outcome) this.battleOver = true;
@@ -6851,6 +6952,7 @@ export default class BattleScene extends Phaser.Scene {
       if (target.engagedWith && distance(target, target.engagedWith) > 1) endDuel(target);
     } else if (effect === 'stun') {
       applyStun(target);
+      this.breakChannel(target, 'Stunned'); // a Stun breaks Gadara's Singularity
     } else if (effect === 'lock' && canBeCaught(target) && !charger.engagedWith) {
       if (target.engagedWith) {
         freed = target.engagedWith; // an ally was clashing with it: Sudeen takes over
@@ -8099,6 +8201,8 @@ export default class BattleScene extends Phaser.Scene {
       // "it shouldn't linger on the enemy"); the mark is the status tag. (An old loop is cleared here.)
       this.keepAura(unit, 'drawnAura_haunt', false, () => null);
       this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
+      // Gadara holding the blade end: his purple weapon aura (6.75)
+      this.keepAura(unit, 'drawnAura_blade', unit.alive && unit.grip === 'blade' && hasBuffLoop(this, 'blade'), () => buffLoopFx(this, unit, 'blade'));
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');
       if (swift && !unit.swiftAura) unit.swiftAura = swiftAura(this, unit) || [];
       if (!swift && unit.swiftAura) {
@@ -8946,3 +9050,6 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshStatus();
   }
 }
+
+// The two kings' moves, Singularity and their AI (Phase 10) live in src/kingsScene.js
+Object.assign(BattleScene.prototype, kingMethods);

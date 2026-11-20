@@ -67,6 +67,20 @@ export function planSkill(scene, unit, target, id) {
   if (sp.kind === 'throw') return { label: sp.button, end: null, hits: [target], pushes: [push(target, unit, sp.push || 1)], marks: [] };
   if (sp.kind === 'bolt' && sp.push) return { label: sp.button, end: null, hits: [target], pushes: [push(target, unit, sp.push)], marks: [] };
   if (sp.kind === 'toss') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [{ unit: target, text: 'Stunned' }] };
+  // the kings (Phase 10)
+  if (sp.kind === 'hook') {
+    const phantom = { col: 2 * target.col - unit.col, row: 2 * target.row - unit.row }; // a pull is a push from the far side
+    return { label: sp.button, end: null, hits: [target], pushes: [push(target, phantom, sp.pull || 1)], marks: [] };
+  }
+  if (sp.kind === 'rending') return { label: sp.button, end: null, hits: [target], pushes: [push(target, unit, sp.push || 2)], marks: [] };
+  if (sp.kind === 'drawn') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [{ unit: target, text: 'Clash' }] };
+  if (sp.kind === 'cleave') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [] };
+  if (sp.kind === 'sunder') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Blessing torn' }] };
+  if (sp.kind === 'claim') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Claimed' }] };
+  if (sp.kind === 'gale') {
+    const g = scene.galePlan(unit, target);
+    return g.land ? { label: sp.button, end: g.land, zip: true, hits: g.hits, pushes: [], marks: [], line: g.tiles } : null;
+  }
   if (sp.kind === 'double' || sp.kind === 'poison') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [] };
   return null;
 }

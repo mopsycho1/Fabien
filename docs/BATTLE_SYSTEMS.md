@@ -185,6 +185,34 @@ Cooldown is in turns of that unit. "Verse" means Layra's buffs change a move int
 - **Smoke Bomb** (free of clashes only): Blind enemies next to her for 1 turn, then slip up to 2 tiles and be Hidden for 1 turn. The cloud stays until her next turn. Cooldown 3.
 - **Switch weapon:** free, once a turn.
 
+**Gadara the Greater (Sovereign), enemy king (Phase 10, NEW 20 Nov; the 19 Nov "Basic Attack Revision" sheet; every number a placeholder)**
+- **Numbers:** HP 60, attack 9, defense 5, magic attack 5, magic defense 3, accuracy 85, evade 5, speed 6, move 3, reach 1, no MP. Clash: Overpower, Power 8, Guard 6, Agility 2 (Press strong, Guard average, Slip weak). The most health and attack, the slowest, the lowest evade.
+- **Reverse Grip** (free, once a turn, no action): turns the sword-staff round. He starts fork first.
+- **Fork Strike** (normal attack, fork end): the target, and the next foe straight behind it (up to 2 tiles behind) at half damage, each rolled on its own. An ally in the line is skipped and never hurt. Not on a diagonal.
+- **Blade Strike** (normal attack, blade end): one target, +2 damage. His weapon glows purple while the blade leads.
+- **Snare Hook** (fork, range 2 in a straight line, nobody standing between): half damage, and the foe is pulled 1 tile toward him (into a unit or a wall: a slam). A pulled foe next to his allies can take Relay Strikes. Cooldown 3.
+- **Sunder Boon** (fork, the foe next to him, only one with a blessing): tears off one blessing (Swiftness, Earth's Bulwark, Fury, or an Enchanted weapon). No damage. Mask +2. Cooldown 3.
+- **Heavy Cleave** (blade, the foe next to him): 1.5 times damage, ignoring 2 of its defense, a slow overhead blow. Cooldown 3.
+- **Mask Gauge** (0 to 6): +2 for a stripped blessing, +1 for each clash beat he holds (wins or stands even), +1 for each hit he takes. Shown over him as MASK n/6.
+- **Dominion** (passive): blessings on his foes within 2 tiles are one step weaker: Fury +2 to +1, Swiftness evade +15 to +10, Earth's Bulwark +2 to +1, a Verse's clash bonus 1 lower, an Enchanted weapon burns 1 less. His own side is not touched.
+- **Singularity** (needs a full gauge, once a battle): he dons the mask, which takes his whole turn; the tiles within 3 of him are marked in violet. At the start of his next turn every foe within 3 tiles is pulled up to 3 tiles straight toward him (the nearest first). One stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented; one that ends next to him is Off-Balance. Allies do not move. Then he is **Exposed** for a turn (defense -2, evade -10), the gauge is 0, and he plays the rest of that turn. A **Stun, a fall or a slam** on him while it charges breaks it: the mask comes off and the gauge empties, but the once-a-battle use is kept.
+- **AI:** Singularity with 3 or more foes within 3 tiles, or 2 when one of them is not next to him yet; Sunder Boon on a blessed foe beside him; Snare Hook when nobody is beside him and a foe is 2 tiles away in a line (a caster first); Heavy Cleave on a lone foe beside him; otherwise Fork Strike through two in a line, or Blade Strike.
+
+**King Alagara (Vessel), hero king (Phase 10, NEW 20 Nov; class sheet v2 "Active and Echo"; cooldowns in place of SP; every number a placeholder)**
+- **Numbers (ours: the sheet only says high, medium, low):** HP 34, attack 7, defense 2, accuracy 90, evade 18, speed 11, move 4, reach 1, no MP. Clash: Evasion, Power 5, Guard 3, Agility 7 (Slip strong, Guard weak).
+- **Attunement:** two Verse slots. A new Verse on him while he holds another sends the old one to his **Echo** (it is not lost). Only the **Active** Verse gives its bonuses, and on him they are 50 percent bigger (penalties are not). When the Active Verse wears off the Echo takes over, with no Surge. Both wear off on their own turns. The Echo shows over him as ECHO and the Verse's short name.
+- **Swap Verse** (free, once a turn, both slots full): the Echo becomes Active. The incoming Verse **Surges** once: Swiftness gives a free step; Fury makes his next won Press move the momentum one step further; Stone shakes off Off-Balance and cancels the next push or pull this turn.
+- **Drawn Blade** (the foe next to him): the sheathed draw, a full blow. A hit locks them in a clash with the momentum already one step his way (a free Press). Cooldown 3.
+- **Claim** (a blessed unit next to him, ally or foe): takes one blessing (a Verse or an Enchanted weapon); the donor loses it, it is his for 2 turns. A Verse goes in his Active slot. Cooldown 3.
+- **Mantle** (needs an Active Verse): every ally next to him without a blessing gets his Active Verse at half strength for one turn. Cooldown 3.
+- **Gale Cut** (Swiftness): a dash in a straight line, as far as his steps left, through every foe on the way (each takes 0.8 of his damage, rolled on its own); he lands on the last free tile. The dash is his move. Cooldown 3.
+- **Rending Draw** (Fury, the foe next to him): a Drawn Blade that ignores 2 defense and throws the foe 2 tiles back (a slam if something is in the way). Cooldown 3.
+- **Unmoved** (Stone, a reaction, no button): the first push or pull on him is cancelled, and if the one who moved him stands beside him he answers with a sure half-strength counter. Cooldown 3.
+- **From the Echo:** a Verse skill whose Verse is in the Echo still works at **75 percent**, with **one more turn** of cooldown.
+- **His look** follows the Active Verse: his Fury and Swift pictures (fiery or pale hair).
+- **AI** (as an enemy, or played by the test player): swaps to Fury with a foe beside him and to Swiftness otherwise; Gale Cut through 2 or more (or 1 with nobody beside him); Claim a foe's blessing (an ally's only when he has none); Mantle when an ally beside him has no blessing; Rending Draw, then Drawn Blade, on a foe beside him; otherwise the plain attack.
+- **Left out for now** (systems the game does not have yet; logged in the roadmap, 10.30): the Renewal Verse's Surge and Sovereign's Grace, Hex, Counterspell, Anchor, Reveal, the Enchanter's channelled Verses, and Crowned Cut (no art yet).
+
 ## 7. Items
 
 Using one takes the unit's action, on itself or an ally standing next to it. Each fighter starts with the items below.
@@ -229,7 +257,7 @@ When a push, pull or shove leaves a foe **standing next to one of your units**, 
 - **Tooltips** for status effects and techniques.
 - **New buff visual effects.**
 - **Dodges for everyone:** settled for now, see section 11.
-- **Kofi, the summoned spirits, Gadara and King Alagura:** kits are written up but not in battle yet. Attunement (two Verses at once, only the King) is planned with him.
+- **The kings' missing pieces:** Crowned Cut (Alagara's finisher, no art), Sovereign's Verdict (Gadara's finisher), the Renewal Verse's Surge, Hex, Counterspell, Anchor and Reveal (see section 6).
 - **Guard and Rest:** settled for now, see section 11.
 
 ## 11. Three open rules, settled for now

@@ -165,6 +165,9 @@ if __name__ == '__main__':
             'mask': g['mask'], 'chant': g['mask'], 'cast': g['unleash'], 'unleash': g['unleash'],
             'hurt': g['hurt'], 'knocked': g['hurt'], 'down': g['down'],
         },
+        # the mask on while Singularity charges (BattleScene's look "masked"); the blade end's own strike (look "blade")
+        'buffed': {'masked': g['mask']},
+        'buffPoses': {'blade': {'attack': g['cleave_land'], 'windup': g['cleave_rear']}, 'masked': {'ready': g['mask'], 'unleash': g['unleash']}},
         'clash': {'file': 'clash/gadara_clash.webp', 'tip': 0.894, 'name': {'file': 'clash/gadara_clash_name.webp', 'x': 0.535, 'y': 0.0267}},
     })
     art['e5'] = gad

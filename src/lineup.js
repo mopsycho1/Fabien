@@ -10,6 +10,9 @@
 import unitData from './data/units.json';
 
 export const MAX_PER_SIDE = 4;
+// (the rule tests keep the battles they were written for: window.__sitOut lists characters left out, the two
+// kings unless a test asks for them; see dev/tests/boot.cjs)
+export const sitsOut = (id) => typeof window !== 'undefined' && Array.isArray(window.__sitOut) && window.__sitOut.includes(id);
 const SAVE_KEY = 'fabien.lineup';
 const TEST_KEY = 'fabien.testMode';
 
@@ -24,7 +27,7 @@ export function allCharacters() {
 export function defaultLineUp(mapData = {}) {
   const out = { hero: [], enemy: [] };
   for (const u of unitData) {
-    const benched = (u.bench && !(mapData.alsoFighting || []).includes(u.id)) || (mapData.sittingOut || []).includes(u.id);
+    const benched = (u.bench && !(mapData.alsoFighting || []).includes(u.id)) || (mapData.sittingOut || []).includes(u.id) || sitsOut(u.id);
     const side = u.side === 'enemy' ? 'enemy' : 'hero';
     if (benched) continue;
     if (out[side].length < MAX_PER_SIDE) out[side].push(u.id);

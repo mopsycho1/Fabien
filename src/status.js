@@ -2,6 +2,7 @@ import spells from './data/spells.json';
 import rules from './data/engagement.json';
 import conditions from './data/conditions.json';
 import terrain from './data/terrain.json';
+import { attuneTimes, dominionStep } from './kings.js';
 
 // Short-lived conditions on a unit: being Off-Balance, a helpful spell (a
 // buff, like a Verse), a harmful one (a hex, like Slow), and spells waiting to
@@ -20,6 +21,13 @@ import terrain from './data/terrain.json';
 //
 // A unit only ever has one buff. A new one replaces the old one, so spells
 // cannot pile up (the design notes ask us to avoid unlimited stacking).
+
+// Gadara's Dominion (Phase 10): the battle tells us whether a unit stands within 2 tiles of a foe who has it
+// (BattleScene sets this; without a battle nobody is under it).
+let underDominion = () => false;
+export function setDominionLookup(fn) {
+  underDominion = fn;
+}
 
 function statusOf(unit) {
   if (!unit.status) unit.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
@@ -157,6 +165,11 @@ export function applyBuff(unit, spellId, power = 1) {
     const mp = (spell.mp || 0) * power;
     buff.lent = { mp, max: mp };
   }
+  // King Alagara (Attunement, 10.18): a new Verse on him while he holds another sends the old one to his Echo
+  // slot instead of throwing it away (the same Verse again just refreshes it)
+  const had = statusOf(unit).buff;
+  if (unit.attune && had && had.id !== spellId && spells[had.id] && spells[had.id].kind === 'buff' && spell.kind === 'buff') unit.attune.echo = had;
+  if (unit.attune && unit.attune.echo && unit.attune.echo.id === spellId) unit.attune.echo = null;
   statusOf(unit).buff = buff;
 }
 
@@ -210,13 +223,23 @@ export function buffOf(unit) {
   const spell = spells[buff.id];
   const times = affinityTimes(unit, buff.id) * (buff.power || 1);
   const boosts = {};
-  for (const [stat, value] of Object.entries(spell.boosts || {})) boosts[stat] = value * times;
+  const weak = underDominion(unit); // Gadara's Dominion: one step weaker (kings.json)
+  // (a half-strength Verse, from Alagara's Mantle, is rounded: no half steps of movement)
+  const round = (stat, v) => (stat === 'move' ? Math.floor(v) : Math.round(v));
+  for (const [stat, value] of Object.entries(spell.boosts || {})) {
+    let v = value * times * attuneTimes(unit, value); // Alagara: his Active Verse is 50 percent stronger
+    if (weak && v > 0) v = Math.max(0, v - dominionStep(stat));
+    boosts[stat] = round(stat, v);
+  }
+  let amount = Math.round((spell.amount || 0) * times * attuneTimes(unit, spell.amount || 0));
+  if (weak && amount > 0) amount = Math.max(0, amount - dominionStep('amount'));
   return {
     id: buff.id,
     turnsLeft: buff.turnsLeft,
     ...spell,
     boosts,
-    amount: (spell.amount || 0) * times,
+    amount,
+    dominion: weak,
     holdChance: spell.holdChance ? spell.holdChance * times : undefined,
     slipChance: spell.slipChance ? spell.slipChance * times : undefined,
     times,
@@ -412,7 +435,8 @@ export function isEnchanted(unit) {
 export function enchantBonus(attacker, defender) {
   const e = attacker && attacker.status && attacker.status.enchant;
   if (!e) return 0;
-  return isDrenched(defender) ? Math.round(e.damage * terrain.water.fireTimes) : e.damage;
+  const dmg = Math.max(0, e.damage - (underDominion(attacker) ? 1 : 0)); // Gadara's Dominion: it burns 1 less near him
+  return isDrenched(defender) ? Math.round(dmg * terrain.water.fireTimes) : dmg;
 }
 
 // ---------- Drenched (the Hidden Cavern's water, roadmap 11.4) ----------
@@ -482,6 +506,15 @@ export function tickBuff(unit) {
     status.buff.turnsLeft -= 1;
     if (status.buff.turnsLeft <= 0) status.buff = null;
   }
+  // Alagara's Echo Verse wears off too; when his Active one is gone the Echo takes over (no Surge, 10.18)
+  if (unit.attune && unit.attune.echo) {
+    unit.attune.echo.turnsLeft -= 1;
+    if (unit.attune.echo.turnsLeft <= 0) unit.attune.echo = null;
+  }
+  if (unit.attune && !status.buff && unit.attune.echo) {
+    status.buff = unit.attune.echo;
+    unit.attune.echo = null;
+  }
   if (status.hex) {
     status.hex.turnsLeft -= 1;
     if (status.hex.turnsLeft <= 0) {
@@ -540,6 +573,10 @@ export function statusTags(unit) {
   if (statusOf(unit).blinded) tags.push({ text: 'BLINDED', color: '#c9c0b4', icon: 'blinded' }); // the archer's Smoke Bomb
   if (statusOf(unit).drenched) tags.push({ text: 'DRENCHED', color: '#7fd0ff', icon: 'drenched' }); // waded through the cavern's water
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
+  // the kings (Phase 10): Gadara's Mask Gauge and his charging Singularity, Alagara's Echo Verse
+  if (unit.channel) tags.push({ text: 'SINGULARITY', color: '#b48cff' });
+  if (unit.mask !== null && unit.mask !== undefined && !unit.singularityUsed) tags.push({ text: 'MASK ' + unit.mask + '/6', color: unit.mask >= 6 ? '#e0c8ff' : '#a98bff', count: unit.mask });
+  if (unit.attune && unit.attune.echo && spells[unit.attune.echo.id]) tags.push({ text: 'ECHO ' + spells[unit.attune.echo.id].short, color: spells[unit.attune.echo.id].color });
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {
     tags.push({ text: unit.stance.toUpperCase(), color: { press: '#ff9a6a', guard: '#e8c690', slip: '#9fd4ff' }[unit.stance] });

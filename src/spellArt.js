@@ -340,6 +340,22 @@ export function sfxBeam(scene, name, x0, y0, x1, y1, { depth = 80 } = {}) {
   const along = Math.min(2.6, Math.max(0.3, dist / length));
   return sfxPlay(scene, name, x0, y0, { scale: Math.max(along, thick * 0.6), scaleY: Math.min(thick, along), rotation: Math.atan2(y1 - y0, x1 - x0), depth });
 }
+// The kings' effects (6.74, 6.75): one of his GIFs played once at (x, y), sized by its "fit" in tiles (fx_fit.py,
+// 6.64) times "size". flip mirrors it (a slash coming from the other side). Returns the picture, or null.
+export function sfxAt(scene, name, x, y, { flip = false, rotation = 0, depth = 82, size = 1 } = {}) {
+  if (!sfxHas(scene, name)) return null;
+  const img = sfxPlay(scene, name, x, y, { scale: acrossScale(name, (f) => f.w) * size, rotation, depth });
+  if (flip) img.setFlipX(true);
+  return img;
+}
+// The same, looping until it is destroyed (Singularity's dark orb over Gadara while it charges).
+export function sfxLoop(scene, name, x, y, { size = 1 } = {}) {
+  if (!sfxHas(scene, name)) return null;
+  const info = SFX[name];
+  const anim = 'sfxloop-' + name;
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: sfxKeys(name).map((k) => ({ key: 'fx:' + k })), frameRate: 1000 / info.frameMs, repeat: -1 });
+  return scene.add.sprite(x, y, 'fx:' + sfxKeys(name)[0]).setOrigin(info.originX, info.originY).setScale(acrossScale(name, (f) => f.w) * size).setBlendMode(Phaser.BlendModes.ADD).play(anim);
+}
 // The strike that comes down on the target's feet (x, y): about one tile wide.
 export function sfxStrike(scene, name, x, y, { big = false } = {}) {
   const s = acrossScale(name, (f) => f.w);

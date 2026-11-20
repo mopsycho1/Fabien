@@ -25,7 +25,8 @@ const check = (ok, what) => { console.log((ok ? 'PASS ' : 'FAIL ') + what); if (
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function playView(view) {
-  const { browser, page, errors } = await openBattle(view);
+  // (the kings sit out: this checks taps and clicks with the heroes it was written for; their kits have n86, n87)
+  const { browser, page, errors } = await openBattle(view, { noKings: true });
   const desktop = view === 'desktop';
   const tag = '[' + view + '] ';
   try {

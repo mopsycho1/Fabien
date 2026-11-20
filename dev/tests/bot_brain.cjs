@@ -61,6 +61,15 @@ module.exports = function makeBrain(w, tally) {
 
     // ---------- a turn outside a clash ----------
     async smartTurn(b, u, waitIdle) {
+      // the two kings (Phase 10) on the heroes' side play the same kit AI as when they are enemies (src/kingsScene.js)
+      if (u.grip || u.attune) {
+        const turn = b.turnCount;
+        note('bot king turn');
+        b.runEnemyTurn();
+        const t0 = Date.now();
+        while (b.turnCount === turn && !b.battleOver && Date.now() - t0 < 15000) await sleep(20);
+        return;
+      }
       const alive = (s) => b.units.filter((x) => x.alive && x.side === s);
       const foes = alive('enemy').filter((f) => !f.hidden);
       const friends = alive('hero');

@@ -19,6 +19,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
     : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   if (opts.everyone) await page.addInitScript(() => { window.__bench = []; });
+  if (opts.noKings) await page.addInitScript(() => { window.__sitOut = ['h5', 'e5']; }); // a check written for the line-up before the kings (Phase 10)
   // the character select (18.30) goes straight on with the remembered line-up, unless a check is about it (opts.select)
   if (!opts.select) await page.addInitScript(() => { window.__skipSelect = true; });
   if (opts.ringSet) await page.addInitScript((r) => { window.__ringSet = r; }, opts.ringSet); // team ring colours to try (boardRead.js)

@@ -16,6 +16,8 @@ exports.start = async function start() {
   w.addEventListener('error', (e) => errors.push('window error: ' + e.message));
   w.CanvasRenderingContext2D = require('canvas').CanvasRenderingContext2D;
   w.__mapName = process.env.FABIEN_MAP || 'yoba'; // the rule tests were written for the first map's tiles; n39 asks for the Hidden Cavern
+  w.__sitOut = process.env.FABIEN_KINGS ? [] : ['h5', 'e5']; // the two kings (Phase 10) only when a test asks: FABIEN_KINGS=1
+  if (process.env.FABIEN_SIDES) w.__sides = JSON.parse(process.env.FABIEN_SIDES); // put a character on the other side: '{"h5":"enemy"}'
   if (process.env.FABIEN_BENCH !== undefined) w.__bench = process.env.FABIEN_BENCH.split(',').filter(Boolean); // who sits out (bot balance runs)
   w.__noWebp = true; // this test browser can't read WebP pictures (the clash banners load in the background in a real browser)
   w.eval(fs.readFileSync(__dirname + '/bundle.js', 'utf8'));

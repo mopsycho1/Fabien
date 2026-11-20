@@ -96,3 +96,7 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 14. Jungle map: will he send a layout, heights and prop list like THE CAVE sheet?
 15. Character select: when do the bios come, and should the new lion and the thief be on it at once?
 16. Mirrored sheets: which are true views and which are mirror copies?
+17. Gadara's numbers to tune after play (10.29): the Blade's +2, Fork's second hit on an Off-Balance foe, Snare Hook's damage and range, once-a-battle Singularity, Sunder Boon on a foe with no blessing.
+18. Alagara's numbers: his stats (the sheet gives only high, medium, low; ours are HP 34, attack 7, defense 2, evade 18, speed 11, move 4), is +50 percent on the Active Verse enough, is 75 percent and one more turn the right price for the Echo, are the Surges balanced?
+19. Art still missing for the kings: Rending Draw and Unmoved poses, Crowned Cut, Reverse Grip, Singularity's own cast pose (we use the 31 Oct mask and staff-raised pictures), a Fork Strike sheet, and back views for Claim and Alagara's injured pose.
+20. Who gives Alagara his Verses on the enemy side, where no Enchanter fights with him? (For now he Claims them from heroes.)

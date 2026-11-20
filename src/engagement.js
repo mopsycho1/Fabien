@@ -463,6 +463,11 @@ export function resolveBeat(actor, actorStance, holder, holderStance, ctx = DEFA
   const winStance = winner === actor ? actorStance : holderStance;
   let shift = winStance === 'press' ? rules.momentum.pressWinShift : rules.momentum.winShift;
   if (Math.abs(margin) >= rules.decisiveMargin) shift += rules.momentum.decisiveExtra;
+  // King Alagara's Fury Surge (Phase 10): his next won Press pushes the momentum a step further
+  if (winStance === 'press' && winner.surgePress) {
+    shift += winner.surgePress;
+    winner.surgePress = 0;
+  }
   shiftMomentum(winner, shift);
   const decisive = momentumOf(winner) >= rules.momentum.max;
   return { ...base, kind: 'win', winner, loser, shift, decisive };

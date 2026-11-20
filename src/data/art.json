@@ -4970,15 +4970,6 @@
         }
       }
     },
-    "clash": {
-      "file": "clash/gadara_clash.webp",
-      "tip": 0.894,
-      "name": {
-        "file": "clash/gadara_clash_name.webp",
-        "x": 0.535,
-        "y": 0.0267
-      }
-    },
     "ruler": {
       "gadara_stand_f4.png": {
         "footX": 0.503
@@ -5071,7 +5062,74 @@
         "footX": 0.496
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "buffed": {
+      "masked": {
+        "downRight": {
+          "file": "gadara_mask_f1.png",
+          "originX": 0.215
+        },
+        "upLeft": {
+          "file": "gadara_mask_f3.png",
+          "originX": 0.491
+        }
+      }
+    },
+    "buffPoses": {
+      "blade": {
+        "attack": {
+          "downLeft": {
+            "file": "gadara_cleave_land_f1.png",
+            "originX": 0.069
+          },
+          "upLeft": {
+            "file": "gadara_cleave_land_f3.png",
+            "originX": 0.36
+          }
+        },
+        "windup": {
+          "downLeft": {
+            "file": "gadara_cleave_rear_f1.png",
+            "originX": 0.448
+          },
+          "upLeft": {
+            "file": "gadara_cleave_rear_f3.png",
+            "originX": 0.129
+          }
+        }
+      },
+      "masked": {
+        "ready": {
+          "downRight": {
+            "file": "gadara_mask_f1.png",
+            "originX": 0.215
+          },
+          "upLeft": {
+            "file": "gadara_mask_f3.png",
+            "originX": 0.491
+          }
+        },
+        "unleash": {
+          "downLeft": {
+            "file": "gadara_unleash_f4.png",
+            "originX": 0.132
+          },
+          "upLeft": {
+            "file": "gadara_unleash_f3.png",
+            "originX": 0.273
+          }
+        }
+      }
+    },
+    "clash": {
+      "file": "clash/gadara_clash.webp",
+      "tip": 0.894,
+      "name": {
+        "file": "clash/gadara_clash_name.webp",
+        "x": 0.535,
+        "y": 0.0267
+      }
+    }
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three looks). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\"); the Echo shows only in the interface.",

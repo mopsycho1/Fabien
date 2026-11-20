@@ -140,5 +140,88 @@
     "spells": ["poisonArrow", "smokeBomb"],
     "stats": { "hp": 24, "attack": 7, "defense": 1, "magicAttack": 1, "magicDefense": 3, "accuracy": 90, "evade": 15, "speed": 11, "move": 3, "range": 5 },
     "note": "Range 5 (Suleiman, 29 Oct: at least double Gaha's reach, \"if not a little extra\"). Her AI keeps its distance. 8 Nov (13.29): she chooses her weapon (Switch weapon, free once a turn): the bow reaches 2 to 5 tiles (no room to draw it next to a foe), the dagger only the tile next to her."
+  },
+  "sovereign": {
+    "name": "Sovereign",
+    "badge": "K",
+    "attackEffect": "slash",
+    "attackName": "Fork Strike",
+    "note": "Gadara the Greater, the Hollow King (Phase 10; 19 Nov kit sheet 'Basic Attack Revision', roadmap 10.23 to 10.29). Guardian, Sovereign subset, Overpower style. The highest health and attack on the roster, the slowest, the lowest evade. 'grip': he starts with the fork end leading (Reverse Grip swaps it, free, once a turn). 'maskGauge': the Mask Gauge, 0 to 6 (src/kings.js, src/data/kings.json). Every number is a placeholder.",
+    "grip": "fork",
+    "maskGauge": true,
+    "dominion": true,
+    "stats": {
+      "hp": 60,
+      "mp": 0,
+      "attack": 9,
+      "defense": 5,
+      "magicAttack": 5,
+      "magicDefense": 3,
+      "accuracy": 85,
+      "evade": 5,
+      "speed": 6,
+      "move": 3,
+      "range": 1
+    },
+    "contest": {
+      "style": "overpower",
+      "power": 8,
+      "guard": 6,
+      "agility": 2
+    },
+    "stances": {
+      "press": "strong",
+      "guard": "average",
+      "slip": "weak",
+      "break": "weak"
+    },
+    "spells": [
+      "reverseGrip",
+      "snareHook",
+      "sunderBoon",
+      "heavyCleave",
+      "singularity"
+    ]
+  },
+  "vessel": {
+    "name": "Vessel",
+    "badge": "V",
+    "attackEffect": "slash",
+    "attackName": "Scimitar",
+    "note": "King Alagara, the Vessel (Phase 10; class sheet v2 'Active and Echo', roadmap 10.17 to 10.22). Scout, Sovereign subset. Weak unbuffed, one of the strongest buffed. His sheet gives no numbers, only high, medium, low: Agility high, Attack medium, Resolve medium, HP medium, Defense low, Focus low; these are ours, placeholders. 'attunement': two Verse slots, Active and Echo (src/kings.js). Cooldowns in place of SP, like Gadara's revision (Baiyee 20 Nov).",
+    "attunement": true,
+    "stats": {
+      "hp": 34,
+      "mp": 0,
+      "attack": 7,
+      "defense": 2,
+      "magicAttack": 1,
+      "magicDefense": 2,
+      "accuracy": 90,
+      "evade": 18,
+      "speed": 11,
+      "move": 4,
+      "range": 1
+    },
+    "contest": {
+      "style": "evasion",
+      "power": 5,
+      "guard": 3,
+      "agility": 7
+    },
+    "stances": {
+      "press": "average",
+      "guard": "weak",
+      "slip": "strong",
+      "break": "average"
+    },
+    "spells": [
+      "verseSwap",
+      "drawnBlade",
+      "claim",
+      "mantle",
+      "galeCut",
+      "rendingDraw"
+    ]
   }
 }

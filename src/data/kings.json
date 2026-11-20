@@ -1,0 +1,23 @@
+{
+  "note": "The two kings' own numbers (Phase 10). Gadara: the 19 Nov kit sheet 'Basic Attack Revision' (roadmap 10.23 to 10.29). Alagara: class sheet v2 'Active and Echo' (10.17 to 10.22) with cooldowns in place of SP, like Gadara's revision. Every number is a placeholder for playtesting. Their skills' own numbers are in spells.json.",
+  "gadara": {
+    "fork": { "name": "Fork Strike", "secondShare": 0.5, "lineDepth": 2, "note": "Fork mode basic attack: the target and the next foe straight behind it (an ally in between is skipped), each hit rolled on its own, the second at half damage." },
+    "blade": { "name": "Blade Strike", "bonus": 2, "note": "Blade mode basic attack: one target, +2 damage." },
+    "mask": { "max": 6, "strip": 2, "beat": 1, "hit": 1, "note": "+2 when he strips a buff, +1 for each clash beat he holds (wins or ties), +1 when he takes a hit." },
+    "dominion": { "radius": 2, "step": { "attack": 1, "defense": 1, "evade": 5, "amount": 1 }, "note": "Buffs on his foes within 2 tiles are one step weaker: Fury +2 to +1, Swift's evade +15 to +10, Earth's Bulwark +2 to +1, and the clash bonus of a Verse 1 lower. Rabdul's Enchant burns 1 less." },
+    "singularity": { "radius": 3, "pull": 3, "collisionDamage": 2, "exposed": { "defense": 2, "evade": 10 }, "note": "Every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented; one that ends next to him is Off-Balance. Then he is Exposed for a turn (defense -2, evade -10), the mask comes off and the gauge is 0. Once a battle. A Stun, a fall or a slam on him while it charges breaks it (the gauge empties, the once-a-battle use is kept)." },
+    "ai": { "clusterMin": 2, "clusterAlways": 3, "note": "The enemy AI casts Singularity when at least 2 foes stand within 3 tiles (always at 3 or more)." }
+  },
+  "alagara": {
+    "activeBonus": 1.5,
+    "echoPower": 0.75,
+    "echoCooldownExtra": 1,
+    "verseSkills": { "swiftness": "galeCut", "fury": "rendingDraw", "stone": "unmoved" },
+    "surge": {
+      "swiftness": { "steps": 1, "text": "Surge: a free step" },
+      "fury": { "pressSteps": 1, "text": "Surge: his next Press pushes the momentum one step further" },
+      "stone": { "text": "Surge: Off-Balance shaken off, and the next push this turn is cancelled" }
+    },
+    "note": "Attunement: two Verse slots, Active and Echo. Only the Active one gives stat bonuses (50 percent bigger on him). The Echo's Verse skill still works at 75 percent, with one more turn of cooldown. A swap is free, once a turn, and gives the incoming Verse a Surge. Left out for now (systems we do not have): the Renewal Verse's Surge and Sovereign's Grace, Hex, Counterspell, Anchor, Reveal, Crowned Cut (no art yet)."
+  }
+}
