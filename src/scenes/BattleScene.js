@@ -478,7 +478,12 @@ export default class BattleScene extends Phaser.Scene {
     const skillW = Math.round((portrait ? SKILL_PANEL.w : 220) * px); // (18.44: on a wide screen about as wide as the card)
     const menuW = Math.round(150 * px);
     const infoW = Math.round(portrait ? W - 2 * m : Math.min(420 * px, W - cardW - skillW - 4 * m));
-    this.lay = { W, H, s, m, portrait, cardW, infoW, real, px, F, minText, minTap, rowH: Math.round((portrait ? 28 : 26) * px), menuW, skillW, top: 0, bottom: H };
+    // 18.50 (Suleiman 21 Nov, phone): the rows LOOK slim (visRowH, about 21 real pixels) but each row's band, which is its
+    // whole tap area, is at least 40 real pixels tall. Rows cannot both be 21 apart and 40 tall, so the pitch is 40 and the
+    // gold highlight, words and pictures keep the slim size (domHud draws the highlight at visRowH in the middle of the band).
+    const visRowH = Math.round((portrait ? 28 : 26) * px);
+    const rowH = portrait ? Math.max(visRowH, Math.ceil(40 / real)) : visRowH;
+    this.lay = { W, H, s, m, portrait, cardW, infoW, real, px, F, minText, minTap, rowH, visRowH, menuW, skillW, top: 0, bottom: H };
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
     const b = this.boardBounds();

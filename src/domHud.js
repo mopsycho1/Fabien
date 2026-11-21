@@ -152,7 +152,10 @@ const CSS = `
 #fabien-hud .mrow .wd { flex: 1; min-width: 0; font-weight: 600; letter-spacing: 0.02em; color: #f1e6c8; text-shadow: 0 1px 2px #000; }
 #fabien-hud .mrow .ct { color: #e8dcc0; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 #fabien-hud .mrow.off .wd { color: #7d6e58; } #fabien-hud .mrow.off .ct { opacity: 0.5; } #fabien-hud .mrow.off .ic img { opacity: 0.4; }
-#fabien-hud .mrow.lit, #fabien-hud .mrow.cur:not(.off) { background: linear-gradient(90deg, rgba(201,163,90,0.30), rgba(201,163,90,0.10) 70%, rgba(201,163,90,0.04));
+/* the lit row's gold band keeps the slim look (--vis) in the middle of the row's taller tap band (18.50) */
+#fabien-hud .mrow { isolation: isolate; }
+#fabien-hud .mrow.lit::after, #fabien-hud .mrow.cur:not(.off)::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--vis, 100%); transform: translateY(-50%); z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(201,163,90,0.30), rgba(201,163,90,0.10) 70%, rgba(201,163,90,0.04));
   box-shadow: inset 0 1px 0 rgba(228,194,124,0.35), inset 0 -1px 0 rgba(228,194,124,0.35); }
 #fabien-hud .mrow.lit .wd, #fabien-hud .mrow.cur:not(.off) .wd { color: #fff4d6; }
 /* the War of the Lions pointer: a glowing gold arrowhead just outside the row, gently moving */
@@ -657,7 +660,7 @@ export class DomHud {
         const icon = this.rowIcon(r);
         const d = Math.round((r.iconSize || 13 * sc.lay.px) * k * 1.25);
         const ring = r.ringColor !== null && r.ringColor !== undefined && r.emblem ? '<span class="ring" style="background:radial-gradient(circle,' + hex(r.ringColor) + 'cc,' + hex(r.ringColor) + '00 72%)"></span>' : '';
-        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="left:' + Math.round(r.x * k) + 'px;top:' + Math.round(r.y * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
+        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="--vis:' + Math.round(Math.min(r.h, sc.lay.visRowH) * k) + 'px;left:' + Math.round(r.x * k) + 'px;top:' + Math.round(r.y * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
           + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + (r.el ? skillIconSvg(r.el, d) : ring + (icon ? '<img src="' + icon + '" alt="">' : '')) + '</span>'
           + '<span class="wd fit" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
       });
