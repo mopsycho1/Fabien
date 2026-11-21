@@ -90,6 +90,9 @@ FILES = {
     'sfx_empower': ('New Effects/New Effects/Golden Empowerment Aura Animation.gif', 'keep', 0.5, 0.8),   # a clash Empower (9.6)
     'sfx_clash_shock': ('New Effects/New Effects/Shockwave for clash.gif', 'keep', 0.5, 0.5),             # the clash collision
     'sfx_umbra_vortex': ('Umbra (Gadara\'s spell)/Purple Gravitational Vortex Animation.gif', 'keep', 0.5, 0.75),  # Singularity resolves
+    # Gaha's Lunge (6.72, 21 Nov): folder INBOX/2026-11-19/email, ONLY=sfx_lunge_dust,sfx_lunge_impact
+    'sfx_lunge_dust': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Dust from leap.gif', 'keep', 0.5, 0.85),       # where he leaves the ground
+    'sfx_lunge_impact': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Attack impact animated.gif', 'keep', 0.5, 0.7),   # where the spear lands
 }
 
 # GIFs whose ground is a flat dark colour, not pure black: that colour is taken off first (6.88: the empower GIF is 12, 9, 6)

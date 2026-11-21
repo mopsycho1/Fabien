@@ -115,7 +115,10 @@ def _wipe_once(path, tiles=None, tol=None, warm_gate=None):
     rgb = a[..., :3]
     tiles = TILES if tiles is None else tiles   # (tile_colours(a) found a colour per picture, but the rim is mostly side face and shadow: worse)
     tol = TOL if tol is None else tol
-    dist = np.min([np.sqrt(((rgb - t) ** 2).sum(-1)) for t in tiles], axis=0)
+    # a palette row may carry its own tolerance as a 4th number (the dark side-face colours of a tile are close to dark cloth)
+    tiles = np.asarray(tiles, float)
+    rowtol = tiles[:, 3] if tiles.shape[1] == 4 else np.full(len(tiles), tol)
+    dist = np.min([np.sqrt(((rgb - t[:3]) ** 2).sum(-1)) * (tol / rt) for t, rt in zip(tiles, rowtol)], axis=0)   # scaled so dist < tol means inside that row's own tolerance
     # the tile is warm (red well above green); her olive trousers are not, and are as dark as the tile's side face
     warm = (rgb[..., 0] - rgb[..., 1] > 22) & (rgb[..., 1] - rgb[..., 2] > 10) if warm_gate is None else warm_gate(rgb)
     # moss and grass on the tile: yellow-green (her orange cloth and gold are redder)
@@ -156,6 +159,33 @@ def _wipe_once(path, tiles=None, tol=None, warm_gate=None):
     for r0, r1 in runs[1:]:
         if r1 - r0 < 4: a[r0:r1, :, 3] = 0       # a thin stray line (the edge of a plate)
     if len(runs) > 1 and (runs[-1][1] - runs[-1][0]) < 0.14 * h and runs[-1][0] > 0.8 * h: a[runs[-1][0]:, :, 3] = 0
+    im = Image.fromarray(a.astype(np.uint8), 'RGBA'); im.crop(im.getbbox()).save(path, optimize=True)
+
+def floor_tidy(path, tiles, gate, loose=44.0):
+    """For a tile whose dark side faces are close to dark cloth, so the exact wipe has to be strict and leaves tile behind: this
+    second step takes away (1) everything below the lowest foot (a pixel that is NOT tile-coloured at the loose tolerance), and
+    (2) loose tile-coloured pieces that do not touch such a figure pixel."""
+    a = np.array(Image.open(path).convert('RGBA')).astype(float); h = a.shape[0]
+    rgb = a[..., :3]; tiles = np.asarray(tiles, float)
+    dist = np.min([np.sqrt(((rgb - t[:3]) ** 2).sum(-1)) for t in tiles], axis=0)
+    tile_ish = (dist < loose) & gate(rgb) & (a[..., 3] > 0)
+    figure = (a[..., 3] > 128) & ~tile_ish
+    figure = ndimage.binary_opening(figure, iterations=1)
+    lab, k = ndimage.label(figure)
+    if k:
+        sizes = ndimage.sum(figure, lab, range(1, k + 1)); figure = np.isin(lab, [i + 1 for i, v in enumerate(sizes) if v >= 0.02 * sizes.max()])
+    rows = np.where(figure.any(1))[0]
+    if len(rows): a[rows.max() + 3:, :, 3] = 0
+    near = ndimage.binary_dilation(figure, iterations=3)
+    lab, k = ndimage.label(tile_ish & (a[..., 3] > 0))
+    for i in range(1, k + 1):
+        comp = lab == i
+        if not (comp & near).any(): a[comp, 3] = 0
+    solid = a[..., 3] > 128; lab, k = ndimage.label(solid)
+    if k > 1:
+        sizes = ndimage.sum(solid, lab, range(1, k + 1))
+        for i in range(1, k + 1):
+            if sizes[i - 1] < 0.01 * sizes.max(): a[lab == i, 3] = 0
     im = Image.fromarray(a.astype(np.uint8), 'RGBA'); im.crop(im.getbbox()).save(path, optimize=True)
 
 def cut(sheet):

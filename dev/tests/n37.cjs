@@ -27,21 +27,22 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([]);
   for (const [u, name] of [[sudeen, 'sudeen'], [gaha, 'gaha'], [layra, 'layra'], [rabdul, 'rabdul'], [bull, 'bull']]) {
     const f = {}; for (const d of ['downLeft', 'downRight', 'upLeft', 'upRight']) f[d] = look(u, d);
-    const ok = Object.values(f).every((k) => k.startsWith(name + '_iso_stand_') || (name === 'layra' && k.startsWith('layra_n_stand_')));   // 6.69: her new sheets are four true views
+    const ok = Object.values(f).every((k) => k.startsWith(name + '_iso_stand_') || ((name === 'layra' || name === 'gaha') && k.startsWith(name + '_n_stand_')));   // 6.69: her new sheets are four true views
     // a facing that isn't drawn is the opposite side mirrored
-    const mirrored = Object.values(f).filter((k) => k.endsWith('(m)')).length === (name === 'layra' ? 0 : 2);
+    const mirrored = Object.values(f).filter((k) => k.endsWith('(m)')).length === (name === 'layra' || name === 'gaha' ? 0 : 2);   // (6.72: Gaha's new neutral is four true views too)
     check('9.11 ' + name + ': his new standing pictures in all four facings (two drawn, two mirrored)', ok && mirrored, JSON.stringify(f));
   }
   // heroes are drawn facing up-right (towards the enemy), enemies down-left
-  check('9.11 heroes use his north-east picture as drawn, enemies his south-west', look(gaha, 'upRight') === 'gaha_iso_stand_upRight.png' && look(bull, 'downLeft') === 'bull_iso_stand_downLeft.png');
+  check('9.11 heroes use his north-east picture as drawn, enemies his south-west', look(gaha, 'upRight') === 'gaha_n_stand_upRight.png' && look(bull, 'downLeft') === 'bull_iso_stand_downLeft.png');
 
   // the same size as before: tallest standing picture = height
   /* measured through the sideways scale: breathing stretches the height by up to 3.5 percent at a random moment, which made this check shaky (18.5) */
   const shown = (u) => Math.round(u.sprite.height * Math.abs(u.sprite.scaleX));
   for (const [u, h] of [[sudeen, 88], [gaha, 100], [layra, 100], [rabdul, 112], [bull, 112]]) { u.facing = 'downLeft'; b.showStanding(u); }
   // (map.json's figureScale shrinks everyone alike)
-  const fs = shown(gaha) / 100;
-  const same = [[sudeen, 88], [layra, 100], [rabdul, 112], [bull, 112]].every(([u, h]) => Math.abs(shown(u) - h * fs) <= 2);
+  /* 6.72: Gaha's four standing pictures are not one height any more (his new neutral, true views), so the factor comes from Layra */
+  const fs = shown(layra) / 100;
+  const same = [[sudeen, 88], [rabdul, 112], [bull, 112]].every(([u, h]) => Math.abs(shown(u) - h * fs) <= 3) && Math.abs(shown(gaha) - 100 * fs) <= 8;
   check('9.11 each character is drawn the same size as before', same && fs > 0.8 && fs <= 1, [shown(sudeen), shown(gaha), shown(layra), shown(rabdul), shown(bull)].join(',') + ' x' + fs.toFixed(2));
   // an old picture a character keeps (the bull's victory) is still drawn at its old size
   b.showPose(bull, 'victory', -1);

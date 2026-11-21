@@ -603,15 +603,23 @@
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
-    "height": 100,
+    "height": 101,
     "standing": {
       "upRight": {
-        "file": "gaha_iso_stand_upRight.png",
-        "originX": 0.624
+        "file": "gaha_n_stand_upRight.png",
+        "originX": 0.415
       },
       "downRight": {
-        "file": "gaha_iso_stand_downRight.png",
-        "originX": 0.413
+        "file": "gaha_n_stand_downRight.png",
+        "originX": 0.434
+      },
+      "upLeft": {
+        "file": "gaha_n_stand_upLeft.png",
+        "originX": 0.539
+      },
+      "downLeft": {
+        "file": "gaha_n_stand_downLeft.png",
+        "originX": 0.55
       }
     },
     "battle": {
@@ -944,28 +952,63 @@
           "originX": 0.741,
           "flip": true
         }
+      },
+      "lungeLeap": {
+        "upLeft": {
+          "file": "gaha_n_leap_upLeft.png",
+          "originX": 0.495
+        },
+        "upRight": {
+          "file": "gaha_n_leap_upRight.png",
+          "originX": 0.452
+        },
+        "downLeft": {
+          "file": "gaha_n_leap_downLeft.png",
+          "originX": 0.466
+        },
+        "downRight": {
+          "file": "gaha_n_leap_downRight.png",
+          "originX": 0.454
+        }
+      },
+      "lungeAttack": {
+        "upLeft": {
+          "file": "gaha_n_lunge_upLeft.png",
+          "originX": 0.57
+        },
+        "upRight": {
+          "file": "gaha_n_lunge_upRight.png",
+          "originX": 0.379
+        },
+        "downLeft": {
+          "file": "gaha_n_lunge_downLeft.png",
+          "originX": 0.507
+        },
+        "downRight": {
+          "file": "gaha_n_lunge_downRight.png",
+          "originX": 0.473
+        }
       }
     },
     "portrait": "gaha_face.png",
     "portraitHurt": "gaha_face_hurt.png",
     "shout": "gaha_shout.png",
     "weak": {
-      "upLeft": {
-        "file": "gaha_n6_weak_downLeft.png",
-        "originX": 0.625,
-        "flip": true
+      "downLeft": {
+        "file": "gaha_n_weakA_downLeft.png",
+        "originX": 0.589
       },
       "upRight": {
-        "file": "gaha_n6_weak_downLeft.png",
-        "originX": 0.625
+        "file": "gaha_n_weakA_upRight.png",
+        "originX": 0.392
       },
-      "downLeft": {
-        "file": "gaha_n6_weak_upLeft.png",
-        "originX": 0.546
+      "upLeft": {
+        "file": "gaha_n_weakB_upLeft.png",
+        "originX": 0.603
       },
       "downRight": {
-        "file": "gaha_n6_weak_downRight.png",
-        "originX": 0.499
+        "file": "gaha_n_weakB_downRight.png",
+        "originX": 0.407
       }
     },
     "note_facing": "Up-right and up-left were swapped in the standing, weak and stone pictures (his face pointed the wrong way, so he looked away from the enemy at the start of a battle). Fixed 29 Oct: in each up view his face should point the way he faces.",
@@ -1297,12 +1340,19 @@
     "note_fall": "Fall set (ART2, roadmap 18.1 and 18.18): Suleiman's 11 Nov sheet, one view facing down-right, mirrored for the other side. fallAir = thrown back in the air, fallLand = on hands and knees, fallRise = pushing up. Shown by src/knockback.js when he is pushed. Cut by dev/tools/make_gaha_fall.py.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his in-the-air fall picture. The game leans the picture back itself.",
     "note_windup": "15 Nov (roadmap 6.52, 18.29): his drawn wind-up and release, four views each (dev/tools/make_gaha_windup.py). throw = the wind-up before Spear Throw, throwRelease = the release, strikeWindup = the same wind-up shown before his melee strike. Down-right is the down-left picture flipped.",
+    "note_n18": "18 Nov sheets, wired 21 Nov (6.72, dev/tools/make_gaha_new.py): the new neutral (spear on the shoulder) is his standing in four facings, the battle damaged sheets his weak look in four facings, the Lunge leap and Lunge attack sheets the poses lungeLeap and lungeAttack (BattleScene.castLunge).",
     "ruler": {
-      "gaha_iso_stand_upRight.png": {
-        "footX": 0.564
+      "gaha_n_stand_upRight.png": {
+        "footX": 0.384
       },
-      "gaha_iso_stand_downRight.png": {
-        "footX": 0.522
+      "gaha_n_stand_downRight.png": {
+        "footX": 0.471
+      },
+      "gaha_n_stand_upLeft.png": {
+        "footX": 0.598
+      },
+      "gaha_n_stand_downLeft.png": {
+        "footX": 0.513
       },
       "gaha_iso_battle_upRight.png": {
         "scale": 0.92,
@@ -1476,16 +1526,45 @@
         "scale": 1.6,
         "footX": 0.502
       },
-      "gaha_n6_weak_downLeft.png": {
-        "scale": 0.85,
-        "footX": 0.534
+      "gaha_n_leap_upLeft.png": {
+        "footX": 0.607
       },
-      "gaha_n6_weak_upLeft.png": {
-        "scale": 0.85
+      "gaha_n_leap_upRight.png": {
+        "footX": 0.312
       },
-      "gaha_n6_weak_downRight.png": {
-        "scale": 0.85,
-        "footX": 0.533
+      "gaha_n_leap_downLeft.png": {
+        "footX": 0.532
+      },
+      "gaha_n_leap_downRight.png": {
+        "footX": 0.421
+      },
+      "gaha_n_lunge_upLeft.png": {
+        "scale": 0.92,
+        "footX": 0.754
+      },
+      "gaha_n_lunge_upRight.png": {
+        "scale": 0.92,
+        "footX": 0.193
+      },
+      "gaha_n_lunge_downLeft.png": {
+        "scale": 0.92,
+        "footX": 0.6
+      },
+      "gaha_n_lunge_downRight.png": {
+        "scale": 0.92,
+        "footX": 0.398
+      },
+      "gaha_n_weakA_downLeft.png": {
+        "footX": 0.636
+      },
+      "gaha_n_weakA_upRight.png": {
+        "footX": 0.528
+      },
+      "gaha_n_weakB_upLeft.png": {
+        "footX": 0.472
+      },
+      "gaha_n_weakB_downRight.png": {
+        "footX": 0.364
       },
       "gaha_sj_whirl_0.png": {
         "scale": 0.82,

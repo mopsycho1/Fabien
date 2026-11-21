@@ -302,6 +302,18 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.5
+    },
+    "sfx_lunge_dust": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.85
+    },
+    "sfx_lunge_impact": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.7
     }
   }
 }

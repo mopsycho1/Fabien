@@ -32,7 +32,7 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxAt, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
@@ -4518,7 +4518,7 @@ export default class BattleScene extends Phaser.Scene {
     // an archer right next to its target fights with its dagger instead of the bow
     const close = !target.isDecoy && usesCloseWeapon(attacker, target);
     const style = close ? 'slash' : attacker.attackEffect;
-    const strikePose = close ? attacker.closeWeapon.pose : 'attack';
+    const strikePose = close ? attacker.closeWeapon.pose : attacker.lungeStrike && this.hasPose(attacker, 'lungeAttack') ? 'lungeAttack' : 'attack';   // Gaha's Lunge ends in his own thrust (6.72)
     const readyPose = close ? 'ready' : 'windup';
 
     this.faceToward(attacker, dx, dy);
@@ -4811,6 +4811,8 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     const dir = dx >= 0 ? 1 : -1;
+    // Gaha's Lunge (6.72): his own arc of light and dust where the spear lands
+    if (attacker.lungeStrike) sfxAt(this, 'lunge_impact', target.view.x, target.view.y + 6, { flip: dx < 0, depth: target.view.depth + 2 });
     const power = Math.min(2, 0.8 + result.damage / 8) * (lethal ? 1.3 : 1);
     const color = style === 'spark' ? 0x9fd4ff : 0xffd27a;
 
@@ -6618,6 +6620,12 @@ export default class BattleScene extends Phaser.Scene {
     user.lungeBonus = spot.path.length * spell.bonusPerTile;
     play('whoosh');
     this.floatText(user, 'Lunge +' + user.lungeBonus, spell.color, { rise: 44, pop: true });
+    // 6.72: his own pictures. The leap while he runs (in the air, spear forward), dust where he leaves the ground, and the
+    // thrust picture at the end (playAttack, with the flag below); art.json poses lungeLeap and lungeAttack. A unit without
+    // them runs as before.
+    const leaps = this.hasPose(user, 'lungeLeap') && spot.path.length > 0;
+    if (leaps) sfxAt(this, 'lunge_dust', user.view.x, user.view.y + 4, { depth: user.view.depth + 1 });
+    user.lungeStrike = true;
     const steps = spot.path.map((tile) => {
       const p = tileToScreen(tile.col, tile.row);
       return {
@@ -6628,13 +6636,14 @@ export default class BattleScene extends Phaser.Scene {
           user.view.setDepth(depthFor(tile.col, tile.row) + 1);
           this.afterimage(user);
           this.faceToward(user, target.view.x - p.x, target.view.y - p.y);
+          if (leaps) this.showPose(user, 'lungeLeap', target.view.x - p.x);
         },
       };
     });
     // A foe exactly 2 tiles away means no run (steps is empty), and tweens.chain throws on an empty list: that threw
     // out of castLunge with the turn still busy and froze the game (found 16 Nov). So with no run he thrusts straight
     // away, and if the run cannot start for any reason he still thrusts: Lunge must never leave the game waiting.
-    const thrust = () => this.performAttack(user, target, onDone);
+    const thrust = () => this.performAttack(user, target, () => { user.lungeStrike = false; onDone(); });
     if (!steps.length) return thrust();
     try {
       this.tweens.chain({ targets: user.view, tweens: steps, onComplete: thrust });

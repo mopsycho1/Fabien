@@ -62,37 +62,37 @@
    "gaha_wind": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.86
+    "h": 0.856
    },
    "gaha_fall_land": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.577
+    "h": 0.575
    },
    "gaha_fall_rise": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.817
+    "h": 0.813
    },
    "gaha_n6_victory": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.26
+    "h": 1.254
    },
    "gaha_n6_sonicPrep": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.908
+    "h": 0.904
    },
    "gaha_n6_sonicClose": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.816
+    "h": 0.812
    },
    "gaha_n6_sonicThrow": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.82
+    "h": 0.816
    },
    "gaha_n6_weak": {
     "size": 0.95,
@@ -102,17 +102,22 @@
    "gaha_sj_sweep": {
     "size": 0.92,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.536
+    "h": 0.534
    },
    "gaha_n6_furyDive": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.818
+    "h": 0.814
    },
    "gaha_n6_swiftGuard": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.912
+    "h": 0.907
+   },
+   "gaha_n_leap": {
+    "size": 1.0,
+    "why": "21 Nov (6.72): the head finder cannot read the airborne leap; judged next to his lunge (0.92) and standing sheet, head and feet",
+    "h": 1.032
    }
   },
   "h3": {

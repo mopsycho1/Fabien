@@ -667,6 +667,46 @@
     "H": 118,
     "tiles": 1.0
    }
+  },
+  "lunge_dust": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.85,
+   "size": [
+    207,
+    207
+   ],
+   "fit": {
+    "h": 44,
+    "w": 179,
+    "mx": 104,
+    "my": 160,
+    "by": 182,
+    "W": 207,
+    "H": 207,
+    "tiles": 1.0
+   }
+  },
+  "lunge_impact": {
+   "frames": 9,
+   "frameMs": 90,
+   "originX": 0.5,
+   "originY": 0.7,
+   "size": [
+    239,
+    179
+   ],
+   "fit": {
+    "h": 151,
+    "w": 169,
+    "mx": 138,
+    "my": 85,
+    "by": 162,
+    "W": 239,
+    "H": 179,
+    "tiles": 1.0
+   }
   }
  },
  "wrap": {

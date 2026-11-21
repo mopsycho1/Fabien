@@ -14,11 +14,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const gaha = U('H2');
   check('Hero 2 is called Gaha', gaha.name === 'Gaha', gaha.name);
   const keys = game.textures.getTextureKeys().filter((k) => k.startsWith('h2:gaha_'));
-  check('all 112 of his pictures (1.66: 5 that faced the wrong way are now the other side mirrored; 15 Nov: the two concept-art clash-slip pictures are gone, 119 - 2; 15 Nov: his two single throw pictures went and his drawn wind-up and release came, four views each: 113 - 2 + 8; 13 Nov: and his 3 back-view fall pictures; 6.3: and the 12 thrust frames; 18.1: his 3 fall pictures; 18.2: the old knocked picture is gone, his in-the-air fall picture stands in) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 112, keys.length);
+  check('all 123 of his pictures (6.72, 21 Nov: his new neutral and damaged sheets replace the old standing and weak pictures and the Lunge leap and attack add 8: 112 + 11; before that 1.66: 5 that faced the wrong way are now the other side mirrored; 15 Nov: the two concept-art clash-slip pictures are gone, 119 - 2; 15 Nov: his two single throw pictures went and his drawn wind-up and release came, four views each: 113 - 2 + 8; 13 Nov: and his 3 back-view fall pictures; 6.3: and the 12 thrust frames; 18.1: his 3 fall pictures; 18.2: the old knocked picture is gone, his in-the-air fall picture stands in) loaded (his isometric set, Sonic Javelin, Fury, rooted, Fury Dive, walk, throw, and since 1 Nov his clash close-ups and new Sonic Javelin)', keys.length === 123, keys.length);
   for (const u of b.units) put(u, 7, 7);
   put(U('H1'), 0, 7); put(U('H3'), 1, 7); put(U('E1'), 7, 0); put(U('E2'), 6, 0); put(U('E3'), 5, 0); put(gaha, 3, 6);
   b.faceNearestOpponent(gaha);
-  check('far from enemies he stands relaxed', /gaha_iso_stand_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
+  check('far from enemies he stands relaxed', /gaha_(iso|n)_stand_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   put(U('E2'), 3, 4); b.faceNearestOpponent(gaha);
   check('an enemy 2 tiles away: battle stance', /gaha_iso_battle_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   St.applyBuff(gaha, 'stone'); b.showStanding(gaha);

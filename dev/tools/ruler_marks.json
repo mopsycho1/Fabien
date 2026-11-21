@@ -16,7 +16,8 @@
       "gaha_wind": 1.0,
       "gaha_n6_sonicPrep": 1.24,
       "gaha_n6_sonicClose": 1.47,
-      "gaha_n6_sonicThrow": 1.6
+      "gaha_n6_sonicThrow": 1.6,
+      "gaha_n_leap": 1.0
     },
     "feet": {
       "gaha_rooted": 0.94
