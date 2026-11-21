@@ -259,7 +259,8 @@ export default class BattleScene extends Phaser.Scene {
     this.mode = 'idle';
     this.busy = false;              // true while something is moving or attacking
     this.battleOver = false;        // true once one side has been wiped out
-    this.turnCount = 0;             // how many turns have been played
+    this.resultShown = false;       // the result panel is not up (1.76: it stayed true after Play again, so the HTML HUD stayed hidden)
+    this.turnCount = 0;            // how many turns have been played
     this.damageTaken = {}; // damage each fighter has taken, by id (the result screen, M12)
     resetCallouts(this); // the callout lane and the words over heads start empty (M6)
     this.lastEnemyClashTurn = undefined; // the turn an enemy last started a clash (the side-wide wait, 18.15)
