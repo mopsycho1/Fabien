@@ -145,7 +145,7 @@ const CSS = `
 #fabien-hud .menu .grip i { width: calc(var(--u) * 2); height: calc(var(--u) * 2); border-radius: 50%; background: #c9a35a; opacity: 0.6; }
 #fabien-hud .menu .grip.pinned i { background: #ffd27a; opacity: 0.95; }
 #fabien-hud .mrow { position: absolute; display: flex; align-items: center; gap: calc(var(--u) * 3.5); padding: 0 calc(var(--u) * 5) 0 calc(var(--u) * 4); white-space: nowrap; touch-action: manipulation; }
-#fabien-hud .mrow + .mrow::before { content: ''; position: absolute; left: calc(var(--u) * 4); right: calc(var(--u) * 4); top: 0; height: 1px; background: rgba(201,163,90,0.15); }
+#fabien-hud .mrow + .mrow::before { content: ''; position: absolute; left: calc(var(--u) * 4); right: calc(var(--u) * 4); top: 0; height: 1px; background: rgba(201,163,90,0.22); }
 #fabien-hud .mrow .ic { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
 #fabien-hud .mrow .ic img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 calc(var(--u) * 1.2) rgba(0,0,0,0.9)); }
 #fabien-hud .mrow .ic .ring { position: absolute; inset: -18%; border-radius: 50%; opacity: 0.55; }
@@ -155,8 +155,8 @@ const CSS = `
 /* the lit row's gold band keeps the slim look (--vis) in the middle of the row's taller tap band (18.50) */
 #fabien-hud .mrow { isolation: isolate; }
 #fabien-hud .mrow.lit::after, #fabien-hud .mrow.cur:not(.off)::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--vis, 100%); transform: translateY(-50%); z-index: -1; pointer-events: none;
-  background: linear-gradient(90deg, rgba(201,163,90,0.30), rgba(201,163,90,0.10) 70%, rgba(201,163,90,0.04));
-  box-shadow: inset 0 1px 0 rgba(228,194,124,0.35), inset 0 -1px 0 rgba(228,194,124,0.35); }
+  background: linear-gradient(90deg, rgba(214,170,84,0.44), rgba(214,170,84,0.30) 60%, rgba(214,170,84,0.20));
+  box-shadow: inset 0 1px 0 rgba(236,202,130,0.30), inset 0 -1px 0 rgba(236,202,130,0.30); } /* 21 Nov: a soft gold band, as the mock-up's chosen row */
 #fabien-hud .mrow.lit .wd, #fabien-hud .mrow.cur:not(.off) .wd { color: #fff4d6; }
 /* the War of the Lions pointer: a glowing gold arrowhead just outside the row, gently moving */
 #fabien-hud .mrow .ptr { position: absolute; left: calc(var(--u) * -11); top: 50%; width: 0; height: 0; display: none;
