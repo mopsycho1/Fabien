@@ -4756,12 +4756,12 @@
     "height": 118,
     "standing": {
       "downLeft": {
-        "file": "gadara_stand_f1.png",
-        "originX": 0.457
-      },
-      "downRight": {
         "file": "gadara_stand_f4.png",
         "originX": 0.327
+      },
+      "downRight": {
+        "file": "gadara_stand_f1.png",
+        "originX": 0.457
       },
       "upLeft": {
         "file": "gadara_stand_f2.png",
@@ -4787,7 +4787,7 @@
       },
       "upRight": {
         "file": "gadara_battle_f3.png",
-        "originX": 0.551
+        "originX": 0.549
       }
     },
     "weak": {
@@ -4816,7 +4816,7 @@
         },
         "upRight": {
           "file": "gadara_battle_f3.png",
-          "originX": 0.551
+          "originX": 0.549
         }
       },
       "guard": {
@@ -4922,7 +4922,7 @@
       "sunder": {
         "downLeft": {
           "file": "gadara_sunder_slash_f1.png",
-          "originX": 0.498
+          "originX": 0.496
         },
         "upLeft": {
           "file": "gadara_sunder_slash_f3.png",
@@ -5281,11 +5281,11 @@
       ]
     },
     "ruler": {
-      "gadara_stand_f1.png": {
-        "footX": 0.51
-      },
       "gadara_stand_f4.png": {
         "footX": 0.503
+      },
+      "gadara_stand_f1.png": {
+        "footX": 0.51
       },
       "gadara_stand_f2.png": {
         "footX": 0.375
@@ -5294,16 +5294,16 @@
         "footX": 0.579
       },
       "gadara_battle_f1.png": {
-        "footX": 0.479
+        "footX": 0.473
       },
       "gadara_battle_f4.png": {
-        "footX": 0.404
+        "footX": 0.406
       },
       "gadara_battle_f2.png": {
-        "footX": 0.541
+        "footX": 0.534
       },
       "gadara_battle_f3.png": {
-        "footX": 0.504
+        "footX": 0.508
       },
       "gadara_weak_f3.png": {
         "footX": 0.351
@@ -5342,13 +5342,13 @@
         "footX": 0.524
       },
       "gadara_hook_pull_f3.png": {
-        "footX": 0.435
+        "footX": 0.434
       },
       "gadara_sunder_slash_f1.png": {
-        "footX": 0.528
+        "footX": 0.54
       },
       "gadara_sunder_slash_f3.png": {
-        "footX": 0.48
+        "footX": 0.479
       },
       "gadara_mask_f1.png": {
         "footX": 0.432

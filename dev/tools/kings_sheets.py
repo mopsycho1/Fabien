@@ -6,7 +6,9 @@ import os
 B = os.path.expanduser('~/Documents/Fabien Blueprint/')
 I19 = B + 'INBOX/2026-11-19/email/'
 ISO = B + 'NEW ISOMETRIC SHEETS AND OTHERS/'
-OLD = B + 'INBOX/2026-11-06/'
+# Gadara's 31 Oct photos 806, 807, 808 and 812 came from INBOX/2026-11-06, which is no longer on this Mac (21 Nov); the
+# same files (same names, same bytes) are in the full chat export INBOX/2026-11-19/x, used when 2026-11-06 is missing.
+OLD = B + 'INBOX/2026-11-06/' if os.path.isdir(B + 'INBOX/2026-11-06') else B + 'INBOX/2026-11-19/x/'
 GAD13 = B + 'INBOX/2026-11-13b/email/Gadara sheets/Gadara sheets/'
 GADS = I19 + 'Gadara missing skill sheets/Gadara missing skill sheets/'
 ALA = I19 + 'Alagara/Alagara/'

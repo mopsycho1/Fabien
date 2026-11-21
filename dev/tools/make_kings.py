@@ -24,6 +24,7 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 from kings_raw import raw
+from kings_sheets import SHEETS
 from sheet4 import final_cut
 from ruler_lib import head_model, find_head
 
@@ -202,6 +203,9 @@ def feet_x(path):
 ONLY = [x for x in os.environ.get('ONLY', '').split(',') if x]
 POSE_OF = {'gadara_victory': ('e5', ['victory']), 'alagara_victory': ('h5', ['victory'])}
 
+# Gadara's 13 Nov sheets (INBOX/2026-11-13b) are no longer on this Mac (21 Nov): a full recut keeps their pictures
+KEEP_IF_MISSING = {'gadara_hurt': ('e5', ['poses', 'hurt']), 'gadara_weak': ('e5', ['weak']), 'gadara_down': ('e5', ['poses', 'down'])}
+
 def king(prefix):
     stand_parts, stand_files = raw(prefix + '_stand')
     pairs = [(Image.open(stand_files[i - 1]).convert('RGBA'), box) for i, box in HEADS[prefix].items()]
@@ -213,6 +217,12 @@ def king(prefix):
     for sheet, views in VIEWS.items():
         if not sheet.startswith(prefix + '_'): continue
         if ONLY and sheet not in ONLY: continue
+        if not os.path.exists(SHEETS[sheet][0]) and sheet in KEEP_IF_MISSING:
+            # its source is not on this Mac: keep the pictures it already has (KEEP_IF_MISSING)
+            cid, path = KEEP_IF_MISSING[sheet]; v = json.load(open(ART))[cid]
+            for k in path: v = v[k]
+            print('%-22s source missing: kept as it is' % sheet, file=sys.stderr)
+            sets[sheet[len(prefix) + 1:]] = v; continue
         parts, files = raw(sheet)
         got = [find_head(Image.open(f).convert('RGBA'), model) for f in files]
         radii = [h[2] for h in got if h]
