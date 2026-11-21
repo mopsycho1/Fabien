@@ -139,6 +139,16 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('Mantle: allies beside him get Fury', St.buffOf(gaha) && St.buffOf(gaha).id === 'fury' && St.buffOf(sudeen) && St.buffOf(sudeen).id === 'fury');
   check('...at half strength (attack +1)', St.buffOf(gaha).boosts.attack === 1, St.buffOf(gaha).boosts.attack);
   check('...for one turn', gaha.status.buff.turnsLeft === 1, gaha.status.buff.turnsLeft);
+  // 1.84 (21 Nov): Mantle's half-strength Verse must still give the special skills (Sonic Javelin, Blitz, Fury Dive...)
+  check('1.84 Mantle (Fury): Gaha\'s Spear Throw becomes Fury Dive and he can pay for it', St.activeMove(gaha, 'spearThrow') === 'furyDive' && St.canAfford(gaha, 'furyDive'), St.activeMove(gaha, 'spearThrow') + ' lent ' + St.lentMp(gaha));
+  check('1.84 ...and Sudeen\'s Intercept becomes Fury Charge', St.activeMove(sudeen, 'intercept') === 'furyCharge' && St.canAfford(sudeen, 'furyCharge'), St.activeMove(sudeen, 'intercept') + ' lent ' + St.lentMp(sudeen));
+  check('1.84 ...for one move: after it the plain move is back', (St.spendMp(gaha, 'furyDive'), St.activeMove(gaha, 'spearThrow') === 'spearThrow'));
+  park(); St.applyBuff(a, 'swiftness'); gaha.status.buff = null; sudeen.status.buff = null; b.placeUnit(gaha, 5, 6); b.placeUnit(sudeen, 4, 5);
+  await waitDone((d) => b.castKingSkill(a, a, 'mantle', d));
+  check('1.84 Mantle (Swiftness): Spear Throw becomes Sonic Javelin and Intercept becomes Blitz', St.activeMove(gaha, 'spearThrow') === 'sonicJavelin' && St.activeMove(sudeen, 'intercept') === 'blitz', St.activeMove(gaha, 'spearThrow') + ' / ' + St.activeMove(sudeen, 'intercept'));
+  check('1.84 the Verse itself stays at half strength (power 0.5, one turn); only the MP lent is raised', gaha.status.buff.power === 0.5 && gaha.status.buff.turnsLeft === 1 && St.lentMp(gaha) === 3, JSON.stringify({ p: gaha.status.buff.power, t: gaha.status.buff.turnsLeft, lent: St.lentMp(gaha) }));
+  park(); St.applyBuff(a, 'fury'); gaha.status.buff = null; sudeen.status.buff = null; b.placeUnit(gaha, 5, 6); b.placeUnit(sudeen, 4, 5);
+  await waitDone((d) => b.castKingSkill(a, a, 'mantle', d));
 
   // 1.81 (21 Nov): Mantle reaches 3 tiles, not only the tile beside him
   park(); St.applyBuff(a, 'fury'); gaha.status.buff = null; sudeen.status.buff = null;

@@ -162,7 +162,11 @@ export function applyBuff(unit, spellId, power = 1) {
   // an echoed Verse (power 2) is twice as strong AND lasts twice as many turns (13.58, Suleiman 15 Nov)
   const buff = { id: spellId, turnsLeft: spell.turns * power, power };
   if (spell.kind === 'buff' && !hasOwnMp(unit) && verseMovesOf(unit, spellId).length > 0) {
-    const mp = (spell.mp || 0) * power;
+    let mp = (spell.mp || 0) * power;
+    // 1.84 (Suleiman 21 Nov: Mantle gave no special skills): a half-strength Verse (Alagara's Mantle, power 0.5) lent half
+    // the MP, 1.5 of the 3 a Verse move costs, so the move was never affordable and the fighter kept his plain one. The
+    // numbers stay at half strength, but the Verse lends at least enough for one Verse move.
+    if (power < 1) mp = Math.max(mp, Math.min(...verseMovesOf(unit, spellId).map((m) => spells[m].mp || 0)));
     buff.lent = { mp, max: mp };
   }
   // King Alagara (Attunement, 10.18): a new Verse on him while he holds another sends the old one to his Echo
