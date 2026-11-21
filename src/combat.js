@@ -91,7 +91,8 @@ export function isDistracted(defender, attacker) {
 // Spells count too (a Verse of Fury adds attack, a Verse of Stone adds defense).
 export function getDamage(attacker, defender) {
   // hits on a stunned unit are flank hits: extra damage (conditions.json)
-  const flank = isStunned(defender) ? conditions.stun.flankDamage : 0;
+  // hits on a fighter caught in a clash with someone else (Distracted) do extra damage too (1.77, engagement.json)
+  const flank = (isStunned(defender) ? conditions.stun.flankDamage : 0) + (isDistracted(defender, attacker) ? rules.distractedDamageBonus || 0 : 0);
   if (attacker.attackType === 'magic') {
     const power = attacker.magicAttack + statMod(attacker, 'magicAttack');
     // a Disoriented unit takes extra damage from every kind of magic (conditions.json)

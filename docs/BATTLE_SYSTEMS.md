@@ -45,7 +45,7 @@ Written 13 Nov from the game's real data files, so every number here is what the
 ## 3. Attacks, hit chance and damage
 
 - **Hit chance** = attacker's accuracy minus defender's evade, but never below 5 percent or above 95 percent. Nothing is certain and nothing is hopeless.
-- It goes up by 10 against someone **Distracted** (busy in a clash with somebody else), and with Off-Balance's evade drop (see statuses).
+- It goes up by 10 against someone **Distracted** (busy in a clash with somebody else; they also take 2 extra damage from every hit, 1.77), and with Off-Balance's evade drop (see statuses).
 - It goes down by 25 for lightning cast point blank (next to the caster), and by 45 if the attacker is **Blinded**.
 - A Stunned target cannot dodge at all (evade counts as 0).
 - **Damage** = attack minus defense, at least 1. Magic uses magic attack minus magic defense. Buffs add to these numbers (Fury +2 attack, Stone +2 defense).
@@ -108,7 +108,7 @@ Written 13 Nov from the game's real data files, so every number here is what the
 | Status | What it does | How long | How to get it, how to remove it |
 |---|---|---|---|
 | **Off-Balance** | Defense -2, evade -15, clash score -2 | Until the start of its next turn | Lose a clash decisively; Fury Dive on those beside the landing |
-| **Distracted** | Others hit it +10 | While in a clash | Being in a clash with someone else |
+| **Distracted** | Others hit it +10 and for +2 damage | While in a clash | Being in a clash with someone else |
 | **Stunned** | Loses its next turn, cannot dodge, takes +3 from every hit | 1 turn | Shield Toss, Blitz |
 | **Disoriented** | Takes 2 on impact; attack -2, defense -2, evade -10; magic does +3 to it | Until the end of its next turn | Pushed into a wall, higher ground or a unit |
 | **Blinded** | Hit chance -45 (never below 5), cannot start a clash or take aim | Until the end of its next turn | Smoke Bomb |

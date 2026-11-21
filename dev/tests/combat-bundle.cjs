@@ -808,6 +808,8 @@ var engagement_default = {
     overpower: 2
   },
   distractedHitBonus: 10,
+  distractedDamageBonus: 2,
+  distractedNote: "A fighter locked in a clash with SOMEONE ELSE is Distracted: every other attacker hits it 10 points more often (distractedHitBonus) and for 2 more damage (distractedDamageBonus, 1.77, 21 Nov: before this there was no damage bonus at all). The two in the clash do not get it against each other.",
   mode: "stance",
   modeNote: '"stance" = the stance duel (v0.4). "classic" = the older Engage with Press / Break away.',
   stances: {
@@ -1140,7 +1142,7 @@ function isDistracted(defender, attacker) {
   return !!defender.engagedWith && defender.engagedWith !== attacker;
 }
 function getDamage(attacker, defender) {
-  const flank = isStunned(defender) ? conditions_default.stun.flankDamage : 0;
+  const flank = (isStunned(defender) ? conditions_default.stun.flankDamage : 0) + (isDistracted(defender, attacker) ? engagement_default.distractedDamageBonus || 0 : 0);
   if (attacker.attackType === "magic") {
     const power = attacker.magicAttack + statMod(attacker, "magicAttack");
     const dazed = isDisoriented(defender) ? conditions_default.disoriented.magicDamage : 0;
