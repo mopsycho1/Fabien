@@ -45,13 +45,18 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
       // how far the menu (with the main commands beside a list) is from the unit, in screen widths
       const lead = side ? Math.min(side.x0, box.x0) : box && box.x0, tail = box && box.x1;
       const away = box ? Math.max(0, lead - ux, ux - tail) / b.scale.width : null;
-      return { real, small, low, away, pinned: !!b.menuPin, listRight: side ? side.x1 <= box.x0 + 1 : null, cardTop: b.cardTop, menuBottom: box && box.y1, rows: rows.length };
+      // 21 Nov (Suleiman's mock-up): the menu (and the list beside it) never covers the fighter whose turn it is
+      const bh = (u.topY || 60) * cam.zoom, bw = 0.2 * 86 * cam.zoom, feet = (u.view.y - v.y) * cam.zoom;
+      const gx0 = box ? (side ? Math.min(side.x0, box.x0) : box.x0) : 0, gx1 = box ? box.x1 : 0;
+      const covers = !!box && gx0 < ux + bw && gx1 > ux - bw && box.y0 < feet && box.y1 > feet - bh;
+      return { covers, real, small, low, away, pinned: !!b.menuPin, listRight: side ? side.x1 <= box.x0 + 1 : null, cardTop: b.cardTop, menuBottom: box && box.y1, rows: rows.length };
     }, least);
     const m1 = await measure();
     await page.screenshot({ path: out + '/m7_' + view + '_turn.png' });
     check(view + ' D4: no interface word under ' + least + ' real pixels', m1.small.length === 0, m1.small.slice(0, 6).join(' | ') + ' (one game pixel = ' + m1.real.toFixed(2) + ' real)');
     check(view + ' D4: every menu row 20 real pixels tall or more on a phone, 21 on a desktop (his compact rows; the 20 Nov polish made them slimmer), each row\'s whole band taps it', m1.low.length === 0 && m1.rows > 0, m1.low.join(' | '));
     check(view + ' 18.44: the menu stands beside the unit whose turn it is', m1.pinned || (m1.away !== null && m1.away < 0.2), 'gap ' + (m1.away === null ? 'none' : (m1.away * 100).toFixed(1) + '% of the width'));
+    check(view + ' 21 Nov: the menu does not cover the active fighter', m1.pinned || !m1.covers, String(m1.covers));
     check(view + ' 18.44: the menu never covers the card', m1.menuBottom !== null && m1.menuBottom <= m1.cardTop + 1, m1.menuBottom + ' / ' + m1.cardTop);
     // the card: open it
     await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); b.cardHit.emit('pointerdown'); });
@@ -64,6 +69,7 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
     const m3 = await measure();
     await page.screenshot({ path: out + '/m7_' + view + '_skills.png' });
     check(view + ' D4: the skills list too', m3.small.length === 0 && m3.low.length === 0, m3.small.concat(m3.low).slice(0, 6).join(' | '));
+    check(view + ' 21 Nov: with the skills list open the menu still clears the fighter', m3.pinned || !m3.covers, String(m3.covers));
     check(view + ' 18.44: the skills list opens to the right of the main commands', m3.listRight === true, String(m3.listRight));
     await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); b.cancelMode(); b.openSettings(true); });
     await page.waitForTimeout(250);

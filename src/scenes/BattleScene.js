@@ -1150,7 +1150,11 @@ export default class BattleScene extends Phaser.Scene {
       const feetY = (u.view.y - v.y) * cam.zoom;
       const tileH = TILE_HEIGHT * cam.zoom;
       const spots = [];
-      for (const left of [false, true]) for (const yy of [uy - tallest * 0.4, feetY - tallest - tileH * 0.3, feetY - tallest - tileH * 1.1]) spots.push({ left, x: left ? ux - gap - total : ux + gap, y: yy });
+      // (21 Nov, Suleiman's mock-up: the menu never covers the fighter whose turn it is. The fighter's body is a box; a spot that
+      // lands on it, even after being pushed back onto the screen, is the last choice. Spots are tried at three gaps from the body.)
+      const bodyHalf = TILE_WIDTH * 0.2 * cam.zoom;
+      const body = { x0: ux - bodyHalf, x1: ux + bodyHalf, y0: feetY - (u.topY || 60) * cam.zoom, y1: feetY };
+      for (const left of [false, true]) for (const [gi, g] of [gap, gap * 2, gap * 3.2].entries()) for (const yy of [uy - tallest * 0.4, feetY - tallest - tileH * 0.3, feetY - tallest - tileH * 1.1]) spots.push({ left, gi, x: left ? ux - g - total : ux + g, y: yy });
       const scr = (wx, wy) => ({ x: (wx - v.x) * cam.zoom, y: (wy - v.y) * cam.zoom });
       const marks = [];
       for (const k of this.reachableKeys || []) { const [c, r] = k.split(',').map(Number); const p = tileToScreen(c, r); marks.push({ ...scr(p.x, p.y), w: 1 }); }
@@ -1160,6 +1164,8 @@ export default class BattleScene extends Phaser.Scene {
         const cx = Math.min(Math.max(sp.x, m), W - m - total), cy = Math.min(Math.max(sp.y, this.lay.top), floor - tallest);
         let score = (sp.left !== wantLeft ? (foe ? 6 : 0.5) : 0) + Math.abs(cx - sp.x) / 40; // (a spot pushed back onto the screen counts against it)
         for (const q of marks) if (q.x > cx - 4 && q.x < cx + total + 4 && q.y > cy - 4 && q.y < cy + tallest + 4) score += q.w;
+        if (cx < body.x1 && cx + total > body.x0 && cy < body.y1 && cy + tallest > body.y0) score += 200; // on the fighter: never, unless nothing else fits
+        score += sp.gi * 0.4; // (a nearer gap is better)
         if (!best || score < best.score - 0.01) best = { ...sp, score };
       }
       onLeft = best.left;
