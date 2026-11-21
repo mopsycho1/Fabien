@@ -36,7 +36,7 @@ STAND_PX = 300
 
 # sheet: {facing: figure number (1 to 4)}; two true views, the game mirrors the rest
 VIEWS = {
-    'gadara_stand': {'downLeft': 4, 'downRight': 1, 'upLeft': 2, 'upRight': 3},
+    'gadara_stand': {'downLeft': 1, 'downRight': 4, 'upLeft': 2, 'upRight': 3},   # 10.40: 1 faces down-left (was swapped)
     'gadara_battle': {'downLeft': 1, 'downRight': 4, 'upLeft': 2, 'upRight': 3},
     'gadara_guard': {'downLeft': 1, 'upLeft': 3},
     'gadara_strike': {'downLeft': 1, 'upRight': 3},

@@ -5003,12 +5003,12 @@
     "height": 118,
     "standing": {
       "downLeft": {
-        "file": "gadara_stand_f4.png",
-        "originX": 0.327
-      },
-      "downRight": {
         "file": "gadara_stand_f1.png",
         "originX": 0.457
+      },
+      "downRight": {
+        "file": "gadara_stand_f4.png",
+        "originX": 0.327
       },
       "upLeft": {
         "file": "gadara_stand_f2.png",
@@ -5525,6 +5525,30 @@
         102,
         20,
         52
+      ],
+      "gadara_victory_f1.png": [
+        165,
+        12,
+        65,
+        138
+      ],
+      "gadara_victory_f2.png": [
+        20,
+        10,
+        112,
+        115
+      ],
+      "gadara_victory_f3.png": [
+        172,
+        10,
+        62,
+        92
+      ],
+      "gadara_victory_f4.png": [
+        24,
+        10,
+        132,
+        96
       ]
     },
     "ruler": {

@@ -19,7 +19,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // pictures and names
   check('names: Sudeen, Gaha, Layra vs Rabdul, Bull Commander (Tayo is on the bench)', [sudeen, gaha, layra, tayo, bull].map((u) => u.name).join() === 'Sudeen,Gaha,Layra,Rabdul,Bull Commander', b.units.map((u) => u.name).join());
   const keys = game.textures.getTextureKeys();
-  check('Layra\'s 23 pictures loaded (18.2: her old knocked picture is gone; 13 Nov: her 4 dodge pictures; 1.66: 3 that faced the wrong way are now the other side mirrored)', keys.filter((k) => k.startsWith('h3:layra_')).length === 23, keys.filter((k) => k.startsWith('h3:layra_')).length);
+  check('Layra\'s 33 pictures loaded (18.2: her old knocked picture is gone; 13 Nov: her 4 dodge pictures; 1.66: 3 that faced the wrong way are now the other side mirrored; 6.86: her 2 old blessed pictures went, 12 floating ones came)', keys.filter((k) => k.startsWith('h3:layra_')).length === 33, keys.filter((k) => k.startsWith('h3:layra_')).length);
   check('the bull\'s pictures loaded', keys.filter((k) => k.startsWith('e2:bull_')).length === 47 /* 15 Nov: his flaming shield in flight, four directions, came after (18.31: 43 + 4); his three old flame pictures went and eight new ones came (flame stance, standing, wind-up and strike, up-left and down-left: 6.56); 38 before; 18.2: the old knocked picture is gone; 18 before 6 Nov, plus his Nov set: victory, weak, down, throws, shield flight, Bloodied looks (6.33) */, keys.filter((k) => k.startsWith('e2:bull_')).length);
   park(); St.applyBuff(sudeen, 'stone'); b.showStanding(sudeen);
   check('Sudeen under Stone shows his stone look', /sudeen_n6_stone_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
@@ -89,7 +89,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const plain = await decoyOf(null);
   for (const verse of ['swiftness', 'stone', 'fury']) {
     const d = await decoyOf(verse);
-    check('1.53 under ' + verse + ' the decoy has her blessed picture (not her base look) and the Verse effect round it', /blessed/.test(d.key) && d.key === d.mine && d.parts > plain.parts, JSON.stringify(d) + ' plain ' + plain.parts);
+    check('1.53 under ' + verse + ' the decoy has her blessed (floating, 6.86) picture (not her base look) and the Verse effect round it', /bless/.test(d.key) && d.key === d.mine && d.parts > plain.parts, JSON.stringify(d) + ' plain ' + plain.parts);
   }
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 2).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); w.close(); process.exit(fails ? 1 : 0);

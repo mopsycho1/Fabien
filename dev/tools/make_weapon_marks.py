@@ -28,6 +28,9 @@ MARKS = {
     'gadara_unleash_f4.png': [186, 8, 92, 200], 'gadara_unleash_f3.png': [22, 10, 105, 175],
     'gadara_hurt_f3.png': [178, 22, 12, 113], 'gadara_hurt_f2.png': [165, 22, 75, 68],
     'gadara_down_f1.png': [3, 131, 120, 185], 'gadara_down_f2.png': [228, 102, 20, 52],
+    # 21 Nov victory (6.85): back views show the whole staff; in the front views it is behind him, carried on in its line
+    'gadara_victory_f1.png': [165, 12, 65, 138], 'gadara_victory_f2.png': [20, 10, 112, 115],
+    'gadara_victory_f3.png': [172, 10, 62, 92], 'gadara_victory_f4.png': [24, 10, 132, 96],
 }
 
 def main():

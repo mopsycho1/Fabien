@@ -16,7 +16,7 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
       if (!fs.existsSync(__dirname + '/../../public/art/' + file)) wrong.push(file + ' is not in public/art');
       if (!text.includes('"' + file + '"')) wrong.push(file + ' is not used by ' + id);
       if (r.scale !== undefined && !(r.scale >= 0.5 && r.scale <= 3.5)) wrong.push(file + ' scale ' + r.scale);
-      if (r.feet !== undefined && !(r.feet >= 0.5 && r.feet <= 1)) wrong.push(file + ' feet ' + r.feet);
+      if (r.feet !== undefined && !(r.feet >= 0.5 && r.feet <= 1.15)) wrong.push(file + ' feet ' + r.feet); // over 1: a figure drawn floating hovers over its tile (Layra blessed, 6.86)
       if (r.footX !== undefined && !(r.footX > 0.02 && r.footX < 0.98)) wrong.push(file + ' footX ' + r.footX);
     }
   }
