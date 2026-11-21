@@ -798,15 +798,16 @@ export default class BattleScene extends Phaser.Scene {
     // map of the board, and sound on or off
     const r = Math.round(11 * P); // (small, as his; the touch circle stays a finger wide)
     const iy = m + bh + D(6) + r;
-    const round = (x, icon, onTap, y = iy) => {
-      const pic = iconImage(this, x, y, icon, r * 2);
-      if (pic) keep(pic);
+    // (21 Nov, less clutter: the turn arrows are smaller and fainter, tucked to the edges; 'rad' and 'fade' are theirs)
+    const round = (x, icon, onTap, y = iy, rad = r, fade = 1) => {
+      const pic = iconImage(this, x, y, icon, rad * 2);
+      if (pic) keep(pic).setAlpha(fade);
       else {
-        const g = keep(this.add.graphics());
-        g.fillStyle(UI.ink, 0.9).fillCircle(x, y, r).lineStyle(2, UI.bronze, 1).strokeCircle(x, y, r);
-        drawIcon(g, icon, x, y, r * 1.1, UI.bronzeLight);
+        const g = keep(this.add.graphics()).setAlpha(fade);
+        g.fillStyle(UI.ink, 0.9).fillCircle(x, y, rad).lineStyle(2, UI.bronze, 1).strokeCircle(x, y, rad);
+        drawIcon(g, icon, x, y, rad * 1.1, UI.bronzeLight);
       }
-      const hit = keep(this.add.circle(x, y, Math.max(r + 4, this.lay.minTap / 2), 0x000000, 0.001).setInteractive({ useHandCursor: true }));
+      const hit = keep(this.add.circle(x, y, Math.max(rad + 4, this.lay.minTap / 2), 0x000000, 0.001).setInteractive({ useHandCursor: true }));
       hit.on('pointerdown', onTap);
       return pic;
     };
@@ -897,16 +898,18 @@ export default class BattleScene extends Phaser.Scene {
       // little map of the board stays up here. In landscape the left one
       // stands just right of the turn order column.
       const ry = Math.round(H / 2);
-      const lx = this.lay.portrait ? m + r : m + S(92);
-      const rxSide = W - m - r;
-      round(lx, 'undo', () => this.rotateCamera(-1), ry);
-      round(rxSide, 'redo', () => this.rotateCamera(1), ry);
+      const rr = Math.round(8 * P); // small, faint, right at the screen's edge
+      const lx = this.lay.portrait ? Math.round(m * 0.4 + rr) : m + S(92);
+      const rxSide = W - Math.round(m * 0.4) - rr;
+      round(lx, 'undo', () => this.rotateCamera(-1), ry, rr, 0.5);
+      round(rxSide, 'redo', () => this.rotateCamera(1), ry, rr, 0.5);
       this.rotateSpots = [{ x: lx, y: ry }, { x: rxSide, y: ry }];
       this.compassPos = { x: rx, y: iy };
     } else {
-      round(rx, 'redo', () => this.rotateCamera(1));
+      const rr = Math.round(8 * P);
+      round(rx, 'redo', () => this.rotateCamera(1), iy, rr, 0.55);
       this.compassPos = { x: rx - r - S(30), y: iy };
-      round(rx - r * 2 - S(40), 'undo', () => this.rotateCamera(-1));
+      round(rx - r * 2 - S(40), 'undo', () => this.rotateCamera(-1), iy, rr, 0.55);
       this.rotateSpots = [];
     }
     this.compass = keep(this.add.graphics());
@@ -1618,16 +1621,17 @@ export default class BattleScene extends Phaser.Scene {
     const cx = this.compassPos.x;
     const cy = this.compassPos.y;
     g.clear();
-    g.fillStyle(UI.ink, 0.85);
-    g.fillPoints([{ x: cx, y: cy - 13 }, { x: cx + 22, y: cy }, { x: cx, y: cy + 13 }, { x: cx - 22, y: cy }], true);
-    g.lineStyle(2, UI.bronze, 1);
-    g.strokePoints([{ x: cx, y: cy - 13 }, { x: cx + 22, y: cy }, { x: cx, y: cy + 13 }, { x: cx - 22, y: cy }], true);
+    const k = 0.7; // (21 Nov, less clutter: the little map is smaller and fainter)
+    g.fillStyle(UI.ink, 0.6);
+    g.fillPoints([{ x: cx, y: cy - 13 * k }, { x: cx + 22 * k, y: cy }, { x: cx, y: cy + 13 * k }, { x: cx - 22 * k, y: cy }], true);
+    g.lineStyle(1.5, UI.bronze, 0.6);
+    g.strokePoints([{ x: cx, y: cy - 13 * k }, { x: cx + 22 * k, y: cy }, { x: cx, y: cy + 13 * k }, { x: cx - 22 * k, y: cy }], true);
     const { vc, vr } = toView(0, 0);
     const n = GRID_SIZE - 1;
     const fx = (vc - vr) / n; // -1 .. 1 across
     const fy = (vc + vr) / n - 1; // -1 .. 1 down
-    g.fillStyle(GOLD, 1);
-    g.fillCircle(cx + fx * 15, cy + fy * 9, 4);
+    g.fillStyle(GOLD, 0.8);
+    g.fillCircle(cx + fx * 15 * k, cy + fy * 9 * k, 3);
   }
 
   // Puts every figure, decoy and marker back on its tile (after the camera turns).

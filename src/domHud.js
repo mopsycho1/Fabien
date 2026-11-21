@@ -703,9 +703,9 @@ export class DomHud {
     const ww = L.infoW;
     const x = L.portrait ? t.x : (L.W - ww) / 2;
     this.box(this.hint, x, t.y, ww);
-    this.hint.style.opacity = String(Math.min(1, t.alpha / 0.85) * 0.8); // (fainter, 20 Nov polish)
+    this.hint.style.opacity = String(Math.min(1, t.alpha / 0.85) * 0.62); // (fainter, 20 Nov polish; fainter again 21 Nov)
     this.hint.style.textAlign = L.portrait ? 'left' : 'center';
-    this.hint.style.fontSize = 'var(--f-mid)';
+    this.hint.style.fontSize = 'var(--f-small)'; // (21 Nov: smaller)
     this.html('hint', this.hint, t.text, () => esc(t.text).replace(/\n/g, '<br>'));
   }
 
