@@ -73,7 +73,10 @@ export function planSkill(scene, unit, target, id) {
     return { label: sp.button, end: null, hits: [target], pushes: [push(target, phantom, sp.pull || 1)], marks: [] };
   }
   if (sp.kind === 'rending') return { label: sp.button, end: null, hits: [target], pushes: [push(target, unit, sp.push || 2)], marks: [] };
-  if (sp.kind === 'drawn') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [{ unit: target, text: 'Clash' }] };
+  if (sp.kind === 'drawn') { // 10.49: a foe locked with an ally of his: the ally goes free
+    const ally = target.engagedWith && target.engagedWith !== unit && target.engagedWith.side === unit.side ? target.engagedWith : null;
+    return { label: sp.button, end: null, hits: [target], pushes: [], marks: [{ unit: target, text: 'Clash' }, ...(ally ? [{ unit: ally, text: 'Free' }] : [])] };
+  }
   if (sp.kind === 'cleave') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [] };
   if (sp.kind === 'sunder') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Blessing torn' }] };
   if (sp.kind === 'claim') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Claimed' }] };

@@ -606,7 +606,8 @@
     "cooldown": 3,
     "mp": 0,
     "use": "enemy",
-    "text": "The sheathed draw: he feints, then cuts the foe next to him (full damage). A hit locks them in a clash with the momentum already one step his way, a free Press. Ready again after 3 turns."
+    "note": "10.49 (Suleiman 21 Nov): Drawn Slash can free an ally from a clash. A hit on a foe locked with one of his ends that clash; the ally is free and the foe is locked with Alagara.",
+    "text": "The sheathed draw: he feints, then cuts the foe next to him (full damage). A hit locks them in a clash with the momentum already one step his way, a free Press. If the foe was clashing with one of his allies, the ally is free and Alagara takes over. Ready again after 3 turns."
   },
   "claim": {
     "name": "Claim",

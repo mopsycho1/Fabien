@@ -436,10 +436,17 @@ export const kingMethods = {
     const result = this.kingStrike(caster, target, { share: (spell.damageShare || 1) * power, ignoreDefense: spell.ignoreDefense || 0 });
     let pushed = null;
     let locked = false;
+    let freed = null;
     if (result.hit && target.alive && rending) {
       pushed = this.pushLoser(target, caster, spell.push);
       if (target.engagedWith && distance(target, target.engagedWith) > 1) endDuel(target);
-    } else if (result.hit && target.alive && canBeCaught(target) && !caster.engagedWith && !target.engagedWith) {
+    } else if (result.hit && target.alive && canBeCaught(target) && !caster.engagedWith && (!target.engagedWith || this.drawnFrees(caster, target))) {
+      // 10.49 (Suleiman 21 Nov): Drawn Blade can free an ally from a clash. The foe was locked with one of his: that
+      // clash ends, the ally is free, and Alagara takes the foe on himself (like Sudeen's Shield Charge).
+      if (target.engagedWith) {
+        freed = target.engagedWith;
+        endDuel(target);
+      }
       if (isStanceDuel()) {
         startDuel(caster, target);
         shiftMomentum(caster, spell.momentum || 1); // the free Press step
@@ -452,6 +459,11 @@ export const kingMethods = {
       if (locked && target.alive) {
         play('clash');
         this.floatText(target, 'Locked in!', '#ffb35c', { rise: 46 });
+        if (freed && freed.alive) {
+          this.time.delayedCall(300, () => freed.alive && this.floatText(freed, 'Free!', '#9fd4ff', { pop: true }));
+          this.faceNearestOpponent(freed);
+          this.showStanding(freed);
+        }
         this.refreshEngagementMarks();
       }
       if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(140, () => this.knockBack(target, pushed, dx, { text: 'Rent!', color: spell.color }));
@@ -470,6 +482,12 @@ export const kingMethods = {
         });
       });
     } else this.kingFinish(onDone, 1300);
+  },
+
+  // Would Drawn Blade on this foe free an ally of his from a clash (10.49)? The foe is locked with someone on his side.
+  drawnFrees(caster, target) {
+    const other = target && target.engagedWith;
+    return !!(other && other !== caster && other.alive && other.side === caster.side);
   },
 
   // ---------- Alagara: Claim ----------
@@ -852,6 +870,11 @@ export const kingMethods = {
     // Mantle: his Verse on allies in reach (3 tiles)
     if (this.aiReady(unit, 'mantle') && this.mantleAllies(unit).length) {
       return this.aiCast(unit, unit, 'mantle', finish);
+    }
+    // Drawn Blade to free an ally from a clash (10.49): the weakest ally first
+    if (near.length && this.aiReady(unit, 'drawnBlade') && !unit.engagedWith) {
+      const rescue = near.filter((t) => canBeCaught(t) && this.drawnFrees(unit, t)).sort((a, b) => a.engagedWith.hp / a.engagedWith.maxHp - b.engagedWith.hp / b.engagedWith.maxHp)[0];
+      if (rescue) return this.aiCast(unit, rescue, 'drawnBlade', finish);
     }
     if (near.length) {
       const t = [...near].sort((a, b) => (isOffBalance(b) - isOffBalance(a)) || a.hp - b.hp)[0];
