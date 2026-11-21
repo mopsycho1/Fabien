@@ -103,23 +103,24 @@ def tile_colours(a):
     cen, lab = kmeans2(px, 3, minit='++', seed=1)
     return cen
 
-def wipe_floor(path):
-    _wipe_once(path)
+def wipe_floor(path, **kw):
+    _wipe_once(path, **kw)
 
-def _wipe_once(path):
+def _wipe_once(path, tiles=None, tol=None, warm_gate=None):
     """Takes away the floor tile, its shadow and the compass plate. The kings' wiper looks for a pale grey tile; hers is a
     brown one, so this one has its own colours. Pixels near a tile colour in the lower part that can be reached from the
     outside through tile-coloured pixels go (her skin, leather, trousers and cloth are other colours, so they stay);
     then every piece that hangs below the feet (the plate) and the specks go."""
     a = np.array(Image.open(path).convert('RGBA')).astype(float); h = a.shape[0]
     rgb = a[..., :3]
-    tiles = TILES   # (tile_colours(a) found a colour per picture, but the rim is mostly side face and shadow: worse)
+    tiles = TILES if tiles is None else tiles   # (tile_colours(a) found a colour per picture, but the rim is mostly side face and shadow: worse)
+    tol = TOL if tol is None else tol
     dist = np.min([np.sqrt(((rgb - t) ** 2).sum(-1)) for t in tiles], axis=0)
     # the tile is warm (red well above green); her olive trousers are not, and are as dark as the tile's side face
-    warm = (rgb[..., 0] - rgb[..., 1] > 22) & (rgb[..., 1] - rgb[..., 2] > 10)
+    warm = (rgb[..., 0] - rgb[..., 1] > 22) & (rgb[..., 1] - rgb[..., 2] > 10) if warm_gate is None else warm_gate(rgb)
     # moss and grass on the tile: yellow-green (her orange cloth and gold are redder)
     moss = (rgb[..., 1] > 118) & (rgb[..., 2] < 100) & (rgb[..., 0] - rgb[..., 1] < 35) & (rgb[..., 0] - rgb[..., 1] > -15)
-    m = (((dist < TOL) & warm) | moss) & (a[..., 3] > 0)
+    m = (((dist < tol) & warm) | moss) & (a[..., 3] > 0)
     m[:int(h * 0.45)] = False
     lab, k = ndimage.label(m)
     outside = ndimage.binary_dilation(a[..., 3] <= 30, iterations=2)
@@ -128,7 +129,7 @@ def _wipe_once(path):
     sizes = ndimage.sum(m, lab, range(1, k + 1))
     big = [i + 1 for i, v in enumerate(sizes) if v >= BIG_PATCH]
     m = np.isin(lab, np.concatenate([hit, big]).astype(int))
-    a[ndimage.binary_dilation(m, iterations=1) & (a[..., 3] > 0) & (dist < TOL + 14) & warm, 3] = 0
+    a[ndimage.binary_dilation(m, iterations=1) & (a[..., 3] > 0) & (dist < tol + 14) & warm, 3] = 0
     solid = a[..., 3] > 128; lab, k = ndimage.label(solid)
     if k > 1:
         sizes = ndimage.sum(solid, lab, range(1, k + 1)); main = int(np.argmax(sizes)) + 1

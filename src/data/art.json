@@ -3505,8 +3505,22 @@
         }
       },
       "dodge": {
-        "file": "tayo_dodge.png",
-        "originX": 0.506
+        "downRight": {
+          "file": "tayo_dodge_downRight.png",
+          "originX": 0.495
+        },
+        "downLeft": {
+          "file": "tayo_dodge_downLeft.png",
+          "originX": 0.559
+        },
+        "upRight": {
+          "file": "tayo_dodge_upRight.png",
+          "originX": 0.373
+        },
+        "upLeft": {
+          "file": "tayo_dodge_upLeft.png",
+          "originX": 0.369
+        }
       },
       "hurt": {
         "upLeft": {
@@ -3824,6 +3838,24 @@
             "file": "tayo_n6b_battleFire_f4.png",
             "originX": 0.763
           }
+        },
+        "dodge": {
+          "downRight": {
+            "file": "tayo_dodge_fire_downRight.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "tayo_dodge_fire_downLeft.png",
+            "originX": 0.466
+          },
+          "upRight": {
+            "file": "tayo_dodge_fire_upRight.png",
+            "originX": 0.5
+          },
+          "upLeft": {
+            "file": "tayo_dodge_fire_upLeft.png",
+            "originX": 0.5
+          }
         }
       }
     },
@@ -3840,6 +3872,7 @@
     "note_blast": "Element Blast (roadmap 13.4, 13.17): wind-up, arms open (charging) and punch pictures in four views, from his 6 Nov 04:40 sheets, cut by dev/tools/make_blast.py. The orb is public/art/fx/blast_orb_0 to 3.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
     "note_drive": "Roadmap 1.54 (16 Nov): Earth Drive used to play 'tayo_drive_0 to 3' (his 29 Oct sheet: bare arms, no gauntlets, drawn at 0.61 of his size), so Tayo turned into his old, smaller self whenever he used it. Those four moves are out of art.json (the files stay in public/art); the game plays his current sheet instead: blastWind (arms drawn back), then the punch. Put a new earthDrive move here when he redraws it. 19 Nov (roadmap 1.60): 'groundPound' is his kneeling, fist-on-the-ground picture (the same files as 'down'); Earth Drive plays blastCharge (drawn back), then groundPound as the fist hits the floor, and the rock erupts under the foe a beat later. 20 Nov (roadmap 1.73): the Earth Drive wind-up was blastCharge (the arms-open rear-up of Element Blast); it is now 'fistRaised', his raised fist (the same four pictures as 'victory', tayo_n6b_victory_f1 to f4, with the same ruler scales since they are the same files), then groundPound as the fist hits the floor.",
+    "note_dodge": "21 Nov (6.70, dev/tools/make_tayo_dodge.py): his dodge in four views, and the same with the flame Enchantment on his fist (enchanted.poses.dodge). Replaces tayo_dodge.png, the single old picture the game used to fall back to.",
     "ruler": {
       "tayo_n6b_stand_f1.png": {
         "footX": 0.422
@@ -3895,9 +3928,20 @@
         "scale": 0.68,
         "footX": 0.654
       },
-      "tayo_dodge.png": {
-        "scale": 0.67,
-        "footX": 0.671
+      "tayo_dodge_downRight.png": {
+        "scale": 0.78,
+        "footX": 0.422
+      },
+      "tayo_dodge_downLeft.png": {
+        "scale": 0.78
+      },
+      "tayo_dodge_upRight.png": {
+        "scale": 0.78,
+        "footX": 0.705
+      },
+      "tayo_dodge_upLeft.png": {
+        "scale": 0.78,
+        "footX": 0.69
       },
       "tayo_n6b_hurt_f1.png": {
         "scale": 0.85,
@@ -4046,6 +4090,22 @@
       "tayo_n6b_block_f4.png": {
         "scale": 0.76,
         "footX": 0.661
+      },
+      "tayo_dodge_fire_downRight.png": {
+        "scale": 0.74,
+        "footX": 0.415
+      },
+      "tayo_dodge_fire_downLeft.png": {
+        "scale": 0.74,
+        "footX": 0.508
+      },
+      "tayo_dodge_fire_upRight.png": {
+        "scale": 0.74,
+        "footX": 0.666
+      },
+      "tayo_dodge_fire_upLeft.png": {
+        "scale": 0.74,
+        "footX": 0.649
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
