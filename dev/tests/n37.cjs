@@ -60,7 +60,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check("9.11 Gaha under Earth's Bulwark: his new look", /gaha_n6_stoneGuard_/.test(key(gaha)), key(gaha));
   for (const v of ['swiftness', 'fury', 'stone']) {
     layra.status = null; S.applyBuff(layra, v); b.showStanding(layra);
-    check('9.3 Layra under ' + v + ': her blessing stance', /layra_iso_blessed_/.test(key(layra)), key(layra));
+    check('9.3 Layra under ' + v + ': her blessing stance (6.86: floating, 21 Nov)', /layra_bless_float_/.test(key(layra)), key(layra));
   }
 
   // ---------- 9.12 Gaha walks (his 3 frames, 1 2 3 2) ----------

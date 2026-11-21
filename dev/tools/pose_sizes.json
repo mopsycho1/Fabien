@@ -131,10 +131,20 @@
     "why": "21 Nov, next to standing at the size drawn: head and feet",
     "h": 0.837
    },
-   "layra_iso_blessed": {
+   "layra_bless_float": {
     "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.953
+    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+    "h": 1.045
+   },
+   "layra_bless_chant": {
+    "size": 1.0,
+    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+    "h": 1.045
+   },
+   "layra_bless_cast": {
+    "size": 1.0,
+    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+    "h": 1.064
    }
   },
   "e2": {

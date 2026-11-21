@@ -47,11 +47,18 @@
       "layra_n6_down": 1.1,
       "layra_n6_victory": 1.05,
       "layra_iso_hurt2": 1.1,
-      "layra_iso_blessed": 1.08,
       "layra_n6_hurt": 1.0,
-      "layra_dodge": 1.0
+      "layra_dodge": 1.0,
+      "layra_bless_float": 1.08,
+      "layra_bless_chant": 1.08,
+      "layra_bless_cast": 1.08
     },
-    "feet": {}
+    "feet": {
+      "layra_bless_float": 1.08,
+      "layra_bless_chant": 1.08,
+      "layra_bless_cast": 1.08
+    },
+    "note_bless": "21 Nov (6.86): her floating blessing sheets at 1.08 (head by eye 0.92 of standing, as the 31 Oct blessing stance was) and feet 1.08: she hovers a little over the tile, as drawn."
   },
   "e1": {
     "scale": {
