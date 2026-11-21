@@ -32,7 +32,7 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
@@ -5996,6 +5996,7 @@ export default class BattleScene extends Phaser.Scene {
         screenShake(this, 0.004, 120);
         play('clash');
         if (ring) ring.pulse(beat.winner, beat.decisive); // 16.1 step 10
+        clashShock(this, a, b, beat.decisive); // his clash shockwave GIF (6.88)
         this.clashPunch(opening || beat.decisive); // 16.1 step 9: zoom punch, plus slow-mo on big beats
         this.refreshEngagementMarks(); // the momentum bar moves
       });
@@ -8336,6 +8337,10 @@ export default class BattleScene extends Phaser.Scene {
 
   // The small tags above every unit's health bar.
   refreshStatusTags() {
+    // Mantle's crown goes when the Verse it shared ends (6.84)
+    for (const u of this.units) {
+      if (u.mantleCrown && !(u.alive && u.status && u.status.buff && u.status.buff.id === u.mantleVerse)) { u.mantleCrown.destroy(); u.mantleCrown = null; }
+    }
     for (const unit of this.units) {
       if (!unit.tagRow || !unit.tagRow.active) continue;
       unit.tagRow.removeAll(true);

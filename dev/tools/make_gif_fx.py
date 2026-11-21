@@ -80,12 +80,24 @@ FILES = {
     'sfx_gale': ('Alagara/Alagara/Skill and Effects-Gale Cut/Gale cut.gif', 'keep', 0.5, 0.6),
     'sfx_gale_fury': ('Alagara/Alagara/Skill and Effects-Gale Cut/Furious Gale cut.gif', 'keep', 0.5, 0.6),
     'sfx_gale_swift': ('Alagara/Alagara/Skill and Effects-Gale Cut/Swift gale cut .gif', 'keep', 0.5, 0.6),
-    'sfx_mantle': ('Alagara/Alagara/Skill and effects- mantle/Cinematic Golden Cloak Aura Animation.gif', 'keep', 0.5, 0.85),
+    # Mantle's crown (6.84, 20 Nov; replaces the gold cloak): run with INBOX/2026-11-20b as the folder and ONLY=sfx_mantle.
+    # It forms from a ring (frames 0 to 5), then hovers (6 to 8): kingsScene loops the hover over each helped ally's head.
+    'sfx_mantle': ("Alagara's sheets updated/Alagara's sheets updated/Skill and effects- mantle/Glowing Golden Crown Animation Grid.gif", 'keep', 0.5, 0.6),
     'sfx_claim_absorb': ('Alagara/Alagara/Skill and Effects- claim/Alagara absorning the enemies buff.gif', 'keep', 0.5, 0.5),
     'sfx_claim_take': ('Alagara/Alagara/Skill and Effects- claim/claim applying to enemy effect.gif', 'keep', 0.5, 0.5),
     'sfx_umbra_orb': ('Umbra (Gadara\'s spell)/Dark Orb Formation Animation.gif', 'keep', 0.5, 0.5),        # Singularity's charge-up
+    # 21 Nov "New Effects" (6.88): folder INBOX/2026-11-21/email/unzipped, ONLY=sfx_empower,sfx_clash_shock
+    'sfx_empower': ('New Effects/New Effects/Golden Empowerment Aura Animation.gif', 'keep', 0.5, 0.8),   # a clash Empower (9.6)
+    'sfx_clash_shock': ('New Effects/New Effects/Shockwave for clash.gif', 'keep', 0.5, 0.5),             # the clash collision
     'sfx_umbra_vortex': ('Umbra (Gadara\'s spell)/Purple Gravitational Vortex Animation.gif', 'keep', 0.5, 0.75),  # Singularity resolves
 }
+
+# GIFs whose ground is a flat dark colour, not pure black: that colour is taken off first (6.88: the empower GIF is 12, 9, 6)
+GROUND = {'sfx_empower': (12, 9, 6)}
+
+def lift_ground(rgb, ground):
+    g = np.array(ground, float)
+    return np.clip((rgb.astype(float) - g) * 255.0 / (255.0 - g), 0, 255).astype(np.uint8)
 
 def to_alpha(rgb):
     """Colour to alpha from black: how bright a pixel is is how solid it is."""
@@ -142,7 +154,9 @@ def main():
         small = []
         for i, fr in enumerate(frs):
             sm = fr.resize((round(fr.width * HALF), round(fr.height * HALF)), Image.LANCZOS)
-            rgba = Image.fromarray(to_alpha(np.asarray(sm)))
+            px = np.asarray(sm)
+            if name in GROUND: px = lift_ground(px, GROUND[name])
+            rgba = Image.fromarray(to_alpha(px))
             q = rgba.quantize(255, method=Image.Quantize.FASTOCTREE)   # keeps the alpha
             q.save(FX + '%s_%d.png' % (name, i), optimize=True)
             small.append(Image.open(FX + '%s_%d.png' % (name, i)).convert('RGBA'))

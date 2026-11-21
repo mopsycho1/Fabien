@@ -1035,12 +1035,49 @@ export function burnAura(scene, unit) {
   return embers;
 }
 
+// ---------- 21 Nov art pass ----------
+
+// Mantle's crown (6.84, Suleiman 20 Nov: "a crown that should float over those who benefit's head"). It forms over the
+// head from a ring of light (his GIF, frames 0 to 5), then hovers there (frames 6 to 8, looped) until the caller destroys
+// it (the shared Verse ends). Lives in the unit's own container so it follows him when he walks. Returns the sprite.
+const CROWN_HOVER = [6, 7, 8];
+export function crownOver(scene, unit) {
+  if (!sfxHas(scene, 'mantle') || !unit.view) return null;
+  const info = SFX.mantle, keys = sfxKeys('mantle');
+  const f = SFX_FIT('mantle');
+  const wide = bodyHeight(unit) * 0.5;   // about a head and a half across
+  const scale = f ? wide / f.w : 0.25;
+  const img = scene.add.sprite(0, -unit.topY - 4, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setBlendMode(Phaser.BlendModes.ADD);
+  unit.view.add(img);
+  const anim = 'sfxloop-crown-hover';
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: CROWN_HOVER.map((i) => ({ key: 'fx:' + keys[i] })), frameRate: 1000 / info.frameMs, repeat: -1, yoyo: true });
+  keys.slice(0, CROWN_HOVER[0]).forEach((k, i) => scene.time.delayedCall(i * info.frameMs, () => img.active && img.setTexture('fx:' + k)));
+  scene.time.delayedCall(CROWN_HOVER[0] * info.frameMs, () => img.active && img.play(anim));
+  // a slow bob, so it floats
+  scene.tweens.add({ targets: img, y: img.y - 3, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  return img;
+}
+
+// The clash shockwave (6.88, "Shockwave for clash", 21 Nov): a ring rushing out along the ground between the two
+// fighters when a clash beat lands. strong = a decisive beat (a bigger ring).
+export function clashShock(scene, a, b, strong = false) {
+  if (!sfxHas(scene, 'clash_shock') || !a.view || !b.view) return null;
+  const cx = (a.view.x + b.view.x) / 2, cy = (a.view.y + b.view.y) / 2 + 4;
+  return sfxAt(scene, 'clash_shock', cx, cy, { depth: Math.min(a.view.depth, b.view.depth) - 0.4, size: strong ? 2.6 : 2.1 });
+}
+
 // ---------- The clean-up batch (1 Nov) ----------
 
 // Empower (roadmap 9.6): his golden aura bursts up round a fighter who spends
 // Poise to Empower a stance. Drawn on black, so it is added as light.
 export function empowerAura(scene, unit) {
-  if (!scene.textures.exists('fx:empower_aura') || !unit.view) return;
+  if (!unit.view) return;
+  // 6.88: Suleiman's "Golden Empowerment Aura" GIF (21 Nov) when it is loaded; the older still picture otherwise
+  if (sfxHas(scene, 'empower')) {
+    sfxAt(scene, 'empower', unit.view.x, unit.view.y + 8, { depth: unit.view.depth + 0.5, size: 1.1 });
+    return;
+  }
+  if (!scene.textures.exists('fx:empower_aura')) return;
   const img = scene.add.image(unit.view.x, unit.view.y + 8, 'fx:empower_aura').setOrigin(0.5, 0.92).setDepth(unit.view.depth + 0.5);
   img.setBlendMode(Phaser.BlendModes.ADD).setScale(0.35, 0.2).setAlpha(0);
   scene.tweens.add({ targets: img, alpha: 1, scaleX: 0.55, scaleY: 0.6, duration: 220, ease: 'Back.easeOut' });

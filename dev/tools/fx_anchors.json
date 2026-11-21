@@ -265,7 +265,7 @@
       "frames": 9,
       "anchor": "keep",
       "originX": 0.5,
-      "originY": 0.85
+      "originY": 0.6
     },
     "sfx_claim_absorb": {
       "frames": 9,
@@ -290,6 +290,18 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.75
+    },
+    "sfx_empower": {
+      "frames": 6,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.8
+    },
+    "sfx_clash_shock": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.5
     }
   }
 }

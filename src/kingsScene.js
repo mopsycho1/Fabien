@@ -14,7 +14,7 @@ import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMo
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
 import { TURN_COST } from './turnOrder.js';
 import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
-import { sfxHas, sfxAt, sfxLoop } from './spellArt.js';
+import { sfxHas, sfxAt, sfxLoop, crownOver } from './spellArt.js';
 import { play } from './audio.js';
 import { floorLight, lightNearby } from './fxLayers.js';
 import { screenShake } from './effects.js';
@@ -527,9 +527,10 @@ export const kingMethods = {
     play('spell');
     this.time.delayedCall(420, () => {
       if (this.hasPose(caster, 'cast')) this.showPose(caster, 'cast', 1);
-      sfxAt(this, 'mantle', caster.view.x, caster.view.y + 8, { depth: caster.view.depth + 2 });
       for (const a of allies) {
-        sfxAt(this, 'mantle', a.view.x, a.view.y + 8, { depth: a.view.depth + 2, size: 0.8 });
+        // his crown floats over the head of each ally it helps, for as long as the shared Verse lasts (6.84)
+        if (a.mantleCrown) a.mantleCrown.destroy();
+        a.mantleCrown = crownOver(this, a); a.mantleVerse = verse;
         this.floatText(a, 'Mantle: ' + (spells[verse].effect || spells[verse].button), spell.color, { rise: 46 });
         if (!a.engagedWith) this.showStanding(a);
       }

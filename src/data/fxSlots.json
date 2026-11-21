@@ -189,7 +189,13 @@
    "scale": 0.5,
    "feetY": 0.4,
    "loopMs": 140,
-   "weaponAxis": { "cx": 115, "cy": 111, "angle": 29, "len": 200, "note": "The weapon aura loop is a staff drawn in light: its bright line runs through (cx, cy) of the 254 pixel frame at this angle (degrees, down-right is positive) and is len pixels long; src/spellArt.js weaponAuraFx lays that line on the staff marked in art.json e5.weapon (10.37)." },
+   "weaponAxis": {
+    "cx": 115,
+    "cy": 111,
+    "angle": 29,
+    "len": 200,
+    "note": "The weapon aura loop is a staff drawn in light: its bright line runs through (cx, cy) of the 254 pixel frame at this angle (degrees, down-right is positive) and is len pixels long; src/spellArt.js weaponAuraFx lays that line on the staff marked in art.json e5.weapon (10.37)."
+   },
    "fit": {
     "loop": {
      "h": 188,
@@ -526,18 +532,18 @@
    "frames": 9,
    "frameMs": 150,
    "originX": 0.5,
-   "originY": 0.85,
+   "originY": 0.6,
    "size": [
-    360,
+    359,
     118
    ],
    "fit": {
-    "h": 97,
-    "w": 293,
-    "mx": 180,
-    "my": 59,
-    "by": 111,
-    "W": 360,
+    "h": 78,
+    "w": 185,
+    "mx": 178,
+    "my": 57,
+    "by": 100,
+    "W": 359,
     "H": 118,
     "tiles": 1.2
    }
@@ -620,6 +626,46 @@
     "W": 214,
     "H": 200,
     "tiles": 3.0
+   }
+  },
+  "empower": {
+   "frames": 6,
+   "frameMs": 160,
+   "originX": 0.5,
+   "originY": 0.8,
+   "size": [
+    207,
+    312
+   ],
+   "fit": {
+    "h": 214,
+    "w": 190,
+    "mx": 103,
+    "my": 172,
+    "by": 280,
+    "W": 207,
+    "H": 312,
+    "tiles": 1.0
+   }
+  },
+  "clash_shock": {
+   "frames": 9,
+   "frameMs": 90,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 71,
+    "w": 183,
+    "mx": 179,
+    "my": 57,
+    "by": 91,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.0
    }
   }
  },
