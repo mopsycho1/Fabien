@@ -20,9 +20,10 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var clashGif_exports = {};
 __export(clashGif_exports, {
   CLASH_GIF_PAIR: () => CLASH_GIF_PAIR,
+  bakeSoftFrames: () => bakeSoftFrames,
+  boardPlacement: () => boardPlacement,
   hasClashGif: () => hasClashGif,
   loadClashGifs: () => loadClashGifs,
-  panelWindow: () => panelWindow,
   pickClashGif: () => pickClashGif,
   playClashGif: () => playClashGif
 });
@@ -90,55 +91,92 @@ function pickClashGif(scene) {
   lastName = pool[Math.floor(Math.random() * pool.length)];
   return lastName;
 }
-function panelWindow(lay, name) {
+var FEATHER_X = 0.09;
+var FEATHER_Y = 0.12;
+var FEET = 0.84;
+var FIGURE = 0.62;
+var BIGGER = 1.2;
+var softKey = (name, i) => "clashgif:soft:" + name + ":" + i;
+function bakeSoftFrames(scene, name) {
   const g = clashGifs_default.gifs[name];
-  const { W, H, portrait } = lay;
-  let h = H * (portrait ? 0.3 : 0.52);
-  let w = h * (g.w / g.h);
-  if (w > W * 0.94) {
-    w = W * 0.94;
-    h = w * (g.h / g.w);
+  for (let i = 1; i <= g.frames; i++) {
+    if (scene.textures.exists(softKey(name, i))) continue;
+    if (!scene.textures.exists(key(name, i))) return false;
+    const src = scene.textures.get(key(name, i)).getSourceImage();
+    const w = src.width, h = src.height;
+    const tex = scene.textures.createCanvas(softKey(name, i), w, h);
+    const ctx = tex.getContext();
+    ctx.drawImage(src, 0, 0);
+    ctx.globalCompositeOperation = "destination-in";
+    let grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(FEATHER_X, "rgba(0,0,0,1)");
+    grad.addColorStop(1 - FEATHER_X, "rgba(0,0,0,1)");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(FEATHER_Y, "rgba(0,0,0,1)");
+    grad.addColorStop(1 - FEATHER_Y, "rgba(0,0,0,1)");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    tex.refresh();
   }
-  return { x: W / 2, y: Math.round(H * (portrait ? 0.42 : 0.44)), w, h };
+  return true;
 }
-function playClashGif(scene, name, ui, onDone) {
+function boardPlacement(gahaView, bullView, gahaBodyH, g) {
+  const scale = gahaBodyH * BIGGER / (g.h * FIGURE);
+  return { x: (gahaView.x + bullView.x) / 2, y: (gahaView.y + bullView.y) / 2, scale, flip: gahaView.x > bullView.x };
+}
+function playClashGif(scene, name, a, b, onDone) {
   const g = clashGifs_default.gifs[name];
-  const win = panelWindow(scene.lay, name);
+  const gaha = a.id === CLASH_GIF_PAIR[0] ? a : b;
+  const bull = gaha === a ? b : a;
+  if (!bakeSoftFrames(scene, name) || !gaha.view || !bull.view) {
+    onDone();
+    return;
+  }
+  const place = boardPlacement(gaha.view, bull.view, gaha.topY - 12, g);
   const delay = (i) => Array.isArray(g.ms) ? g.ms[i] : g.ms;
-  const depth = 258;
-  const img = ui(scene.add.image(win.x, win.y, key(name, 1)).setDepth(depth).setDisplaySize(win.w, win.h).setAlpha(0));
-  const fx = win.x - win.w / 2;
-  const fy = win.y - win.h / 2;
-  const frame = ui(scene.add.graphics().setDepth(depth + 1).setAlpha(0));
-  frame.lineStyle(10, 1709072, 0.95).strokeRect(fx - 5, fy - 5, win.w + 10, win.h + 10);
-  frame.lineStyle(4, 15253616, 1).strokeRect(fx - 2, fy - 2, win.w + 4, win.h + 4);
-  frame.lineStyle(1, 16773320, 0.7).strokeRect(fx + 3, fy + 3, win.w - 6, win.h - 6);
-  const parts = [img, frame];
-  scene.tweens.add({ targets: parts, alpha: 1, duration: 120, ease: "Quad.easeOut" });
+  const depth = Math.max(gaha.view.depth, bull.view.depth) + 60;
+  const img = scene.add.image(place.x, place.y + 6, softKey(name, 1)).setOrigin(0.5, FEET).setScale(place.scale).setFlipX(place.flip).setDepth(depth).setAlpha(0);
+  const hidden = [gaha, bull].map((u) => ({ u, alpha: u.view.alpha }));
+  hidden.forEach(({ u }) => u.view.setAlpha(0));
+  const restore = () => hidden.forEach(({ u, alpha }) => {
+    if (u.view && u.view.active) u.view.setAlpha(alpha);
+  });
+  scene.tweens.add({ targets: img, alpha: 1, duration: 140, ease: "Quad.easeOut" });
   let step = 0;
   const next = () => {
-    if (!img.active) return;
+    if (!img.active) {
+      restore();
+      return;
+    }
     step++;
     if (step < g.frames) {
-      img.setTexture(key(name, step + 1));
+      img.setTexture(softKey(name, step + 1));
       scene.time.delayedCall(delay(step), next);
     } else {
       scene.time.delayedCall(220, () => {
-        scene.tweens.add({ targets: parts, alpha: 0, duration: 160, onComplete: () => {
-          parts.forEach((o) => o.destroy());
+        restore();
+        scene.tweens.add({ targets: img, alpha: 0, duration: 200, onComplete: () => {
+          img.destroy();
           onDone();
         } });
       });
     }
   };
-  scene.time.delayedCall(delay(0) + 120, next);
+  scene.time.delayedCall(delay(0) + 140, next);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   CLASH_GIF_PAIR,
+  bakeSoftFrames,
+  boardPlacement,
   hasClashGif,
   loadClashGifs,
-  panelWindow,
   pickClashGif,
   playClashGif
 });

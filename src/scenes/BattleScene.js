@@ -8680,13 +8680,13 @@ export default class BattleScene extends Phaser.Scene {
   // split frame (the hero on the red panel, the foe on the blue), with their
   // names; a flash and a shake where they meet, then they fly apart.
   clashBanner(a, b, onDone) {
-    // Gaha against the Bull Commander: after the banners, one of Suleiman's clash GIFs plays as a framed panel (6.62).
+    // Gaha against the Bull Commander: after the banners, one of Suleiman's clash GIFs plays on the board, over the two fighters (6.62, 6.80).
     // Not at fast speed (the panel is a long cut-in), and only once its frames are loaded.
     if (hasClashGif(a, b) && this.speed.base * this.speed.skip <= 1) {
       const name = pickClashGif(this);
       if (name) {
         const after = onDone;
-        onDone = () => playClashGif(this, name, (o) => this.ui(o), after);
+        onDone = () => playClashGif(this, name, a, b, after);
       }
     }
     const hero = a.side === 'hero' ? a : b;

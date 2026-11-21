@@ -31,14 +31,14 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   check('every frame file is there', missing.length === 0, missing.join(' '));
   for (let i = 0; i < 40 && !(b.textures.exists('clashgif:dance:9') && b.textures.exists('clashgif:strike:8') && b.textures.exists('clashgif:duel:6')); i++) await sleep(250);
   check('the 23 frames load in the background once a battle has Gaha and the Bull', b.textures.exists('clashgif:dance:9') && b.textures.exists('clashgif:strike:8') && b.textures.exists('clashgif:duel:6'));
-  // the window: as tall as the clash banners, never wider than 94 percent of the screen, and it keeps his picture's shape
+  // 6.80: the GIF plays ON the board over the two fighters, no panel: where it stands, how big, which way round
   const CG = require('./cg-bundle.cjs');
-  for (const lay of [{ W: 720, H: 1558, portrait: true }, { W: 1152, H: 720, portrait: false }, { W: 600, H: 400, portrait: false }]) {
-    for (const name of ['dance', 'strike', 'duel']) {
-      const win = CG.panelWindow(lay, name); const g = cg.gifs[name];
-      const bannerH = lay.H * (lay.portrait ? 0.3 : 0.52);
-      check('window ' + lay.W + 'x' + lay.H + ' ' + name + ': inside the screen, not taller than the banners, his shape kept', win.w <= lay.W * 0.94 + 0.5 && win.h <= bannerH + 0.5 && Math.abs(win.w / win.h - g.w / g.h) < 0.01, Math.round(win.w) + ' x ' + Math.round(win.h));
-    }
+  for (const name of ['dance', 'strike', 'duel']) {
+    const g = cg.gifs[name];
+    const right = CG.boardPlacement({ x: 100, y: 200 }, { x: 160, y: 170 }, 90, g);   // Gaha to the left of the Bull on the screen
+    const left = CG.boardPlacement({ x: 160, y: 170 }, { x: 100, y: 200 }, 90, g);    // Gaha to the right: mirrored
+    check(name + ': it stands on the middle of the two fighters, as big as the game\'s Gaha (a little more), mirrored when he is on the right',
+      right.x === 130 && right.y === 185 && !right.flip && left.flip && Math.abs(right.scale * g.h * 0.62 / 90 - 1.2) < 0.01, JSON.stringify(right));
   }
   check('only Gaha against the Bull Commander has a clash GIF', CG.hasClashGif(gaha, bull) && CG.hasClashGif(bull, gaha) && !CG.hasClashGif(sudeen, bull) && !CG.hasClashGif(gaha, tayo));
   // the three take turns: never the same one twice in a row
@@ -46,27 +46,32 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   let same = 0, last = null; const seen = new Set();
   for (let i = 0; i < 30; i++) { const n = CG.pickClashGif(b); if (n === last) same++; last = n; seen.add(n); }
   check('the three take turns, never one twice in a row', same === 0 && seen.size === 3, [...seen].join());
-  // the real opening of a clash: the panel plays after the banners, then the clash goes on
+  // the real opening of a clash: the painting plays over the two fighters after the banners, then the clash goes on
   park(); put(gaha, 5, 5); put(bull, 5, 4);
-  let done = false, panelSeen = null; const t0 = Date.now();
+  let done = false, panelSeen = null, hiddenSeen = false; const t0 = Date.now();
   b.clashBanner(gaha, bull, () => { done = true; });
-  const watch = setInterval(() => { const im = images('clashgif:'); if (im.length && !panelSeen) panelSeen = { key: im[0].texture.key, w: im[0].displayWidth, h: im[0].displayHeight, t: Date.now() - t0 }; }, 50);
+  const watch = setInterval(() => {
+    const im = images('clashgif:soft:');
+    if (im.length && !panelSeen) panelSeen = { key: im[0].texture.key, depth: im[0].depth, x: im[0].x, y: im[0].y, camera: im[0].cameraFilter, t: Date.now() - t0 };
+    if (im.length && gaha.view.alpha === 0 && bull.view.alpha === 0) hiddenSeen = true;
+  }, 50);
   while (!done && Date.now() - t0 < 9000) await sleep(40);
   clearInterval(watch);
-  check('a panel shows during the clash opening for Gaha against the Bull', !!panelSeen, panelSeen && panelSeen.key + ' after ' + panelSeen.t + ' ms');
-  check('the clash opening carries on after the panel', done && images('clashgif:').length === 0);
-  check('the panel is in the clash window', !!panelSeen && panelSeen.h <= b.lay.H * (b.lay.portrait ? 0.3 : 0.52) + 1 && panelSeen.w <= b.lay.W * 0.94 + 1, panelSeen && Math.round(panelSeen.w) + 'x' + Math.round(panelSeen.h));
+  check('a painting plays during the clash opening for Gaha against the Bull', !!panelSeen, panelSeen && panelSeen.key + ' after ' + panelSeen.t + ' ms');
+  check('the clash opening carries on after it and the painting is gone', done && images('clashgif:soft:').length === 0);
+  check('it is part of the battlefield (no screen-layer panel, no frame), between the two fighters', !!panelSeen && panelSeen.depth < 250 && panelSeen.camera !== b.cameras.main.id &&   /* a world object: the still UI camera ignores it (ui() would set the main camera's id) */ Math.abs(panelSeen.x - (gaha.view.x + bull.view.x) / 2) < 3, panelSeen && Math.round(panelSeen.x) + ',' + Math.round(panelSeen.y) + ' depth ' + panelSeen.depth + ' camera ' + panelSeen.camera + ' mid ' + Math.round((gaha.view.x + bull.view.x) / 2));
+  check('the two real fighters step out while it plays and are back after it', hiddenSeen && gaha.view.alpha > 0.9 && bull.view.alpha > 0.9, gaha.view.alpha + ' ' + bull.view.alpha);
   // another pair: no panel
   done = false; let other = false; const t1 = Date.now();
   b.clashBanner(sudeen, bull, () => { done = true; });
-  const watch2 = setInterval(() => { if (images('clashgif:').length) other = true; }, 50);
+  const watch2 = setInterval(() => { if (images('clashgif:soft:').length) other = true; }, 50);
   while (!done && Date.now() - t1 < 9000) await sleep(40);
   clearInterval(watch2);
   check('another pair (Sudeen against the Bull) has no panel', done && !other);
   // fast speed: the cut-in is skipped, the clash is not slowed
   b.speed.base = 8; done = false; other = false; const t2 = Date.now();
   b.clashBanner(gaha, bull, () => { done = true; });
-  const watch3 = setInterval(() => { if (images('clashgif:').length) other = true; }, 50);
+  const watch3 = setInterval(() => { if (images('clashgif:soft:').length) other = true; }, 50);
   while (!done && Date.now() - t2 < 9000) await sleep(40);
   clearInterval(watch3); b.speed.base = 1;
   check('at fast speed there is no panel', done && !other);

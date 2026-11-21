@@ -2,7 +2,7 @@ import clashGifs from './data/clashGifs.json';
 
 // Suleiman's clash GIFs (roadmap 6.62): painted scenes of Gaha and the Bull Commander trading
 // spear and mace blows, on a flat brown floor. They are not see-through, so each one is shown as a
-// framed panel in the clash scene (the floor stays inside the frame), at his own frame delay.
+// framed panel in the clash scene (the floor stays inside the frame), at his own frame delay. (6.80: now played on the board, see below.)
 //
 // When it plays: when a clash between the pair opens, after the two banners have slammed and gone.
 // Which one: the three take turns (never the same one twice in a row).
@@ -54,51 +54,80 @@ export function pickClashGif(scene) {
   return lastName;
 }
 
-// The window the panel fills, from the layout: as tall as the clash banners (about half the screen on
-// a wide window, a third when the phone is upright), as wide as its picture is, never wider than
-// 94 percent of the screen. Returns { x, y, w, h } with (x, y) the middle.
-export function panelWindow(lay, name) {
+// 6.80 (decided 19 Nov, Baiyee: "over the two fighters on the board, no separate panel"): the GIF no longer plays as a framed
+// panel on the screen layer. It plays IN the battlefield, on the two fighters' own tiles: the real fighters are hidden for the
+// length of the clip and his painted pair stands in their place, as big as the game's own fighters (a little bigger, it is a
+// moment), with the edges of the painting feathered so the brown floor melts into the cavern's instead of ending in a frame.
+// Gaha is on the painting's left; when the real Gaha stands to the right of the Bull on the screen the picture is mirrored.
+const FEATHER_X = 0.09;    // how much of the width fades at each side
+const FEATHER_Y = 0.12;    // and of the height at the top and the bottom
+const FEET = 0.84;         // where the painted fighters' feet are down the picture (the middle of the pair stands on the real tiles' middle)
+const FIGURE = 0.62;       // how much of the picture's height the painted Gaha fills (his spear included)
+const BIGGER = 1.2;        // drawn this much bigger than the game's own Gaha
+const softKey = (name, i) => 'clashgif:soft:' + name + ':' + i;
+
+// Bakes the feathered copy of every frame of a GIF (once). Returns true when all are there.
+export function bakeSoftFrames(scene, name) {
   const g = clashGifs.gifs[name];
-  const { W, H, portrait } = lay;
-  let h = H * (portrait ? 0.3 : 0.52);
-  let w = h * (g.w / g.h);
-  if (w > W * 0.94) {
-    w = W * 0.94;
-    h = w * (g.h / g.w);
+  for (let i = 1; i <= g.frames; i++) {
+    if (scene.textures.exists(softKey(name, i))) continue;
+    if (!scene.textures.exists(key(name, i))) return false;
+    const src = scene.textures.get(key(name, i)).getSourceImage();
+    const w = src.width, h = src.height;
+    const tex = scene.textures.createCanvas(softKey(name, i), w, h);
+    const ctx = tex.getContext();
+    ctx.drawImage(src, 0, 0);
+    // two linear fades multiplied together: left and right, then top and bottom (destination-in keeps the picture where alpha is 1)
+    ctx.globalCompositeOperation = 'destination-in';
+    let grad = ctx.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(FEATHER_X, 'rgba(0,0,0,1)');
+    grad.addColorStop(1 - FEATHER_X, 'rgba(0,0,0,1)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+    grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(FEATHER_Y, 'rgba(0,0,0,1)');
+    grad.addColorStop(1 - FEATHER_Y, 'rgba(0,0,0,1)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+    tex.refresh();
   }
-  return { x: W / 2, y: Math.round(H * (portrait ? 0.42 : 0.44)), w, h };
+  return true;
 }
 
-// Plays one GIF once as a framed panel in the clash window, then calls onDone.
-// "ui" puts a picture on the screen layer (the scene's own this.ui).
-export function playClashGif(scene, name, ui, onDone) {
+// Where and how big the painting stands on the board: { x, y, scale, flip } for the two fighters on the screen (their
+// views' feet), the picture's size and the height of the game's own Gaha. Pure, so the tests can check it.
+export function boardPlacement(gahaView, bullView, gahaBodyH, g) {
+  const scale = (gahaBodyH * BIGGER) / (g.h * FIGURE);
+  return { x: (gahaView.x + bullView.x) / 2, y: (gahaView.y + bullView.y) / 2, scale, flip: gahaView.x > bullView.x };
+}
+
+// Plays one GIF once over the two fighters, then calls onDone. "a" and "b" are the two units of the clash.
+export function playClashGif(scene, name, a, b, onDone) {
   const g = clashGifs.gifs[name];
-  const win = panelWindow(scene.lay, name);
+  const gaha = a.id === CLASH_GIF_PAIR[0] ? a : b;
+  const bull = gaha === a ? b : a;
+  if (!bakeSoftFrames(scene, name) || !gaha.view || !bull.view) { onDone(); return; }
+  const place = boardPlacement(gaha.view, bull.view, gaha.topY - 12, g);
   const delay = (i) => (Array.isArray(g.ms) ? g.ms[i] : g.ms);
-  const depth = 258;
-  const img = ui(scene.add.image(win.x, win.y, key(name, 1)).setDepth(depth).setDisplaySize(win.w, win.h).setAlpha(0));
-  // the frame: a dark rim, a gold line and a thin light line inside, drawn round the picture
-  const fx = win.x - win.w / 2;
-  const fy = win.y - win.h / 2;
-  const frame = ui(scene.add.graphics().setDepth(depth + 1).setAlpha(0));
-  frame.lineStyle(10, 0x1a1410, 0.95).strokeRect(fx - 5, fy - 5, win.w + 10, win.h + 10);
-  frame.lineStyle(4, 0xe8c070, 1).strokeRect(fx - 2, fy - 2, win.w + 4, win.h + 4);
-  frame.lineStyle(1, 0xfff0c8, 0.7).strokeRect(fx + 3, fy + 3, win.w - 6, win.h - 6);
-  const parts = [img, frame];
-  scene.tweens.add({ targets: parts, alpha: 1, duration: 120, ease: 'Quad.easeOut' });
+  const depth = Math.max(gaha.view.depth, bull.view.depth) + 60;   // over the fighters and their effects, under the screen layer (250)
+  const img = scene.add.image(place.x, place.y + 6, softKey(name, 1)).setOrigin(0.5, FEET).setScale(place.scale).setFlipX(place.flip).setDepth(depth).setAlpha(0);
+  // the real fighters step out for the length of the clip (their own views carry their bars and rings)
+  const hidden = [gaha, bull].map((u) => ({ u, alpha: u.view.alpha }));
+  hidden.forEach(({ u }) => u.view.setAlpha(0));
+  const restore = () => hidden.forEach(({ u, alpha }) => { if (u.view && u.view.active) u.view.setAlpha(alpha); });
+  scene.tweens.add({ targets: img, alpha: 1, duration: 140, ease: 'Quad.easeOut' });
   let step = 0;
   const next = () => {
-    if (!img.active) return;
+    if (!img.active) { restore(); return; }
     step++;
     if (step < g.frames) {
-      img.setTexture(key(name, step + 1));
+      img.setTexture(softKey(name, step + 1));
       scene.time.delayedCall(delay(step), next);
     } else {
-      // the last frame stays a moment, then the panel fades
+      // the last frame stays a moment, then the painting fades into the real fighters
       scene.time.delayedCall(220, () => {
-        scene.tweens.add({ targets: parts, alpha: 0, duration: 160, onComplete: () => { parts.forEach((o) => o.destroy()); onDone(); } });
+        restore();
+        scene.tweens.add({ targets: img, alpha: 0, duration: 200, onComplete: () => { img.destroy(); onDone(); } });
       });
     }
   };
-  scene.time.delayedCall(delay(0) + 120, next);
+  scene.time.delayedCall(delay(0) + 140, next);
 }

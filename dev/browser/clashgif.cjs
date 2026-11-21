@@ -1,7 +1,8 @@
-// Roadmap 6.62: Suleiman's clash GIFs as framed panels in the clash opening (Gaha against the Bull Commander).
+// Roadmap 6.62, 6.80: Suleiman's clash GIFs, played ON the board over the two fighters (Gaha against the Bull Commander), no panel.
 //   node dev/browser/clashgif.cjs <out dir> [phone|desktop|both]     (with the preview running on port 4173)
 // Starts a clash between the two on the real board, photographs it while the banners are on, while each of the three
-// GIFs plays, and measures the panel (it must sit inside the screen, at the clash banner's height). Ends with ALL PASSED or FAILED.
+// GIFs plays, and measures the painting on the screen (it must stand between the two fighters, inside the screen, and the two
+// real fighters must step out while it plays). Ends with ALL PASSED or FAILED.
 const { openBattle } = require('./lib/play.cjs');
 const fs = require('fs');
 const out = process.argv[2] || '.';
@@ -25,6 +26,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
         b.runEnemyTurn = () => {};
         const place = (u, c, r) => b.placeUnit(u, c, r);
         place(g, 4, 5); place(bull, 4, 4);
+        b.focusCamera((g.view.x + bull.view.x) / 2, (g.view.y + bull.view.y) / 2 - 40, 1.0, 0);   // (the test moves units without moving the camera)
         window.__forceGif = n;
         b.activeUnit = g; g.hasActed = false; g.hasMoved = false; b.busy = false; b.battleOver = false; b.cancelMode(); b.refreshButtons(); b.refreshCard(g);
         const real = Math.random; let used = false;
@@ -36,21 +38,29 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
       await page.waitForTimeout(1100);
       const panel = await page.evaluate(() => {
         const b = window.__game.scene.getScene('BattleScene');
-        const imgs = b.children.list.filter((o) => o.type === 'Image' && o.texture && o.texture.key.startsWith('clashgif:'));
+        const imgs = b.children.list.filter((o) => o.type === 'Image' && o.texture && o.texture.key.startsWith('clashgif:soft:'));
         const i = imgs[0]; if (!i) return null;
-        const s = b.scale; const cam = b.cameras.main;
-        return { key: i.texture.key, x: i.x, y: i.y, w: i.displayWidth, h: i.displayHeight, W: b.lay.W, H: b.lay.H, portrait: b.lay.portrait, alpha: i.alpha };
+        const cam = b.cameras.main;
+        // world to screen (the board camera): the painting's box and the middle of the two fighters
+        const toScreen = (x, y) => ({ x: (x - cam.worldView.x) * cam.zoom, y: (y - cam.worldView.y) * cam.zoom });
+        const U = (l) => b.units.find((u) => u.label === l);
+        const g = U('H2'), bull = U('E2');
+        const bounds = i.getBounds(); const tl = toScreen(bounds.x, bounds.y), br = toScreen(bounds.right, bounds.bottom);
+        const mid = toScreen((g.view.x + bull.view.x) / 2, (g.view.y + bull.view.y) / 2);
+        return { key: i.texture.key, box: { x0: tl.x, y0: tl.y, x1: br.x, y1: br.y }, mid, W: b.scale.width, H: b.scale.height, hidden: g.view.alpha === 0 && bull.view.alpha === 0, depth: i.depth, ui: i.cameraFilter === cam.id };
       });
-      await page.screenshot({ path: out + '/' + view + '_' + name + '_2_panel.png' });
-      check(view + ' ' + name + ': a panel is on screen', !!panel, panel && panel.key);
+      await page.screenshot({ path: out + '/' + view + '_' + name + '_2_on_board.png' });
+      check(view + ' ' + name + ': the painting is on the board', !!panel, panel && panel.key);
       if (panel) {
-        check(view + ' ' + name + ': it sits inside the screen with a margin', panel.x - panel.w / 2 >= panel.W * 0.02 && panel.x + panel.w / 2 <= panel.W * 0.98 && panel.y - panel.h / 2 >= 0 && panel.y + panel.h / 2 <= panel.H, Math.round(panel.w) + ' x ' + Math.round(panel.h) + ' in ' + panel.W + ' x ' + panel.H);
-        check(view + ' ' + name + ': it is not taller than the clash banners (' + (panel.portrait ? '0.30' : '0.52') + ' of the screen)', panel.h <= panel.H * (panel.portrait ? 0.3 : 0.52) + 1, 'h ' + Math.round(panel.h));
+        check(view + ' ' + name + ': it is a battlefield object, not a screen-layer panel', !panel.ui && panel.depth < 250, 'depth ' + panel.depth);
+        check(view + ' ' + name + ': it stands over the middle of the two fighters', panel.mid.x > panel.box.x0 && panel.mid.x < panel.box.x1 && panel.mid.y > panel.box.y0 && panel.mid.y < panel.box.y1, 'mid ' + Math.round(panel.mid.x) + ',' + Math.round(panel.mid.y));
+        check(view + ' ' + name + ': it is on the screen (at least 60 percent of it)', Math.min(panel.box.x1, panel.W) - Math.max(panel.box.x0, 0) > 0.6 * (panel.box.x1 - panel.box.x0) && Math.min(panel.box.y1, panel.H) - Math.max(panel.box.y0, 0) > 0.6 * (panel.box.y1 - panel.box.y0), Math.round(panel.box.x1 - panel.box.x0) + ' x ' + Math.round(panel.box.y1 - panel.box.y0) + ' in ' + panel.W + ' x ' + panel.H);
+        check(view + ' ' + name + ': the two real fighters have stepped out', panel.hidden);
       }
       await page.waitForTimeout(2200);
       await page.screenshot({ path: out + '/' + view + '_' + name + '_3_after.png' });
-      const gone = await page.evaluate(() => !window.__game.scene.getScene('BattleScene').children.list.some((o) => o.type === 'Image' && o.texture && o.texture.key.startsWith('clashgif:')));
-      check(view + ' ' + name + ': the panel is gone when the clash goes on', gone);
+      const gone = await page.evaluate(() => !window.__game.scene.getScene('BattleScene').children.list.some((o) => o.type === 'Image' && o.texture && o.texture.key.startsWith('clashgif:soft:')));
+      check(view + ' ' + name + ': the painting is gone when the clash goes on', gone);
     }
     check(view + ': no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
     await browser.close();
