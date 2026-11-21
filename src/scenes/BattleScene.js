@@ -1192,7 +1192,9 @@ export default class BattleScene extends Phaser.Scene {
     if (!L || !L.list.length) return;
     const { W, H, m, portrait, skillW } = this.lay;
     const h = this.skillPanelH || 0;
-    const y = portrait ? Math.min(this.cardTop || H, H - m - this.cardClosedH()) - Math.round(4 * this.lay.px) - h : H - m - h;
+    // 21 Nov (Suleiman's mock-up): on a phone the panel stands on the same bottom line as the (closed) card, at the right; an
+    // open card takes the whole width, so then the panel stands above it
+    const y = portrait ? (this.cardOpen ? Math.min(this.cardTop || H, H - m) - Math.round(4 * this.lay.px) - h : H - m - h) : H - m - h;
     L.setPosition(Math.round(W - m - skillW), Math.round(y));
     this.skillTop = y;
   }
@@ -1557,7 +1559,7 @@ export default class BattleScene extends Phaser.Scene {
     const { s, m, W, H, cardW, skillW, portrait, minText } = this.lay;
     const { items, h } = drawSkillPanel(this, id, this.lay.px, this.lay.F);
     L.add(items);
-    this.skillPanelH = portrait ? h : Math.round(80 * this.lay.px); // (the HTML panel's box, 18.44)
+    this.skillPanelH = portrait ? h : Math.round(SKILL_PANEL.h * this.lay.px); // (the HTML panel's box, 18.44)
     this.placeSkillPanel();
     this.ui(L);
   }

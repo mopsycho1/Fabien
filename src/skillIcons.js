@@ -53,3 +53,11 @@ export function skillIconSvg(el, size) {
   const d = typeof size === 'number' ? size + 'px' : size;
   return '<svg class="sk" viewBox="0 0 24 24" style="width:' + d + ';height:' + d + ';color:' + c + '"><rect x="0.6" y="0.6" width="22.8" height="22.8" rx="4" fill="rgba(12,9,14,0.88)" stroke="' + c + '" stroke-opacity="0.7" stroke-width="1"/><g transform="translate(2.6 2.6) scale(0.78)">' + art + '</g></svg>';
 }
+
+// Just the glyph in the element's colour, no tile (the skill panel puts it in a circle of its own).
+export function skillGlyphSvg(el, size) {
+  const c = ELEMENT_COLOR[el] || ELEMENT_COLOR.steel;
+  const art = ELEMENT_ART[el] || ELEMENT_ART.steel;
+  const d = typeof size === 'number' ? size + 'px' : size;
+  return '<svg class="sk" viewBox="0 0 24 24" style="width:' + d + ';height:' + d + ';color:' + c + ';filter:drop-shadow(0 0 3px ' + c + ')">' + art + '</svg>';
+}

@@ -21,7 +21,7 @@ import { portraitKey } from './art.js';
 import { previewTurns } from './turnOrder.js';
 import clashMeterData from './data/clashMeter.json';
 import { artUrl } from './artUrl.js';
-import { skillElement, skillIconSvg } from './skillIcons.js';
+import { skillElement, skillIconSvg, skillGlyphSvg, ELEMENT_COLOR } from './skillIcons.js';
 
 // Our icon names that use another of his glyph pictures (as hud.js GLYPH_FOR)
 const GLYPH_FOR = { back: 'undo' };
@@ -172,15 +172,16 @@ const CSS = `
   text-shadow: 0 1px 2px rgba(0,0,0,0.9), 0 0 calc(var(--u) * 6) rgba(0,0,0,0.7); }
 #fabien-hud .skill { padding: calc(var(--u) * 6) calc(var(--u) * 8); display: flex; flex-direction: column; justify-content: space-between; }
 #fabien-hud .skill .top { display: flex; align-items: center; gap: calc(var(--u) * 8); }
-#fabien-hud .skill .em { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
+#fabien-hud .skill .em { position: relative; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: max(1px, calc(var(--u) * 1.2)) solid var(--ec, #c9a35a); background: radial-gradient(circle at 50% 40%, rgba(70,40,24,0.9), rgba(14,10,8,0.95) 70%); box-shadow: 0 0 calc(var(--u) * 5) var(--ec, #c9a35a), inset 0 0 calc(var(--u) * 4) rgba(0,0,0,0.7); }
 #fabien-hud .skill .em .ring { position: absolute; inset: -15%; border-radius: 50%; }
 #fabien-hud .skill .em img { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 0 2px #000); }
 #fabien-hud .skill .nm { flex: 1; min-width: 0; line-height: 1.15; }
 #fabien-hud .skill .nm .n { color: #f6ead0; white-space: nowrap; }
 #fabien-hud .skill .grid { display: grid; gap: max(1px, calc(var(--u) * 0.6)); flex: none; }
-#fabien-hud .skill .grid i { display: block; background: rgba(255,255,255,0.06); border-radius: 1px; box-shadow: inset 0 0 0 1px rgba(228,194,124,0.14); }
+#fabien-hud .skill .grid i { display: block; background: rgba(120,116,110,0.30); border-radius: 1px; box-shadow: inset 0 0 0 1px rgba(228,194,124,0.20); }
+#fabien-hud .skill .grid i.x { border-radius: 1.5px; }
 #fabien-hud .skill .grid i.c { background: #ffe08a; transform: scale(0.55); }
-#fabien-hud .skill .foot { display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 3); }
+#fabien-hud .skill .foot { display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; border-top: 1px solid rgba(201,163,90,0.22); padding-top: calc(var(--u) * 4); }
 #fabien-hud .btn { display: flex; align-items: center; justify-content: center; letter-spacing: 0.06em; color: #e8d5a8; }
 #fabien-hud .gear { color: #d9b878; opacity: 0.85; position: absolute; }
 #fabien-hud .gear svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #000); }
@@ -599,6 +600,7 @@ export class DomHud {
     this.box(this.skill, L.x, L.y, sc.lay.skillW, sc.skillPanelH);
     this.html('skill', this.skill, id + '|' + sc.skillPanelH + '|' + sc.lay.skillW, () => {
       const k = skillWords(id);
+      const el = skillElement(id), ec = ELEMENT_COLOR[el] || k.color; // the icon's colour is the element's; the grid keeps the skill's own
       // the area as a small grid of ground tiles: at least 3 by 3, the skill's own shape in the middle, so even a single
       // target shows as one lit tile among dim ones (20 Nov polish)
       let rows = k.grid, cols = Math.max(...rows.map((r) => r.length));
@@ -608,9 +610,9 @@ export class DomHud {
         rows = Array.from({ length: side }, (_, y) => [...'.'.repeat(side)].map((_c, x) => { const r = rows[y - top]; return r && r[x - left] !== undefined ? r[x - left] : '.'; }).join(''));
         cols = side;
       }
-      const cell = 'calc(var(--u)*' + Math.max(3.5, Math.floor(26 / side * 2) / 2) + ')';
-      const cells = rows.map((r) => [...r.padEnd(cols, '.')].map((c) => (c === 'x' ? '<i style="background:' + k.color + ';box-shadow:0 0 4px ' + k.color + '"></i>' : c === 'c' ? '<i class="c"></i>' : '<i></i>')).join('')).join('');
-      return CORNERS + '<div class="top"><div class="em" style="width:calc(var(--u)*28);height:calc(var(--u)*28)">' + skillIconSvg(skillElement(id), 'calc(var(--u)*28)') + '</div>'
+      const cell = 'calc(var(--u)*' + Math.max(4.5, Math.floor(36 / side * 2) / 2) + ')';
+      const cells = rows.map((r) => [...r.padEnd(cols, '.')].map((c) => (c === 'x' ? '<i class="x" style="background:' + k.color + ';box-shadow:0 0 5px ' + k.color + '99, inset 0 0 0 1px rgba(255,255,255,0.28)"></i>' : c === 'c' ? '<i class="c"></i>' : '<i></i>')).join('')).join('');
+      return CORNERS + '<div class="top"><div class="em" style="width:calc(var(--u)*38);height:calc(var(--u)*38);--ec:' + ec + '">' + skillGlyphSvg(el, 'calc(var(--u)*22)') + '</div>'
         + '<div class="nm"><div class="n fit" style="font-size:var(--f-name);font-weight:700">' + esc(k.name) + '</div><div class="dim" style="font-size:var(--f-small)">MP ' + (k.mp || 0) + '</div></div>'
         + '<div class="grid" style="grid-template-columns:repeat(' + cols + ',' + cell + ');grid-auto-rows:' + cell + '">' + cells + '</div></div>'
         + '<div class="foot" style="font-size:var(--f-small)"><span style="color:#d8c8a4">' + esc(k.area) + '</span>' + (k.effect ? '<span style="color:#7a6848">|</span><span class="fit" style="color:' + k.color + ';flex:1;min-width:0">' + esc(k.effect) + '</span>' : '') + '</div>';

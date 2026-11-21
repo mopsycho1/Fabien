@@ -136,7 +136,7 @@ export function emblemFor(id) {
 
 // The skill panel, bottom right, as his: the emblem, the name and MP, the area as a small grid at
 // the right, and under a faint rule "1 foe  |  Inflicts Burn". P and F as for the card.
-export const SKILL_PANEL = { w: 200, h: 72 }; // (20 Nov polish: wide enough for "Verse of Swiftness" whole)
+export const SKILL_PANEL = { w: 200, h: 88 }; // (21 Nov: taller, for the bigger circled icon and the bold area grid) // (20 Nov polish: wide enough for "Verse of Swiftness" whole)
 export function drawSkillPanel(scene, id, P, F) {
   const D = (n) => Math.round(n * P);
   const k = skillWords(id);
