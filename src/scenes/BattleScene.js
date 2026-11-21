@@ -2,6 +2,7 @@ import { writeSave, readSave, clearSave, applySave } from '../saveGame.js';
 import { endingRules, parFor, rateWin, recordBest, battleTally } from '../ending.js';
 import { teamColor, figureShadows, addRim, syncRims, drawPath, boardRules } from '../boardRead.js';
 import { spellTip, unitTip, buttonTip, showTip, hideTip, hoverTipStart, hoverTipEnd, TIP_HOLD_MS } from '../tooltip.js';
+import { markerMode, setMarkerMode, TILE_LOOK } from '../markers.js';
 import { buildPlate, flashPlate, holdPlate, settlePlate, setPlateNumber, plateRules, spreadTagRows, plateMode, setPlateMode, drainChunk, clearChunk } from '../nameplate.js';
 import { damageSize, turnBanner, dropTurnBanner } from '../weight.js';
 import { staysOnUnit, placeLabel, laneCallout, resetCallouts } from '../callouts.js';
@@ -839,7 +840,7 @@ export default class BattleScene extends Phaser.Scene {
     const rowH2 = Math.max(S(48), this.lay.minTap + S(6));
     const sheetW = Math.min(W - 2 * m, Math.max(S(380), T(15) * 20));
     const sheetRows = [];
-    const sheetH = S(56) + 5 * rowH2 + S(14);
+    const sheetH = S(56) + 6 * rowH2 + S(14);
     const sx0 = Math.round((W - sheetW) / 2), sy0 = Math.round((H - sheetH) / 2);
     const veil = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive(); // taps outside close it
     const panel = this.add.graphics();
@@ -880,7 +881,11 @@ export default class BattleScene extends Phaser.Scene {
     const testLabel = sheetRow(3, () => { setTestMode(!testMode()); showTest(); play('click'); });
     const showTest = () => testLabel.setText('Test mode: ' + (testMode() ? 'On (pick enemies)' : 'Off'));
     showTest();
-    sheetRow(4, () => openSheet(false)).setText('Close');
+    // Markers: Tiles / Rings (21 Nov): the gold diamond on the tile and red tiles under the enemies, or the old thin ring
+    const markLabel = sheetRow(4, () => { setMarkerMode(markerMode() === 'tiles' ? 'rings' : 'tiles'); showMarks(); this.updateMarks(); play('click'); });
+    const showMarks = () => markLabel.setText('Markers: ' + (markerMode() === 'tiles' ? 'Tiles' : 'Rings'));
+    showMarks();
+    sheetRow(5, () => openSheet(false)).setText('Close');
     this.settingsRows = sheetRows; // (the HTML sheet shows these words and taps these rows, 18.44)
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
@@ -1309,6 +1314,7 @@ export default class BattleScene extends Phaser.Scene {
       this.breathPaused = still;
       for (const v of this.units) if (v.alive && v.idleTween && v.idleTween.isPlaying !== undefined) still ? v.idleTween.pause() : v.idleTween.resume();
     }
+    this.updateMarks();
     if (this.activeMarker) {
       const on = u && u.alive && u.view && u.view.active && !this.inCinematic && !this.battleOver;
       this.activeMarker.setVisible(!!on);
@@ -1897,7 +1903,11 @@ export default class BattleScene extends Phaser.Scene {
     tip.setPosition(barBack.x - 9, barBack.y);
     plate.addAt(tip, 0);
     if (data.side !== 'hero') hpFill.setFillStyle(0xd8453a);
-    const pieces = [floorShade, shadow, body, sprite, labelText, plate, badgeBack, badgeText, tagRow].filter(Boolean);
+    // 21 Nov (his mock-up): the tile outline under the fighter and, for an enemy, a small red health bar over its head. They are
+    // drawn here and shown or hidden by updateMarks (Settings: Markers: tiles or rings). Only fighters with a picture have them.
+    const tileMark = usePicture ? this.add.graphics() : null;
+    const miniBar = usePicture && data.side !== 'hero' ? this.add.graphics() : null;
+    const pieces = [floorShade, shadow, tileMark, body, sprite, labelText, plate, badgeBack, badgeText, tagRow, miniBar].filter(Boolean);
     const view = this.add.container(x, y, pieces).setDepth(depthFor(data.col, data.row) + 1);
     // less over the characters (roadmap 8.4): the job badge goes; the profile card says it
     if (usePicture) [badgeBack, badgeText].forEach((o) => o && o.setVisible(false));
@@ -1944,6 +1954,8 @@ export default class BattleScene extends Phaser.Scene {
       bodyHalfWidth,
       hpFill,
       plate,
+      tileMark,
+      miniBar,
       rims,
       tagRow,
       idleTargets,
@@ -2134,6 +2146,49 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(ENEMY_THINK_MS, () => this.runEnemyTurn());
     } else {
       play('turn');
+    }
+  }
+
+  // The tile outlines and the small red bars over the enemies (21 Nov, src/markers.js). Called every frame; a marker is only
+  // redrawn when its state changes. In "rings" mode the thin ring on the ground shows instead and these hide.
+  updateMarks() {
+    const tiles = markerMode() === 'tiles';
+    const hw = TILE_WIDTH / 2, hh = TILE_HEIGHT / 2;
+    for (const u of this.units) {
+      if (!u.tileMark || !u.tileMark.active) continue;
+      if (u.body && u.sprite) u.body.setVisible(!tiles); // (the ring stays, with its numbers, for the tests and for "rings")
+      const show = tiles && u.alive && !u.hidden;
+      u.tileMark.setVisible(show);
+      if (show) {
+        const state = u === this.pendingTarget ? 'target' : u === this.activeUnit ? 'active' : u.side === 'hero' ? 'hero' : 'enemy';
+        if (u.markState !== state) {
+          u.markState = state;
+          const look = TILE_LOOK[state];
+          const g = u.tileMark.clear();
+          const pts = (k) => [{ x: 0, y: -hh * k }, { x: hw * k, y: 0 }, { x: 0, y: hh * k }, { x: -hw * k, y: 0 }];
+          if (look.fill) g.fillStyle(look.color, look.fill).fillPoints(pts(0.9), true);
+          if (look.glow) g.lineStyle(look.width * 3.2, look.color, look.glow).strokePoints(pts(0.9), true);
+          g.lineStyle(look.width, look.color, look.alpha).strokePoints(pts(0.9), true);
+        }
+        // the one acting breathes a little brighter and dimmer
+        u.tileMark.setAlpha(state === 'active' ? 0.78 + 0.22 * Math.sin(this.time.now / 330) : 1);
+      } else u.markState = null;
+      const mini = u.miniBar;
+      if (mini && mini.active) {
+        const on = tiles && u.alive && !u.hidden && u.plate.alpha < 0.05; // (the full plate shows when it has to; then this steps aside)
+        mini.setVisible(on);
+        const frac = Math.max(0, u.hp / u.maxHp);
+        const key = Math.round(frac * 100) + '|' + u.topY;
+        if (on && mini.drawn !== key) {
+          mini.drawn = key;
+          const w = 44, y = -u.topY - 2;
+          mini.clear().fillStyle(0x120c08, 0.85).fillRect(-w / 2, y - 2.5, w, 5);
+          if (frac > 0) mini.fillStyle(0xe0503f, 1).fillRect(-w / 2 + 0.5, y - 2, (w - 1) * frac, 4);
+          mini.lineStyle(1, 0xc9a35a, 0.8).strokeRect(-w / 2, y - 2.5, w, 5);
+          mini.fillStyle(0x120c08, 1).fillPoints([{ x: -w / 2 - 9, y }, { x: -w / 2 - 4, y: y - 5 }, { x: -w / 2 + 1, y }, { x: -w / 2 - 4, y: y + 5 }], true);
+          mini.lineStyle(1.3, 0xe4c27c, 1).strokePoints([{ x: -w / 2 - 8, y }, { x: -w / 2 - 4, y: y - 4 }, { x: -w / 2, y }, { x: -w / 2 - 4, y: y + 4 }], true);
+        }
+      }
     }
   }
 
