@@ -20,13 +20,13 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // 1.27 the push pictures are the Intercept pose; a clash Press shows his ready stance, not the push
   check('1.27 Sudeen has a push pose', b.hasPose(sudeen, 'push'));
   sudeen.facing = 'downRight'; b.showPose(sudeen, 'push', 1);
-  check('1.27 push uses the shield-push sheet', /n6_bash2_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
+  check('1.27 push uses the shield-push sheet', /n6_bash2_|sudeen_n_bash_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
   b.showPose(sudeen, 'windup', 1);
   check('1.27 windup (clash Press) is no longer the push', !/bash2/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
 
   // 1.29 no non-isometric dodge pictures
   b.showPose(sudeen, 'dodge', 1);
-  check('1.29 dodge falls back to an isometric stance', !/cu_dodge/.test(sudeen.sprite.texture.key) && /sudeen_iso_battle_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
+  check('1.29 dodge falls back to an isometric stance', !/cu_dodge/.test(sudeen.sprite.texture.key) && /sudeen_(iso|n)_battle_/.test(sudeen.sprite.texture.key), sudeen.sprite.texture.key);
   check('1.29 no clashSlip pose with the old pictures', !b.hasPose(sudeen, 'clashSlip'));
 
   // 1.30 Herbs: 3 a battle, the count on the button

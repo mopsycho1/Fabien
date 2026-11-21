@@ -123,7 +123,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   check('first tap explains the spell', /^Verse of Stone on .*Tap again\.\n(Double effect on a shield-bearer! )?Earth's Bulwark, \+2 defense/.test(b.statusText.text), JSON.stringify(b.statusText.text));
   b.handleTap(tgt.col, tgt.row);
   check('second tap casts it: the target has the Verse of Stone and the Sage has acted', w.__status.buffOf(tgt) && w.__status.buffOf(tgt).id === 'stone' && h3.hasActed);
-  check('the Sage shows its casting pose', /layra_iso_(chant|cast)_/.test(h3.sprite.texture.key), h3.sprite.texture.key);
+  check('the Sage shows its casting pose', /layra_(iso|n)_(chant|cast)_/.test(h3.sprite.texture.key), h3.sprite.texture.key);
   await idle(); await sleep(300);
   check('the target shows the Earth\'s Bulwark icon', tags(tgt).includes('icon:stone'), tags(tgt));
   b.onSpellButton();

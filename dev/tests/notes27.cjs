@@ -18,7 +18,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // facings
   park(); gaha.facing = 'upRight'; b.showStanding(gaha);
-  check('Gaha facing up-right shows his back turned right', key(gaha) === 'h2:gaha_iso_stand_upRight.png', key(gaha));
+  check('Gaha facing up-right shows his back turned right', key(gaha) === 'h2:gaha_n_stand_upRight.png', key(gaha));
   put(gaha, 3, 5); put(bull, 3, 4); b.faceNearestOpponent(gaha); // (3,4) is up-right of (3,5)
   check('an enemy near: his battle stance in the same facing', /gaha_iso_battle_upRight/.test(key(gaha)), key(gaha));
   E.startDuel(gaha, bull); b.showStanding(gaha); b.showStanding(bull);
@@ -32,9 +32,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the archer aims up-left with her up-left picture', /archer_hq_fire_f1/.test(key(archer)) /* 18.26: her sharp pictures; f1 is the view from behind, up-left */, key(archer));
   // weakened
   park(); gaha.hp = Math.floor(gaha.maxHp * 0.3); gaha.facing = 'downLeft'; b.showStanding(gaha);
-  check('badly hurt Gaha stands bloodied', /gaha_n6_weak_upLeft/.test(key(gaha)) /* 1.66: his sheet's figure 1 is the down-left front view */, key(gaha));
+  check('badly hurt Gaha stands bloodied', /gaha_n6_weak_upLeft|gaha_n_weak[AB]_/.test(key(gaha)) /* 1.66: his sheet's figure 1 is the down-left front view */, key(gaha));
   layra.hp = 5; b.showStanding(layra);
-  check('badly hurt Layra leans on her staff', /layra_n6_hurt/.test(key(layra)), key(layra));
+  check('badly hurt Layra leans on her staff', /layra_n6_hurt|layra_n_weak_/.test(key(layra)), key(layra));
   layra.hp = layra.maxHp; gaha.hp = gaha.maxHp; b.showStanding(layra); b.showStanding(gaha);
   // Layra's size
   const shown = (u) => Math.max(...['downLeft', 'downRight', 'upLeft', 'upRight'].map((f) => { u.facing = f; b.showStanding(u); return u.sprite.displayHeight; }));
@@ -54,7 +54,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); turnOf(layra); layra.mp = 2;
   b.onSpellButton(); b.chooseSpell('meditate'); b.chooseSpell('meditate'); await sleep(1300); await idle();
   check('Meditate: no MP yet, she is MEDITATING and Exposed', layra.mp === 2 && layra.meditating && St.statusTags(layra).some((t) => t.text === 'MEDITATING') && St.statusTags(layra).some((t) => t.text === 'EXPOSED'), 'mp ' + layra.mp);
-  check('she holds her meditation picture', /layra_iso_meditate/.test(key(layra)), key(layra));
+  check('she holds her meditation picture', /layra_(iso_meditate|n_chant)/.test(key(layra)), key(layra));
   for (const u of b.units) u.ct = 0; layra.ct = 500;
   b.startTurn(); await sleep(200);
   check('her next turn is spent in the trance: she cannot act', b.activeUnit === layra && layra.hasActed && b.slots.every((s) => !s.enabled || s.label.text === 'End turn'), b.slots.map((s) => s.label.text + (s.enabled ? '' : '(dim)')).join('|'));

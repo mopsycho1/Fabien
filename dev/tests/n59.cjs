@@ -54,7 +54,7 @@ const art = JSON.parse(fs.readFileSync(__dirname + '/../../src/data/art.json', '
   }
   // a miss shows the dodge, then the unit stands again. Since 1.66 one side of a pair may be the other view mirrored
   const MIRROR_VIEW = { downLeft: 'downRight', downRight: 'downLeft', upLeft: 'upRight', upRight: 'upLeft' };
-  for (const [who, name, rx] of [[layra, 'Layra', /layra_dodge_/], [archer, 'The archer', /archer_dodge_/]]) {
+  for (const [who, name, rx] of [[layra, 'Layra', /layra_(dodge|n_dodge)_/], [archer, 'The archer', /archer_dodge_/]]) {
     for (const [facing, dx, want] of [['downRight', -50, 'downRight'], ['downLeft', 50, 'downLeft'], ['upRight', -50, 'upRight'], ['upLeft', 50, 'upLeft']]) {
       clear(); put(who, 4, 7); put(tayo, 5, 7); who.facing = facing; b.showStanding(who);
       b.showImpact(tayo, who, { hit: false, damage: 0 }, dx, false);

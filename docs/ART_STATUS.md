@@ -1,6 +1,6 @@
 # Art status: what Suleiman sent and where it is
 
-Written 21 Nov 2026 for Suleiman. Every sheet, picture, GIF and PDF he has sent, grouped by character or topic.
+Written 21 Nov 2026 for Suleiman, updated at the end of the same day (after Batch 4). Every sheet, picture, GIF and PDF he has sent, grouped by character or topic.
 The item numbers point to docs/ROADMAP.md (the "Item" column) if you want the detail.
 
 - **In game** = cut, wired and tested.
@@ -43,29 +43,29 @@ The item numbers point to docs/ROADMAP.md (the "Item" column) if you want the de
 | 12 Nov | Archer, 19 full quality sheets | Partly (poses cut and in; the sharper redo of the older pictures is still open) | 18.26 |
 | 12 to 15 Nov | Kofi's four spirits (WhatsApp, then full quality) | Not yet (cut, waits for Call Spirit) | 6.55, 6.38 |
 | 13 Nov | Dodges: Layra and archer | In game (Layra's is replaced by the new set, see below) | 13.44, 18.18 |
-| 13 Nov | Gadara hurt, injured, defeated; Alagara guard, fallen, recoil | In game | 6.21, 6.22 |
+| 13 Nov | Gadara hurt, injured, defeated; Alagara guard, fallen, recoil | In game (Gadara's three could not be recut with the newest tools: the 13 Nov archive is not on this Mac) | 6.21, 6.22, 6.89 |
 | 13 Nov | Waterfall GIF | In game | 1.48 |
 | 15 Nov | Bull Commander flame sheets (7) | In game | 6.56 |
 | 15 Nov | Kofi's clash banner and ten faces | In game | 6.54 |
 | 15 Nov | Five UI medallion sheets | In game | 6.53 |
 | 15 Nov | Gaha wind-up and spear throw sheets | In game | 6.52, 6.57 |
 | 15 Nov | Spell effect GIFs (13: Swift, Earth's Bulwark, Fury, Renewal, Umbra...) | In game (Umbra as Singularity) | 6.58, 6.60, 6.59 |
-| 15 Nov | Clash GIFs (Gaha against the bull, two more) | In game (shown as a panel; he wants it on the board) | 6.62, 6.80 |
+| 15 Nov | Clash GIFs (Gaha against the bull, two more) | In game (they now play on the board over the two fighters, not as a panel) | 6.62, 6.80 |
 | 15 Nov | Kofi's four spell GIFs | In game | 6.63 |
 | 15 Nov | Flame Enchant looks for the archer, Tayo, Sudeen, Gaha, Layra | Not yet (not sent) | 6.51 |
 | 15 to 16 Nov | Leol the lion slinger, full sheets | Not yet (faces are cut; the rest waits for his kit) | 6.67, 6.76, 19.1 |
 | 16 Nov | The second lion warden | Not yet | 6.78 |
 | 16 to 19 Nov | The Thief, 19 sheets and the trap GIF | Not yet (faces are cut; the rest waits for his kit) | 6.77, 19.2 |
-| 16 Nov | Layra, ten new sheets | Not yet (being cut now) | 6.69 |
-| 16 Nov | Tayo dodge, three sheets | Not yet (being cut now) | 6.70 |
-| 19 Nov | Kofi dodge sheet | Not yet (being cut now) | 6.71 |
-| 18 Nov | Gaha: new neutral, damaged, Lunge leap and attack, two GIFs | Not yet (being cut now) | 6.72 |
+| 16 Nov | Layra, ten new sheets | In game (replaces her whole old set; her victory is still the old picture) | 6.69 |
+| 16 Nov | Tayo dodge, three sheets | In game (plain and flame dodge, four views; the mirrored sheet is not needed) | 6.70 |
+| 19 Nov | Kofi dodge sheet | In game | 6.71 |
+| 18 Nov | Gaha: new neutral, damaged, Lunge leap and attack, two GIFs | In game (the Lunge now leaps, thrusts, kicks up dust and flashes on a hit) | 6.72 |
 | 19 Nov | Alagara skills, Claim, Mantle, Gale Cut, GIFs | In game | 6.74 |
 | 19 Nov | Gadara skill sheets and GIFs | In game | 6.75 |
 | 19 Nov | Bull Commander Horn Charge sheets and two impact GIFs | Not yet | 6.73 |
 | 18 to 19 Nov | Hit flashes (blunt, pierce, slash) | Not yet | 6.68 |
-| 19 Nov | Slow and Gravity GIFs | Not yet (being cut now) | 6.79 |
-| 20 Nov | Sudeen updated sheets and expression grid | Not yet (being cut now) | 6.81 |
+| 19 Nov | Slow and Gravity GIFs | Partly (Slow is in; Gravity waits for its design) | 6.79, 13.65 |
+| 20 Nov | Sudeen updated sheets and expression grid | In game (battle stance with the scimitar, slash, herb toss, bash, three faces; six faces cut, not used yet) | 6.81 |
 | 20 to 21 Nov | Alagara redo (dodge, battle stance, neutral with gold, Fury looks, crown) | In game | 6.83, 6.84 |
 | 21 Nov | Alagara and Gadara victory sheets | In game | 6.85 |
 | 21 Nov | Layra floating blessing sheets | In game | 6.86 |

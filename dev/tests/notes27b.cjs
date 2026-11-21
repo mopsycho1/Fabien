@@ -20,11 +20,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // Layra
   park();
-  for (const f of ['upLeft', 'upRight']) { layra.facing = f; b.showStanding(layra); check('Layra facing ' + f + ' shows her back view (not looking up at the sky)', /layra_iso_stand_upRight/.test(key(layra)), key(layra)); }
+  for (const f of ['upLeft', 'upRight']) { layra.facing = f; b.showStanding(layra); check('Layra facing ' + f + ' shows her back view (not looking up at the sky)', /layra_(iso|n)_stand_up(Left|Right)/.test(key(layra)), key(layra)); }
   put(bull, 3, 5); layra.facing = 'upRight'; b.showStanding(layra);
-  check('an enemy close: Layra in her battle-ready stance', /layra_iso_guard_/.test(key(layra)), key(layra));
+  check('an enemy close: Layra in her battle-ready stance', /layra_(iso_guard|n_battle)_/.test(key(layra)), key(layra));
   layra.facing = 'downLeft'; b.showStanding(layra);
-  check('facing down with an enemy close: her battle-ready stance', /layra_iso_guard_downRight/.test(key(layra)), key(layra));
+  check('facing down with an enemy close: her battle-ready stance', /layra_(iso_guard_downRight|n_battle_down)/.test(key(layra)), key(layra));
 
   // Poise
   park(); put(gaha, 3, 5); put(bull, 3, 4); E.startDuel(gaha, bull); gaha.poise = 3;
