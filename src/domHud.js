@@ -92,6 +92,7 @@ const CSS = `
 #fabien-hud .arrow { position: absolute; width: 0; height: 0; transform: translate(-50%, -50%);
   border-top: calc(var(--u) * 4.5) solid transparent; border-bottom: calc(var(--u) * 4.5) solid transparent; border-left: calc(var(--u) * 5) solid #e4c27c;
   filter: drop-shadow(0 0 calc(var(--u) * 2) rgba(255,200,100,0.7)); }
+#fabien-hud .stripwin { position: absolute; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; cursor: default; } #fabien-hud .stripwin::-webkit-scrollbar { display: none; }
 #fabien-hud .stripline { position: absolute; height: 1px; background: linear-gradient(90deg, rgba(201,163,90,0.7), rgba(201,163,90,0.35) 80%, rgba(201,163,90,0)); }
 
 /* the diamond list down the left */
@@ -489,14 +490,18 @@ export class DomHud {
       let h = '';
       const dot = (x, y) => '<i class="arrow" style="left:' + Math.round(x * k) + 'px;top:' + Math.round(y * k) + 'px"></i>';
       for (const a of geo.arrows) h += dot(a, geo.y);
+      // the faces stand in a window that scrolls sideways (21 Nov: six show, the rest are a swipe away)
+      const v = geo.view;
+      let inner = '';
       line.forEach((unit, i) => {
         if (!unit) return;
         const g = geo.medals[i];
         if (!g) return;
         const d = Math.round(2 * g.r * k);
         const src = this.url(portraitKey(unit.id, unit));
-        h += '<div class="medal ' + (unit.side === 'hero' ? 'hero' : 'enemy') + (i === 0 ? ' now' : '') + '" style="left:' + Math.round(g.x * k) + 'px;top:' + Math.round(geo.y * k) + 'px;width:' + d + 'px;height:' + d + 'px">' + (src ? '<img src="' + src + '" alt="">' : '') + '</div>';
+        inner += '<div class="medal ' + (unit.side === 'hero' ? 'hero' : 'enemy') + (i === 0 ? ' now' : '') + '" style="left:' + Math.round((g.x - v.x0) * k) + 'px;top:' + Math.round((geo.y - v.top) * k) + 'px;width:' + d + 'px;height:' + d + 'px">' + (src ? '<img src="' + src + '" alt="">' : '') + '</div>';
       });
+      h += '<div class="stripwin tap" style="left:' + Math.round(v.x0 * k) + 'px;top:' + Math.round(v.top * k) + 'px;width:' + Math.round((v.x1 - v.x0) * k) + 'px;height:' + Math.round(v.h * k) + 'px"><div style="position:relative;height:100%;width:' + Math.round((v.total - v.x0) * k) + 'px">' + inner + '</div></div>';
       h += '<div class="stripline" style="left:' + Math.round(geo.lineX0 * k) + 'px;top:' + Math.round(geo.lineY * k) + 'px;width:' + Math.round((geo.lineX1 - geo.lineX0) * k) + 'px"></div>';
       return h;
     });

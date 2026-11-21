@@ -489,7 +489,7 @@ export default class BattleScene extends Phaser.Scene {
     const b = this.boardBounds();
     // the top bar (his mock-up): the title, then the turn strip of round faces, a thin line under it
     const titleSize = F.small;
-    const stripR = Math.round((portrait ? 19 : 22) * px); // the medal of the one acting (18.44: bigger, as his)
+    const stripR = Math.round((portrait ? 26 : 26) * px); // the medal of the one acting (18.44: bigger, as his)
     this.lay.titleSize = titleSize;
     this.lay.stripR = stripR;
     this.lay.stripY = m + Math.round(18 * px) + Math.round(4 * px) + stripR;
@@ -2197,13 +2197,14 @@ export default class BattleScene extends Phaser.Scene {
     // His mock-up: one row of round faces under the title. The one acting now is bigger, in his
     // glowing medal, with a small gold arrow either side; then each fighter once, in the order of
     // their next turn (M7, 17.7), as many as fit left of the turn panel.
-    const r = Math.round(stripR * 0.66); // the next ones smaller (18.44)
-    const step = 2 * r + D(8);
+    const r = Math.round(stripR * 0.52); // the next ones about half the size of the one acting (21 Nov, his mock-up)
+    const step = 2 * r + D(5);
     const startX = m + D(11) + stripR;
     const room = W - m - (this.turnGeo ? this.turnGeo.w : D(118)) - D(10) - (startX + stripR + D(12));
-    const count = Math.max(2, Math.min(7, Math.floor(room / step)));
+    // at most 6 faces show (the one acting and five more); the rest are there to the right and the strip scrolls to them
+    const shown = Math.max(1, Math.min(5, Math.floor(room / step)));
     const lineup = [this.activeUnit];
-    for (const u of previewTurns(this.units, this.units.length * 3)) if (!lineup.includes(u) && lineup.length <= count) lineup.push(u);
+    for (const u of previewTurns(this.units, this.units.length * 3)) if (!lineup.includes(u)) lineup.push(u);
     this.stripLineup = lineup;
     const arrows = this.add.graphics();
     const a = D(3);
@@ -2211,10 +2212,13 @@ export default class BattleScene extends Phaser.Scene {
     const geo = { y, arrows: [], medals: [] };
     const arrow = (x) => { geo.arrows.push(x); arrows.fillStyle(0xe4c27c, 0.95).fillTriangle(x - a, y - a * 1.5, x + a, y, x - a, y + a * 1.5); };
     arrow(m + a);
-    let x = startX;
+    let x = startX, viewEnd = startX + stripR + D(8);
+    let lastX = x;
     lineup.forEach((unit, i) => {
       geo.medals.push({ x, r: i === 0 ? stripR : r - 2 });
       const now = i === 0;
+      lastX = x;
+      if (i <= shown) viewEnd = x + (now ? stripR : r) + D(7); // the last face that shows ends the visible part
       const medal = now
         ? medalPortrait(this, x, y, stripR, unit, portraitKey(unit.id, unit), { active: true })
         : portraitMedallion(this, x, y, r - 2, unit, portraitKey(unit.id, unit), { active: false });
@@ -2224,11 +2228,11 @@ export default class BattleScene extends Phaser.Scene {
         x += stripR + D(12) + r;
       } else x += step;
     });
-    const endX = x - step + r + D(7);
+    const endX = viewEnd;
     arrow(endX);
     this.turnStripLayer.add(arrows);
     if (this.stripLine) this.stripLine.clear().lineStyle(1, 0xc9a35a, 0.45).lineBetween(m, y + stripR + D(4), endX + D(14), y + stripR + D(4));
-    Object.assign(geo, { lineX0: m, lineX1: endX + D(14), lineY: y + stripR + D(4) });
+    Object.assign(geo, { lineX0: m, lineX1: endX + D(14), lineY: y + stripR + D(4), view: { x0: startX - stripR - D(9), x1: endX, total: lastX + r + D(8), top: y - stripR - D(10), h: 2 * stripR + D(20) } });
     this.stripGeo = geo;
     this.refreshUnitList();
     this.ui(this.turnStripLayer);
