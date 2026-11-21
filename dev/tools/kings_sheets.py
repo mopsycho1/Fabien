@@ -10,6 +10,11 @@ OLD = B + 'INBOX/2026-11-06/'
 GAD13 = B + 'INBOX/2026-11-13b/email/Gadara sheets/Gadara sheets/'
 GADS = I19 + 'Gadara missing skill sheets/Gadara missing skill sheets/'
 ALA = I19 + 'Alagara/Alagara/'
+# his 20 Nov update (Alagara's sheets updated.7z) and 21 Nov email (Alagara sheet updates.7z): roadmap 6.83
+A20 = B + "INBOX/2026-11-20b/Alagara's sheets updated/Alagara's sheets updated/"
+FURY20 = A20 + 'Algara fury form sheets/'
+SWIFT20 = A20 + 'Algara swift form sheets/'
+A21 = B + 'INBOX/2026-11-21/email/unzipped/Alagara sheet updates/Alagara sheet updates/'
 
 # name: (file, layout)
 SHEETS = {
@@ -30,18 +35,27 @@ SHEETS = {
     'gadara_sunder_rear': (GADS + 'Sunder boon/Rearing.png', 'grid'),
     'gadara_sunder_slash': (GADS + 'Sunder boon/Slashing.png', 'grid'),
     # King Alagara (hero king, "h5")
-    'alagara_stand':  (ALA + 'Alagara Neutral sheet.png', 'row'),
-    'alagara_battle': (ISO + 'PHOTO-2026-10-31-10-23-11.jpg', 'row'),   # hand on the hilt: Drawn Blade
-    'alagara_strike': (ISO + 'PHOTO-2026-10-31-10-27-30.jpg', 'row'),   # the drawn lunge
-    'alagara_ready':  (ALA + 'Four-Panel Warrior Pose Study.png', 'row'),
+    'alagara_stand':  (A21 + 'Alagara neutral turnaround sheet..png', 'grid'),   # 21 Nov: gold fastenings on the scarf
+    'alagara_battle': (A21 + 'Alagara’s Ornate Saber Action Sheet.png', 'grid'),   # 21 Nov: his battle stance (08:45)
+    'alagara_strike': (ISO + 'PHOTO-2026-10-31-10-27-30.jpg', 'row'),   # the drawn lunge (no attack sheet in the new look yet)
+    'alagara_ready':  (ALA + 'Four-Panel Warrior Pose Study.png', 'row'),   # injured
     'alagara_guard':  (ALA + 'Alagara’s Four-View Guarding Stance.png', 'row'),
+    'alagara_dodge':  (A20 + 'Alagara dodging.png', 'row'),   # 20 Nov
     'alagara_hurt':   (ALA + 'Four Views of a Recoiling Warrior.png', 'row'),
     'alagara_down':   (ALA + 'Fallen Warrior Isometric Study Sheet.png', 'row'),
-    'alagara_fury':   (ALA + 'Attacking under the effects of fury.png', 'row'),
-    'alagara_swift':  (ALA + 'Attacking under the effects of swift.png', 'row'),
-    # his calm stances per Verse (1 Nov 08:52 Swift mode, 09:18 flaming hair = Fury; roadmap 1.72): standing, not attacking
-    'alagara_swift_stand': (OLD + '00000919-PHOTO-2026-11-01-08-52-09.jpg', 'row'),
-    'alagara_fury_stand':  (OLD + '00000922-PHOTO-2026-11-01-09-18-36.jpg', 'row'),
+    # Fury form, 20 Nov (the neutral sheet is named "Swift Warrior" but has his red Fury hair)
+    'alagara_fury_stand':  (FURY20 + 'Swift Warrior_ Four-View Character Sheet.png', 'grid'),
+    'alagara_fury_ready':  (FURY20 + 'Alagara infused with fury battle stance.jpeg', 'row'),
+    'alagara_fury_windup': (FURY20 + 'Algara fury form preparing to attack.png', 'grid'),
+    'alagara_fury':        (FURY20 + 'Algara attacking in fury state.png', 'row'),
+    'alagara_fury_guard':  (FURY20 + 'Fury guard.png', 'row'),
+    'alagara_fury_dodge':  (FURY20 + 'Alagara’s Fury Form_ Dodge Leaps.png', 'row'),
+    # Swift form, 20 Nov (Stone uses the Swift design too: Suleiman 20 Nov 15:36)
+    'alagara_swift_stand':  (SWIFT20 + 'Swift Form Warrior Turnaround.png', 'grid'),
+    'alagara_swift_ready':  (SWIFT20 + 'Alagara infused with swift battle stance.jpeg', 'row'),
+    'alagara_swift':        (SWIFT20 + 'Swift form attacking.png', 'grid'),
+    'alagara_swift_guard':  (SWIFT20 + 'Alagara swift blocking.png', 'row'),
+    'alagara_swift_dodge':  (SWIFT20 + 'Alagara swift form dodging.png', 'row'),
     'alagara_claim_reach': (ALA + 'Skill and Effects- claim/1-reach.png', 'grid'),
     'alagara_claim_snatch': (ALA + 'Skill and Effects- claim/2-snatch.png', 'grid'),
     'alagara_claim_store': (ALA + 'Skill and Effects- claim/3-store.png', 'grid'),

@@ -58,7 +58,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check(name + ': the ' + gif.replace('sfx_', '').replace(/_$/, '') + ' GIF on every tile of the path (' + plan.tiles.length + ')', firstFrames.length === plan.tiles.length, firstFrames.length);
     const xs = firstFrames.map((m) => m.x);
     check(name + ': ...spread along the whole path', xs.length > 1 && Math.max(...xs) - Math.min(...xs) > 100, Math.round(Math.max(...xs) - Math.min(...xs)) + ' px');
-    const want = verse === 'fury' ? 'gale_fury' : verse === 'swiftness' ? 'gale_swift' : 'alagara_gale_f';
+    const want = verse === 'fury' ? 'gale_fury' : (verse === 'swiftness' || verse === 'stone') ? 'gale_swift' : 'alagara_gale_f'; // Stone wears his Swift design (6.83)
     check(name + ': his form\'s Gale Cut picture during the dash', pose.includes(want), pose);
     await sleep(300);
   }

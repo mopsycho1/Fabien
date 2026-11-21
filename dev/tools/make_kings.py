@@ -49,17 +49,27 @@ VIEWS = {
     'gadara_hook_reach': {'downLeft': 1, 'upLeft': 3},
     'gadara_hook_pull': {'downLeft': 1, 'upLeft': 3},
     'gadara_sunder_slash': {'downLeft': 1, 'upLeft': 3},
-    'alagara_stand': {'downLeft': 1, 'downRight': 4, 'upLeft': 2, 'upRight': 3},
-    'alagara_battle': {'downLeft': 1, 'downRight': 2, 'upRight': 3},
+    # 20 and 21 Nov sheets (roadmap 6.83). Looked at on a numbered sheet: on nearly every new sheet
+    # 1 faces up-left, 2 up-right, 3 down-left, 4 down-right; dev/tools/facing_check.py confirms the pairs.
+    'alagara_stand': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
+    'alagara_battle': {'upLeft': 1, 'downRight': 2, 'downLeft': 3, 'upRight': 4},
     'alagara_strike': {'downLeft': 1, 'upRight': 3},
     'alagara_ready': {'downLeft': 1, 'downRight': 2, 'upLeft': 1},   # injured: no back view
     'alagara_guard': {'downLeft': 3, 'upLeft': 1},
+    'alagara_dodge': {'downLeft': 1, 'upRight': 3, 'upLeft': 4},   # 2 faces the same way as 1 (facing check): mirrored instead
     'alagara_hurt': {'downLeft': 3, 'upRight': 1},
     'alagara_down': {'downLeft': 3, 'upLeft': 1},
-    'alagara_fury': {'downLeft': 1, 'upLeft': 3},
-    'alagara_swift': {'downLeft': 1, 'upLeft': 3},
-    'alagara_swift_stand': {'downLeft': 3, 'upLeft': 1},   # 1 Nov calm stances (1.72): 3 faces down-left, 1 up-left
-    'alagara_fury_stand': {'downLeft': 3, 'upLeft': 1},
+    'alagara_fury_stand': {'downRight': 1, 'upLeft': 2, 'downLeft': 3, 'upRight': 4},
+    'alagara_fury_ready': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},   # on these four sheets 4 points the same way as 3
+    'alagara_fury_windup': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
+    'alagara_fury': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
+    'alagara_fury_guard': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},
+    'alagara_fury_dodge': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
+    'alagara_swift_stand': {'downRight': 1, 'upLeft': 2, 'downLeft': 3, 'upRight': 4},
+    'alagara_swift_ready': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},
+    'alagara_swift': {'downLeft': 1, 'downRight': 2, 'upLeft': 3, 'upRight': 4},
+    'alagara_swift_guard': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},
+    'alagara_swift_dodge': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
     'alagara_claim_reach': {'downLeft': 2, 'upLeft': 2},
     'alagara_claim_snatch': {'downLeft': 1, 'upLeft': 1},
     'alagara_claim_store': {'downLeft': 1, 'upLeft': 1},
@@ -73,7 +83,7 @@ VIEWS = {
 # head boxes in the RAW standing figures (sheet size): left, top, right, bottom; hair top to chin
 HEADS = {
     'gadara': {1: (120, 20, 230, 150), 4: (120, 25, 225, 150)},
-    'alagara': {1: (30, 0, 200, 155), 4: (90, 0, 265, 150)},
+    'alagara': {3: (45, 0, 175, 118), 4: (60, 0, 185, 118)},   # the 21 Nov neutral: 3 and 4 are the front views
 }
 # sheets whose size is set by hand (against the standing sheet), with the reason
 HAND = {
@@ -87,10 +97,42 @@ HAND = {
     'alagara_down': 1.2,         # lying: the head reads small; a body as long as he is tall
     'alagara_mantle_swift': 1.25,
     'alagara_gale_swift': 1 / 0.74,   # reads 0.39: his white Swift hair hides the head; same set as the Fury Gale Cut (0.74)
-    'alagara_fury_stand': 1 / 0.55,   # 1 Nov photo, half the size of his sheets; the head reads 0.55 ("_stand" would count it as his base)
-    'alagara_swift_stand': 1 / 0.55,  # the same 1 Nov set; the white hair hides the head (reads 0.46)
-    'alagara_swift': 1 / 0.66,        # reads 0.61: the white hair again; the Fury sheet of the same set reads 0.68    # reads 0.60: the hand and mask cover the face; upright, drawn at 0.78 of the standing height
+    # HAND_ALAGARA below holds his sizes from the 21 Nov size pass (1.85)
 }
+
+# Alagara's sizes, set by eye on 21 Nov (1.85): every family next to his 21 Nov standing picture at the size drawn,
+# judged by the head and the sandals. The head finder reads his afro, the Fury flames and the Swift white hair badly
+# (it often lands on the trousers), so the finder's reading is noted and the size is pinned.
+HAND_ALAGARA = {
+    'alagara_battle': 0.961,        # by eye 1.10 of standing at 1.057
+    'alagara_ready': 0.850,         # by eye 1.35 of standing at 1.252, then 1.10 at 0.927 (second look)
+    'alagara_guard': 0.816,         # by eye 1.00 of standing at 0.816
+    'alagara_dodge': 1.077,         # by eye 1.12 of standing at 1.206
+    'alagara_hurt': 0.981,          # by eye 1.12 of standing at 1.098
+    'alagara_down': 1.043,          # by eye 1.15 of standing at 1.200
+    'alagara_strike': 1.288,        # by eye 1.00 of standing at 1.288
+    'alagara_claim_reach': 1.053,   # by eye 1.00 of standing at 1.053
+    'alagara_claim_snatch': 0.993,  # by eye 1.00 of standing at 0.993
+    'alagara_claim_store': 0.947,   # by eye 1.00 of standing at 0.947
+    'alagara_mantle_prep': 1.179,   # by eye 1.05 of standing at 1.238
+    'alagara_mantle_cast': 1.150,   # by eye 1.08 of standing at 1.242
+    'alagara_gale': 1.058,          # by eye 1.05 of standing at 1.110
+    'alagara_gale_fury': 0.970,     # by eye 1.05 of standing at 1.019
+    'alagara_gale_swift': 1.126,    # by eye 1.20 of standing at 1.351
+    'alagara_fury_stand': 1.001,    # by eye 1.00 of standing at 1.001
+    'alagara_fury_ready': 1.376,    # by eye 1.15 of standing at 1.582
+    'alagara_fury_windup': 1.050,   # by eye 1.30 of standing at 1.365
+    'alagara_fury': 0.964,          # by eye 1.15 of standing at 1.108
+    'alagara_fury_guard': 0.883,    # by eye 1.35 of standing at 1.192
+    'alagara_fury_dodge': 1.135,    # by eye 1.15 of standing at 1.305
+    'alagara_swift_stand': 1.001,   # by eye 1.00 of standing at 1.001
+    'alagara_swift_ready': 1.346,   # by eye 1.05 of standing at 1.413
+    'alagara_swift': 1.190,         # by eye 1.10 of standing at 1.309
+    'alagara_swift_guard': 0.963,   # by eye 1.05 of standing at 1.011
+    'alagara_swift_dodge': 1.143,   # by eye 1.05 of standing at 1.200
+    'alagara_mantle_swift': 0.961,  # by eye 1.30 of standing at 1.250
+}
+HAND.update(HAND_ALAGARA)
 
 def wipe_dust(path):
     """Fury and Swift sheets have a pale grey dust splash painted on the floor by his feet: the
@@ -113,6 +155,37 @@ def wipe_dust(path):
         for i in range(1, n + 1):
             if sizes[i - 1] < 0.01 * sizes.max(): a[lab == i, 3] = 0
     out = Image.fromarray(a.astype(np.uint8), 'RGBA'); out = out.crop(out.getbbox()); out.save(path, optimize=True)
+
+def tile_colour(path):
+    """The colour of the floor tile under the feet (the most common pale, grey-pink colour low in the
+    picture), or None when there is no tile left."""
+    a = np.array(Image.open(path).convert('RGBA')).astype(int); h = a.shape[0]
+    b = a[int(h * .75):]; px = b[b[..., 3] > 200][:, :3]
+    sat = px.max(1) - px.min(1); px = px[(sat < 50) & (px.mean(1) > 110)]
+    if len(px) < 200: return None
+    q = px // 8; keys, counts = np.unique(q, axis=0, return_counts=True)
+    return px[(q == keys[counts.argmax()]).all(1)].mean(0)
+
+def wipe_tile(path, T):
+    """Takes away the floor tile and its shadow (6.83): pixels of the tile's hue (lighter or darker) in the
+    lower part of the picture that reach the outside. His cream cloth is yellower, so it stays."""
+    a = np.array(Image.open(path).convert('RGBA')).astype(float); h = a.shape[0]
+    rgb = a[..., :3]; s = rgb.sum(-1) + 1e-6; n = rgb / s[..., None]; Tn = T / T.sum()
+    d = np.abs(n - Tn).max(-1); br = s / T.sum()
+    m = (d < 0.03) & (br > 0.42) & (br < 1.15) & (a[..., 3] > 0)
+    m[:int(h * 0.55)] = False
+    lab, k = ndimage.label(m)
+    outside = ndimage.binary_dilation(a[..., 3] <= 30, iterations=2)
+    hit = np.unique(lab[outside & m]); hit = hit[hit > 0]
+    m = np.isin(lab, hit)
+    m = (ndimage.binary_dilation(m, iterations=1) & (a[..., 3] > 0) & (d < 0.06)) | m
+    a[m, 3] = 0
+    solid = a[..., 3] > 128; lab, k = ndimage.label(solid)
+    if k > 1:
+        sizes = ndimage.sum(solid, lab, range(1, k + 1))
+        for i in range(1, k + 1):
+            if sizes[i - 1] < 0.01 * sizes.max(): a[lab == i, 3] = 0
+    im = Image.fromarray(a.astype(np.uint8), 'RGBA'); im.crop(im.getbbox()).save(path, optimize=True)
 
 def feet_x(path):
     m = np.array(Image.open(path).convert('RGBA'))[..., 3] > 40; hh = m.shape[0]
@@ -146,13 +219,20 @@ def king(prefix):
                 cl, box = parts[fig - 1]
                 keep = 0.02 if sheet.endswith('_down') else 0.15
                 final_cut(cl, box, OUT + name, base * k, keep=keep)
-                if sheet in ('alagara_fury', 'alagara_swift', 'alagara_swift_stand', 'alagara_fury_stand', 'alagara_mantle_swift', 'alagara_claim_store'): wipe_dust(OUT + name)
+                if sheet in ('alagara_mantle_swift', 'alagara_claim_store'): wipe_dust(OUT + name)
+        # the floor tile and its shadow that iso31.clean leaves on some 20 Nov sheets: one tile colour per sheet
+        names = sorted({'%s_f%d.png' % (sheet, fig) for fig in views.values()})
+        tiles = [t for t in (tile_colour(f) for f in files) if t is not None]   # read on the full-size raw figures
+        if tiles:
+            T = np.median(np.array(tiles), axis=0)
+            for n in names: wipe_tile(OUT + n, T)
+        for facing, fig in views.items():
+            name = '%s_f%d.png' % (sheet, fig)
             out[facing] = {'file': name, 'originX': feet_x(OUT + name)}
         sets[sheet[len(prefix) + 1:]] = out
     return sets
 
-if __name__ == '__main__':
-    art = json.load(open(ART))
+def write_gadara(art):
     g = king('gadara')
     gad = art.get('e5', {})
     gad.update({
@@ -175,30 +255,47 @@ if __name__ == '__main__':
         'clash': {'file': 'clash/gadara_clash.webp', 'tip': 0.894, 'name': {'file': 'clash/gadara_clash_name.webp', 'x': 0.535, 'y': 0.0267}},
     })
     art['e5'] = gad
+
+def write_alagara(art):
     a = king('alagara')
     ala = art.get('h5', {})
     ala.update({
-        'note': 'King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his '
-                '13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn '
-                'Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three '
-                'looks). His look follows his ACTIVE Verse ("buffed", "buffPoses"); the Echo shows only in the interface.',
+        'note': 'King Alagara, the Vessel (Phase 10, roadmap 6.74, 6.83 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his '
+                '21 Nov sheets (neutral with the gold fastenings, the saber battle stance), his 20 Nov sheets (dodge; Fury and Swift '
+                'forms: neutral, battle stance, wind-up, attack, guard, dodge; Stone wears the Swift design), his 13 and 19 Nov '
+                'sheets (guard, recoil, fallen, injured, Claim, Mantle, Gale Cut in three looks) and the 31 Oct drawn lunge (his '
+                'plain attack: no attack sheet in the new look yet). His look follows his ACTIVE Verse ("buffed", "buffPoses").',
         'name': 'Alagara', 'height': 100,
         'standing': a['stand'], 'battle': a['battle'], 'weak': a['ready'],
         'poses': {
-            'ready': a['battle'], 'guard': a['guard'], 'dodge': a['guard'], 'windup': a['battle'], 'attack': a['strike'],
+            'ready': a['battle'], 'guard': a['guard'], 'dodge': a['dodge'], 'windup': a['battle'], 'attack': a['strike'],
             'drawn': a['battle'], 'claimReach': a['claim_reach'], 'claimSnatch': a['claim_snatch'], 'claimStore': a['claim_store'],
             'chant': a['mantle_prep'], 'cast': a['mantle_cast'], 'gale': a['gale'],
             'hurt': a['hurt'], 'knocked': a['hurt'], 'down': a['down'],
         },
-        # standing under a Verse: his calm 1 Nov stances, not the attack pictures (1.72)
-        'buffed': {'fury': a['fury_stand'], 'swiftness': a['swift_stand']},
+        # standing under a Verse: the form's neutral sheet (20 Nov); Stone uses the Swift design (Suleiman 20 Nov 15:36)
+        'buffed': {'fury': a['fury_stand'], 'swiftness': a['swift_stand'], 'stone': a['swift_stand']},
         'buffPoses': {
-            'fury': {'attack': a['fury'], 'gale': a['gale_fury'], 'ready': a['fury_stand']},
-            'swiftness': {'attack': a['swift'], 'gale': a['gale_swift'], 'cast': a['mantle_swift'], 'chant': a['mantle_swift'], 'ready': a['swift_stand']},
+            'fury': {'attack': a['fury'], 'windup': a['fury_windup'], 'ready': a['fury_ready'], 'guard': a['fury_guard'],
+                     'dodge': a['fury_dodge'], 'gale': a['gale_fury']},
+            # the Swift folder's "Winding up attack" is the Fury sheet again (same file): his Swift battle stance winds up
+            'swiftness': {'attack': a['swift'], 'windup': a['swift_ready'], 'ready': a['swift_ready'], 'guard': a['swift_guard'],
+                          'dodge': a['swift_dodge'], 'gale': a['gale_swift'], 'cast': a['mantle_swift'], 'chant': a['mantle_swift']},
+            'stone': {'attack': a['swift'], 'windup': a['swift_ready'], 'ready': a['swift_ready'], 'guard': a['swift_guard'],
+                      'dodge': a['swift_dodge'], 'gale': a['gale_swift'], 'cast': a['mantle_swift'], 'chant': a['mantle_swift']},
         },
         'auraPainted': ['fury', 'swiftness'],
         'clash': {'file': 'clash/alagara_clash.webp', 'tip': 0.894, 'name': {'file': 'clash/alagara_clash_name.webp', 'x': 0.535, 'y': 0.0267}},
     })
     art['h5'] = ala
+
+
+if __name__ == '__main__':
+    art = json.load(open(ART))
+    which = sys.argv[2:] or ['gadara', 'alagara']   # cut one king only: make_kings.py <work> alagara
+    if 'gadara' in which:
+        write_gadara(art)
+    if 'alagara' in which:
+        write_alagara(art)
     json.dump(art, open(ART, 'w'), indent=2, ensure_ascii=False); open(ART, 'a').write('\n')
-    print('art.json: e5 (Gadara) and h5 (Alagara) written', file=sys.stderr)
+    print('art.json written for', which, file=sys.stderr)

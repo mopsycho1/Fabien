@@ -27,14 +27,15 @@
     "scale": {
       "sudeen_n8_guard": 0.83,
       "sudeen_n6_victory": 1.0,
-      "sudeen_n9_fc": 1.2,
-      "sudeen_ram": 1.4,
+      "sudeen_n9_fc": 1.09,
+      "sudeen_ram": 1.22,
       "sudeen_n6_stone": 0.8,
       "sudeen_n6_swift": 0.82,
       "sudeen_n9_furyAttack": 1.0,
       "sudeen_fall_air": 1.0,
       "sudeen_fall_land": 1.0,
-      "sudeen_fall_rise": 1.0
+      "sudeen_fall_rise": 1.0,
+      "sudeen_iso_heal": 1.03
     },
     "feet": {
       "sudeen_ram": 0.95,
@@ -123,7 +124,7 @@
       "archer_hq_wound2": 1.0,
       "archer_n6b_dagger": 2.68,
       "archer_poison": 2.9,
-      "archer_poisonShot": 2.68,
+      "archer_poisonShot": 2.23,
       "archer_smoke_throw": 2.68,
       "archer_dodge": 1.0
     },
@@ -188,8 +189,17 @@
       "alagara_strike": 1.0,
       "alagara_swift": 1.0,
       "alagara_swift_stand": 1.0,
-      "alagara_fury_stand": 1.0
+      "alagara_fury_stand": 1.0,
+      "alagara_dodge": 1.0,
+      "alagara_fury_ready": 1.0,
+      "alagara_fury_windup": 1.0,
+      "alagara_fury_guard": 1.0,
+      "alagara_fury_dodge": 1.0,
+      "alagara_swift_ready": 1.0,
+      "alagara_swift_guard": 1.0,
+      "alagara_swift_dodge": 1.0
     },
     "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
-  }
+  },
+  "note_18_52": "21 Nov (roadmap 18.52): archer_poisonShot 2.68 to 2.23, sudeen_n9_fc 1.2 to 1.09, sudeen_ram 1.4 to 1.22, sudeen_iso_heal 1.29 (measured: the head finder misread his upturned head) to 1.03; each was drawn 10 to 20 percent bigger than standing, judged by eye next to the standing picture (dev/tools/pose_size.py)."
 }

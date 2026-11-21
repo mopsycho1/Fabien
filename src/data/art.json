@@ -430,11 +430,11 @@
         "footX": 0.516
       },
       "sudeen_iso_heal_upRight.png": {
-        "scale": 1.29,
+        "scale": 1.03,
         "footX": 0.48
       },
       "sudeen_iso_heal_downRight.png": {
-        "scale": 1.29
+        "scale": 1.03
       },
       "sudeen_n8_guard_upLeft.png": {
         "scale": 0.83,
@@ -530,44 +530,44 @@
         "footX": 0.582
       },
       "sudeen_n9_fc_0.png": {
-        "scale": 1.2
+        "scale": 1.09
       },
       "sudeen_n9_fc_1.png": {
-        "scale": 1.2
+        "scale": 1.09
       },
       "sudeen_n9_fc_2.png": {
-        "scale": 1.2
+        "scale": 1.09
       },
       "sudeen_n9_fc_3.png": {
-        "scale": 1.2
+        "scale": 1.09
       },
       "sudeen_ram_0.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.559
       },
       "sudeen_ram_1.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.438
       },
       "sudeen_ram_2.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.332
       },
       "sudeen_ram_3.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.491
       },
       "sudeen_ram_4.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.527
       },
       "sudeen_ram_5.png": {
-        "scale": 1.4,
+        "scale": 1.22,
         "feet": 0.95,
         "footX": 0.553
       },
@@ -2935,7 +2935,7 @@
         "footX": 0.483
       },
       "archer_poisonShot.png": {
-        "scale": 2.68
+        "scale": 2.23
       },
       "archer_hq_wound2_f4.png": {
         "footX": 0.379
@@ -5357,39 +5357,43 @@
     }
   },
   "h5": {
-    "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 13 Nov sheets (neutral, guard, recoil, fallen, injured), his 31 Oct isometric photos (hand on the hilt = Drawn Blade, the drawn lunge) and his 19 Nov sheets (attacks under Fury and Swift, Claim, Mantle, Gale Cut in three looks). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\"); the Echo shows only in the interface.",
+    "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74, 6.83 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 21 Nov sheets (neutral with the gold fastenings, the saber battle stance), his 20 Nov sheets (dodge; Fury and Swift forms: neutral, battle stance, wind-up, attack, guard, dodge; Stone wears the Swift design), his 13 and 19 Nov sheets (guard, recoil, fallen, injured, Claim, Mantle, Gale Cut in three looks) and the 31 Oct drawn lunge (his plain attack: no attack sheet in the new look yet). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\").",
     "name": "Alagara",
     "height": 100,
     "standing": {
-      "downLeft": {
+      "upLeft": {
         "file": "alagara_stand_f1.png",
-        "originX": 0.668
+        "originX": 0.473
+      },
+      "upRight": {
+        "file": "alagara_stand_f2.png",
+        "originX": 0.527
+      },
+      "downLeft": {
+        "file": "alagara_stand_f3.png",
+        "originX": 0.675
       },
       "downRight": {
         "file": "alagara_stand_f4.png",
-        "originX": 0.399
-      },
-      "upLeft": {
-        "file": "alagara_stand_f2.png",
-        "originX": 0.231
-      },
-      "upRight": {
-        "file": "alagara_stand_f3.png",
-        "originX": 0.528
+        "originX": 0.383
       }
     },
     "battle": {
-      "downLeft": {
+      "upLeft": {
         "file": "alagara_battle_f1.png",
-        "originX": 0.176
+        "originX": 0.782
       },
       "downRight": {
         "file": "alagara_battle_f2.png",
-        "originX": 0.086
+        "originX": 0.774
+      },
+      "downLeft": {
+        "file": "alagara_battle_f3.png",
+        "originX": 0.056
       },
       "upRight": {
-        "file": "alagara_battle_f3.png",
-        "originX": 0.495
+        "file": "alagara_battle_f4.png",
+        "originX": 0.249
       }
     },
     "weak": {
@@ -5399,7 +5403,7 @@
       },
       "downRight": {
         "file": "alagara_ready_f2.png",
-        "originX": 0.65
+        "originX": 0.649
       },
       "upLeft": {
         "file": "alagara_ready_f1.png",
@@ -5408,115 +5412,131 @@
     },
     "poses": {
       "ready": {
-        "downLeft": {
+        "upLeft": {
           "file": "alagara_battle_f1.png",
-          "originX": 0.176
+          "originX": 0.782
         },
         "downRight": {
           "file": "alagara_battle_f2.png",
-          "originX": 0.086
+          "originX": 0.774
+        },
+        "downLeft": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.056
         },
         "upRight": {
-          "file": "alagara_battle_f3.png",
-          "originX": 0.495
+          "file": "alagara_battle_f4.png",
+          "originX": 0.249
         }
       },
       "guard": {
         "downLeft": {
           "file": "alagara_guard_f3.png",
-          "originX": 0.309
+          "originX": 0.306
         },
         "upLeft": {
           "file": "alagara_guard_f1.png",
-          "originX": 0.47
+          "originX": 0.471
         }
       },
       "dodge": {
         "downLeft": {
-          "file": "alagara_guard_f3.png",
-          "originX": 0.309
+          "file": "alagara_dodge_f1.png",
+          "originX": 0.599
+        },
+        "upRight": {
+          "file": "alagara_dodge_f3.png",
+          "originX": 0.627
         },
         "upLeft": {
-          "file": "alagara_guard_f1.png",
-          "originX": 0.47
+          "file": "alagara_dodge_f4.png",
+          "originX": 0.381
         }
       },
       "windup": {
-        "downLeft": {
+        "upLeft": {
           "file": "alagara_battle_f1.png",
-          "originX": 0.176
+          "originX": 0.782
         },
         "downRight": {
           "file": "alagara_battle_f2.png",
-          "originX": 0.086
+          "originX": 0.774
+        },
+        "downLeft": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.056
         },
         "upRight": {
-          "file": "alagara_battle_f3.png",
-          "originX": 0.495
+          "file": "alagara_battle_f4.png",
+          "originX": 0.249
         }
       },
       "attack": {
         "downLeft": {
           "file": "alagara_strike_f1.png",
-          "originX": 0.21
+          "originX": 0.211
         },
         "upRight": {
           "file": "alagara_strike_f3.png",
-          "originX": 0.075
+          "originX": 0.073
         }
       },
       "drawn": {
-        "downLeft": {
+        "upLeft": {
           "file": "alagara_battle_f1.png",
-          "originX": 0.176
+          "originX": 0.782
         },
         "downRight": {
           "file": "alagara_battle_f2.png",
-          "originX": 0.086
+          "originX": 0.774
+        },
+        "downLeft": {
+          "file": "alagara_battle_f3.png",
+          "originX": 0.056
         },
         "upRight": {
-          "file": "alagara_battle_f3.png",
-          "originX": 0.495
+          "file": "alagara_battle_f4.png",
+          "originX": 0.249
         }
       },
       "claimReach": {
         "downLeft": {
           "file": "alagara_claim_reach_f2.png",
-          "originX": 0.443
+          "originX": 0.445
         },
         "upLeft": {
           "file": "alagara_claim_reach_f2.png",
-          "originX": 0.443
+          "originX": 0.445
         }
       },
       "claimSnatch": {
         "downLeft": {
           "file": "alagara_claim_snatch_f1.png",
-          "originX": 0.181
+          "originX": 0.179
         },
         "upLeft": {
           "file": "alagara_claim_snatch_f1.png",
-          "originX": 0.181
+          "originX": 0.179
         }
       },
       "claimStore": {
         "downLeft": {
           "file": "alagara_claim_store_f1.png",
-          "originX": 0.201
+          "originX": 0.199
         },
         "upLeft": {
           "file": "alagara_claim_store_f1.png",
-          "originX": 0.201
+          "originX": 0.199
         }
       },
       "chant": {
         "downRight": {
           "file": "alagara_mantle_prep_f2.png",
-          "originX": 0.451
+          "originX": 0.45
         },
         "upLeft": {
           "file": "alagara_mantle_prep_f1.png",
-          "originX": 0.512
+          "originX": 0.511
         }
       },
       "cast": {
@@ -5526,17 +5546,17 @@
         },
         "upLeft": {
           "file": "alagara_mantle_cast_f2.png",
-          "originX": 0.591
+          "originX": 0.594
         }
       },
       "gale": {
         "downLeft": {
           "file": "alagara_gale_f2.png",
-          "originX": 0.366
+          "originX": 0.365
         },
         "upLeft": {
           "file": "alagara_gale_f1.png",
-          "originX": 0.11
+          "originX": 0.107
         }
       },
       "hurt": {
@@ -5546,7 +5566,7 @@
         },
         "upRight": {
           "file": "alagara_hurt_f1.png",
-          "originX": 0.288
+          "originX": 0.289
         }
       },
       "knocked": {
@@ -5556,72 +5576,168 @@
         },
         "upRight": {
           "file": "alagara_hurt_f1.png",
-          "originX": 0.288
+          "originX": 0.289
         }
       },
       "down": {
         "downLeft": {
           "file": "alagara_down_f3.png",
-          "originX": 0.533
+          "originX": 0.545
         },
         "upLeft": {
           "file": "alagara_down_f1.png",
-          "originX": 0.642
+          "originX": 0.641
         }
       }
     },
     "buffed": {
       "fury": {
-        "downLeft": {
-          "file": "alagara_fury_stand_f3.png",
-          "originX": 0.464
+        "downRight": {
+          "file": "alagara_fury_stand_f1.png",
+          "originX": 0.66
         },
         "upLeft": {
-          "file": "alagara_fury_stand_f1.png",
-          "originX": 0.496
+          "file": "alagara_fury_stand_f2.png",
+          "originX": 0.289
+        },
+        "downLeft": {
+          "file": "alagara_fury_stand_f3.png",
+          "originX": 0.393
+        },
+        "upRight": {
+          "file": "alagara_fury_stand_f4.png",
+          "originX": 0.656
         }
       },
       "swiftness": {
-        "downLeft": {
-          "file": "alagara_swift_stand_f3.png",
-          "originX": 0.479
+        "downRight": {
+          "file": "alagara_swift_stand_f1.png",
+          "originX": 0.389
         },
         "upLeft": {
+          "file": "alagara_swift_stand_f2.png",
+          "originX": 0.286
+        },
+        "downLeft": {
+          "file": "alagara_swift_stand_f3.png",
+          "originX": 0.701
+        },
+        "upRight": {
+          "file": "alagara_swift_stand_f4.png",
+          "originX": 0.705
+        }
+      },
+      "stone": {
+        "downRight": {
           "file": "alagara_swift_stand_f1.png",
-          "originX": 0.228
+          "originX": 0.389
+        },
+        "upLeft": {
+          "file": "alagara_swift_stand_f2.png",
+          "originX": 0.286
+        },
+        "downLeft": {
+          "file": "alagara_swift_stand_f3.png",
+          "originX": 0.701
+        },
+        "upRight": {
+          "file": "alagara_swift_stand_f4.png",
+          "originX": 0.705
         }
       }
     },
     "buffPoses": {
       "fury": {
         "attack": {
-          "downLeft": {
-            "file": "alagara_fury_f1.png",
-            "originX": 0.184
-          },
           "upLeft": {
+            "file": "alagara_fury_f1.png",
+            "originX": 0.481
+          },
+          "upRight": {
+            "file": "alagara_fury_f2.png",
+            "originX": 0.49
+          },
+          "downLeft": {
             "file": "alagara_fury_f3.png",
-            "originX": 0.613
+            "originX": 0.154
+          },
+          "downRight": {
+            "file": "alagara_fury_f4.png",
+            "originX": 0.139
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "alagara_fury_windup_f1.png",
+            "originX": 0.413
+          },
+          "upRight": {
+            "file": "alagara_fury_windup_f2.png",
+            "originX": 0.576
+          },
+          "downLeft": {
+            "file": "alagara_fury_windup_f3.png",
+            "originX": 0.401
+          },
+          "downRight": {
+            "file": "alagara_fury_windup_f4.png",
+            "originX": 0.562
+          }
+        },
+        "ready": {
+          "upLeft": {
+            "file": "alagara_fury_ready_f1.png",
+            "originX": 0.498
+          },
+          "upRight": {
+            "file": "alagara_fury_ready_f2.png",
+            "originX": 0.535
+          },
+          "downLeft": {
+            "file": "alagara_fury_ready_f3.png",
+            "originX": 0.465
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "alagara_fury_guard_f1.png",
+            "originX": 0.167
+          },
+          "upRight": {
+            "file": "alagara_fury_guard_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_fury_guard_f3.png",
+            "originX": 0.152
+          }
+        },
+        "dodge": {
+          "upLeft": {
+            "file": "alagara_fury_dodge_f1.png",
+            "originX": 0.855
+          },
+          "upRight": {
+            "file": "alagara_fury_dodge_f2.png",
+            "originX": 0.174
+          },
+          "downLeft": {
+            "file": "alagara_fury_dodge_f3.png",
+            "originX": 0.152
+          },
+          "downRight": {
+            "file": "alagara_fury_dodge_f4.png",
+            "originX": 0.143
           }
         },
         "gale": {
           "downLeft": {
             "file": "alagara_gale_fury_f2.png",
-            "originX": 0.381
+            "originX": 0.382
           },
           "upLeft": {
             "file": "alagara_gale_fury_f3.png",
-            "originX": 0.86
-          }
-        },
-        "ready": {
-          "downLeft": {
-            "file": "alagara_fury_stand_f3.png",
-            "originX": 0.464
-          },
-          "upLeft": {
-            "file": "alagara_fury_stand_f1.png",
-            "originX": 0.496
+            "originX": 0.859
           }
         }
       },
@@ -5629,21 +5745,89 @@
         "attack": {
           "downLeft": {
             "file": "alagara_swift_f1.png",
-            "originX": 0.183
+            "originX": 0.519
+          },
+          "downRight": {
+            "file": "alagara_swift_f2.png",
+            "originX": 0.476
           },
           "upLeft": {
             "file": "alagara_swift_f3.png",
-            "originX": 0.688
+            "originX": 0.417
+          },
+          "upRight": {
+            "file": "alagara_swift_f4.png",
+            "originX": 0.344
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "alagara_swift_ready_f1.png",
+            "originX": 0.232
+          },
+          "upRight": {
+            "file": "alagara_swift_ready_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_swift_ready_f3.png",
+            "originX": 0.178
+          }
+        },
+        "ready": {
+          "upLeft": {
+            "file": "alagara_swift_ready_f1.png",
+            "originX": 0.232
+          },
+          "upRight": {
+            "file": "alagara_swift_ready_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_swift_ready_f3.png",
+            "originX": 0.178
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "alagara_swift_guard_f1.png",
+            "originX": 0.193
+          },
+          "upRight": {
+            "file": "alagara_swift_guard_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_swift_guard_f3.png",
+            "originX": 0.5
+          }
+        },
+        "dodge": {
+          "upLeft": {
+            "file": "alagara_swift_dodge_f1.png",
+            "originX": 0.882
+          },
+          "upRight": {
+            "file": "alagara_swift_dodge_f2.png",
+            "originX": 0.181
+          },
+          "downLeft": {
+            "file": "alagara_swift_dodge_f3.png",
+            "originX": 0.794
+          },
+          "downRight": {
+            "file": "alagara_swift_dodge_f4.png",
+            "originX": 0.934
           }
         },
         "gale": {
           "downLeft": {
             "file": "alagara_gale_swift_f2.png",
-            "originX": 0.382
+            "originX": 0.383
           },
           "upLeft": {
             "file": "alagara_gale_swift_f3.png",
-            "originX": 0.866
+            "originX": 0.867
           }
         },
         "cast": {
@@ -5653,7 +5837,7 @@
           },
           "upLeft": {
             "file": "alagara_mantle_swift_f1.png",
-            "originX": 0.459
+            "originX": 0.449
           }
         },
         "chant": {
@@ -5663,17 +5847,117 @@
           },
           "upLeft": {
             "file": "alagara_mantle_swift_f1.png",
-            "originX": 0.459
+            "originX": 0.449
+          }
+        }
+      },
+      "stone": {
+        "attack": {
+          "downLeft": {
+            "file": "alagara_swift_f1.png",
+            "originX": 0.519
+          },
+          "downRight": {
+            "file": "alagara_swift_f2.png",
+            "originX": 0.476
+          },
+          "upLeft": {
+            "file": "alagara_swift_f3.png",
+            "originX": 0.417
+          },
+          "upRight": {
+            "file": "alagara_swift_f4.png",
+            "originX": 0.344
+          }
+        },
+        "windup": {
+          "upLeft": {
+            "file": "alagara_swift_ready_f1.png",
+            "originX": 0.232
+          },
+          "upRight": {
+            "file": "alagara_swift_ready_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_swift_ready_f3.png",
+            "originX": 0.178
           }
         },
         "ready": {
+          "upLeft": {
+            "file": "alagara_swift_ready_f1.png",
+            "originX": 0.232
+          },
+          "upRight": {
+            "file": "alagara_swift_ready_f2.png",
+            "originX": 0.5
+          },
           "downLeft": {
-            "file": "alagara_swift_stand_f3.png",
-            "originX": 0.479
+            "file": "alagara_swift_ready_f3.png",
+            "originX": 0.178
+          }
+        },
+        "guard": {
+          "upLeft": {
+            "file": "alagara_swift_guard_f1.png",
+            "originX": 0.193
+          },
+          "upRight": {
+            "file": "alagara_swift_guard_f2.png",
+            "originX": 0.5
+          },
+          "downLeft": {
+            "file": "alagara_swift_guard_f3.png",
+            "originX": 0.5
+          }
+        },
+        "dodge": {
+          "upLeft": {
+            "file": "alagara_swift_dodge_f1.png",
+            "originX": 0.882
+          },
+          "upRight": {
+            "file": "alagara_swift_dodge_f2.png",
+            "originX": 0.181
+          },
+          "downLeft": {
+            "file": "alagara_swift_dodge_f3.png",
+            "originX": 0.794
+          },
+          "downRight": {
+            "file": "alagara_swift_dodge_f4.png",
+            "originX": 0.934
+          }
+        },
+        "gale": {
+          "downLeft": {
+            "file": "alagara_gale_swift_f2.png",
+            "originX": 0.383
           },
           "upLeft": {
-            "file": "alagara_swift_stand_f1.png",
-            "originX": 0.228
+            "file": "alagara_gale_swift_f3.png",
+            "originX": 0.867
+          }
+        },
+        "cast": {
+          "downLeft": {
+            "file": "alagara_mantle_swift_f3.png",
+            "originX": 0.46
+          },
+          "upLeft": {
+            "file": "alagara_mantle_swift_f1.png",
+            "originX": 0.449
+          }
+        },
+        "chant": {
+          "downLeft": {
+            "file": "alagara_mantle_swift_f3.png",
+            "originX": 0.46
+          },
+          "upLeft": {
+            "file": "alagara_mantle_swift_f1.png",
+            "originX": 0.449
           }
         }
       }
@@ -5691,42 +5975,43 @@
         "y": 0.0267
       }
     },
+    "portrait": "alagara_face.png",
     "ruler": {
-      "alagara_stand_f1.png": {
-        "footX": 0.498
+      "alagara_stand_f3.png": {
+        "footX": 0.484
       },
       "alagara_stand_f4.png": {
-        "footX": 0.506
-      },
-      "alagara_stand_f2.png": {
-        "footX": 0.401
-      },
-      "alagara_stand_f3.png": {
-        "footX": 0.562
+        "footX": 0.516
       },
       "alagara_battle_f1.png": {
-        "footX": 0.29
+        "footX": 0.729
       },
       "alagara_battle_f2.png": {
-        "footX": 0.267
+        "footX": 0.635
       },
       "alagara_battle_f3.png": {
-        "footX": 0.446
+        "footX": 0.127
+      },
+      "alagara_battle_f4.png": {
+        "footX": 0.269
       },
       "alagara_ready_f1.png": {
-        "footX": 0.4
+        "footX": 0.401
       },
       "alagara_ready_f2.png": {
-        "footX": 0.5
+        "footX": 0.501
       },
       "alagara_guard_f3.png": {
-        "footX": 0.421
+        "footX": 0.427
       },
       "alagara_guard_f1.png": {
-        "footX": 0.563
+        "footX": 0.562
+      },
+      "alagara_dodge_f1.png": {
+        "footX": 0.469
       },
       "alagara_strike_f1.png": {
-        "footX": 0.226
+        "footX": 0.227
       },
       "alagara_strike_f3.png": {
         "footX": 0.109
@@ -5735,19 +6020,19 @@
         "footX": 0.462
       },
       "alagara_claim_snatch_f1.png": {
-        "footX": 0.306
+        "footX": 0.309
       },
       "alagara_claim_store_f1.png": {
-        "footX": 0.315
+        "footX": 0.318
       },
       "alagara_mantle_prep_f2.png": {
-        "footX": 0.521
+        "footX": 0.52
       },
       "alagara_mantle_prep_f1.png": {
         "footX": 0.468
       },
       "alagara_mantle_cast_f1.png": {
-        "footX": 0.373
+        "footX": 0.372
       },
       "alagara_mantle_cast_f2.png": {
         "footX": 0.629
@@ -5756,58 +6041,141 @@
         "footX": 0.383
       },
       "alagara_gale_f1.png": {
-        "footX": 0.201
+        "footX": 0.198
       },
       "alagara_hurt_f3.png": {
-        "footX": 0.476
+        "footX": 0.478
       },
       "alagara_hurt_f1.png": {
-        "footX": 0.375
+        "footX": 0.376
       },
       "alagara_down_f3.png": {
         "footX": 0.481
       },
       "alagara_down_f1.png": {
-        "footX": 0.523
+        "footX": 0.524
+      },
+      "alagara_fury_stand_f1.png": {
+        "footX": 0.613
       },
       "alagara_fury_stand_f3.png": {
-        "footX": 0.52
+        "footX": 0.441
       },
       "alagara_swift_stand_f1.png": {
-        "footX": 0.401
+        "footX": 0.543
+      },
+      "alagara_swift_stand_f2.png": {
+        "footX": 0.407
+      },
+      "alagara_swift_stand_f3.png": {
+        "footX": 0.521
+      },
+      "alagara_swift_stand_f4.png": {
+        "footX": 0.573
       },
       "alagara_fury_f1.png": {
-        "footX": 0.271
+        "footX": 0.468
+      },
+      "alagara_fury_f2.png": {
+        "footX": 0.45
       },
       "alagara_fury_f3.png": {
-        "footX": 0.589
+        "footX": 0.418
+      },
+      "alagara_fury_f4.png": {
+        "footX": 0.383
+      },
+      "alagara_fury_windup_f1.png": {
+        "footX": 0.39
+      },
+      "alagara_fury_windup_f3.png": {
+        "footX": 0.439
+      },
+      "alagara_fury_ready_f2.png": {
+        "footX": 0.481
+      },
+      "alagara_fury_ready_f3.png": {
+        "footX": 0.524
+      },
+      "alagara_fury_guard_f1.png": {
+        "footX": 0.402
+      },
+      "alagara_fury_guard_f2.png": {
+        "footX": 0.478
+      },
+      "alagara_fury_guard_f3.png": {
+        "footX": 0.372
+      },
+      "alagara_fury_dodge_f1.png": {
+        "footX": 0.836
+      },
+      "alagara_fury_dodge_f2.png": {
+        "footX": 0.215
+      },
+      "alagara_fury_dodge_f3.png": {
+        "footX": 0.384
+      },
+      "alagara_fury_dodge_f4.png": {
+        "footX": 0.173
       },
       "alagara_gale_fury_f2.png": {
-        "footX": 0.499
+        "footX": 0.496
       },
       "alagara_gale_fury_f3.png": {
-        "footX": 0.818
+        "footX": 0.819
       },
       "alagara_swift_f1.png": {
-        "footX": 0.433
+        "footX": 0.482
       },
-      "alagara_swift_f3.png": {
-        "footX": 0.575
+      "alagara_swift_f2.png": {
+        "footX": 0.496
+      },
+      "alagara_swift_f4.png": {
+        "footX": 0.36
+      },
+      "alagara_swift_ready_f1.png": {
+        "footX": 0.4
+      },
+      "alagara_swift_ready_f2.png": {
+        "footX": 0.434
+      },
+      "alagara_swift_ready_f3.png": {
+        "footX": 0.428
+      },
+      "alagara_swift_guard_f1.png": {
+        "footX": 0.374
+      },
+      "alagara_swift_guard_f2.png": {
+        "footX": 0.46
+      },
+      "alagara_swift_guard_f3.png": {
+        "footX": 0.448
+      },
+      "alagara_swift_dodge_f1.png": {
+        "footX": 0.838
+      },
+      "alagara_swift_dodge_f2.png": {
+        "footX": 0.206
+      },
+      "alagara_swift_dodge_f3.png": {
+        "footX": 0.581
+      },
+      "alagara_swift_dodge_f4.png": {
+        "footX": 0.715
       },
       "alagara_gale_swift_f2.png": {
-        "footX": 0.442
+        "footX": 0.449
       },
       "alagara_gale_swift_f3.png": {
         "footX": 0.842
       },
       "alagara_mantle_swift_f3.png": {
-        "footX": 0.505
+        "footX": 0.499
       },
       "alagara_mantle_swift_f1.png": {
-        "footX": 0.416
+        "footX": 0.415
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "portrait": "alagara_face.png"
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }
