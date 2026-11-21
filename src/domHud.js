@@ -122,6 +122,7 @@ const CSS = `
 /* the closed card, as his mock-up: the face and the name and bars in a row, the class line across the whole card under them */
 #fabien-hud .card:not(.open) { flex-direction: column; gap: calc(var(--u) * 3); }
 #fabien-hud .card .crow { display: flex; gap: calc(var(--u) * 8); flex: 1; min-height: 0; }
+#fabien-hud .card .namecol { display: flex; flex-direction: column; gap: calc(var(--u) * 0.5); white-space: nowrap; min-width: 0; } /* 21 Nov: the level under the name, as the mock-up */
 #fabien-hud .card .namerow { display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--u) * 4); white-space: nowrap; }
 #fabien-hud .card .name { color: #f6ead0; letter-spacing: 0.01em; font-weight: 600; flex: 1 1 auto; min-width: 0; text-shadow: 0 1px 2px #000, 0 0 calc(var(--u) * 8) rgba(255,215,140,0.25); line-height: 1.05; }
 #fabien-hud .card .bars { display: flex; flex-direction: column; gap: calc(var(--u) * 2.4); }
@@ -567,7 +568,7 @@ export class DomHud {
       + (d.mp ? this.barHtml('MP', d.mp.mp, d.mp.max, d.mp.color, d.mp.mp + ' / ' + d.mp.max) : this.barHtml('MP', 0, 0, '#4f8fe8', '-'))
       + this.barHtml('CT', d.ct, 100, '#e0a944', String(d.ct));
     return CORNERS + '<div class="crow">' + this.portrait(d, ps) + '<div class="body">'
-      + '<div class="namerow"><span class="name fit" style="font-size:var(--f-name)">' + esc(d.name) + '</span><span class="dim" style="font-size:var(--f-small)">Lv. ' + d.level + (d.viewing ? ' (viewing)' : '') + '</span></div>'
+      + '<div class="namecol"><span class="name fit" style="font-size:var(--f-name)">' + esc(d.name) + '</span><span class="dim" style="font-size:var(--f-small)">Lv. ' + d.level + (d.viewing ? ' (viewing)' : '') + '</span></div>'
       + '<div class="bars">' + bars + '</div>'
       + '</div></div>'
       + '<div class="job" style="font-size:var(--f-small)"><span class="dia"></span><span class="fit" style="flex:1;min-width:0">' + esc(d.job) + '</span></div>';

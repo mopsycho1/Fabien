@@ -468,7 +468,7 @@ export default class BattleScene extends Phaser.Scene {
     const pxK = portrait ? HUD_K / real : HUD_K * Math.max(1 / real, (W * 0.25) / CARD_ROOMY.w);
     // the letters: a floor in real pixels (the panels were drawn for 12 design pixels of small text)
     const F = portrait
-      ? { small: f(10.5), mid: f(11), name: f(13), big: f(15.5) }
+      ? { small: f(10.5), mid: f(11), name: f(16), big: f(15.5) } /* (21 Nov: the card's name bigger) */
       : { small: Math.max(f(11.5), Math.round(12 * pxK)), mid: Math.max(f(12.5), Math.round(13.5 * pxK)), name: Math.max(f(15), Math.round(16 * pxK)), big: Math.max(f(18), Math.round(19 * pxK)) };
     // A panel cannot shrink below what its words need: a design pixel is the bigger of the 55 to 60 percent one and
     // 0.9 of what the small text asks for (the panels are tightened to match, so they stay slim)

@@ -62,7 +62,7 @@ export function squarePortrait(scene, unit, faceKey, size) {
 // 18.44 (20 Nov): the card is the centrepiece. Drawn in HTML now (src/domHud.js); these sizes are its box.
 // Phone: 214 by 92 design pixels (60 percent of the width, 12 percent of the height; the skill panel stands above it). Wide screen: a quarter
 // of the width (BattleScene.computeLayout sizes the design pixel so this card is 25 percent of the screen).
-export const CARD = { w: 218, h: 106 }; // (20 Nov polish: slimmer, the letters kept at 10.5 real pixels)
+export const CARD = { w: 280, h: 150 }; // (21 Nov, Suleiman's mock-up: a bigger card on a phone, 46 percent of the width; it was 218 by 106)
 export const CARD_ROOMY = { w: 240, h: 116 };
 
 // The unit card, bottom left, as in his mock-up but compact: a square portrait, the name and Lv.,
