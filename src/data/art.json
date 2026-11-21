@@ -4756,12 +4756,12 @@
     "height": 118,
     "standing": {
       "downLeft": {
-        "file": "gadara_stand_f4.png",
-        "originX": 0.327
-      },
-      "downRight": {
         "file": "gadara_stand_f1.png",
         "originX": 0.457
+      },
+      "downRight": {
+        "file": "gadara_stand_f4.png",
+        "originX": 0.327
       },
       "upLeft": {
         "file": "gadara_stand_f2.png",

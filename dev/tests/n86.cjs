@@ -157,6 +157,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const allyB = enemies[0]; b.placeUnit(allyB, 4, 5); St.applyBuff(allyB, 'fury');
   check('...his own side is not weakened', St.buffOf(allyB).boosts.attack === 2 * St.affinityTimes(allyB, 'fury'));
 
+  // 10.40 (21 Nov): at the start of a battle Gadara faced the wrong way: his standing sheet was cut with the down-left and
+  // down-right views the other way round from his battle sheet. The two sets must agree on which picture is which.
+  { const art = require('../../src/data/art.json').e5;
+    check('10.40 Gadara\'s standing and battle pictures agree on down-left and down-right (so he starts facing the heroes)',
+      art.standing.downLeft.file.replace('stand', 'x') === art.battle.downLeft.file.replace('battle', 'x') && art.standing.downRight.file.replace('stand', 'x') === art.battle.downRight.file.replace('battle', 'x'), art.standing.downLeft.file + ' / ' + art.battle.downLeft.file); }
+
   // 10. Singularity: needs a full gauge, charges for a turn, pulls, Exposed after
   park();
   check('Singularity needs a full Mask Gauge', b.kingBlock(g, 'singularity') === 'Mask 0/6');
