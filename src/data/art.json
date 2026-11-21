@@ -13,13 +13,22 @@
       }
     },
     "battle": {
-      "upLeft": {
-        "file": "sudeen_iso_battle_upRight.png",
-        "originX": 0.834
-      },
       "downRight": {
-        "file": "sudeen_iso_battle_downRight.png",
-        "originX": 0.178
+        "file": "sudeen_n_battle_downRight.png",
+        "originX": 0.224
+      },
+      "downLeft": {
+        "file": "sudeen_n_battle_downLeft.png",
+        "originX": 0.912
+      },
+      "upLeft": {
+        "file": "sudeen_n_battle_upLeft.png",
+        "originX": 0.83
+      },
+      "upRight": {
+        "file": "sudeen_n_battle_upLeft.png",
+        "originX": 0.83,
+        "flip": true
       }
     },
     "poses": {
@@ -34,33 +43,58 @@
         }
       },
       "ready": {
-        "upLeft": {
-          "file": "sudeen_iso_battle_upRight.png",
-          "originX": 0.834
-        },
         "downRight": {
-          "file": "sudeen_iso_battle_downRight.png",
-          "originX": 0.178
+          "file": "sudeen_n_battle_downRight.png",
+          "originX": 0.224
+        },
+        "downLeft": {
+          "file": "sudeen_n_battle_downLeft.png",
+          "originX": 0.912
+        },
+        "upLeft": {
+          "file": "sudeen_n_battle_upLeft.png",
+          "originX": 0.83
+        },
+        "upRight": {
+          "file": "sudeen_n_battle_upLeft.png",
+          "originX": 0.83,
+          "flip": true
         }
       },
       "attack": {
-        "downLeft": {
-          "file": "sudeen_n9_attack_downLeft.png",
-          "originX": 0.431
-        },
         "upRight": {
-          "file": "sudeen_n9_attack_upRight.png",
+          "file": "sudeen_n_slash_upRight.png",
           "originX": 0.528
+        },
+        "upLeft": {
+          "file": "sudeen_n_slash_upLeft.png",
+          "originX": 0.5
+        },
+        "downRight": {
+          "file": "sudeen_n_slash_downRight.png",
+          "originX": 0.465
+        },
+        "downLeft": {
+          "file": "sudeen_n_slash_downLeft.png",
+          "originX": 0.629
         }
       },
       "cast": {
         "upRight": {
-          "file": "sudeen_iso_heal_upRight.png",
-          "originX": 0.511
+          "file": "sudeen_n_herb_upRight.png",
+          "originX": 0.449
+        },
+        "upLeft": {
+          "file": "sudeen_n_herb_upLeft.png",
+          "originX": 0.54
         },
         "downRight": {
-          "file": "sudeen_iso_heal_downRight.png",
-          "originX": 0.401
+          "file": "sudeen_n_herb_downRight.png",
+          "originX": 0.222
+        },
+        "downLeft": {
+          "file": "sudeen_n_herb_downLeft.png",
+          "originX": 0.38
         }
       },
       "guard": {
@@ -112,58 +146,75 @@
       },
       "heal": {
         "upRight": {
-          "file": "sudeen_iso_heal_upRight.png",
-          "originX": 0.511
+          "file": "sudeen_n_herb_upRight.png",
+          "originX": 0.449
+        },
+        "upLeft": {
+          "file": "sudeen_n_herb_upLeft.png",
+          "originX": 0.54
         },
         "downRight": {
-          "file": "sudeen_iso_heal_downRight.png",
-          "originX": 0.401
+          "file": "sudeen_n_herb_downRight.png",
+          "originX": 0.222
+        },
+        "downLeft": {
+          "file": "sudeen_n_herb_downLeft.png",
+          "originX": 0.38
         }
       },
       "slipStrike": {
-        "upLeft": {
-          "file": "sudeen_n6_bash_upLeft.png",
-          "originX": 0.397
-        },
         "upRight": {
-          "file": "sudeen_n6_bash_upLeft.png",
-          "originX": 0.397,
-          "flip": true
+          "file": "sudeen_n_bash_upRight.png",
+          "originX": 0.532
         },
-        "downLeft": {
-          "file": "sudeen_n6_bash2_downLeft.png",
-          "flip": true
+        "upLeft": {
+          "file": "sudeen_n_bash_upLeft.png",
+          "originX": 0.497
         },
         "downRight": {
-          "file": "sudeen_n6_bash2_downLeft.png"
+          "file": "sudeen_n_bash_downRight.png",
+          "originX": 0.559
+        },
+        "downLeft": {
+          "file": "sudeen_n_bash_downLeft.png",
+          "originX": 0.432
         }
       },
       "push": {
-        "upLeft": {
-          "file": "sudeen_n6_bash_upRight.png"
-        },
         "upRight": {
-          "file": "sudeen_n6_bash_upRight.png",
-          "flip": true
+          "file": "sudeen_n_bash_upRight.png",
+          "originX": 0.532
         },
-        "downLeft": {
-          "file": "sudeen_n6_bash2_downRight.png",
-          "originX": 0.107,
-          "flip": true
+        "upLeft": {
+          "file": "sudeen_n_bash_upLeft.png",
+          "originX": 0.497
         },
         "downRight": {
-          "file": "sudeen_n6_bash2_downRight.png",
-          "originX": 0.107
+          "file": "sudeen_n_bash_downRight.png",
+          "originX": 0.559
+        },
+        "downLeft": {
+          "file": "sudeen_n_bash_downLeft.png",
+          "originX": 0.432
         }
       },
       "dodge": {
-        "upLeft": {
-          "file": "sudeen_iso_battle_upRight.png",
-          "originX": 0.834
-        },
         "downRight": {
-          "file": "sudeen_iso_battle_downRight.png",
-          "originX": 0.178
+          "file": "sudeen_n_battle_downRight.png",
+          "originX": 0.224
+        },
+        "downLeft": {
+          "file": "sudeen_n_battle_downLeft.png",
+          "originX": 0.912
+        },
+        "upLeft": {
+          "file": "sudeen_n_battle_upLeft.png",
+          "originX": 0.83
+        },
+        "upRight": {
+          "file": "sudeen_n_battle_upLeft.png",
+          "originX": 0.83,
+          "flip": true
         }
       },
       "fallAir": {
@@ -197,8 +248,8 @@
         }
       }
     },
-    "portrait": "sudeen_head_0.png",
-    "shout": "sudeen_head_6.png",
+    "portrait": "sudeen_face_neutral.png",
+    "shout": "sudeen_face_angry.png",
     "buffed": {
       "stone": {
         "upLeft": {
@@ -401,17 +452,20 @@
     "note_nov9": "9 Nov set (roadmap 6.36): Fury attack (swept blade) and wind-up (raised blade) in four facings under buffPoses, Fury stance in four facings, base-form attack and wind-up (two facings, the rest mirrored), the four-frame Furious Charge.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures and \"cast\" his raised-arm heal pictures. The game leans the picture back itself.",
     "note_falls": "Fall set from Suleiman's 13 Nov sheets (dev/tools/make_falls_dodges.py): fallAir, fallLand, fallRise in two views; the game mirrors them for the other two.",
+    "portraitHurt": "sudeen_face_pained.png",
+    "note_n20": "20 Nov sheets, wired 21 Nov (6.81, dev/tools/make_sudeen_new.py): the Four-View Warrior sheet is his battle stance with the scimitar showing (ready and dodge too; answers 1.62), the Slash Action Poses his attack, the Herb Pouch Toss his heal and cast, the bash sheet his Shield Bash pictures (slipStrike, push; the \"mirrored pov\" sheet is the same flipped and is not cut). Faces from the Expression Sheet Grid: neutral is the portrait, pained (damaged) the hurt face, angry the battle cry; happy, hurt, determined, surprised, confident and thoughtful are cut too (sudeen_face_*.png) for mood faces later.",
     "ruler": {
       "sudeen_iso_stand_downRight.png": {
         "footX": 0.558
       },
-      "sudeen_iso_battle_upRight.png": {
-        "scale": 0.9,
-        "footX": 0.634
+      "sudeen_n_battle_downRight.png": {
+        "footX": 0.555
       },
-      "sudeen_iso_battle_downRight.png": {
-        "scale": 0.9,
-        "footX": 0.551
+      "sudeen_n_battle_downLeft.png": {
+        "footX": 0.576
+      },
+      "sudeen_n_battle_upLeft.png": {
+        "footX": 0.796
       },
       "sudeen_n9_windup_downLeft.png": {
         "scale": 1.1,
@@ -421,20 +475,26 @@
         "scale": 1.1,
         "footX": 0.405
       },
-      "sudeen_n9_attack_downLeft.png": {
-        "scale": 1.11,
-        "footX": 0.512
+      "sudeen_n_slash_upRight.png": {
+        "footX": 0.469
       },
-      "sudeen_n9_attack_upRight.png": {
-        "scale": 1.11,
-        "footX": 0.516
+      "sudeen_n_slash_upLeft.png": {
+        "footX": 0.668
       },
-      "sudeen_iso_heal_upRight.png": {
-        "scale": 1.03,
-        "footX": 0.48
+      "sudeen_n_slash_downLeft.png": {
+        "footX": 0.524
       },
-      "sudeen_iso_heal_downRight.png": {
-        "scale": 1.03
+      "sudeen_n_herb_upRight.png": {
+        "footX": 0.285
+      },
+      "sudeen_n_herb_upLeft.png": {
+        "footX": 0.613
+      },
+      "sudeen_n_herb_downRight.png": {
+        "footX": 0.505
+      },
+      "sudeen_n_herb_downLeft.png": {
+        "footX": 0.494
       },
       "sudeen_n8_guard_upLeft.png": {
         "scale": 0.83,
@@ -463,19 +523,14 @@
       "sudeen_n6_victory_single.png": {
         "footX": 0.468
       },
-      "sudeen_n6_bash_upLeft.png": {
-        "scale": 0.72,
-        "footX": 0.537
+      "sudeen_n_bash_upRight.png": {
+        "footX": 0.346
       },
-      "sudeen_n6_bash2_downLeft.png": {
-        "footX": 0.601
+      "sudeen_n_bash_upLeft.png": {
+        "footX": 0.649
       },
-      "sudeen_n6_bash_upRight.png": {
-        "scale": 0.72,
-        "footX": 0.816
-      },
-      "sudeen_n6_bash2_downRight.png": {
-        "footX": 0.53
+      "sudeen_n_bash_downRight.png": {
+        "footX": 0.576
       },
       "sudeen_fall_air_downRight.png": {
         "footX": 0.551

@@ -36,7 +36,11 @@
       "sudeen_fall_air": 1.0,
       "sudeen_fall_land": 1.0,
       "sudeen_fall_rise": 1.0,
-      "sudeen_iso_heal": 1.03
+      "sudeen_iso_heal": 1.03,
+      "sudeen_n_battle": 1.0,
+      "sudeen_n_slash": 1.0,
+      "sudeen_n_herb": 1.0,
+      "sudeen_n_bash": 1.0
     },
     "feet": {
       "sudeen_ram": 0.95,

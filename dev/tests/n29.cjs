@@ -29,17 +29,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const A = path.join(__dirname, '../../public/art/');
   const was = (f) => execSync('cd ' + JSON.stringify(path.join(__dirname, '../..')) + ' && git show 69d9a91:public/art/' + f + ' | md5sum').toString().slice(0, 32); // the pictures before the Phase 1 fix
   // (1.1's swapped files were replaced by his 31 Oct isometric pictures, Phase 9; the facing check below still holds)
-  check('1.1 at the start Gaha faces up-right, toward the enemy, with the up-right picture', gaha.facing === 'upRight' && key(gaha) === 'h2:gaha_iso_stand_upRight.png' && !gaha.sprite.flipX, gaha.facing + ' ' + key(gaha));
+  check('1.1 at the start Gaha faces up-right, toward the enemy, with the up-right picture', gaha.facing === 'upRight' && key(gaha) === 'h2:gaha_n_stand_upRight.png' && !gaha.sprite.flipX, gaha.facing + ' ' + key(gaha));
 
   // 1.2 Sudeen's battle stance
   park(); put(sudeen, 3, 6); b.faceNearestOpponent(sudeen); b.showStanding(sudeen);
   check('1.2 far from enemies Sudeen stands relaxed', /sudeen_iso_stand_/.test(key(sudeen)), key(sudeen));
   put(rabdul, 4, 4); b.faceNearestOpponent(sudeen);
-  check('1.2 with an enemy 3 tiles away he takes his battle stance', /sudeen_iso_battle_/.test(key(sudeen)), key(sudeen) + ' ' + sudeen.facing);
+  check('1.2 with an enemy 3 tiles away he takes his battle stance', /sudeen_(iso|n)_battle_/.test(key(sudeen)), key(sudeen) + ' ' + sudeen.facing);
   put(rabdul, 3, 5); E.startDuel(sudeen, rabdul); b.refreshEngagementMarks(); b.showStanding(sudeen);
-  check('1.2 locked in a clash he keeps the same battle stance', /sudeen_iso_battle_/.test(key(sudeen)), key(sudeen));
+  check('1.2 locked in a clash he keeps the same battle stance', /sudeen_(iso|n)_battle_/.test(key(sudeen)), key(sudeen));
   E.endDuel(sudeen); b.refreshEngagementMarks();
-  const sudPics = ['downRight', 'upRight'].every((d) => game.textures.exists('h1:sudeen_iso_battle_' + d + '.png'));
+  const sudPics = ['downRight', 'upRight'].every((d) => game.textures.exists('h1:sudeen_n_battle_' + (d === 'upRight' ? 'upLeft' : d) + '.png')   /* 6.81: his Four-View battle sheet; the up-right picture is the up-left one mirrored */);
   check('1.2 his battle pictures loaded (the left facings are mirrored)', sudPics);
 
   // 1.3 Rabdul's size: in battle stance about as tall as the bull in his

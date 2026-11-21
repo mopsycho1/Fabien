@@ -28,9 +28,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // Layra
   park(); layra.facing = 'downLeft'; b.showStanding(layra);
-  check('Layra facing down-left: her level-gaze pose, mirrored', /layra_iso_stand_downRight/.test(key(layra)) && layra.sprite.flipX, key(layra));
+  check('Layra facing down-left: her level-gaze pose, mirrored', /layra_n_stand_downLeft/.test(key(layra)) && !layra.sprite.flipX, key(layra));
   turnOf(layra); b.onSpellButton(); b.chooseSpell('meditate'); b.chooseSpell('meditate'); await sleep(1200); await idle();
-  check('Meditate shows her kneeling pose', /layra_iso_meditate/.test(key(layra)), key(layra));
+  check('Meditate shows her kneeling pose', /layra_n_chant_/.test(key(layra)), key(layra));
   layra.meditating = null;
 
   // Husk: hidden, she glows see-through gold (the look from his cave screenshot)
@@ -54,8 +54,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); put(layra, 3, 6); put(bull, 3, 3); turnOf(layra); layra.mp = 12;
   b.onSpellButton(); b.openSpellGroup('Hexes'); b.chooseSpell('slow'); b.handleTap(3, 3); b.handleTap(3, 3);
   await sleep(920); // (she concentrates first, 9.2)
-  const fx = b.children.list.filter((o) => o.texture && /fx:slow_/.test(o.texture.key));
-  check('Slow plays the gravity effect from his sheet', fx.length >= 2, fx.map((o) => o.texture.key).join());
+  const fx = b.children.list.filter((o) => o.texture && /fx:(slow_|buff_slow_cast)/.test(o.texture.key));
+  check('Slow plays the effect from his sheet (6.79: his Slow GIF, the ring and column; before that the older ring and waves)', fx.length >= 1, fx.map((o) => o.texture.key).join());
   await idle(); await sleep(800);
   const icons = bull.tagRow.list.filter((o) => o.texture && o.texture.key === 'icon:slow');
   const words = bull.tagRow.list.filter((o) => o.type === 'Text').map((t) => t.text);

@@ -1,6 +1,10 @@
 {
  "e1 /enchanted/poses/dodge up": "ok",
  "e1 /weak down": "ok",
+ "h1 /battle down": "ok",
+ "h1 /poses/attack up": "ok",
+ "h1 /poses/dodge down": "ok",
+ "h1 /poses/ready down": "ok",
  "h3 /poses/chant down": "ok",
  "h3 /poses/meditate down": "ok",
  "h3 /standing up": "ok"

@@ -59,11 +59,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   seen.clear(); reset([[sudeen, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(bull, sudeen, 'press', 'slip', sudeen), false, res));
   const sk = shown(sudeen);
-  const iDodge = sk.findIndex((k) => /sudeen_iso_battle_/.test(k)); /* 1.29: the dodge is his isometric ready stance */ const iStrike = sk.findIndex((k) => /sudeen_n6_bash_/.test(k));
+  const iDodge = sk.findIndex((k) => /sudeen_(iso|n)_battle_/.test(k)); /* 1.29: the dodge is his isometric ready stance */ const iStrike = sk.findIndex((k) => /sudeen_n6_bash_|sudeen_n_bash_/.test(k));
   check('9.8 Sudeen winning with Slip: dodges, then strikes', iDodge >= 0 && iStrike > iDodge && !sk.some((k) => /cu_dodge/.test(k)), sk.join(','));
   seen.clear(); reset([[sudeen, 3, 4], [bull, 3, 3]]);
   await new Promise((res) => b.playBeat(beat(sudeen, bull, 'slip', 'press', bull), false, res));
-  check('9.8 a Slip that loses: no strike', !shown(sudeen).some((k) => /sudeen_n6_bash_/.test(k)));
+  check('9.8 a Slip that loses: no strike', !shown(sudeen).some((k) => /sudeen_n6_bash_|sudeen_n_bash_/.test(k)));
 
   // ---------- 9.6 Empower ----------
   fxSeen.clear(); reset([[gaha, 3, 4], [bull, 3, 3]]);
@@ -95,7 +95,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- 9.17 Layra injured ----------
   b.showPose(layra, 'hurt', 1);
-  check('9.17 Layra hurt: his 1 Nov set', /layra_iso_hurt2_/.test(key(layra)), key(layra));
+  check('9.17 Layra hurt: his 1 Nov set', /layra_(iso_hurt2|n_hurt)_/.test(key(layra)), key(layra));
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
