@@ -5403,6 +5403,19 @@ export default class BattleScene extends Phaser.Scene {
       }
     }
 
+    // Kofi (1.78, Suleiman 21 Nov: "low health and not making use of his infusion abilities, not even casting Haunt"):
+    // he used to have no choice here at all, so only his free Spirit Bolt ever went off. Now he blesses a friend or
+    // himself with Infuse when that helps, and hexes a foe with Haunt, before he falls back on the bolt.
+    const shaman = unit.reading ? this.shamanChoice(unit) : null;
+    if (shaman) {
+      this.busy = true;
+      this.castSpell(unit, shaman.target, shaman.id, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
+
     const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
@@ -6523,6 +6536,42 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // ---------- Rabdul's Enchant (roadmap 4.1) ----------
+
+  // What Kofi does with his action besides the free Spirit Bolt (1.78): { id, target } for Infuse or Haunt, or null.
+  //  - Infuse (blessing for what he reads, reach 3, himself too): a friend that is hurt gets the heal or the guard
+  //    first (Renewal and Stone at 70 percent health or less, Swiftness to get a very hurt one out at 40 percent or
+  //    less); otherwise the hardest hitter in the fight gets Fury or Swiftness, and the friend nearest a foe gets Stone.
+  //    Nobody who already wears a Verse is given another (it would replace it).
+  //  - Haunt (hex, reach 4): the most dangerous foe in reach that is not Disoriented yet, unless the bolt would
+  //    finish somebody. He keeps 2 MP back for Infuse while a friend is there to use it.
+  shamanChoice(unit) {
+    const foes = this.units.filter((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy);
+    const inFight = (a) => !!a.engagedWith || foes.some((f) => distance(a, f) <= moveOf(a) + a.range + 1);
+    const ratio = (a) => a.hp / a.maxHp;
+    if (unit.spells.includes('infuse') && canAfford(unit, 'infuse')) {
+      const sp = spells.infuse;
+      const verse = sp.verses[this.reading(unit).element];
+      const friends = this.units.filter((a) => a.alive && a.side === unit.side && !a.isDecoy && distance(unit, a) <= sp.range && !buffOf(a) &&
+        !(verse === 'renewal' && a.engagedWith)); // (1.65: Renewal does not tick for a fighter locked in a clash)
+      const byHurt = (list) => list.sort((a, b) => ratio(a) - ratio(b) || (b === unit) - (a === unit));
+      let pick = null;
+      if (verse === 'renewal') pick = byHurt(friends.filter((a) => ratio(a) <= 0.7))[0];
+      else if (verse === 'stone') pick = byHurt(friends.filter((a) => ratio(a) <= 0.7 && inFight(a)))[0] || friends.filter(inFight).sort((a, b) => Math.min(...foes.map((f) => distance(a, f))) - Math.min(...foes.map((f) => distance(b, f))))[0];
+      else if (verse === 'swiftness') pick = byHurt(friends.filter((a) => ratio(a) <= 0.4))[0] || friends.filter(inFight).sort((a, b) => b.attack - a.attack)[0];
+      else pick = friends.filter(inFight).sort((a, b) => b.attack - a.attack)[0]; // Fury: the hardest hitter
+      if (pick) return { id: 'infuse', target: pick };
+    }
+    if (unit.spells.includes('haunt') && canAfford(unit, 'haunt')) {
+      const sp = spells.haunt;
+      const spare = unit.mp - sp.mp >= (spells.infuse ? spells.infuse.mp : 0) || !this.units.some((a) => a.alive && a.side === unit.side && distance(unit, a) <= spells.infuse.range);
+      const marks = foes.filter((t) => distance(unit, t) <= this.spellReach(unit, t, sp) && !isDisoriented(t) && getDamage(unit, t) < t.hp);
+      if (spare && marks.length > 0) {
+        marks.sort((a, b) => b.attack - a.attack || b.hp - a.hp);
+        return { id: 'haunt', target: marks[0] };
+      }
+    }
+    return null;
+  }
 
   // Who Rabdul enchants: an ally (or himself) within reach of the spell, not
   // enchanted already, and in the fight (locked in a clash, or a foe close
