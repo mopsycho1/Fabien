@@ -109,13 +109,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); put(kofi, 2, 3); put(gaha, 2, 5); gaha.hp = 10; St.applyPoison(gaha, 'poisonArrow');
   // 1.49 (15 Nov): in Water Infuse is the Renewal blessing, a Verse that lasts, not an herb pouch thrown at the ally
   let pouched = false; const realHeal = b.castHeal; b.castHeal = (...a) => { pouched = true; return realHeal.apply(b, a); };
+  const castWords = []; const floatReal = b.floatText.bind(b); b.floatText = (u, t, ...r) => { castWords.push(u.id + ':' + t); return floatReal(u, t, ...r); }; /* 1.79: the number must show at the cast */
   const pouchesSeen = new Set(); const pouchWatch = setInterval(() => { for (const o of b.children.list) if (o.texture && o.texture.key === 'fx:herb_pouch') pouchesSeen.add(o); }, 20);
   await new Promise((res) => { b.busy = true; b.castSpell(kofi, gaha, 'infuse', () => { b.busy = false; res(); }); setTimeout(res, 6000); });
   await sleep(300); clearInterval(pouchWatch); b.castHeal = realHeal;
   check('1.49 read in Water, Infuse is the Renewal Verse on the ally: 3 turns, no herb pouch thrown', St.buffOf(gaha) && St.buffOf(gaha).id === 'renewal' && St.buffOf(gaha).turnsLeft === 3 && !pouched && pouchesSeen.size === 0, (St.buffOf(gaha) || {}).id + ' pouched ' + pouched + ' pouches ' + pouchesSeen.size);
-  check('1.49 and it heals nothing at once (the healing comes at the start of its turns)', gaha.hp === 10 && St.isPoisoned(gaha), gaha.hp);
+  await sleep(1200); b.floatText = floatReal;
+  check('1.79 the cast shows "+3 Renewal" on the unit', castWords.some((w) => /^h2:\+\d+ Renewal$/.test(w)), castWords.join());
+  const first = Math.max(3, Math.round(gaha.maxHp * 0.05));
+  check('1.79 it heals as soon as it is cast (about 5 percent, at least 3) and lifts the poison at once', gaha.hp === 10 + first && !St.isPoisoned(gaha), 'hp ' + gaha.hp + ' poisoned ' + St.isPoisoned(gaha));
   const rn = St.tickRenewal(gaha);
-  check('1.49 at the start of its turn: about 5 percent of its health back and one weak status lifted (the poison)', rn.heal === Math.max(3, Math.round(gaha.maxHp * 0.05)) && gaha.hp === 10 + rn.heal && rn.cured === 'poison' && !St.isPoisoned(gaha), JSON.stringify(rn) + ' hp ' + gaha.hp);
+  check('1.49 and again at the start of each of its turns: the same heal (the poison is gone already)', rn.heal === first && gaha.hp === 10 + 2 * first && rn.cured === null, JSON.stringify(rn) + ' hp ' + gaha.hp);
   gaha.hp = gaha.maxHp; check('1.49 a full-health unit heals nothing more', St.tickRenewal(gaha).heal === 0);
   // 1.51: the start of the blessed unit's turn really heals (at least 3 points) and says so on screen
   gaha.hp = 20; const words = []; const realFloat = b.floatText.bind(b); b.floatText = (u, t, ...r) => { words.push(u.id + ':' + t); return realFloat(u, t, ...r); };

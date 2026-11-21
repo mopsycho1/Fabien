@@ -1951,13 +1951,16 @@ export default class BattleScene extends Phaser.Scene {
     return spell.kind === 'infuse' && spell.verses[this.reading(caster).element] === 'renewal';
   }
 
-  renewalTick(unit, wait = 0) {
+  // "cast": the first heal, the moment Renewal is given (1.79: it used to wait for the start of the unit's next
+  // turn). The Verse's own cast light is already playing then, so only the number and the cure show.
+  renewalTick(unit, wait = 0, cast = false) {
     const renewed = tickRenewal(unit, !!unit.engagedWith);
     if (!(renewed.heal > 0 || renewed.cured)) return renewed;
     this.updateHpBar(unit);
     this.time.delayedCall(wait, () => {
       if (!unit.alive) return;
-      if (renewed.heal > 0) {
+      if (renewed.heal > 0 && cast) this.floatText(unit, '+' + renewed.heal + ' Renewal', '#7fd6c4', { pop: true });
+      else if (renewed.heal > 0) {
         const glow = elementOf('heal').glow;
         floorLight(this, unit.view.x, unit.view.y, glow, { size: 1.4, peak: 0.6, ms: 800 });
         lightNearby(this, unit.view.x, unit.view.y - unit.centerY, glow, { radius: 70, peak: 0.6, ms: 600 });
@@ -6372,6 +6375,8 @@ export default class BattleScene extends Phaser.Scene {
     // one: a Verse reaches out to the ally; Slow is a curse thrown with the staff.
     const dxT = target.view.x - caster.view.x;
     const lead = poseFrame(caster.id, 'chant', 'right') ? 420 : 0;
+    // Renewal heals as soon as it is cast, then at the start of each of its turns (1.79, Suleiman 21 Nov)
+    if (id === 'renewal') this.renewalTick(target, lead + 700, true);
     // the Verse gathers as light at her hands, then lights the ground and the fighters where it lands (18.23)
     const verseElement = { swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex', renewal: 'heal' }[id] || 'spirit';
     chargeUp(this, caster.view.x + Math.sign(dxT || 1) * 10, caster.view.y - caster.topY * 0.72, verseElement, { ms: lead + 250, size: 0.8, depth: caster.view.depth + 2 });

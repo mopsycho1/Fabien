@@ -426,7 +426,7 @@ var spells_default = {
     cooldown: 2,
     mp: 2,
     use: "ally",
-    text: "A blessing for an ally within 3 tiles, or himself, from what Kofi reads. Earth: the Stone Verse. Storm: Swiftness. Fire: Fury. Water: Renewal, a slow healing for 3 turns. Ready again after 2 turns."
+    text: "A blessing for an ally within 3 tiles, or himself, from what Kofi reads. Earth: the Stone Verse. Storm: Swiftness. Fire: Fury. Water: Renewal, a healing that starts at once and goes on for 3 turns. Ready again after 2 turns."
   },
   renewal: {
     name: "Renewal",
@@ -441,7 +441,7 @@ var spells_default = {
     minHeal: 3,
     cleanse: 1,
     boosts: {},
-    text: "Kofi's Water blessing (only through Infuse, roadmap 1.49, 6.38). At the start of each of its turns the unit heals about 5% of its health (at least 3 points) and loses one weak status (poison, burn, blinded or disoriented). Lasts 3 turns.",
+    text: "Kofi's Water blessing (only through Infuse, roadmap 1.49, 6.38). It heals as soon as it is given, and again at the start of each of its turns: each time about 5% of its health (at least 3 points) and one weak status lifted (poison, burn, blinded or disoriented). Lasts 3 turns.",
     mp: 0,
     use: "both"
   },
