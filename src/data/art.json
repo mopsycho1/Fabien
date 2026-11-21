@@ -4723,21 +4723,20 @@
       },
       "dodge": {
         "upLeft": {
-          "file": "kofi_battle_f1.png",
-          "originX": 0.307
+          "file": "kofi_dodge_upLeft.png",
+          "originX": 0.1
         },
         "upRight": {
-          "file": "kofi_battle_f2.png",
-          "originX": 0.679
-        },
-        "downRight": {
-          "file": "kofi_battle_f4.png",
-          "originX": 0.776,
-          "flip": true
+          "file": "kofi_dodge_upRight.png",
+          "originX": 0.591
         },
         "downLeft": {
-          "file": "kofi_battle_f4.png",
-          "originX": 0.776
+          "file": "kofi_dodge_downLeft.png",
+          "originX": 0.479
+        },
+        "downRight": {
+          "file": "kofi_dodge_downRight.png",
+          "originX": 0.139
         }
       }
     },
@@ -4994,6 +4993,7 @@
       }
     },
     "note_expressions": "Kofi's ten expressions (his 15 Nov sheet, dev/tools/make_kofi_assets.py): neutral is the portrait, angry the cut-in cry (shout), hurt the hurt face. The other seven (determined, worried, surprised, joyful, exhausted, fearful, defeated) are cut as kofi_face_<name>.png but not named here, so they are not loaded; wire them when mood faces want them.",
+    "note_dodge": "21 Nov (6.71, dev/tools/make_kofi_dodge.py): his dodge sheet in four views (a deep crouch, one lantern swung out). It replaces the battle-stance pictures the dodge used before.",
     "ruler": {
       "kofi_stand_f1.png": {
         "footX": 0.541
@@ -5063,6 +5063,15 @@
       },
       "kofi_water_chant_f4.png": {
         "footX": 0.455
+      },
+      "kofi_dodge_upLeft.png": {
+        "footX": 0.23
+      },
+      "kofi_dodge_upRight.png": {
+        "footX": 0.576
+      },
+      "kofi_dodge_downRight.png": {
+        "footX": 0.514
       },
       "kofi_fire_chant_f1.png": {
         "footX": 0.458
