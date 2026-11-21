@@ -5,10 +5,11 @@
 // the one place to change is ELEMENT_ART below.
 import spells from './data/spells.json';
 
-// colour of each element (the glow colour of its effects, src/fxLayers.js)
+// colour of each element (21 Nov: his mock-up's colours, a little apart from the effects' glow colours in src/fxLayers.js)
+// (21 Nov, Suleiman's mock-up: fire orange, lightning purple, wind and swift blue, earth green-brown, spirit teal)
 export const ELEMENT_COLOR = {
-  fire: '#ff7a2e', water: '#5fc8c0', earth: '#c98f4e', lightning: '#9db8ff', wind: '#bfe9ff', spirit: '#ffd27a',
-  heal: '#9fe07a', poison: '#8fdc5a', hex: '#b070ff', steel: '#ffd9a0', sound: '#ffe9c4',
+  fire: '#ff8a2e', water: '#4f8dff', earth: '#9fa64e', lightning: '#b58cff', wind: '#5ec2ff', spirit: '#3fd6c4',
+  heal: '#8fe07a', poison: '#b6e04a', hex: '#d06ad8', steel: '#d9d4c6', sound: '#ffe0a8',
 };
 
 // The glyph of each element, drawn in a 24 by 24 box (stroke or fill in the element's colour).
@@ -50,5 +51,5 @@ export function skillIconSvg(el, size) {
   const c = ELEMENT_COLOR[el] || ELEMENT_COLOR.steel;
   const art = ELEMENT_ART[el] || ELEMENT_ART.steel;
   const d = typeof size === 'number' ? size + 'px' : size;
-  return '<svg class="sk" viewBox="0 0 24 24" style="width:' + d + ';height:' + d + ';color:' + c + '"><rect x="0.6" y="0.6" width="22.8" height="22.8" rx="4" fill="rgba(14,10,6,0.78)" stroke="' + c + '" stroke-opacity="0.55" stroke-width="1"/><g transform="translate(2.6 2.6) scale(0.78)">' + art + '</g></svg>';
+  return '<svg class="sk" viewBox="0 0 24 24" style="width:' + d + ';height:' + d + ';color:' + c + '"><rect x="0.6" y="0.6" width="22.8" height="22.8" rx="4" fill="rgba(12,9,14,0.88)" stroke="' + c + '" stroke-opacity="0.7" stroke-width="1"/><g transform="translate(2.6 2.6) scale(0.78)">' + art + '</g></svg>';
 }
