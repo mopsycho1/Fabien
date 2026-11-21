@@ -81,9 +81,16 @@ export const kingMethods = {
     }
   },
 
-  // The tiles Singularity would pull from (for the lit area when he picks it).
-  kingAreaTiles(unit) {
-    return singularityTiles(unit, GRID_SIZE);
+  // The tiles Singularity would pull from, or Mantle would reach (for the lit area when he picks it).
+  kingAreaTiles(unit, id) {
+    if (id !== 'mantle') return singularityTiles(unit, GRID_SIZE);
+    const r = spells.mantle.range, out = [];
+    for (let c = unit.col - r; c <= unit.col + r; c++) for (let w = unit.row - r; w <= unit.row + r; w++) {
+      if (c < 0 || w < 0 || c >= GRID_SIZE || w >= GRID_SIZE) continue;
+      const d = Math.abs(c - unit.col) + Math.abs(w - unit.row);
+      if (d >= 1 && d <= r) out.push({ col: c, row: w });
+    }
+    return out;
   },
 
   // Snare Hook reaches over an empty tile only (nobody standing between him and the target).
@@ -486,10 +493,14 @@ export const kingMethods = {
   },
 
   // ---------- Alagara: Mantle ----------
-  // Shares his Active Verse with every ally next to him at half strength, for their next turn.
+  // Shares his Active Verse with every ally within spells.mantle.range (3 since 1.81; it was 1, "next to him") at half
+  // strength, for their next turn.
+  mantleAllies(caster) {
+    return this.units.filter((u) => u.alive && u !== caster && u.side === caster.side && !u.isDecoy && distance(u, caster) <= spells.mantle.range && !(u.status && u.status.buff));
+  },
   castMantle(caster, spell, onDone) {
     const verse = caster.status.buff ? caster.status.buff.id : null;
-    const allies = this.units.filter((u) => u.alive && u !== caster && u.side === caster.side && !u.isDecoy && distance(u, caster) === 1 && !(u.status && u.status.buff));
+    const allies = verse ? this.mantleAllies(caster) : []; // (no Verse: nothing to share; kingBlock stops it first)
     if (verse) for (const a of allies) applyBuff(a, verse, spell.power);
     if (this.hasPose(caster, 'chant')) this.showPose(caster, 'chant', 1);
     play('spell');
@@ -501,7 +512,7 @@ export const kingMethods = {
         this.floatText(a, 'Mantle: ' + (spells[verse].effect || spells[verse].button), spell.color, { rise: 46 });
         if (!a.engagedWith) this.showStanding(a);
       }
-      if (!allies.length) this.floatText(caster, 'No ally beside him', '#e8d5a8');
+      if (!allies.length) this.floatText(caster, 'No ally in reach', '#e8d5a8');
       this.refreshStatusTags();
     });
     this.time.delayedCall(1300, () => caster.alive && this.showStanding(caster));
@@ -721,8 +732,8 @@ export const kingMethods = {
       marks.sort((a, b) => (a.side === unit.side) - (b.side === unit.side));
       if (marks.length) return this.aiCast(unit, marks[0], 'claim', finish);
     }
-    // Mantle: his Verse on allies beside him
-    if (this.aiReady(unit, 'mantle') && this.units.some((u) => u.alive && u !== unit && u.side === unit.side && distance(u, unit) === 1 && !(u.status && u.status.buff))) {
+    // Mantle: his Verse on allies in reach (3 tiles)
+    if (this.aiReady(unit, 'mantle') && this.mantleAllies(unit).length) {
       return this.aiCast(unit, unit, 'mantle', finish);
     }
     if (near.length) {

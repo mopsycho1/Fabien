@@ -627,12 +627,12 @@
     "short": "MANTLE",
     "kind": "mantle",
     "color": "#ffc95a",
-    "range": 1,
+    "range": 3,
     "power": 0.5,
     "cooldown": 3,
     "mp": 0,
     "use": "self",
-    "text": "Share his Active Verse with every ally next to him at half strength, for their next turn. Needs an Active Verse. Ready again after 3 turns."
+    "text": "Share his Active Verse with every ally within 3 tiles at half strength, for their next turn. Needs an Active Verse. Ready again after 3 turns."
   },
   "galeCut": {
     "name": "Gale Cut",

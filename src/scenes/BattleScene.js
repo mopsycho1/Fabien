@@ -3193,8 +3193,9 @@ export default class BattleScene extends Phaser.Scene {
     // UI rework 16 Nov: the target tiles in the skill's own colour (fire orange, lightning violet...)
     const color = spell.color ? Phaser.Display.Color.HexStringToColor(spell.color).color : GOLD;
     // Singularity shows the area it will pull from (3 tiles round him), then his own tile to confirm
-    if (spell.kind === 'singularity') this.showHighlights(this.kingAreaTiles(unit), color, { alpha: 0.25 });
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color, { keep: spell.kind === 'singularity' });
+    const areaSkill = spell.kind === 'singularity' || spell.kind === 'mantle'; // Mantle shows the 3 tiles it reaches too (1.81)
+    if (areaSkill) this.showHighlights(this.kingAreaTiles(unit, id), color, { alpha: 0.25 });
+    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color, { keep: areaSkill });
     this.holdCharge(unit, id);
     this.refreshOutlines();
     this.refreshStatus();

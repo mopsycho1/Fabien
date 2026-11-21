@@ -204,13 +204,13 @@ Cooldown is in turns of that unit. "Verse" means Layra's buffs change a move int
 - **Swap Verse** (free, once a turn, both slots full): the Echo becomes Active. The incoming Verse **Surges** once: Swiftness gives a free step; Fury makes his next won Press move the momentum one step further; Stone shakes off Off-Balance and cancels the next push or pull this turn.
 - **Drawn Blade** (the foe next to him): the sheathed draw, a full blow. A hit locks them in a clash with the momentum already one step his way (a free Press). Cooldown 3.
 - **Claim** (a blessed unit next to him, ally or foe): takes one blessing (a Verse or an Enchanted weapon); the donor loses it, it is his for 2 turns. A Verse goes in his Active slot. Cooldown 3.
-- **Mantle** (needs an Active Verse): every ally next to him without a blessing gets his Active Verse at half strength for one turn. Cooldown 3.
+- **Mantle** (needs an Active Verse): every ally within 3 tiles of him (it was next to him until 1.81) without a blessing gets his Active Verse at half strength for one turn. Cooldown 3.
 - **Gale Cut** (any form since 20 Nov, 10.34; the GIF of his form on every tile of the path): a dash in a straight line, as far as his steps left, through every foe on the way (each takes 0.8 of his damage, rolled on its own); he lands on the last free tile. The dash is his move. Cooldown 3.
 - **Rending Draw** (Fury, the foe next to him): a Drawn Blade that ignores 2 defense and throws the foe 2 tiles back (a slam if something is in the way). Cooldown 3.
 - **Unmoved** (Stone, a reaction, no button): the first push or pull on him is cancelled, and if the one who moved him stands beside him he answers with a sure half-strength counter. Cooldown 3.
 - **From the Echo:** a Verse skill whose Verse is in the Echo still works at **75 percent**, with **one more turn** of cooldown.
 - **His look** follows the Active Verse: his Fury and Swift pictures (fiery or pale hair).
-- **AI** (as an enemy, or played by the test player): swaps to Fury with a foe beside him and to Swiftness otherwise; Gale Cut through 2 or more (or 1 with nobody beside him); Claim a foe's blessing (an ally's only when he has none); Mantle when an ally beside him has no blessing; Rending Draw, then Drawn Blade, on a foe beside him; otherwise the plain attack.
+- **AI** (as an enemy, or played by the test player): swaps to Fury with a foe beside him and to Swiftness otherwise; Gale Cut through 2 or more (or 1 with nobody beside him); Claim a foe's blessing (an ally's only when he has none); Mantle when an ally within 3 tiles has no blessing; Rending Draw, then Drawn Blade, on a foe beside him; otherwise the plain attack.
 - **Left out for now** (systems the game does not have yet; logged in the roadmap, 10.30): the Renewal Verse's Surge and Sovereign's Grace, Hex, Counterspell, Anchor, Reveal, the Enchanter's channelled Verses, and Crowned Cut (no art yet).
 
 ## 7. Items

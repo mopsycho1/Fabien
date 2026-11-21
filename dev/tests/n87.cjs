@@ -128,6 +128,18 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('...at half strength (attack +1)', St.buffOf(gaha).boosts.attack === 1, St.buffOf(gaha).boosts.attack);
   check('...for one turn', gaha.status.buff.turnsLeft === 1, gaha.status.buff.turnsLeft);
 
+  // 1.81 (21 Nov): Mantle reaches 3 tiles, not only the tile beside him
+  park(); St.applyBuff(a, 'fury'); gaha.status.buff = null; sudeen.status.buff = null;
+  b.placeUnit(gaha, 5, 8); b.placeUnit(sudeen, 1, 5);   // 3 tiles below him and 4 tiles to the left
+  check('1.81 Mantle reaches 3 tiles (spells.json range 3)', require('../../src/data/spells.json').mantle.range === 3);
+  await waitDone((d) => b.castKingSkill(a, a, 'mantle', d));
+  check('1.81 an ally 3 tiles away gets his Verse', !!St.buffOf(gaha) && St.buffOf(gaha).id === 'fury', (St.buffOf(gaha) || {}).id);
+  check('1.81 an ally 4 tiles away does not', !St.buffOf(sudeen), (St.buffOf(sudeen) || {}).id);
+  b.activeUnit = a; b.selectedSpell = null; b.cancelMode(); b.chooseSpell('mantle'); await sleep(100);
+  check('1.81 picking Mantle lights the 3 tiles it reaches', b.highlights && b.highlights.length >= 20, b.highlights && b.highlights.length);
+  b.cancelMode();
+  gaha.status.buff = null;
+
   // 7. Gale Cut: a dash through a line of foes (in every form since 20 Nov, 10.34; more in n90)
   park();
   check('Gale Cut needs no Verse (10.34)', b.kingBlock(a, 'galeCut') === null, b.kingBlock(a, 'galeCut'));
