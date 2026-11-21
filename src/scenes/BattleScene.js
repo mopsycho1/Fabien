@@ -2239,6 +2239,12 @@ export default class BattleScene extends Phaser.Scene {
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
     tickShield(this.activeUnit); // the Bulwark Shield lasts 2 of the fighter's turns (10.46)
+    if (this.activeUnit.storedSwitch) { // Alagara's Active Verse ran out: his stored one takes over (10.47)
+      const id = this.activeUnit.storedSwitch;
+      this.activeUnit.storedSwitch = null;
+      if (this.activeUnit.alive && spells[id]) this.floatText(this.activeUnit, 'Stored ' + (spells[id].effect || spells[id].button) + ' takes over', spells[id].color || '#ffd27a', { pop: true });
+      this.refreshStatusTags();
+    }
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
     if (this.decoys.some((d) => d.owner === this.activeUnit && d.woken)) this.removeDecoys(this.activeUnit);

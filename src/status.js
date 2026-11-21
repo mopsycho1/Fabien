@@ -520,14 +520,14 @@ export function tickBuff(unit) {
     status.buff.turnsLeft -= 1;
     if (status.buff.turnsLeft <= 0) status.buff = null;
   }
-  // Alagara's Echo Verse wears off too; when his Active one is gone the Echo takes over (no Surge, 10.18)
-  if (unit.attune && unit.attune.echo) {
-    unit.attune.echo.turnsLeft -= 1;
-    if (unit.attune.echo.turnsLeft <= 0) unit.attune.echo = null;
-  }
+  // Alagara's stored (Echo) Verse (10.47, Suleiman 21 Nov: "when one of his buffs runs out, he switches to the one
+  // he has stored"): it is kept, not counted down, while it sits in the Echo. It used to wear off at the same pace as
+  // the Active one, so both ran out together and the switch hardly ever happened. When his Active Verse runs out the
+  // stored one takes over with the turns it had left (no Surge, 10.18); unit.storedSwitch tells the scene to say so.
   if (unit.attune && !status.buff && unit.attune.echo) {
     status.buff = unit.attune.echo;
     unit.attune.echo = null;
+    unit.storedSwitch = status.buff.id;
   }
   if (status.hex) {
     status.hex.turnsLeft -= 1;
