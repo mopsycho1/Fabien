@@ -27,9 +27,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   reset([]);
   for (const [u, name] of [[sudeen, 'sudeen'], [gaha, 'gaha'], [layra, 'layra'], [rabdul, 'rabdul'], [bull, 'bull']]) {
     const f = {}; for (const d of ['downLeft', 'downRight', 'upLeft', 'upRight']) f[d] = look(u, d);
-    const ok = Object.values(f).every((k) => k.startsWith(name + '_iso_stand_'));
+    const ok = Object.values(f).every((k) => k.startsWith(name + '_iso_stand_') || (name === 'layra' && k.startsWith('layra_n_stand_')));   // 6.69: her new sheets are four true views
     // a facing that isn't drawn is the opposite side mirrored
-    const mirrored = Object.values(f).filter((k) => k.endsWith('(m)')).length === 2;
+    const mirrored = Object.values(f).filter((k) => k.endsWith('(m)')).length === (name === 'layra' ? 0 : 2);
     check('9.11 ' + name + ': his new standing pictures in all four facings (two drawn, two mirrored)', ok && mirrored, JSON.stringify(f));
   }
   // heroes are drawn facing up-right (towards the enemy), enemies down-left
@@ -50,7 +50,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the poses
   const poses = { sudeen: ['ready', 'guard', 'attack', 'hurt', 'heal'], gaha: ['ready', 'guard', 'attack', 'hurt'], layra: ['ready', 'cast', 'chant', 'meditate', 'hurt'], rabdul: ['ready', 'attack', 'dodge', 'hurt'], bull: ['ready', 'guard', 'attack', 'hurt'] };
   for (const [u, name] of [[sudeen, 'sudeen'], [gaha, 'gaha'], [layra, 'layra'], [rabdul, 'rabdul'], [bull, 'bull']]) {
-    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') || key(u).includes('_n6_') || key(u).includes('_n8_') || key(u).includes('_n9_') || /rabdul_hurt_/.test(key(u)) ? 'new' : key(u)); });
+    const got = poses[name].map((p) => { u.facing = 'upRight'; b.showPose(u, p, 1); return p + '=' + (key(u).includes('_iso_') || key(u).includes('_n6_') || key(u).includes('_n8_') || key(u).includes('_n9_') || key(u).includes('layra_n_') || /rabdul_hurt_/.test(key(u)) ? 'new' : key(u)); });
     check('9.11 ' + name + "'s poses are his new pictures", got.every((g) => g.endsWith('=new')), got.join(' '));
   }
   // Verse looks
@@ -107,7 +107,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('9.5 an enemy next to Layra can catch her in a clash', E.canEngage(bull, layra));
   check('9.5 but she cannot start one', !E.canEngage(layra, bull));
   b.showPose(layra, 'guard', 1);
-  check('9.5 she fends off with her staff (defending herself)', /layra_iso_guard_/.test(key(layra)), key(layra));
+  check('9.5 she fends off with her staff (defending herself)', /layra_iso_guard_|layra_n_block_/.test(key(layra)), key(layra));
 
   check('no errors', errors.filter((e) => !/focus/.test(e)).length === 0, errors.filter((e) => !/focus/.test(e)).slice(0, 3).join(' | '));
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

@@ -1688,98 +1688,184 @@
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
     "height": 100,
     "standing": {
-      "upRight": {
-        "file": "layra_iso_stand_upRight.png",
-        "originX": 0.529
-      },
       "downRight": {
-        "file": "layra_iso_stand_downRight.png",
-        "originX": 0.476
+        "file": "layra_n_stand_downRight.png",
+        "originX": 0.5
+      },
+      "downLeft": {
+        "file": "layra_n_stand_downLeft.png",
+        "originX": 0.494
+      },
+      "upRight": {
+        "file": "layra_n_stand_upRight.png",
+        "originX": 0.468
+      },
+      "upLeft": {
+        "file": "layra_n_stand_upLeft.png",
+        "originX": 0.497
       }
     },
     "poses": {
       "attack": {
-        "upRight": {
-          "file": "layra_iso_guard_upRight.png",
-          "originX": 0.748
-        },
         "downRight": {
-          "file": "layra_iso_guard_downRight.png",
-          "originX": 0.763
+          "file": "layra_n_battle_downRight.png",
+          "originX": 0.478
+        },
+        "downLeft": {
+          "file": "layra_n_battle_downLeft.png",
+          "originX": 0.17
+        },
+        "upRight": {
+          "file": "layra_n_battle_upRight.png",
+          "originX": 0.469
+        },
+        "upLeft": {
+          "file": "layra_n_battle_upLeft.png",
+          "originX": 0.541
         }
       },
       "cast": {
-        "upRight": {
-          "file": "layra_iso_cast_upRight.png",
-          "originX": 0.444
-        },
         "downRight": {
-          "file": "layra_iso_cast_downRight.png",
-          "originX": 0.359
+          "file": "layra_n_cast_downRight.png",
+          "originX": 0.467
+        },
+        "downLeft": {
+          "file": "layra_n_cast_downLeft.png",
+          "originX": 0.506
+        },
+        "upRight": {
+          "file": "layra_n_cast_upRight.png",
+          "originX": 0.503
+        },
+        "upLeft": {
+          "file": "layra_n_cast_upLeft.png",
+          "originX": 0.224
         }
       },
       "chant": {
-        "upRight": {
-          "file": "layra_iso_chant_upRight.png",
-          "originX": 0.539
-        },
         "downRight": {
-          "file": "layra_iso_chant_downRight.png",
-          "originX": 0.453
+          "file": "layra_n_chant_downRight.png",
+          "originX": 0.493
+        },
+        "downLeft": {
+          "file": "layra_n_chant_downLeft.png",
+          "originX": 0.483
+        },
+        "upRight": {
+          "file": "layra_n_chant_upRight.png",
+          "originX": 0.5
+        },
+        "upLeft": {
+          "file": "layra_n_chant_upLeft.png",
+          "originX": 0.464
         }
       },
       "meditate": {
-        "upRight": {
-          "file": "layra_iso_meditate_upRight.png",
-          "originX": 0.474
-        },
         "downRight": {
-          "file": "layra_iso_meditate_downRight.png",
-          "originX": 0.523
+          "file": "layra_n_chant_downRight.png",
+          "originX": 0.493
+        },
+        "downLeft": {
+          "file": "layra_n_chant_downLeft.png",
+          "originX": 0.483
+        },
+        "upRight": {
+          "file": "layra_n_chant_upRight.png",
+          "originX": 0.5
+        },
+        "upLeft": {
+          "file": "layra_n_chant_upLeft.png",
+          "originX": 0.464
         }
       },
       "hurt": {
-        "upRight": {
-          "file": "layra_iso_hurt2_upRight.png",
-          "originX": 0.435
-        },
         "downRight": {
-          "file": "layra_iso_hurt2_downRight.png",
-          "originX": 0.382
+          "file": "layra_n_hurt_downRight.png",
+          "originX": 0.519
+        },
+        "downLeft": {
+          "file": "layra_n_hurt_downLeft.png",
+          "originX": 0.489
+        },
+        "upLeft": {
+          "file": "layra_n_hurt_upLeft.png",
+          "originX": 0.514
+        },
+        "upRight": {
+          "file": "layra_n_hurt_upRight.png",
+          "originX": 0.505
         }
       },
       "knocked": {
-        "upRight": {
-          "file": "layra_iso_hurt2_upRight.png",
-          "originX": 0.435
-        },
         "downRight": {
-          "file": "layra_iso_hurt2_downRight.png",
-          "originX": 0.382
+          "file": "layra_n_hurt_downRight.png",
+          "originX": 0.519
+        },
+        "downLeft": {
+          "file": "layra_n_hurt_downLeft.png",
+          "originX": 0.489
+        },
+        "upLeft": {
+          "file": "layra_n_hurt_upLeft.png",
+          "originX": 0.514
+        },
+        "upRight": {
+          "file": "layra_n_hurt_upRight.png",
+          "originX": 0.505
         }
       },
       "down": {
-        "file": "layra_n6_down_single.png",
-        "originX": 0.309
+        "downRight": {
+          "file": "layra_n_down_downRight.png",
+          "originX": 0.51
+        },
+        "downLeft": {
+          "file": "layra_n_down_downLeft.png",
+          "originX": 0.456
+        },
+        "upLeft": {
+          "file": "layra_n_down_upLeft.png",
+          "originX": 0.5
+        },
+        "upRight": {
+          "file": "layra_n_down_upRight.png",
+          "originX": 0.538
+        }
       },
       "ready": {
-        "upRight": {
-          "file": "layra_iso_guard_upRight.png",
-          "originX": 0.748
-        },
         "downRight": {
-          "file": "layra_iso_guard_downRight.png",
-          "originX": 0.763
+          "file": "layra_n_battle_downRight.png",
+          "originX": 0.478
+        },
+        "downLeft": {
+          "file": "layra_n_battle_downLeft.png",
+          "originX": 0.17
+        },
+        "upRight": {
+          "file": "layra_n_battle_upRight.png",
+          "originX": 0.469
+        },
+        "upLeft": {
+          "file": "layra_n_battle_upLeft.png",
+          "originX": 0.541
         }
       },
       "guard": {
-        "upRight": {
-          "file": "layra_iso_guard_upRight.png",
-          "originX": 0.748
-        },
         "downRight": {
-          "file": "layra_iso_guard_downRight.png",
-          "originX": 0.763
+          "file": "layra_n_block_downRight.png",
+          "originX": 0.472
+        },
+        "downLeft": {
+          "file": "layra_n_block_downLeft.png",
+          "originX": 0.5
+        },
+        "upLeft": {
+          "file": "layra_n_block_upLeft.png",
+          "originX": 0.524
+        },
+        "upRight": {
+          "file": "layra_n_block_upRight.png",
+          "originX": 0.491
         }
       },
       "victory": {
@@ -1787,23 +1873,39 @@
         "originX": 0.53
       },
       "dodge": {
-        "upLeft": {
-          "file": "layra_dodge_upLeft.png",
-          "originX": 0.281
-        },
-        "upRight": {
-          "file": "layra_dodge_upLeft.png",
-          "originX": 0.281,
-          "flip": true
+        "downRight": {
+          "file": "layra_n_dodge_downRight.png",
+          "originX": 0.5
         },
         "downLeft": {
-          "file": "layra_dodge_downRight.png",
-          "originX": 0.614,
-          "flip": true
+          "file": "layra_n_dodge_downLeft.png",
+          "originX": 0.443
         },
+        "upLeft": {
+          "file": "layra_n_dodge_upLeft.png",
+          "originX": 0.542
+        },
+        "upRight": {
+          "file": "layra_n_dodge_upRight.png",
+          "originX": 0.442
+        }
+      },
+      "kneel": {
         "downRight": {
-          "file": "layra_dodge_downRight.png",
-          "originX": 0.386
+          "file": "layra_n_fallen_downRight.png",
+          "originX": 0.603
+        },
+        "downLeft": {
+          "file": "layra_n_fallen_downLeft.png",
+          "originX": 0.554
+        },
+        "upLeft": {
+          "file": "layra_n_fallen_upLeft.png",
+          "originX": 0.502
+        },
+        "upRight": {
+          "file": "layra_n_fallen_upRight.png",
+          "originX": 0.505
         }
       }
     },
@@ -1811,32 +1913,39 @@
     "portraitHurt": "layra_face_hurt.png",
     "shout": "layra_face.png",
     "weak": {
-      "upLeft": {
-        "file": "layra_n6_hurt_upLeft.png",
-        "originX": 0.493
+      "downLeft": {
+        "file": "layra_n_weak_downLeft.png",
+        "originX": 0.447
       },
       "upRight": {
-        "file": "layra_n6_hurt_upRight.png",
-        "originX": 0.504
-      },
-      "downLeft": {
-        "file": "layra_n6_hurt_downLeft.png",
-        "originX": 0.509
+        "file": "layra_n_weak_upRight.png",
+        "originX": 0.497
       },
       "downRight": {
-        "file": "layra_n6_hurt_downLeft.png",
-        "originX": 0.509,
-        "flip": true
+        "file": "layra_n_weak_downRight.png",
+        "originX": 0.48
+      },
+      "upLeft": {
+        "file": "layra_n_weak_upLeft.png",
+        "originX": 0.503
       }
     },
     "battle": {
-      "upRight": {
-        "file": "layra_iso_guard_upRight.png",
-        "originX": 0.748
-      },
       "downRight": {
-        "file": "layra_iso_guard_downRight.png",
-        "originX": 0.763
+        "file": "layra_n_battle_downRight.png",
+        "originX": 0.478
+      },
+      "downLeft": {
+        "file": "layra_n_battle_downLeft.png",
+        "originX": 0.17
+      },
+      "upRight": {
+        "file": "layra_n_battle_upRight.png",
+        "originX": 0.469
+      },
+      "upLeft": {
+        "file": "layra_n_battle_upLeft.png",
+        "originX": 0.541
       }
     },
     "buffed": {
@@ -2079,49 +2188,112 @@
       }
     },
     "note_bless": "21 Nov (6.86, dev/tools/make_layra_bless.py): under any Verse she floats (his 21 Nov floating neutral), and concentrates and releases her spells floating (buffPoses chant and cast). Replaces the 31 Oct blessing stance.",
+    "note_n16": "16 Nov sheets, wired 21 Nov (6.69, dev/tools/make_layra_new.py): standing, battle stance (also ready and her staff strike), blocking (guard), dodge, preparing (chant and meditate), releasing (cast), taking damage (hurt, knocked), near defeat (weak), fallen on hands and knees (kneel, the landing of a fall) and defeated (down), all in four true views. Her victory is still the 2 Nov picture, her blessing looks the 21 Nov floating sheets (6.86).",
     "ruler": {
-      "layra_iso_stand_upRight.png": {
-        "footX": 0.502
+      "layra_n_stand_downRight.png": {
+        "footX": 0.482
       },
-      "layra_iso_guard_upRight.png": {
-        "scale": 0.92,
-        "footX": 0.551
+      "layra_n_stand_downLeft.png": {
+        "footX": 0.524
       },
-      "layra_iso_guard_downRight.png": {
-        "scale": 0.92,
-        "footX": 0.433
+      "layra_n_stand_upLeft.png": {
+        "footX": 0.416
       },
-      "layra_iso_cast_upRight.png": {
-        "footX": 0.389
+      "layra_n_battle_downLeft.png": {
+        "footX": 0.512
       },
-      "layra_iso_cast_downRight.png": {
-        "footX": 0.402
+      "layra_n_battle_upLeft.png": {
+        "footX": 0.519
       },
-      "layra_iso_chant_downRight.png": {
-        "footX": 0.486
+      "layra_n_cast_downRight.png": {
+        "footX": 0.415
       },
-      "layra_iso_hurt2_upRight.png": {
-        "scale": 1.1
+      "layra_n_cast_upRight.png": {
+        "footX": 0.61
       },
-      "layra_iso_hurt2_downRight.png": {
-        "scale": 1.1,
-        "footX": 0.508
+      "layra_n_cast_upLeft.png": {
+        "footX": 0.454
       },
-      "layra_n6_down_single.png": {
-        "scale": 1.1,
+      "layra_n_chant_downRight.png": {
+        "footX": 0.454
+      },
+      "layra_n_chant_downLeft.png": {
+        "footX": 0.532
+      },
+      "layra_n_chant_upRight.png": {
+        "footX": 0.47
+      },
+      "layra_n_chant_upLeft.png": {
+        "footX": 0.434
+      },
+      "layra_n_hurt_downRight.png": {
+        "footX": 0.445
+      },
+      "layra_n_hurt_downLeft.png": {
+        "footX": 0.554
+      },
+      "layra_n_hurt_upLeft.png": {
+        "footX": 0.493
+      },
+      "layra_n_hurt_upRight.png": {
+        "footX": 0.37
+      },
+      "layra_n_down_downRight.png": {
+        "footX": 0.532
+      },
+      "layra_n_down_downLeft.png": {
+        "footX": 0.466
+      },
+      "layra_n_down_upLeft.png": {
+        "footX": 0.516
+      },
+      "layra_n_down_upRight.png": {
+        "footX": 0.475
+      },
+      "layra_n_block_downRight.png": {
         "footX": 0.497
+      },
+      "layra_n_block_upLeft.png": {
+        "footX": 0.494
+      },
+      "layra_n_block_upRight.png": {
+        "footX": 0.442
       },
       "layra_n6_victory_single.png": {
         "scale": 1.05
       },
-      "layra_dodge_upLeft.png": {
-        "footX": 0.427
+      "layra_n_dodge_downRight.png": {
+        "footX": 0.442
       },
-      "layra_n6_hurt_upLeft.png": {
-        "footX": 0.513
+      "layra_n_dodge_downLeft.png": {
+        "footX": 0.569
       },
-      "layra_n6_hurt_downLeft.png": {
-        "footX": 0.472
+      "layra_n_dodge_upLeft.png": {
+        "footX": 0.599
+      },
+      "layra_n_dodge_upRight.png": {
+        "footX": 0.277
+      },
+      "layra_n_fallen_downRight.png": {
+        "footX": 0.498
+      },
+      "layra_n_fallen_downLeft.png": {
+        "footX": 0.478
+      },
+      "layra_n_fallen_upLeft.png": {
+        "footX": 0.473
+      },
+      "layra_n_fallen_upRight.png": {
+        "footX": 0.42
+      },
+      "layra_n_weak_downLeft.png": {
+        "footX": 0.411
+      },
+      "layra_n_weak_upRight.png": {
+        "footX": 0.349
+      },
+      "layra_n_weak_upLeft.png": {
+        "footX": 0.477
       },
       "layra_bless_float_f1.png": {
         "scale": 1.08,

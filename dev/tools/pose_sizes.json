@@ -124,7 +124,7 @@
    "layra_n6_victory": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.034
+    "h": 0.962
    },
    "layra_dodge": {
     "size": 0.95,
@@ -134,17 +134,67 @@
    "layra_bless_float": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.045
+    "h": 0.972
    },
    "layra_bless_chant": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.045
+    "h": 0.972
    },
    "layra_bless_cast": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.064
+    "h": 0.99
+   },
+   "layra_n_stand": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.995
+   },
+   "layra_n_battle": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.909
+   },
+   "layra_n_block": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 1.002
+   },
+   "layra_n_dodge": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.96
+   },
+   "layra_n_chant": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.993
+   },
+   "layra_n_cast": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.993
+   },
+   "layra_n_hurt": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 1.06
+   },
+   "layra_n_weak": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 1.056
+   },
+   "layra_n_fallen": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.907
+   },
+   "layra_n_down": {
+    "size": 1.0,
+    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+    "h": 0.779
    }
   },
   "e2": {
