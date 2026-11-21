@@ -38,7 +38,7 @@ import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, 
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { kingMethods, KING_KINDS, KING_SELF_KINDS } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
-import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES } from '../kings.js';
+import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamond, emblemFor, framePanel, diamondPortrait, tileBlock } from '../battleCard.js';
@@ -2238,6 +2238,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
+    tickShield(this.activeUnit); // the Bulwark Shield lasts 2 of the fighter's turns (10.46)
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
     if (this.decoys.some((d) => d.owner === this.activeUnit && d.woken)) this.removeDecoys(this.activeUnit);
@@ -3272,7 +3273,7 @@ export default class BattleScene extends Phaser.Scene {
     // UI rework 16 Nov: the target tiles in the skill's own colour (fire orange, lightning violet...)
     const color = spell.color ? Phaser.Display.Color.HexStringToColor(spell.color).color : GOLD;
     // Singularity shows the area it will pull from (3 tiles round him), then his own tile to confirm
-    const areaSkill = spell.kind === 'singularity' || spell.kind === 'mantle'; // Mantle shows the 3 tiles it reaches too (1.81)
+    const areaSkill = spell.kind === 'singularity' || spell.kind === 'mantle' || spell.kind === 'shield'; // Mantle shows the 3 tiles it reaches too (1.81)
     if (areaSkill) this.showHighlights(this.kingAreaTiles(unit, id), color, { alpha: 0.25 });
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color, { keep: areaSkill });
     this.holdCharge(unit, id);
@@ -4112,6 +4113,13 @@ export default class BattleScene extends Phaser.Scene {
   landHit(target, damage) {
     if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
+    // Alagara's Bulwark Shield (10.46) soaks what is left, up to its points
+    const shield = soakShield(target, landed.damage);
+    if (shield.soaked) {
+      landed.damage = shield.damage;
+      landed.note = (landed.note ? landed.note + ', ' : '') + 'Shield -' + shield.soaked;
+      this.shieldFlash(target);
+    }
     this.damageTaken[target.id] = (this.damageTaken[target.id] || 0) + (landed.damage || 0); // for the result screen (M12)
     if (landed.damage > 0) this.interrupt(target);
     if (landed.damage > 0) feedMask(target, KING_RULES.gadara.mask.hit); // Gadara's Mask Gauge: +1 for a hit taken
@@ -5693,6 +5701,7 @@ export default class BattleScene extends Phaser.Scene {
       applyDisoriented(loser, this.activeUnit === loser);
     }
     if (fall) {
+      this.soakFall(loser, fall); // the Bulwark Shield takes a slam or a fall too (10.46)
       loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
       else {
@@ -8373,6 +8382,7 @@ export default class BattleScene extends Phaser.Scene {
     // Mantle's crown goes when the Verse it shared ends (6.84)
     for (const u of this.units) {
       if (u.mantleCrown && !(u.alive && u.status && u.status.buff && u.status.buff.id === u.mantleVerse)) { u.mantleCrown.destroy(); u.mantleCrown = null; }
+      this.syncShieldDome(u); // the Bulwark Shield's dome comes and goes with the shield (10.46)
     }
     for (const unit of this.units) {
       if (!unit.tagRow || !unit.tagRow.active) continue;

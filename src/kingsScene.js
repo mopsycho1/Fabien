@@ -13,7 +13,7 @@ import { getHitChance, getDamage, distance } from './combat.js';
 import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMomentum } from './engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
 import { TURN_COST } from './turnOrder.js';
-import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
+import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
 import { sfxHas, sfxAt, sfxLoop, crownOver } from './spellArt.js';
 import { play } from './audio.js';
 import { floorLight, lightNearby } from './fxLayers.js';
@@ -24,9 +24,9 @@ import conditions from './data/conditions.json';
 const G = KING_RULES.gadara;
 const A = KING_RULES.alagara;
 // the skill kinds this file plays (castSpell hands them here)
-export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending'];
+export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending', 'shield'];
 // skills cast on himself: tap the skill again (or his own tile) to use it
-export const KING_SELF_KINDS = ['singularity', 'mantle'];
+export const KING_SELF_KINDS = ['singularity', 'mantle', 'shield'];
 const isKingSkill = (id) => !!spells[id] && KING_KINDS.includes(spells[id].kind);
 const foeOf = (a, b) => b && a && b.alive && !b.isDecoy && b.side !== a.side;
 const hasBlessing = (u) => !!(u && ((u.status && ((u.status.buff && spells[u.status.buff.id] && spells[u.status.buff.id].kind === 'buff') || u.status.enchant)) || u.fury > 0)); // a Verse, an Enchanted weapon or Bloodied stacks (10.41)
@@ -67,6 +67,7 @@ export const kingMethods = {
     switch (spell.kind) {
       case 'singularity':
       case 'mantle':
+      case 'shield':
         return [unit];
       case 'hook':
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && distance(unit, t) >= 1 && distance(unit, t) <= spell.range && this.hookLineClear(unit, t));
@@ -83,8 +84,8 @@ export const kingMethods = {
 
   // The tiles Singularity would pull from, or Mantle would reach (for the lit area when he picks it).
   kingAreaTiles(unit, id) {
-    if (id !== 'mantle') return singularityTiles(unit, GRID_SIZE);
-    const r = spells.mantle.range, out = [];
+    if (id !== 'mantle' && id !== 'bulwarkShield') return singularityTiles(unit, GRID_SIZE);
+    const r = spells[id].range, out = [];
     for (let c = unit.col - r; c <= unit.col + r; c++) for (let w = unit.row - r; w <= unit.row + r; w++) {
       if (c < 0 || w < 0 || c >= GRID_SIZE || w >= GRID_SIZE) continue;
       const d = Math.abs(c - unit.col) + Math.abs(w - unit.row);
@@ -184,6 +185,7 @@ export const kingMethods = {
       case 'claim': return this.castClaim(caster, target, spell, onDone);
       case 'mantle': return this.castMantle(caster, spell, onDone);
       case 'gale': return this.castGaleCut(caster, target, spell, onDone, verseSkillPower(caster, id));
+      case 'shield': return this.castBulwarkShield(caster, spell, onDone, verseSkillPower(caster, id));
       default: return onDone();
     }
   },
@@ -254,6 +256,7 @@ export const kingMethods = {
       applyDisoriented(loser, this.activeUnit === loser);
     }
     if (fall) {
+      this.soakFall(loser, fall); // the Bulwark Shield takes Singularity's slam too (10.46)
       loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
       else {
@@ -541,6 +544,79 @@ export const kingMethods = {
     this.kingFinish(onDone, 1500);
   },
 
+  // ---------- Alagara: the Bulwark Shield (10.46, Suleiman 21 Nov) ----------
+  // Under Earth's Bulwark (Stone Active, or in the Echo at 75 percent) he raises a shield on himself and every ally
+  // within 2 tiles: it soaks damage up to 20 percent of each one's own max health, for 2 of their turns. It is the
+  // answer to an area attack like Gadara's Singularity: the pull's slam and its sure blow both land on the shield
+  // first (landHit and soakFall). Numbers in spells.json bulwarkShield (share, turns, range).
+  shieldAllies(caster) {
+    return this.units.filter((u) => u.alive && !u.isDecoy && u.side === caster.side && (u === caster || distance(u, caster) <= spells.bulwarkShield.range));
+  },
+  castBulwarkShield(caster, spell, onDone, power = 1) {
+    const who = this.shieldAllies(caster);
+    const given = who.map((u) => ({ u, hp: giveShield(u, spell.share, spell.turns, power) }));
+    if (this.hasPose(caster, 'chant')) this.showPose(caster, 'chant', 1);
+    play('spell');
+    floorLight(this, caster.view.x, caster.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color, { size: 2.2, peak: 0.7, ms: 700 });
+    this.time.delayedCall(380, () => {
+      if (this.hasPose(caster, 'cast')) this.showPose(caster, 'cast', 1);
+      screenShake(this, 0.003, 160);
+      for (const { u, hp } of given) {
+        if (!u.alive) continue;
+        this.syncShieldDome(u, true);
+        this.floatText(u, 'Shield ' + hp, spell.color, { rise: 46 });
+      }
+      this.refreshStatusTags();
+    });
+    this.time.delayedCall(1300, () => caster.alive && this.showStanding(caster));
+    this.kingFinish(onDone, 1500);
+  },
+
+  // A slam or a fall lands on the shield first (Singularity's 2-point slam, a push into a wall, a drop).
+  soakFall(unit, fall) {
+    if (!unit.shield || !fall) return;
+    const slam = soakShield(unit, fall.slam || 0);
+    if (fall.slam) fall.slam = slam.damage;
+    const drop = soakShield(unit, fall.damage || 0);
+    fall.damage = drop.damage;
+    if (slam.soaked + drop.soaked > 0) {
+      this.shieldFlash(unit);
+      this.time.delayedCall(300, () => unit.alive && this.floatText(unit, 'Shield -' + (slam.soaked + drop.soaked), spells.bulwarkShield.color, { rise: 52 }));
+    }
+  },
+
+  // The dome: a pale gold half-bubble round the fighter, drawn at (0,0) inside his view so it moves with him.
+  // Made when a shield is raised, removed when it breaks or fades (refreshStatusTags calls this every time).
+  syncShieldDome(unit, pop = false) {
+    const on = unit.alive && unit.shield && unit.shield.hp > 0 && unit.view;
+    if (!on) {
+      if (unit.shieldDome) { unit.shieldDome.destroy(); unit.shieldDome = null; }
+      return;
+    }
+    if (unit.shieldDome && unit.shieldDome.active) return;
+    const h = (unit.topY || 60) + 10, w = Math.max(30, h * 0.62);
+    const g = this.add.graphics();
+    const gold = 0xe8c87a;
+    g.fillStyle(gold, 0.10);
+    g.fillEllipse(0, -h * 0.45, w * 1.1, h * 1.05);
+    g.lineStyle(2, gold, 0.55);
+    g.strokeEllipse(0, -h * 0.45, w * 1.1, h * 1.05);
+    g.lineStyle(1, 0xfff1c4, 0.35);
+    g.strokeEllipse(0, 2, w * 1.1, w * 0.36); // the ring on the floor
+    g.setBlendMode(Phaser.BlendModes.ADD);
+    unit.view.add(g);
+    unit.shieldDome = g;
+    if (pop) { g.setScale(0.4); this.tweens.add({ targets: g, scaleX: 1, scaleY: 1, duration: 260, ease: 'Back.easeOut' }); }
+    this.tweens.add({ targets: g, alpha: 0.55, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  },
+
+  // A hit on the shield: the dome flashes bright for a moment.
+  shieldFlash(unit) {
+    const g = unit.shieldDome;
+    if (!g || !g.active) return;
+    this.tweens.add({ targets: g, scaleX: 1.12, scaleY: 1.12, duration: 90, yoyo: true });
+  },
+
   // ---------- Alagara: Gale Cut ----------
   // The dash: from his tile in a straight line toward "toward", as far as his steps left, through every foe;
   // he lands on the last free tile he reaches. Returns { tiles, hits, land }.
@@ -736,8 +812,18 @@ export const kingMethods = {
     // Swap: Fury in front when a foe is next to him, Swiftness when the way is open (a free action)
     if (canSwap(unit)) {
       const echo = echoOf(unit).id, active = unit.status.buff.id;
-      const want = near.length ? 'fury' : 'swiftness';
+      const charging = this.units.some((g) => g.alive && g.side !== unit.side && g.channel && g.channel.spellId === 'singularity');
+      const want = charging ? 'stone' : near.length ? 'fury' : 'swiftness';
       if (echo === want && active !== want) this.useFreeKingAction(unit, 'verseSwap');
+    }
+    // Bulwark Shield (10.46): always when a foe charges Singularity and someone of his is in its reach; otherwise
+    // when he and an ally would both get it with a foe within 3 tiles of him
+    if (this.aiReady(unit, 'bulwarkShield')) {
+      const mine = this.shieldAllies(unit).filter((u) => !u.shield);
+      const charging = this.units.some((g) => g.alive && g.side !== unit.side && g.channel && g.channel.spellId === 'singularity'
+        && this.shieldAllies(unit).some((u) => distance(u, g) <= G.singularity.radius));
+      const threat = seen.some((t) => distance(unit, t) <= 3);
+      if ((charging && mine.length) || (mine.length >= 2 && threat)) return this.aiCast(unit, unit, 'bulwarkShield', finish);
     }
     // Gale Cut through two or more, or one when nobody is next to him
     if (this.aiReady(unit, 'galeCut')) {

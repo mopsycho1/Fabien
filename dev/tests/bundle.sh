@@ -28,6 +28,8 @@ import * as lineup from './src/lineup.js';
 import * as artUrlLib from './src/artUrl.js';
 import * as battleLoad from './src/battleLoad.js';
 import * as prefetchLib from './src/prefetch.js';
+import * as kingsLib from './src/kings.js';
+window.__kings = kingsLib; // the kings' rules (Phase 10)
 window.__artUrl = artUrlLib; window.__battleLoad = battleLoad; window.__prefetch = prefetchLib; // loading (18.47, 18.48)
 import unitList from './src/data/units.json';
 window.__lineup = lineup; window.__unitList = unitList; // the character select (18.30)

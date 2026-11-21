@@ -749,6 +749,22 @@ var spells_default = {
     use: "enemy",
     text: "Fury. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
   },
+  bulwarkShield: {
+    name: "Bulwark Shield",
+    button: "Bulwark Shield",
+    short: "SHIELD",
+    kind: "shield",
+    verseSkill: "stone",
+    color: "#e8c87a",
+    range: 2,
+    share: 0.2,
+    turns: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    note: "Roadmap 10.46 (Suleiman 21 Nov): the answer to area attacks like Gadara's Singularity. share = part of each fighter's own max health the shield soaks; turns = how many of that fighter's turns it lasts; range = allies within this many tiles. Suleiman's defaults: 20 percent, 2 turns, 2 tiles.",
+    text: "Earth's Bulwark. He raises a shield on himself and every ally within 2 tiles: it soaks damage (hits, slams and falls, Singularity too) up to 20 percent of each one's max health, for 2 turns. From the Echo: 15 percent, one more turn of cooldown. Ready again after 3 turns."
+  },
   unmoved: {
     name: "Unmoved",
     button: "Unmoved",
@@ -973,7 +989,7 @@ var kings_default = {
     activeBonus: 1.5,
     echoPower: 0.75,
     echoCooldownExtra: 1,
-    verseSkills: { fury: "rendingDraw", stone: "unmoved" },
+    verseSkills: { fury: "rendingDraw", stone: ["unmoved", "bulwarkShield"] },
     verseSkillsNote: "Gale Cut is his own skill in every form since 20 Nov (Suleiman, 10.34); it was the Swiftness Verse skill.",
     surge: {
       swiftness: { steps: 1, text: "Surge: a free step" },

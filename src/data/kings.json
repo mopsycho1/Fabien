@@ -12,7 +12,7 @@
     "activeBonus": 1.5,
     "echoPower": 0.75,
     "echoCooldownExtra": 1,
-    "verseSkills": { "fury": "rendingDraw", "stone": "unmoved" }, "verseSkillsNote": "Gale Cut is his own skill in every form since 20 Nov (Suleiman, 10.34); it was the Swiftness Verse skill.",
+    "verseSkills": { "fury": "rendingDraw", "stone": ["unmoved", "bulwarkShield"] }, "verseSkillsNote": "Gale Cut is his own skill in every form since 20 Nov (Suleiman, 10.34); it was the Swiftness Verse skill.",
     "surge": {
       "swiftness": { "steps": 1, "text": "Surge: a free step" },
       "fury": { "pressSteps": 1, "text": "Surge: his next Press pushes the momentum one step further" },

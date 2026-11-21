@@ -136,21 +136,52 @@ export function swapVerses(unit) {
   return unit.status.buff.id;
 }
 
-// The Verse skill that belongs to a Verse (Gale Cut to Swiftness, Rending Draw to Fury, Unmoved to Stone).
+// The Verse skills that belong to a Verse (Rending Draw to Fury; Unmoved and the Bulwark Shield to Stone).
+// kings.json may give one id or a list. Returns a list.
 export function verseSkillOf(verseId) {
-  return (kings.alagara.verseSkills || {})[verseId] || null;
+  const s = (kings.alagara.verseSkills || {})[verseId];
+  return !s ? [] : Array.isArray(s) ? s : [s];
 }
 
-// Which of his Verse skills he can use now: { id, echo } for the Active Verse's skill (full strength) and the
+// Which of his Verse skills he can use now: { id, echo } for the Active Verse's skills (full strength) and the
 // Echo's (75 percent, one more turn of cooldown). Returns a list.
 export function verseSkillsNow(unit) {
   if (!isAttuned(unit)) return [];
   const out = [];
-  const active = unit.status && unit.status.buff ? verseSkillOf(unit.status.buff.id) : null;
-  if (active) out.push({ id: active, echo: false });
-  const echo = unit.attune.echo ? verseSkillOf(unit.attune.echo.id) : null;
-  if (echo && echo !== active) out.push({ id: echo, echo: true });
+  const active = unit.status && unit.status.buff ? verseSkillOf(unit.status.buff.id) : [];
+  for (const id of active) out.push({ id, echo: false });
+  const echo = unit.attune.echo ? verseSkillOf(unit.attune.echo.id) : [];
+  for (const id of echo) if (!active.includes(id)) out.push({ id, echo: true });
   return out;
+}
+
+// ---------- Alagara: the Bulwark Shield (10.46, Suleiman 21 Nov) ----------
+// Under Earth's Bulwark he raises a shield on himself and every ally within 2 tiles. Each shield soaks damage up
+// to a share of that fighter's own max health (20 percent; 15 from the Echo), for 2 of their turns.
+//   unit.shield = { hp: points left to soak, max, turnsLeft }
+
+// Puts a fresh shield on one fighter. power: 1 from the Active Verse, 0.75 from the Echo.
+export function giveShield(unit, share, turns, power = 1) {
+  const hp = Math.max(1, Math.round(unit.maxHp * share * power));
+  unit.shield = { hp, max: hp, turnsLeft: turns };
+  return hp;
+}
+
+// Takes damage off the shield first. Returns { damage: what still gets through, soaked }.
+export function soakShield(unit, damage) {
+  const s = unit && unit.shield;
+  if (!s || s.hp <= 0 || damage <= 0) return { damage, soaked: 0 };
+  const soaked = Math.min(s.hp, damage);
+  s.hp -= soaked;
+  if (s.hp <= 0) unit.shield = null; // broken
+  return { damage: damage - soaked, soaked };
+}
+
+// One of the fighter's turns has passed: the shield fades after its last one.
+export function tickShield(unit) {
+  if (!unit || !unit.shield) return;
+  unit.shield.turnsLeft -= 1;
+  if (unit.shield.turnsLeft <= 0) unit.shield = null;
 }
 
 // Is this Verse skill used from the Echo now (75 percent)?
