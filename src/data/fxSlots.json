@@ -111,11 +111,26 @@
    }
   },
   "slow": {
-   "cast": 0,
+   "cast": 6,
    "loop": 0,
    "frameMs": 80,
    "scale": 0.5,
-   "feetY": 0.4
+   "feetY": 0.4,
+   "castMs": 160,
+   "fit": {
+    "cast": {
+     "h": 188,
+     "w": 192,
+     "mx": 134,
+     "my": 339,
+     "by": 433,
+     "W": 268,
+     "H": 482,
+     "k": 1.3,
+     "anchor": "base",
+     "layer": "behind"
+    }
+   }
   },
   "enchant": {
    "cast": 0,

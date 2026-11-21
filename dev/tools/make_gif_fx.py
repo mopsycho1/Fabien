@@ -90,6 +90,8 @@ FILES = {
     'sfx_empower': ('New Effects/New Effects/Golden Empowerment Aura Animation.gif', 'keep', 0.5, 0.8),   # a clash Empower (9.6)
     'sfx_clash_shock': ('New Effects/New Effects/Shockwave for clash.gif', 'keep', 0.5, 0.5),             # the clash collision
     'sfx_umbra_vortex': ('Umbra (Gadara\'s spell)/Purple Gravitational Vortex Animation.gif', 'keep', 0.5, 0.75),  # Singularity resolves
+    # Layra's Slow (6.79, 21 Nov): folder INBOX/2026-11-19/email, ONLY=buff_slow_cast. "Animated Purple Gravity Vortex" (the denser one) is Gravity: it waits for 13.65.
+    'buff_slow_cast': ('Animated Purple Gravity Vortex/Glowing Purple Slow Spell Animation.gif', 'boxbase', 0.5, 0.9),   # a ring on the floor, a column of light rising
     # Gaha's Lunge (6.72, 21 Nov): folder INBOX/2026-11-19/email, ONLY=sfx_lunge_dust,sfx_lunge_impact
     'sfx_lunge_dust': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Dust from leap.gif', 'keep', 0.5, 0.85),       # where he leaves the ground
     'sfx_lunge_impact': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Attack impact animated.gif', 'keep', 0.5, 0.7),   # where the spear lands
@@ -179,7 +181,7 @@ def main():
             slots['spells'][name[4:]] = {**slots['spells'].get(name[4:], {}), **info}
         else:
             _, verse, part = name.split('_')
-            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt', 'blade': 'blade'}[verse]
+            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt', 'blade': 'blade', 'slow': 'slow'}[verse]
             slot = slots['buffs'].setdefault(vid, {'cast': 0, 'loop': 0, 'frameMs': 80, 'scale': 0.5, 'feetY': 0.4})
             slot[part] = len(frs); slot[part + 'Ms'] = ms[0]
         made.append(name)

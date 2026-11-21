@@ -6495,8 +6495,10 @@ export default class BattleScene extends Phaser.Scene {
       floorLight(this, target.view.x, target.view.y, elementOf(verseElement).glow, { size: 1.5, peak: 0.6, ms: 700 });
       lightNearby(this, target.view.x, target.view.y - target.centerY, elementOf(verseElement).glow, { radius: 150, peak: 0.55, ms: 520 });
       afterglow(this, target.view.x, target.view.y - 10, verseElement, { level: 3, depth: target.view.depth + 2 });
-      if (spell.kind === 'hex' && slowCast(this, target.view.x, target.view.y)) {
-        // the gravity effect from the Slow sheet
+      // 6.79: his Slow GIF (a purple ring on the floor, a column of light rising), where it lands; the older ring and
+      // waves built from the Slow sheet only when the GIF is not there
+      if (spell.kind === 'hex' && (buffCastFx(this, target.view.x, target.view.y, id, target) || slowCast(this, target.view.x, target.view.y))) {
+        // (nothing more: the effect above is the whole cast)
       } else if (!verseAura(this, target.view.x, target.view.y, id, target)) buffAura(this, target.view.x, target.view.y, color);
       const times = (spell.kind === 'buff' ? affinityTimes(target, id) : 1) * power;
       // a Verse shows his card for it on the ally (Swift, Fury, Earth's Bulwark); other spells float their name

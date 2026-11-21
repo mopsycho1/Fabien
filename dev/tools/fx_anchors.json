@@ -314,6 +314,12 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.7
+    },
+    "buff_slow_cast": {
+      "frames": 6,
+      "anchor": "boxbase",
+      "originX": 0.5,
+      "originY": 0.9
     }
   }
 }
