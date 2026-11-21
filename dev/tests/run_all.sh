@@ -36,7 +36,7 @@ EXTRA="ruler nov6b notes27 notes27b poison echo signatures gaha three archer sag
 settings_for() {
   case $1 in
     n39) echo "FABIEN_MAP=cavern FABIEN_BENCH=e1" ;;
-    n41|n42|n43|n44|n45|n53|n54|n56|n58|n59|n64|n65|n66|n67|n68|n69|n70|n71|n72|n75|n76|n77|n78|n79|n81|n82|n84|n85|n91) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
+    n41|n42|n43|n44|n45|n53|n54|n56|n58|n59|n64|n65|n66|n67|n68|n69|n70|n71|n72|n75|n76|n77|n78|n79|n81|n82|n84|n85|n91|n105) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;;
     n50|n51) echo "FABIEN_BENCH=" ;;
     n86|n87|n89|n90|n93|n94|n100|n101|n102|n103|n104) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # the two kings (Phase 10)
     n95) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 FABIEN_SIDES={"e5":"hero"}' ;; # Gadara on the heroes' side (10.38); no quotes round the JSON: the word splitting would keep them

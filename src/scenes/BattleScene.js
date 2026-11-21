@@ -86,7 +86,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
@@ -2578,7 +2578,9 @@ export default class BattleScene extends Phaser.Scene {
         this.poisonHit(unit, t, p) + ' now, then ' + p.poison + ' a turn for ' + p.turns + ' turns.\nTap again to take aim.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'heal') {
       const t = this.pendingTarget;
-      text = 'Herbs on ' + t.name + ': +' + Math.min(spells.herbs.heal, t.maxHp - t.hp) + ' health. Tap again.';
+      const hs = spells[this.selectedSpell];
+      const near = hs.splash ? this.windSplash(unit, t) : [];
+      text = hs.button + ' on ' + t.name + ': +' + Math.min(hs.heal, t.maxHp - t.hp) + ' health' + (near.length ? ', +' + hs.splash + ' to ' + near.map((u) => u.name).join(' and ') : '') + (hs.mp ? '. ' + hs.mp + ' MP' : '') + '. Tap again.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget) {
       const spell = spells[this.selectedSpell];
       const double = affinityTimes(this.pendingTarget, this.selectedSpell) > 1;
@@ -2600,7 +2602,8 @@ export default class BattleScene extends Phaser.Scene {
         (double ? 'Double effect on ' + spell.affinity.who + '! ' : '') + spell.text + (extras.length ? ' ' + extras.join(' ') : '');
     } else if (this.mode === 'spellTarget' && spells[this.selectedSpell].kind === 'heal') {
       const self = this.targetsInRange.includes(unit);
-      text = (self ? 'Tap Herbs again to use them on yourself,\nor tap a green tile to heal an ally.' : 'Tap a green tile to heal an ally.');
+      const word = spells[this.selectedSpell].button;
+      text = (self ? 'Tap ' + word + ' again to use ' + (word === 'Herbs' ? 'them' : 'it') + ' on yourself,\nor tap a green tile to heal an ally.' : 'Tap a green tile to heal an ally.');
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
       text = 'Tap a lit tile: who gets ' + spells[this.selectedSpell].name + '?'; // (the tiles are in the skill's colour)
@@ -2747,10 +2750,12 @@ export default class BattleScene extends Phaser.Scene {
     }
     const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
     // a Verse can change the attack itself (Layra: Thunderclap under Stone, Wildfire under Fury)
-    const atk = this.attackMove(unit);
+    // ...and under Swift, Healing Wind takes Lightning's place (10.50)
+    const wind = this.healAttack(unit);
+    const atk = wind || this.attackMove(unit);
     const atkName = atk !== 'attack' ? spells[atk].button : unit.attackName;
     const atkAccent = atk !== 'attack' ? Phaser.Display.Color.HexStringToColor(spells[atk].color).color : unit.attackType === 'magic' ? 0x9fd4ff : 0xff8a6a;
-    b.set(atkName, weaponIcon, free, () => this.onAttackButton(), { shown: atk === 'attack' ? 'Attack' : null, selected: this.mode === 'attack', accent: atkAccent, tip: atk !== 'attack' ? spellTip(atk) : { title: atkName, body: buttonTip('Attack').body } });
+    b.set(atkName, wind ? 'star' : weaponIcon, free, () => this.onAttackButton(), { shown: atk === 'attack' ? 'Attack' : null, selected: this.mode === 'attack' || (wind && this.selectedSpell === wind), accent: atkAccent, tip: atk !== 'attack' ? spellTip(atk) : { title: atkName, body: buttonTip('Attack').body } });
     if (isMelee(unit) && unit.spells && unit.spells.length > 0) {
       // a fighter with skills (Spear Throw, Herbs): Engage and Skills share the row
       c.set(null);
@@ -2862,9 +2867,29 @@ export default class BattleScene extends Phaser.Scene {
       this.cancelMode();
       return;
     }
+    // Layra under Swift: the button is Healing Wind (10.50). Tapping it again uses it on herself, like Herbs.
+    const wind = this.healAttack(unit);
+    if (wind) {
+      if (!(this.mode === 'spellTarget' && this.selectedSpell === wind)) this.cancelMode();
+      this.chooseSpell(wind);
+      return;
+    }
 
     this.cancelMode();
     this.startAttack();
+  }
+
+  // Healing Wind in place of Lightning (10.50): under Swift, with 6 MP, and someone in reach is hurt (or poisoned,
+  // or burning). Returns 'healingWind' or null (then the Attack button is Lightning as usual).
+  healAttack(unit) {
+    const id = healInPlaceOf(unit);
+    if (!id || unit.engagedWith) return null;
+    return this.healTargets(unit, id).length ? id : null;
+  }
+  healTargets(unit, id) {
+    const spell = spells[id];
+    return this.units.filter((u) => u.alive && !u.isDecoy && u.side === unit.side && this.canSee(unit, u) && distance(unit, u) <= this.spellReach(unit, u, spell)
+      && (u.hp < u.maxHp || isPoisoned(u) || isBurning(u)));
   }
 
   onMoveButton() {
@@ -5435,6 +5460,17 @@ export default class BattleScene extends Phaser.Scene {
         return;
       }
     }
+    // Layra under Swift heals with Healing Wind in place of Lightning (10.50): the most hurt one in reach below 60 percent
+    const wind = this.healAttack(unit);
+    if (wind) {
+      const hurt = this.healTargets(unit, wind).filter((u) => u.hp <= u.maxHp * 0.6 || isPoisoned(u) || isBurning(u))
+        .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+      if (hurt) {
+        this.busy = true;
+        this.castSpell(unit, hurt, wind, finish);
+        return;
+      }
+    }
     // Tayo with an element on him fires it at a foe in a line (roadmap 13.4), full damage, before the spike
     const blastAt = this.blastTarget(unit);
     if (blastAt) {
@@ -6468,6 +6504,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'javelin') return this.castSonicJavelin(caster, target, spell, onDone);
     if (spell.kind === 'dive') return this.castFuryDive(caster, target, spell, onDone);
     if (spell.kind === 'double') return this.castDoubleHit(caster, target, spell, onDone);
+    if (spell.kind === 'heal' && spell.wind) return this.castHealingWind(caster, target, spell, onDone);
     if (spell.kind === 'heal') return this.castHeal(caster, target, spell, onDone);
     if (spell.kind === 'escape') return this.castHusk(caster, target, onDone);
     if (spell.kind === 'smoke') return this.castSmokeBomb(caster, target, onDone);
@@ -7812,6 +7849,57 @@ export default class BattleScene extends Phaser.Scene {
   // For an ally he throws the pouch (roadmap 1.12, Suleiman 31 Oct 12:04):
   // up to 2 tiles, one further for each level he stands above them
   // (spells.json range and rangePerLevel); it flies in an arc, so walls don't stop it.
+  // ---------- Layra's Healing Wind (10.50, Suleiman 21 Nov) ----------
+  // Under Swift, in place of Lightning: a wind that heals the ally (or herself) for spell.heal and every ally next to
+  // them for spell.splash; it cures poison and burns like Herbs. No pouch: a green-gold gust from her staff.
+  windSplash(healer, target) {
+    return this.units.filter((u) => u.alive && !u.isDecoy && u !== target && u.side === healer.side && distance(u, target) === 1 && (u.hp < u.maxHp || isPoisoned(u) || isBurning(u)));
+  }
+
+  castHealingWind(healer, target, spell, onDone) {
+    const list = [{ u: target, amount: spell.heal }, ...this.windSplash(healer, target).map((u) => ({ u, amount: spell.splash || 0 }))];
+    const healed = list.map(({ u, amount }) => {
+      const got = Math.min(amount, u.maxHp - u.hp);
+      u.hp += got;
+      const cured = isPoisoned(u) || isBurning(u);
+      curePoison(u); cureBurn(u);
+      return { u, got, cured };
+    });
+    this.refreshButtons();
+    const dx = target.view.x - healer.view.x || 1;
+    if (target !== healer) this.faceToward(healer, dx, target.view.y - healer.view.y);
+    this.showPose(healer, this.hasPose(healer, 'cast') ? 'cast' : 'attack', dx);
+    const glow = elementOf('heal').glow;
+    chargeUp(this, healer.view.x + Math.sign(dx) * 12, healer.view.y - healer.topY * 0.8, 'heal', { ms: 260, size: 0.8, depth: healer.view.depth + 2 });
+    play('whoosh');
+    this.time.delayedCall(260, () => {
+      // the gust: Swift's wind cut laid from her to the target when it is loaded, soft light along the way otherwise
+      const a = this.centerOf(healer), b = this.centerOf(target);
+      if (target !== healer && sfxHas(this, 'gale_swift')) {
+        const rot = dx < 0 ? Math.atan2(a.y - b.y, a.x - b.x) : Math.atan2(b.y - a.y, b.x - a.x);
+        sfxAt(this, 'gale_swift', (a.x + b.x) / 2, (a.y + b.y) / 2, { rotation: rot, flip: dx < 0, depth: 90 });
+      }
+      lightNearby(this, (a.x + b.x) / 2, (a.y + b.y) / 2, glow, { radius: 120, peak: 0.5, ms: 600 });
+    });
+    this.time.delayedCall(560, () => {
+      play('spell');
+      for (const { u, got, cured } of healed) {
+        if (!u.alive) continue;
+        buffAura(this, u.view.x, u.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color);
+        floorLight(this, u.view.x, u.view.y, glow, { size: 1.4, peak: 0.6, ms: 800 });
+        energyWaves(this, u.view.x, u.view.y, glow, { count: 1, size: 0.55, ms: 600 });
+        afterglow(this, u.view.x, u.view.y - 8, 'heal', { level: 4, depth: u.view.depth + 2 });
+        this.floatText(u, '+' + got, spell.color, { pop: true });
+        if (cured) this.time.delayedCall(350, () => u.alive && this.floatText(u, 'Cured', '#9fdc6a', { rise: 46 }));
+        this.updateHpBar(u);
+        if (u.lowGlow && u.hp / u.maxHp > 0.3) { u.lowGlow.destroy(); u.lowGlow = null; }
+      }
+      this.refreshStatusTags();
+    });
+    this.time.delayedCall(1100, () => healer.alive && this.showStanding(healer));
+    this.time.delayedCall(1500, onDone);
+  }
+
   castHeal(healer, target, spell, onDone) {
     const amount = Math.min(spell.heal, target.maxHp - target.hp);
     target.hp += amount;

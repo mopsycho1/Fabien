@@ -123,6 +123,18 @@ module.exports = function makeBrain(w, tally) {
         const hurt = friends.filter((f) => dist(u, f) <= 2 && f.hp <= f.maxHp * 0.55).sort((a, c) => a.hp / a.maxHp - c.hp / c.maxHp)[0];
         if (hurt && (hurt === u ? await cast('herbs', u, true) : await cast('herbs', hurt))) return;
       }
+      // Layra under Swift: Healing Wind in place of Lightning (10.50), through her Attack button
+      const wind = b.healAttack(u);
+      if (wind) {
+        const hurt = b.healTargets(u, wind).filter((f) => f.hp <= f.maxHp * 0.6 || St.isPoisoned(f) || St.isBurning(f)).sort((a, c) => a.hp / a.maxHp - c.hp / c.maxHp)[0];
+        if (hurt) {
+          b.cancelMode(); b.onAttackButton();
+          if (hurt === u) b.onAttackButton(); else if (b.targetsInRange.includes(hurt)) { b.handleTap(hurt.col, hurt.row); b.handleTap(hurt.col, hurt.row); }
+          await waitIdle();
+          if (u.hasActed) { used(wind); return; }
+          b.cancelMode();
+        }
+      }
       if (hurtFrac <= 0.5 && await useItem('sheaBalm', u)) return;
       const mate = friends.find((f) => f !== u && dist(u, f) === 1 && f.hp <= f.maxHp * 0.4);
       if (mate && hurtFrac > 0.5 && await useItem('sheaBalm', mate)) return;

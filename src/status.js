@@ -204,6 +204,20 @@ export function activeMove(unit, baseId) {
   return id;
 }
 
+// Layra's Healing Wind (10.50): under Swiftness, with the MP for it, her Attack is Healing Wind. Returns the id or
+// null. (Not a "verse" move: the attack paths stay Lightning; the scene also needs someone in reach to be hurt.)
+export function healInPlaceOf(unit) {
+  const buff = statusOf(unit).buff;
+  if (!buff) return null;
+  for (const id of Object.keys(spells)) {
+    const p = spells[id].inPlaceOf;
+    if (!p || p.of !== 'attack' || p.with !== buff.id || (p.jobs && !p.jobs.includes(unit.job))) continue;
+    if ((unit.mp || 0) < (spells[id].mp || 0)) return null;
+    return id;
+  }
+  return null;
+}
+
 // The base move a Verse-changed move replaces (or the move itself).
 export function baseMoveOf(id) {
   return spells[id] && spells[id].verse ? spells[id].verse.of : id;

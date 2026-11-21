@@ -504,6 +504,22 @@ var spells_default = {
     text: "Stone turns her Lightning into this: the bolt knocks the target a tile back (into a wall, it slams). It still jumps to a second enemy.",
     element: "lightning"
   },
+  healingWind: {
+    name: "Healing Wind",
+    button: "Healing Wind",
+    short: "WIND",
+    kind: "heal",
+    wind: true,
+    inPlaceOf: { of: "attack", with: "swiftness", jobs: ["sage"] },
+    color: "#b8f0d8",
+    range: 4,
+    heal: 12,
+    splash: 6,
+    mp: 6,
+    use: "ally",
+    note: "Roadmap 10.50 (Suleiman 21 Nov): a new heal Layra casts under Swift, in place of Lightning, that costs a lot of MP. Numbers picked 21 Nov: 12 health to the ally (or herself) within 4 tiles, 6 to each ally next to them, 6 MP (half her 12; a Verse costs 3). Not a 'verse' move on purpose: Lightning comes back on her Attack button when nobody in reach is hurt or her MP is under 6.",
+    text: "Under Swift, in place of Lightning: a wind that heals an ally within 4 tiles (or herself) for 12, and every ally next to them for 6. It also cures poison and puts out a burn. 6 MP. Lightning comes back when nobody in reach is hurt or her MP is short."
+  },
   wildfire: {
     name: "Wildfire",
     button: "Wildfire",
