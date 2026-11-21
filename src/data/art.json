@@ -5332,7 +5332,7 @@
         "y": 0.0267
       }
     },
-    "portrait": "gadara_face.png",
+    "portrait": "gadara_face_neutral.png",
     "weapon": {
       "gadara_stand_f4.png": [
         5,
@@ -5631,7 +5631,10 @@
         "footX": 0.524
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "portraitHurt": "gadara_face_hurt.png",
+    "shout": "gadara_face_angry.png",
+    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (gadara_face_smiling.png, gadara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36."
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74, 6.83 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 21 Nov sheets (neutral with the gold fastenings, the saber battle stance), his 20 Nov sheets (dodge; Fury and Swift forms: neutral, battle stance, wind-up, attack, guard, dodge; Stone wears the Swift design), his 13 and 19 Nov sheets (guard, recoil, fallen, injured, Claim, Mantle, Gale Cut in three looks) and the 31 Oct drawn lunge (his plain attack: no attack sheet in the new look yet). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\").",
@@ -6266,7 +6269,7 @@
         "y": 0.0267
       }
     },
-    "portrait": "alagara_face.png",
+    "portrait": "alagara_face_neutral.png",
     "ruler": {
       "alagara_stand_f3.png": {
         "footX": 0.484
@@ -6476,6 +6479,9 @@
         "footX": 0.415
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "portraitHurt": "alagara_face_hurt.png",
+    "shout": "alagara_face_angry.png",
+    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (alagara_face_smiling.png, alagara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36."
   }
 }

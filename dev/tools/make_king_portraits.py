@@ -1,4 +1,7 @@
-"""The two kings' portraits (roadmap 10.36): head and shoulders cut from their neutral sheets.
+"""SUPERSEDED 21 Nov (6.87): the kings' faces now come from Suleiman's expression sheets (dev/tools/make_expressions.py).
+Kept only as the record of how the 10.36 stand-ins were made; running it would overwrite art.json's portraits.
+
+The two kings' portraits (roadmap 10.36): head and shoulders cut from their neutral sheets.
 
   ~/.fabien-tools/venv/bin/python -I dev/tools/make_king_portraits.py [work folder]
 
