@@ -164,7 +164,8 @@
       "gadara_strike": 1.0,
       "gadara_sunder_slash": 1.0,
       "gadara_unleash": 1.0,
-      "gadara_weak": 1.0
+      "gadara_weak": 1.0,
+      "gadara_victory": 1.0
     },
     "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
   },
@@ -197,7 +198,8 @@
       "alagara_fury_dodge": 1.0,
       "alagara_swift_ready": 1.0,
       "alagara_swift_guard": 1.0,
-      "alagara_swift_dodge": 1.0
+      "alagara_swift_dodge": 1.0,
+      "alagara_victory": 1.0
     },
     "note": "Both kings are sized at the cut (dev/tools/make_kings.py: head-matched per sheet, hand sizes where the head finder fails); every family pinned at 1.0, checked by eye on a sheet."
   },

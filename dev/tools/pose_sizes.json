@@ -447,6 +447,11 @@
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
     "h": 0.607
+   },
+   "gadara_victory": {
+    "size": 1.0,
+    "why": "21 Nov, next to standing at the size drawn: head and feet",
+    "h": 0.896
    }
   },
   "h5": {
@@ -584,6 +589,11 @@
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
     "h": 0.834
+   },
+   "alagara_victory": {
+    "size": 1.0,
+    "why": "21 Nov, next to standing at the size drawn: head and feet",
+    "h": 0.976
    }
   }
  },

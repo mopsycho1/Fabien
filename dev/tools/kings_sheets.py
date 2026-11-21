@@ -15,6 +15,7 @@ A20 = B + "INBOX/2026-11-20b/Alagara's sheets updated/Alagara's sheets updated/"
 FURY20 = A20 + 'Algara fury form sheets/'
 SWIFT20 = A20 + 'Algara swift form sheets/'
 A21 = B + 'INBOX/2026-11-21/email/unzipped/Alagara sheet updates/Alagara sheet updates/'
+WIN21 = B + "INBOX/2026-11-21/email/unzipped/Alagara and Gadara's victory sheets/"   # 6.85
 
 # name: (file, layout)
 SHEETS = {
@@ -28,6 +29,7 @@ SHEETS = {
     'gadara_hurt':    (GAD13 + 'Gadara’s Four Hurt Reactions.png', 'row'),
     'gadara_weak':    (GAD13 + 'Gadara Injured Warrior Isometric Sprite Set.png', 'row'),
     'gadara_down':    (GAD13 + 'Defeated Gadara Isometric Turnaround.png', 'row'),
+    'gadara_victory': (WIN21 + 'Gadara’s Triumphant Four-View Turnaround.png', 'grid'),   # 21 Nov (6.85)
     'gadara_cleave_rear': (GADS + 'Heavy cleave/Rearing.png', 'grid'),
     'gadara_cleave_land': (GADS + 'Heavy cleave/Landing attack.png', 'grid'),
     'gadara_hook_reach':  (GADS + 'Snare hook/Reach.png', 'grid'),
@@ -40,6 +42,7 @@ SHEETS = {
     'alagara_strike': (ISO + 'PHOTO-2026-10-31-10-27-30.jpg', 'row'),   # the drawn lunge (no attack sheet in the new look yet)
     'alagara_ready':  (ALA + 'Four-Panel Warrior Pose Study.png', 'row'),   # injured
     'alagara_guard':  (ALA + 'Alagara’s Four-View Guarding Stance.png', 'row'),
+    'alagara_victory': (WIN21 + 'Alagara’s Triumphant Four-Angle Turnaround.png', 'grid'),   # 21 Nov (6.85)
     'alagara_dodge':  (A20 + 'Alagara dodging.png', 'row'),   # 20 Nov
     'alagara_hurt':   (ALA + 'Four Views of a Recoiling Warrior.png', 'row'),
     'alagara_down':   (ALA + 'Fallen Warrior Isometric Study Sheet.png', 'row'),

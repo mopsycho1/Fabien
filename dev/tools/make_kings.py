@@ -44,6 +44,7 @@ VIEWS = {
     'gadara_hurt': {'downLeft': 3, 'upLeft': 2},
     'gadara_weak': {'downLeft': 3, 'upLeft': 2},
     'gadara_down': {'downLeft': 1, 'upRight': 2},
+    'gadara_victory': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},   # 21 Nov (6.85)
     'gadara_cleave_rear': {'downLeft': 1, 'upLeft': 3},
     'gadara_cleave_land': {'downLeft': 1, 'upLeft': 3},
     'gadara_hook_reach': {'downLeft': 1, 'upLeft': 3},
@@ -56,6 +57,7 @@ VIEWS = {
     'alagara_strike': {'downLeft': 1, 'upRight': 3},
     'alagara_ready': {'downLeft': 1, 'downRight': 2, 'upLeft': 1},   # injured: no back view
     'alagara_guard': {'downLeft': 3, 'upLeft': 1},
+    'alagara_victory': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},   # 21 Nov (6.85); 4 faces the same way as 3
     'alagara_dodge': {'downLeft': 1, 'upRight': 3, 'upLeft': 4},   # 2 faces the same way as 1 (facing check): mirrored instead
     'alagara_hurt': {'downLeft': 3, 'upRight': 1},
     'alagara_down': {'downLeft': 3, 'upLeft': 1},
@@ -130,7 +132,9 @@ HAND_ALAGARA = {
     'alagara_swift': 1.190,         # by eye 1.10 of standing at 1.309
     'alagara_swift_guard': 0.963,   # by eye 1.05 of standing at 1.011
     'alagara_swift_dodge': 1.143,   # by eye 1.05 of standing at 1.200
-    'alagara_mantle_swift': 0.961,  # by eye 1.30 of standing at 1.250
+    'alagara_mantle_swift': 0.961,
+    'alagara_victory': 1.175,       # by eye 1.15 of standing at 1.351 (6.85)
+    'gadara_victory': 1.040,        # by eye 1.08 of standing at 1.124 (6.85)  # by eye 1.30 of standing at 1.250
 }
 HAND.update(HAND_ALAGARA)
 
@@ -193,6 +197,11 @@ def feet_x(path):
     if not len(cols): return 0.5
     return round(float((cols[0] + cols[-1]) / 2 / m.shape[1]), 3)
 
+# ONLY=gadara_victory,alagara_victory cuts just those sheets and sets just their poses (POSE_OF) in art.json: some of
+# Gadara's older sources (INBOX/2026-11-06 and 2026-11-13b) are no longer on this Mac, so he cannot be cut whole again.
+ONLY = [x for x in os.environ.get('ONLY', '').split(',') if x]
+POSE_OF = {'gadara_victory': ('e5', ['victory']), 'alagara_victory': ('h5', ['victory'])}
+
 def king(prefix):
     stand_parts, stand_files = raw(prefix + '_stand')
     pairs = [(Image.open(stand_files[i - 1]).convert('RGBA'), box) for i, box in HEADS[prefix].items()]
@@ -203,6 +212,7 @@ def king(prefix):
     sets = {}
     for sheet, views in VIEWS.items():
         if not sheet.startswith(prefix + '_'): continue
+        if ONLY and sheet not in ONLY: continue
         parts, files = raw(sheet)
         got = [find_head(Image.open(f).convert('RGBA'), model) for f in files]
         radii = [h[2] for h in got if h]
@@ -247,7 +257,7 @@ def write_gadara(art):
             'bladeAttack': g['cleave_land'], 'cleaveWindup': g['cleave_rear'], 'cleave': g['cleave_land'],
             'hookReach': g['hook_reach'], 'hookPull': g['hook_pull'], 'sunderWindup': g['cleave_rear'], 'sunder': g['sunder_slash'],
             'mask': g['mask'], 'chant': g['mask'], 'cast': g['unleash'], 'unleash': g['unleash'],
-            'hurt': g['hurt'], 'knocked': g['hurt'], 'down': g['down'],
+            'hurt': g['hurt'], 'knocked': g['hurt'], 'down': g['down'], 'victory': g['victory'],
         },
         # the mask on while Singularity charges (BattleScene's look "masked"); the blade end's own strike (look "blade")
         'buffed': {'masked': g['mask']},
@@ -271,7 +281,7 @@ def write_alagara(art):
             'ready': a['battle'], 'guard': a['guard'], 'dodge': a['dodge'], 'windup': a['battle'], 'attack': a['strike'],
             'drawn': a['battle'], 'claimReach': a['claim_reach'], 'claimSnatch': a['claim_snatch'], 'claimStore': a['claim_store'],
             'chant': a['mantle_prep'], 'cast': a['mantle_cast'], 'gale': a['gale'],
-            'hurt': a['hurt'], 'knocked': a['hurt'], 'down': a['down'],
+            'hurt': a['hurt'], 'knocked': a['hurt'], 'down': a['down'], 'victory': a['victory'],
         },
         # standing under a Verse: the form's neutral sheet (20 Nov); Stone uses the Swift design (Suleiman 20 Nov 15:36)
         'buffed': {'fury': a['fury_stand'], 'swiftness': a['swift_stand'], 'stone': a['swift_stand']},
@@ -293,6 +303,14 @@ def write_alagara(art):
 if __name__ == '__main__':
     art = json.load(open(ART))
     which = sys.argv[2:] or ['gadara', 'alagara']   # cut one king only: make_kings.py <work> alagara
+    if ONLY:
+        for prefix in sorted({x.split('_')[0] for x in ONLY}):
+            sets = king(prefix)
+            for name, got in sets.items():
+                cid, poses = POSE_OF[prefix + '_' + name]
+                for pose in poses: art[cid].setdefault('poses', {})[pose] = got
+        json.dump(art, open(ART, 'w'), indent=2, ensure_ascii=False); open(ART, 'a').write('\n')
+        print('art.json: poses set for', ONLY, file=sys.stderr); sys.exit(0)
     if 'gadara' in which:
         write_gadara(art)
     if 'alagara' in which:

@@ -4998,6 +4998,24 @@
           "file": "gadara_down_f2.png",
           "originX": 0.346
         }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "gadara_victory_f1.png",
+          "originX": 0.108
+        },
+        "upRight": {
+          "file": "gadara_victory_f2.png",
+          "originX": 0.867
+        },
+        "downLeft": {
+          "file": "gadara_victory_f3.png",
+          "originX": 0.657
+        },
+        "downRight": {
+          "file": "gadara_victory_f4.png",
+          "originX": 0.365
+        }
       }
     },
     "buffed": {
@@ -5067,99 +5085,6 @@
         "y": 0.0267
       }
     },
-    "ruler": {
-      "gadara_stand_f4.png": {
-        "footX": 0.503
-      },
-      "gadara_stand_f1.png": {
-        "footX": 0.51
-      },
-      "gadara_stand_f2.png": {
-        "footX": 0.375
-      },
-      "gadara_stand_f3.png": {
-        "footX": 0.579
-      },
-      "gadara_battle_f1.png": {
-        "footX": 0.479
-      },
-      "gadara_battle_f4.png": {
-        "footX": 0.404
-      },
-      "gadara_battle_f2.png": {
-        "footX": 0.541
-      },
-      "gadara_battle_f3.png": {
-        "footX": 0.504
-      },
-      "gadara_weak_f3.png": {
-        "footX": 0.351
-      },
-      "gadara_weak_f2.png": {
-        "footX": 0.349
-      },
-      "gadara_guard_f1.png": {
-        "footX": 0.185
-      },
-      "gadara_guard_f3.png": {
-        "footX": 0.342
-      },
-      "gadara_cleave_rear_f1.png": {
-        "footX": 0.518
-      },
-      "gadara_cleave_rear_f3.png": {
-        "footX": 0.365
-      },
-      "gadara_strike_f1.png": {
-        "footX": 0.287
-      },
-      "gadara_strike_f3.png": {
-        "footX": 0.619
-      },
-      "gadara_cleave_land_f1.png": {
-        "footX": 0.219
-      },
-      "gadara_cleave_land_f3.png": {
-        "footX": 0.483
-      },
-      "gadara_hook_reach_f1.png": {
-        "footX": 0.552
-      },
-      "gadara_hook_pull_f1.png": {
-        "footX": 0.524
-      },
-      "gadara_hook_pull_f3.png": {
-        "footX": 0.435
-      },
-      "gadara_sunder_slash_f1.png": {
-        "footX": 0.528
-      },
-      "gadara_sunder_slash_f3.png": {
-        "footX": 0.48
-      },
-      "gadara_mask_f1.png": {
-        "footX": 0.432
-      },
-      "gadara_unleash_f4.png": {
-        "footX": 0.327
-      },
-      "gadara_unleash_f3.png": {
-        "footX": 0.464
-      },
-      "gadara_hurt_f3.png": {
-        "footX": 0.288
-      },
-      "gadara_hurt_f2.png": {
-        "footX": 0.367
-      },
-      "gadara_down_f1.png": {
-        "footX": 0.498
-      },
-      "gadara_down_f2.png": {
-        "footX": 0.496
-      }
-    },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
     "portrait": "gadara_face.png",
     "weapon": {
       "gadara_stand_f4.png": [
@@ -5354,7 +5279,112 @@
         20,
         52
       ]
-    }
+    },
+    "ruler": {
+      "gadara_stand_f1.png": {
+        "footX": 0.51
+      },
+      "gadara_stand_f4.png": {
+        "footX": 0.503
+      },
+      "gadara_stand_f2.png": {
+        "footX": 0.375
+      },
+      "gadara_stand_f3.png": {
+        "footX": 0.579
+      },
+      "gadara_battle_f1.png": {
+        "footX": 0.479
+      },
+      "gadara_battle_f4.png": {
+        "footX": 0.404
+      },
+      "gadara_battle_f2.png": {
+        "footX": 0.541
+      },
+      "gadara_battle_f3.png": {
+        "footX": 0.504
+      },
+      "gadara_weak_f3.png": {
+        "footX": 0.351
+      },
+      "gadara_weak_f2.png": {
+        "footX": 0.349
+      },
+      "gadara_guard_f1.png": {
+        "footX": 0.185
+      },
+      "gadara_guard_f3.png": {
+        "footX": 0.342
+      },
+      "gadara_cleave_rear_f1.png": {
+        "footX": 0.518
+      },
+      "gadara_cleave_rear_f3.png": {
+        "footX": 0.365
+      },
+      "gadara_strike_f1.png": {
+        "footX": 0.287
+      },
+      "gadara_strike_f3.png": {
+        "footX": 0.619
+      },
+      "gadara_cleave_land_f1.png": {
+        "footX": 0.219
+      },
+      "gadara_cleave_land_f3.png": {
+        "footX": 0.483
+      },
+      "gadara_hook_reach_f1.png": {
+        "footX": 0.552
+      },
+      "gadara_hook_pull_f1.png": {
+        "footX": 0.524
+      },
+      "gadara_hook_pull_f3.png": {
+        "footX": 0.435
+      },
+      "gadara_sunder_slash_f1.png": {
+        "footX": 0.528
+      },
+      "gadara_sunder_slash_f3.png": {
+        "footX": 0.48
+      },
+      "gadara_mask_f1.png": {
+        "footX": 0.432
+      },
+      "gadara_unleash_f4.png": {
+        "footX": 0.327
+      },
+      "gadara_unleash_f3.png": {
+        "footX": 0.464
+      },
+      "gadara_hurt_f3.png": {
+        "footX": 0.288
+      },
+      "gadara_hurt_f2.png": {
+        "footX": 0.367
+      },
+      "gadara_down_f1.png": {
+        "footX": 0.498
+      },
+      "gadara_down_f2.png": {
+        "footX": 0.496
+      },
+      "gadara_victory_f1.png": {
+        "footX": 0.276
+      },
+      "gadara_victory_f2.png": {
+        "footX": 0.709
+      },
+      "gadara_victory_f3.png": {
+        "footX": 0.469
+      },
+      "gadara_victory_f4.png": {
+        "footX": 0.524
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74, 6.83 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 21 Nov sheets (neutral with the gold fastenings, the saber battle stance), his 20 Nov sheets (dodge; Fury and Swift forms: neutral, battle stance, wind-up, attack, guard, dodge; Stone wears the Swift design), his 13 and 19 Nov sheets (guard, recoil, fallen, injured, Claim, Mantle, Gale Cut in three looks) and the 31 Oct drawn lunge (his plain attack: no attack sheet in the new look yet). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\").",
@@ -5587,6 +5617,20 @@
         "upLeft": {
           "file": "alagara_down_f1.png",
           "originX": 0.641
+        }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "alagara_victory_f1.png",
+          "originX": 0.46
+        },
+        "upRight": {
+          "file": "alagara_victory_f2.png",
+          "originX": 0.544
+        },
+        "downLeft": {
+          "file": "alagara_victory_f3.png",
+          "originX": 0.458
         }
       }
     },
@@ -6054,6 +6098,15 @@
       },
       "alagara_down_f1.png": {
         "footX": 0.524
+      },
+      "alagara_victory_f1.png": {
+        "footX": 0.411
+      },
+      "alagara_victory_f2.png": {
+        "footX": 0.608
+      },
+      "alagara_victory_f3.png": {
+        "footX": 0.515
       },
       "alagara_fury_stand_f1.png": {
         "footX": 0.613

@@ -5177,6 +5177,28 @@ export default class BattleScene extends Phaser.Scene {
     framePanel(resultFrame, px, py, pw, ph, this.lay.px, { alpha: 0.85 });
     // the word sweeps in from the side, over a streak of light
     const streak = add(this.add.rectangle(-W, py + K(96), W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
+    // the champion strikes his victory pose on the result screen itself (6.85: the kings' triumph sheets; the board
+    // pose behind the panel is hidden by it). A king standing on the winning side first, else the first survivor
+    // with a victory picture. On a tall screen he stands on the panel's top edge, on a wide one beside the panel.
+    this.resultChampion = null;
+    const champs = this.units.filter((u) => u.alive && u.side === (won ? 'hero' : 'enemy') && poseFrame(u.id, 'victory', 'right'));
+    const champ = champs.find((u) => u.id === 'h5' || u.id === 'e5') || champs[0];
+    if (champ) {
+      const fr = poseFrame(champ.id, 'victory', 'right', 'downRight');
+      const tex = this.textures.exists(fr.key) ? this.textures.get(fr.key).getSourceImage() : null;
+      if (tex) {
+        const above = py >= 130, beside = !above && (W - pw) / 2 >= 170;
+        const tall = above ? Math.min(py - 14, 230) : Math.min(ph * 0.55, 300);
+        if (above || beside) {
+          const fx = above ? W / 2 : px - Math.min(110, (W - pw) / 4), fy = above ? py + 8 : py + ph * 0.62;
+          const fig = add(this.add.image(fx, fy, fr.key).setOrigin(fr.originX, fr.originY || 1).setFlipX(!!fr.flip).setDepth(302.5).setAlpha(0));
+          fig.setScale(tall / tex.height);
+          fig.y += 14;
+          this.tweens.add({ targets: fig, alpha: 1, y: fy, duration: 380, delay: 200, ease: 'Back.easeOut' });
+          this.resultChampion = { unit: champ, image: fig, key: fr.key, place: above ? 'above' : 'beside' };
+        }
+      }
+    }
     const title = add(this.add.text(-W / 2, py + K(96), won ? 'Victory' : 'Defeat', textStyle(K(96), won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
     this.tweens.add({ targets: title, x: W / 2, duration: 320, ease: 'Cubic.easeOut' });
     this.tweens.add({ targets: streak, x: W * 1.6, duration: 520, ease: 'Cubic.easeOut', onComplete: () => streak.setVisible(false) });
