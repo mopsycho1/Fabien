@@ -453,7 +453,20 @@ export const kingMethods = {
       }
       if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(140, () => this.knockBack(target, pushed, dx, { text: 'Rent!', color: spell.color }));
     }, { lead: 300 });
-    this.kingFinish(onDone, 1300);
+    // 10.39 (Suleiman 20 Nov: "whenever they're engaging with the kings nothing comes up"): a clash that Drawn Blade locks
+    // used to show only the words "Locked in!", while a clash started with Engage opens with the two banners (and
+    // Gaha's and the Bull's GIF). Now the same opening plays once the blow has landed.
+    if (locked && target.alive) {
+      this.time.delayedCall(1000, () => {
+        if (this.battleOver || !caster.alive || !target.alive || caster.engagedWith !== target) return this.kingFinish(onDone, 300);
+        this.beginCinematic();
+        play('drum');
+        this.clashBanner(caster, target, () => {
+          this.endCinematic();
+          this.kingFinish(onDone, 400);
+        });
+      });
+    } else this.kingFinish(onDone, 1300);
   },
 
   // ---------- Alagara: Claim ----------

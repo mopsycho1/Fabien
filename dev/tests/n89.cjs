@@ -72,7 +72,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the mask comes off after it resolves', !/gadara_mask/.test(g.sprite.texture.key), g.sprite.texture.key);
   check('the far foe is pulled next to him', Math.abs(foes[0].col - g.col) + Math.abs(foes[0].row - g.row) === 1, at[0] + ' -> ' + foes[0].col + ',' + foes[0].row);
   check('...and is Off-Balance', St.isOffBalance(foes[0]));
-  check('the foe behind slams into the one in front: 2 damage', hp[2] - foes[2].hp === 2, hp[2] + ' -> ' + foes[2].hp);
+  /* 1.80: every foe still standing also takes the Singularity blow (1.5 times a normal hit, a sure hit), so the one that slammed lost 2 plus that */
+  const combat = require('./combat-bundle.cjs'); const blow = Math.max(1, Math.round(combat.getDamage(g, foes[2]) * 1.5));
+  check('the foe behind slams into the one in front: 2 damage, then the Singularity blow', hp[2] - foes[2].hp === 2 + blow || foes[2].hp === 0, hp[2] + ' -> ' + foes[2].hp + ' (2 + ' + blow + ')');
   check('...and is Disoriented', !!(foes[2].status.disoriented || (St.isDisoriented && St.isDisoriented(foes[2]))), JSON.stringify(foes[2].status).slice(0, 120));
   check('the pulls are drawn (knockbacks)', knocks.length >= 1, knocks.join(' '));
   check('the Umbra vortex is shown', made.some((k) => k.includes('umbra_vortex')), made.filter((k) => k.includes('umbra')).slice(0, 3).join(','));
