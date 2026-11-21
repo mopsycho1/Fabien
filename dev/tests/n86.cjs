@@ -168,7 +168,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.placeUnit(h3, 7, 5);           // 2 to the right, in front of h2: h2 slams into h3
   const far = heroes[3]; if (far) b.placeUnit(far, 1, 5); // 4 to the left: out of reach
   const friend = enemies[0]; b.placeUnit(friend, 5, 3);   // his ally, 2 above: never pulled
-  const hpH2 = h2.hp;
+  const hpH2 = h2.hp, hpH1 = h1.hp, hpH3 = h3.hp;
+  const combat = require('./combat-bundle.cjs'); /* 1.80: the blow that cannot miss */
+  const blowOn = (f) => Math.max(1, Math.round(combat.getDamage(g, f) * 1.5));
   St.startCooldown(g, 'singularity');
   await waitDone((d) => b.castKingSkill(g, g, 'singularity', d));
   check('casting: the mask goes on (channel), his turn is spent', !!g.channel && g.hasMoved && g.stepsUsed === Infinity);
@@ -178,7 +180,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('resolves: a foe 3 tiles away is dragged next to him', h1.col === 5 && h1.row === 6, h1.col + ',' + h1.row);
   check('...and is Off-Balance', St.isOffBalance(h1));
   check('the nearer foe is dragged next to him too', h3.col === 6 && h3.row === 5, h3.col + ',' + h3.row);
-  check('the one behind slams into it: 2 damage and Disoriented', h2.hp === hpH2 - 2 && St.isDisoriented(h2), (hpH2 - h2.hp) + ' dmg, at ' + h2.col + ',' + h2.row);
+  check('the one behind slams into it: 2 damage and Disoriented', St.isDisoriented(h2) && hpH2 - h2.hp >= 2, (hpH2 - h2.hp) + ' dmg, at ' + h2.col + ',' + h2.row);
+  const expH1 = blowOn(h1), expH3 = blowOn(h3); /* worked out on the state after the pull: a foe dragged next to him is Off-Balance (defense -2) when the blow lands */
+  check('1.80 Singularity pays: every foe still standing takes 1.5 times a normal blow, a sure hit (' + expH1 + ' and ' + expH3 + ')', hpH1 - h1.hp === expH1 && hpH3 - h3.hp === expH3 && expH1 >= 5, 'h1 -' + (hpH1 - h1.hp) + ', h3 -' + (hpH3 - h3.hp));
+  check('1.80 the one that slammed took the blow as well as the 2 for the slam', hpH2 - h2.hp === 2 + blowOn(h2) || h2.hp === 0, (hpH2 - h2.hp) + ' (blow ' + blowOn(h2) + ')');
   if (far) check('a foe 4 tiles away is not pulled', far.col === 1 && far.row === 5);
   check('his ally is not moved', friend.col === 5 && friend.row === 3);
   check('after: Exposed (defense -2, evade -10), gauge 0, used', St.statMod(g, 'defense') <= -2 && St.statMod(g, 'evade') <= -10 && g.mask === 0 && g.singularityUsed && !g.channel);

@@ -383,7 +383,11 @@ export const kingMethods = {
       const pulled = distance(f, caster) > 1 ? this.pullLoser(f, caster, G.singularity.pull, { exposeNear: true }) : { from: before, path: [], fall: null };
       if (f.engagedWith && distance(f, f.engagedWith) > 1) endDuel(f);
       if (f.alive && distance(f, caster) === 1) applyOffBalance(f);
-      pulls.push({ f, pulled });
+      // 1.80 (Suleiman 21 Nov: "Singularity should do damage, the pay off needs to be worth the wait"): every foe that
+      // is still standing when the pull ends takes a blow that cannot miss (the pull is no attack roll), kings.json
+      // singularity.damageShare times a normal blow, on top of any slam or fall
+      const blow = f.alive ? this.kingStrike(caster, f, { share: G.singularity.damageShare, sure: true }) : null;
+      pulls.push({ f, pulled, blow });
     }
     caster.mask = 0;
     caster.singularityUsed = true;
@@ -398,8 +402,10 @@ export const kingMethods = {
     screenShake(this, 0.01, 420);
     this.floatText(caster, 'Singularity', spells.singularity.color, { pop: true });
     this.time.delayedCall(420, () => {
-      for (const { f, pulled } of pulls) {
+      for (const { f, pulled, blow } of pulls) {
         if (pulled.path.length || pulled.fall) this.knockBack(f, pulled, caster.view.x - f.view.x, { text: pulled.fall && pulled.fall.slam ? 'Crushed in!' : 'Pulled!', color: '#c9a8ff' });
+        // the blow lands as the foe arrives (1.80)
+        if (blow && blow.hit) this.time.delayedCall(pulled.path.length || pulled.fall ? 700 : 150, () => this.showImpact(caster, f, blow, f.view.x - caster.view.x, f.hp === 0));
         if (f.alive && isOffBalance(f)) this.time.delayedCall(500, () => f.alive && this.floatText(f, 'Off-Balance', '#ff6b5a', { rise: 60 }));
       }
     });
