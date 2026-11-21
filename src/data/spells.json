@@ -619,7 +619,7 @@
     "cooldown": 3,
     "mp": 0,
     "use": "both",
-    "text": "Take one blessing from the unit next to him, ally or foe (a Verse or an Enchanted weapon): it leaves them and is his for 2 turns. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
+    "text": "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
   },
   "mantle": {
     "name": "Mantle",

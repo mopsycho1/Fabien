@@ -103,6 +103,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   if (a.engagedWith) E.endDuel(a);
 
   // 5. Claim: a blessing from the unit next to him, ally or foe
+  let hpOf = 0;
   park();
   b.placeUnit(bull, 5, 6); St.applyBuff(bull, 'fury');
   check('Claim is aimed at a blessed unit next to him', b.kingTargets(a, 'claim').includes(bull));
@@ -117,6 +118,17 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.placeUnit(rab, 5, 6); rab.status.enchant = { damage: 2, turnsLeft: 3 };
   await waitDone((d) => b.castKingSkill(a, rab, 'claim', d));
   check('...an Enchanted weapon too', !rab.status.enchant && a.status.enchant && a.status.enchant.turnsLeft === 2);
+  // 10.41 (21 Nov): Bloodied stacks too ("if an enemy has a buff, like Bloodied, Alagara takes it for himself")
+  park(); a.fury = 0; a.borrowedFury = 0; hpOf = a.hp;
+  b.placeUnit(bull, 5, 6); bull.fury = 3;
+  check('10.41 Claim can be aimed at a fighter who has only Bloodied stacks', b.kingTargets(a, 'claim').includes(bull));
+  await waitDone((d) => b.castKingSkill(a, bull, 'claim', d));
+  check('10.41 the Bloodied stacks leave the Bull and are his for 2 turns', bull.fury === 0 && a.fury === 3 && a.borrowedFury === 2, 'bull ' + bull.fury + ', him ' + a.fury + '/' + a.borrowedFury);
+  const hit = b.landHit(a, 8);
+  check('10.41 while he has them each hit on him loses a point per stack (8 becomes 5)', hit.damage === 5 && /Bloodied -3/.test(hit.note || ''), JSON.stringify(hit));
+  a.fury = 0; a.borrowedFury = 0;
+  const plain = b.landHit(a, 8);
+  check('10.41 without them a hit is a plain 8', plain.damage === 8, plain.damage);
 
   // 6. Mantle: his Active Verse at half strength on allies beside him, for their next turn
   park();

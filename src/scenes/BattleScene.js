@@ -33,7 +33,7 @@ import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // sk
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
 import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, decisiveBurst, fxEmitter } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
-import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep } from '../signature.js';
+import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { kingMethods, KING_KINDS, KING_SELF_KINDS } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
@@ -2168,6 +2168,7 @@ export default class BattleScene extends Phaser.Scene {
       else dryOff(this.activeUnit);
     }
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
+    tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
     if (!this.activeUnit.engagedWith && this.activeUnit.alive) this.showStanding(this.activeUnit); // a Verse may have worn off
     // an echo she did not use fades away (a decoy made THIS turn stays, to fool the enemy)
     if (this.decoys.some((d) => d.owner === this.activeUnit && d.woken)) this.removeDecoys(this.activeUnit);

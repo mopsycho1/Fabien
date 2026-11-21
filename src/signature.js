@@ -54,7 +54,20 @@ export function takeHit(unit, damage) {
     }
     unit.fury = Math.min(S.bloodied.maxStacks, stacks + 1); // the pain adds a stack
   }
+  // Bloodied stacks Alagara has taken with Claim (10.41): a point off every hit for each stack, no new stacks
+  if (!sig && unit.borrowedFury > 0 && (unit.fury || 0) > 0 && damage > 1) {
+    const cut = Math.min(unit.fury * S.bloodied.reducePerStack, damage - 1);
+    damage -= cut;
+    note = 'Bloodied -' + cut;
+  }
   return { damage, note };
+}
+
+// At the start of the unit's turn the borrowed Bloodied stacks run down, and go when the turns are used (10.41).
+export function tickBorrowed(unit) {
+  if (!unit.borrowedFury) return;
+  unit.borrowedFury -= 1;
+  if (unit.borrowedFury <= 0) { unit.borrowedFury = 0; unit.fury = 0; }
 }
 
 // Everything a signature does when a beat is decided. Changes Poise, health

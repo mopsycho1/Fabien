@@ -29,7 +29,7 @@ export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singular
 export const KING_SELF_KINDS = ['singularity', 'mantle'];
 const isKingSkill = (id) => !!spells[id] && KING_KINDS.includes(spells[id].kind);
 const foeOf = (a, b) => b && a && b.alive && !b.isDecoy && b.side !== a.side;
-const hasBlessing = (u) => !!(u && u.status && ((u.status.buff && spells[u.status.buff.id] && spells[u.status.buff.id].kind === 'buff') || u.status.enchant));
+const hasBlessing = (u) => !!(u && ((u.status && ((u.status.buff && spells[u.status.buff.id] && spells[u.status.buff.id].kind === 'buff') || u.status.enchant)) || u.fury > 0)); // a Verse, an Enchanted weapon or Bloodied stacks (10.41)
 const straight = (a, b) => a.col === b.col || a.row === b.row;
 
 // The Gale Cut GIF for Alagara's form now: Fury's flame cut, Swiftness's wind cut, else the gold one (no Stone art yet).
@@ -484,6 +484,14 @@ export const kingMethods = {
       taken = 'enchant';
       caster.status.enchant = { ...target.status.enchant, turnsLeft: spell.turns };
       target.status.enchant = null;
+    } else if (target.fury > 0) {
+      // 10.41 (Suleiman 21 Nov): Claim also takes what makes another fighter special. Bloodied stacks (the Bull's pain
+      // that toughens him) leave the foe and are Alagara's for 2 turns: while he has them every hit on him is cut by
+      // a point per stack (signature.js takeHit, "borrowedFury"), in a clash or not, and they show on his card.
+      taken = 'bloodied';
+      caster.fury = Math.max(caster.fury || 0, target.fury);
+      caster.borrowedFury = spell.turns;
+      target.fury = 0;
     }
     const dx = target.view.x - caster.view.x;
     this.faceToward(caster, dx, target.view.y - caster.view.y);
@@ -496,7 +504,7 @@ export const kingMethods = {
       if (this.hasPose(caster, 'claimStore')) this.showPose(caster, 'claimStore', dx);
       sfxAt(this, 'claim_absorb', c.x, c.y, { depth: caster.view.depth + 2 });
       play('spell');
-      const name = taken === 'enchant' ? 'Enchant' : taken ? spells[taken].effect || spells[taken].button : null;
+      const name = taken === 'enchant' ? 'Enchant' : taken === 'bloodied' ? 'Bloodied' : taken ? spells[taken].effect || spells[taken].button : null;
       this.floatText(caster, name ? 'Claimed: ' + name : 'Nothing to claim', spell.color, { pop: true });
       this.refreshStatusTags();
       this.showStanding(target);
