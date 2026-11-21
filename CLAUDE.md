@@ -81,6 +81,7 @@ A Final Fantasy Tactics style tactics RPG in the browser. Baiyee (IT background,
 - An enemy that has acted may walk again with its leftover steps (13.53). A test that needs it to stay put sets `b.enemySecondWalk = false`.
 - The HTML HUD (18.44): a press on an HTML panel must stop there (domHud stops touchstart and mousedown), or Phaser reads it as a tap outside the canvas and cancels the choice. A new HUD part: build it in BattleScene as before, mark it with dom(), give the overlay a sync function that reads it. Board hover checks `domHud.overPanel`. A new font weight must be added to the list domHud loads at the start.
 - With `b.setSpeed` above 1, `knockUntil` still waits in real milliseconds (the scene clock is not scaled): tests wait on `unit.knock`, and M11's fast speed must scale it.
+- Never use `git stash` or `git stash pop` in this repo (21 Nov: a `stash pop` with nothing to stash popped an old stash and left conflict markers in six files). To compare with the old build, use `git worktree add` or a fresh clone in the scratchpad.
 
 ## Suleiman's files (inbox)
 - Originals go in Baiyee's "Fabien Blueprint" folder. New WhatsApp batches: export the chat with media into Fabien Blueprint/INBOX/<date>/.

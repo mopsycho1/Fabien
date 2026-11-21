@@ -50,7 +50,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // UI rework 16 Nov: the menu has no fixed home any more; it stands beside the hero (his mock-up)
   check('D5 (rework): every hero, main menu and skills list, in two corners of the board: the menu stands somewhere on the screen each time', seen.size >= 1 && [...seen].every((c) => { const [x, y] = c.split(',').map(Number); return x <= b.lay.W && y <= b.lay.H; }), [...seen].join(' | '));
   check('the menu stays above the card', b.menu.y + b.menuSize.h <= b.cardTop);
-  check('rows are slim like his (26 to 32 design px) and each touch band is its whole row (18.35)', b.lay.rowH >= 26 * b.lay.px && b.lay.rowH <= 32 * b.lay.px && b.menuRows.every((r) => r.hit.height >= r.h), b.lay.rowH + ' ' + b.lay.minTap);
+  check('rows look slim like his (26 to 32 design px; 18.50: on a phone the band, rowH, is 40 real px) and each touch band is its whole row (18.35)', b.lay.visRowH >= 26 * b.lay.px && b.lay.visRowH <= 32 * b.lay.px && b.lay.rowH >= b.lay.visRowH && b.menuRows.every((r) => r.hit.height >= r.h), b.lay.visRowH + ' ' + b.lay.rowH + ' ' + b.lay.minTap);
 
   // ---------- the top strip ----------
   const all = []; const walk = (o) => { if (o.type === 'Text') all.push(o.text); if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk);

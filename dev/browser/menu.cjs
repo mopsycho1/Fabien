@@ -1,19 +1,7 @@
 // The menu stepping aside (roadmap 8.9), in a real browser on a laptop-sized screen.
-const { chromium } = require('playwright');
+const { openBattle } = require('./lib/play.cjs'); // (20 Nov: the character select now comes first; the helper goes past it and waits for the battle)
 (async () => {
-  const browser = await chromium.launch();
-  const page = await (await browser.newContext({ viewport: { width: 1440, height: 860 } })).newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto('http://localhost:4173/', { waitUntil: 'load' });
-  await page.waitForTimeout(3000);
-  const box = await page.locator('canvas').boundingBox();
-  for (let i = 0; i < 90; i++) {
-    await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.75);
-    await page.waitForTimeout(200);
-    if (await page.evaluate(() => window.__game.scene.isActive('BattleScene'))) break;
-  }
-  await page.waitForTimeout(2500);
+  const { browser, page, errors } = await openBattle('desktop');
   await page.evaluate(() => {
     const b = window.__game.scene.getScene('BattleScene');
     const U = (l) => b.units.find((u) => u.label === l);
@@ -32,4 +20,6 @@ const { chromium } = require('playwright');
   await page.screenshot({ path: process.argv[2] + '/menu_2.png' });
   console.log(JSON.stringify(errors.slice(0, 3)));
   await browser.close();
+  console.log(errors.length ? 'FAILED' : 'ALL PASSED (pictures menu_1.png and menu_2.png)');
+  process.exit(errors.length ? 1 : 0);
 })();

@@ -40,6 +40,7 @@ settings_for() {
     n50|n51) echo "FABIEN_BENCH=" ;;
     n86|n87|n89|n90|n93|n94) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # the two kings (Phase 10)
     n95) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 FABIEN_SIDES={"e5":"hero"}' ;; # Gadara on the heroes' side (10.38); no quotes round the JSON: the word splitting would keep them
+    n98) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_SIDES={"h4":"enemy"}' ;; # Kofi on the enemy side (1.78)
     n62) echo "FABIEN_MAP=cavern" ;; # the map's own line-up: 4 against 4
   esac
 }
