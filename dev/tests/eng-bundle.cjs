@@ -919,11 +919,13 @@ var spells_default = {
     short: "GALE",
     kind: "gale",
     color: "#e8f2ff",
-    damageShare: 0.8,
+    damageShare: 1,
+    bonusPerStep: 1,
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    text: "In any form. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes 0.8 of his damage, rolled on its own), and stops on the first free tile past the last one. Uses his move. Ready again after 3 turns."
+    note: "10.48 (Suleiman 21 Nov): a bit more base damage (0.8 of a blow became 1, a full blow) and the movement left adds damage like Gaha's Lunge: +1 for each step he has not used yet when he cuts (up to +4 with his Move of 4).",
+    text: "In any form. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes a full blow, rolled on its own, +1 for each step of movement he has left), and stops on the first free tile past the last one. Walk first and the cut is weaker. Uses his move. Ready again after 3 turns."
   },
   rendingDraw: {
     name: "Rending Draw",

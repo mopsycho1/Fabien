@@ -2529,6 +2529,12 @@ export default class BattleScene extends Phaser.Scene {
         : canBeCaught(t) ? 'locked in a clash with you' + (ally ? ', and ' + ally.name + ' is free' : '')
         : 'too slippery to lock in a clash';
       text = sp.button + ' at ' + t.name + ': ' + this.skillHit(unit, t, sp) + ' damage, ' + what + '.' + (sp.verse ? ' Uses ' + sp.mp + ' MP.' : '') + '\nTap again to charge.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'gale') {
+      // Gale Cut (10.48): how many it cuts and the damage, with the bonus for the steps he has left
+      const sp = spells[this.selectedSpell], t = this.pendingTarget;
+      const plan = this.galePlan(unit, t), bonus = this.galeBonus(unit);
+      const each = plan.hits.map((f) => Math.max(1, Math.round(getDamage(unit, f) * sp.damageShare) + bonus));
+      text = sp.button + ': dash ' + plan.tiles.length + ' tile' + (plan.tiles.length === 1 ? '' : 's') + ' through ' + plan.hits.length + ' foe' + (plan.hits.length === 1 ? '' : 's') + ', ' + each.join(', ') + ' damage' + (bonus ? ' (+' + bonus + ' for steps left)' : '') + '.\nTap again to cut.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'lunge') {
       const t = this.pendingTarget;
       const sp = spells[this.selectedSpell];

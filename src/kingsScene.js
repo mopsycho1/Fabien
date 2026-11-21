@@ -647,13 +647,22 @@ export const kingMethods = {
     return out;
   },
 
+  // Gale Cut's extra damage: his steps left now times bonusPerStep (10.48).
+  galeBonus(unit) {
+    return Math.max(0, this.stepsLeft(unit)) * (spells.galeCut.bonusPerStep || 0);
+  },
+
   // Gale Cut (10.34, Suleiman 20 Nov): in every form, not only under Swiftness. A slash across a distance: he dashes
   // along the line and cuts every foe on it. The Gale Cut GIF of his form (Fury's flame, Swift's wind, else the
   // gold one; Stone has no art yet) is laid on every tile of the path, each one as he passes it.
   castGaleCut(caster, target, spell, onDone, power) {
     const plan = this.galePlan(caster, target);
     if (!plan.land) return onDone();
-    const results = plan.hits.map((f) => ({ f, r: this.kingStrike(caster, f, { share: spell.damageShare * power }) }));
+    // 10.48 (Suleiman 21 Nov): the movement he has left when he cuts adds damage, like Gaha's Lunge: +1 a step
+    // (spells.json galeCut bonusPerStep). Walking first makes the cut weaker.
+    const bonus = this.galeBonus(caster);
+    const results = plan.hits.map((f) => ({ f, r: this.kingStrike(caster, f, { share: spell.damageShare * power, bonus }) }));
+    if (bonus > 0) this.floatText(caster, 'Gale +' + bonus, spell.color, { rise: 46 });
     const from = { col: caster.col, row: caster.row };
     const start = { x: caster.view.x, y: caster.view.y };
     caster.col = plan.land.col;
