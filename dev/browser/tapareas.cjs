@@ -18,7 +18,7 @@ const { openBattle } = require('./lib/play.cjs');
       const rows = await rowsNow(page);
       const least = Math.min(...rows.map((r) => r.h));
       if (view === 'phone') check('phone: every menu row is at least 40 real pixels tall (its tap area)', rows.length >= 4 && least >= 39.5, rows.map((r) => r.word + ' ' + r.h.toFixed(1)).join(', '));
-      else check('desktop: the rows keep their slim size (unchanged, mouse)', least >= 21 && least < 36, least.toFixed(1));
+      else check('desktop: the rows are the HUD\'s own size (21 Nov: the desktop HUD scaled up, rows about 39 real pixels, easy to read)', least >= 30 && least < 52, least.toFixed(1));
       const lit = rows.filter((r) => r.litH !== null);
       if (lit.length) check(view + ': the lit row\'s gold band stays slim (under 26 px, and shorter than its band on a phone)', lit.every((r) => r.litH < 26 && (view !== 'phone' || r.litH < r.h)), lit.map((r) => r.word + ' band ' + r.litH.toFixed(1) + ' of ' + r.h.toFixed(1)).join(', '));
       // a real tap near the top and near the bottom of a row reaches that row

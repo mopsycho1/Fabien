@@ -96,7 +96,7 @@ const CSS = `
 #fabien-hud .stripline { position: absolute; height: 1px; background: linear-gradient(90deg, rgba(201,163,90,0.7), rgba(201,163,90,0.35) 80%, rgba(201,163,90,0)); }
 
 /* the diamond list down the left */
-#fabien-hud .dmd { position: absolute; transform: translate(-50%, -50%); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+#fabien-hud .dmd { position: absolute; transform: translate(-50%, -50%); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); opacity: 0.5; transition: opacity 0.2s; } #fabien-hud .dmd:hover, #fabien-hud .dmd.now { opacity: 1; } /* subtle until the mouse is on one or it is its turn (21 Nov) */
 #fabien-hud .dmd .in { position: absolute; inset: calc(var(--u) * 1.6); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
 #fabien-hud .dmd.hero { background: #5fc2b8; } #fabien-hud .dmd.hero .in { background: #2e5f5b; }
 #fabien-hud .dmd.enemy { background: #d8604a; } #fabien-hud .dmd.enemy .in { background: #6e2e22; }
@@ -460,6 +460,17 @@ export class DomHud {
     if (!on) return;
     this.box(this.tipBox, t.x, t.y, t.tipW);
     this.html('tip', this.tipBox, t.tip.title + '|' + t.tip.body, () => CORNERS + '<div style="font-size:var(--f-name);color:#ffe08a;font-weight:700;margin-bottom:calc(var(--u)*3)">' + esc(t.tip.title) + '</div><div style="font-size:var(--f-small);line-height:1.3">' + esc(t.tip.body).replace(/\n/g, '<br>') + '</div>');
+    // (21 Nov) the HTML tip is taller than the canvas one the game placed, so measure it: never over the menu or the list beside it
+    const r = this.tipBox.getBoundingClientRect();
+    const rects = [this.menu, this.side].filter((e) => e.getClientRects().length).map((e) => e.getBoundingClientRect());
+    if (rects.length) {
+      const m = { left: Math.min(...rects.map((q) => q.left)), right: Math.max(...rects.map((q) => q.right)), top: Math.min(...rects.map((q) => q.top)), bottom: Math.max(...rects.map((q) => q.bottom)) };
+      if (r.left < m.right && r.right > m.left && r.top < m.bottom && r.bottom > m.top) {
+        const root = this.root.getBoundingClientRect(), gap = 8;
+        const x = m.left - r.width - gap >= root.left ? m.left - r.width - gap : Math.min(root.right - r.width, m.right + gap);
+        this.tipBox.style.left = Math.round(x - root.left) + 'px';
+      }
+    }
   }
 
   // Top left: the title and the turn strip (as BattleScene.refreshTurnStrip lays them out)

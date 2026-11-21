@@ -464,7 +464,9 @@ export default class BattleScene extends Phaser.Scene {
     // 20 Nov, polish pass (Baiyee, from Suleiman's mock-ups): the whole HUD at 55 to 60 percent of what it was
     // (HUD_K: 0.64 on an upright phone, 0.58 on a wide screen), so the board has the screen. Panels shrink by that;
     // the LETTERS do not shrink with them: they stop at a floor, 10.5 real pixels on a phone, 11.5 on a desktop.
-    const HUD_K = portrait ? 0.64 : 0.58;
+    // 21 Nov (Baiyee, from his mock-up): a wide screen takes the HUD up again to his proportions: the card is about 4.5 percent of the
+    // screen's area, as in his phone mock-up (about 25 percent of the width, 19 percent of the height at 1440 x 900), the menu words are easy to read.
+    const HUD_K = portrait ? 0.64 : 1.0;
     const f = (css) => Math.round(css / real); // real (page) pixels to game pixels
     const pxK = portrait ? HUD_K / real : HUD_K * Math.max(1 / real, (W * 0.25) / CARD_ROOMY.w);
     // the letters: a floor in real pixels (the panels were drawn for 12 design pixels of small text)
@@ -490,7 +492,7 @@ export default class BattleScene extends Phaser.Scene {
     const b = this.boardBounds();
     // the top bar (his mock-up): the title, then the turn strip of round faces, a thin line under it
     const titleSize = F.small;
-    const stripR = Math.round((portrait ? 26 : 26) * px); // the medal of the one acting (18.44: bigger, as his)
+    const stripR = Math.round((portrait ? 26 : 20) * px); // (a wide screen: his strip is about 5 percent of the height) // the medal of the one acting (18.44: bigger, as his)
     this.lay.titleSize = titleSize;
     this.lay.stripR = stripR;
     this.lay.stripY = m + Math.round(18 * px) + Math.round(4 * px) + stripR;
@@ -2274,7 +2276,7 @@ export default class BattleScene extends Phaser.Scene {
     let x = startX, viewEnd = startX + stripR + D(8);
     let lastX = x;
     lineup.forEach((unit, i) => {
-      geo.medals.push({ x, r: i === 0 ? stripR : r - 2 });
+      geo.medals.push({ x, r: i === 0 ? stripR : r }); // (the HTML faces: the one acting twice as wide as the others, about)
       const now = i === 0;
       lastX = x;
       if (i <= shown) viewEnd = x + (now ? stripR : r) + D(7); // the last face that shows ends the visible part
@@ -2334,8 +2336,8 @@ export default class BattleScene extends Phaser.Scene {
     const { m, portrait, H, px: P } = this.lay;
     if (portrait) return; // (Baiyee 16 Nov: on a phone the board needs the room; his phone mock-up has no list)
     const D = (n) => Math.round(n * P);
-    const d = D(15); // half the diamond's height (18.44: bigger)
-    const gap = D(5);
+    const d = D(10); // half the diamond's height (21 Nov: smaller and quieter, Baiyee: "make the left diamond list subtle")
+    const gap = D(4);
     const list = [...this.units.filter((u) => u.side === 'hero'), ...this.units.filter((u) => u.side !== 'hero')];
     const y0 = this.stripY + this.lay.stripR + D(16) + d;
     const x = m + d + D(2);
