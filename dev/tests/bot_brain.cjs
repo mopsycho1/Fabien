@@ -193,23 +193,44 @@ module.exports = function makeBrain(w, tally) {
         b.cancelMode();
       }
       if (!E.isMelee(u) && u.spells.length) {
+        // King Alagara (Phase 10) is weak bare and strong blessed: fill his two Verse slots. Balance pass (10.31): a good
+        // player walks over to him when he is out of reach (3 tiles), blesses him before anyone else, and gives Stone
+        // first when friends stand within 2 tiles of him (his Bulwark Shield then covers them), Fury otherwise; the
+        // second slot is the other of the two (Swiftness when he is on his own)
+        const kingAll = friends.find((f) => f.attune && !(f.status.buff && f.attune.echo) && dist(u, f) <= 3 + St.moveOf(u));
+        if (kingAll && u.mp >= 3 && !u.hasActed) {
+          if (dist(u, kingAll) > 3 && b.stepsLeft(u) > 0) {
+            const spots = standTiles().filter((t) => dist(t, kingAll) <= 3).sort((p, q) => nearFoe(q) - nearFoe(p));
+            if (spots.length && nearFoe(spots[0]) >= 2) await walkTo(spots[0].col, spots[0].row);
+          }
+          const king = dist(u, kingAll) <= 3 ? kingAll : null;
+          if (king) {
+            const have = [king.status.buff && king.status.buff.id, king.attune.echo && king.attune.echo.id];
+            const huddle = friends.some((f) => f !== king && dist(f, king) <= 2);
+            const first = huddle ? 'stone' : 'fury', second = huddle ? 'fury' : 'swiftness';
+            const id = u.spells.includes('infuse') ? 'infuse' : !have.includes(first) ? first : !have.includes(second) ? second : 'swiftness';
+            if (u.spells.includes(id) && await cast(id, king)) { note('bot bless king'); await stepBack(); return; }
+          }
+        }
         // a friend in a clash gets the Verse that helps the stance they fight with
         const inClash = friends.find((f) => f !== u && f.engagedWith && !St.buffOf(f) && dist(u, f) <= 3);
         if (inClash) {
           const id = u.spells.includes('infuse') ? 'infuse' : E.styleOf(inClash) === 'evasion' ? 'swiftness' : E.styleOf(inClash) === 'overpower' ? 'fury' : 'stone';
           if (await cast(id, inClash)) { await stepBack(); return; }
         }
-        // King Alagara (Phase 10) is weak bare and strong blessed: fill his two Verse slots (Fury, then Swiftness)
-        const king = friends.find((f) => f.attune && dist(u, f) <= 3 && !(f.status.buff && f.attune.echo));
-        if (king && u.mp >= 3) {
-          const have = [king.status.buff && king.status.buff.id, king.attune.echo && king.attune.echo.id];
-          const id = u.spells.includes('infuse') ? 'infuse' : !have.includes('fury') ? 'fury' : 'swiftness';
-          if (u.spells.includes(id) && await cast(id, king)) { note('bot bless king'); await stepBack(); return; }
-        }
         // Infuse heals too: a hurt friend in reach
         if (u.spells.includes('infuse')) {
           const hurt = friends.filter((f) => dist(u, f) <= 3 && f.hp <= f.maxHp * 0.6).sort((a, c) => a.hp - c.hp)[0];
           if (hurt && St.cooldownOf(u, 'infuse') === 0 && await cast('infuse', hurt)) { await stepBack(); return; }
+        }
+        // Swift on herself when the team is hurt (balance pass 10.31): her next turns' Attack is Healing Wind (10.50).
+        // A good player does it when one friend is at half health or two are below 70 percent, with MP for the Verse
+        // and a Wind after it
+        if (u.spells.includes('swiftness') && u.job === 'sage' && !St.buffOf(u) && u.mp >= 9 && St.cooldownOf(u, 'swiftness') === 0) {
+          const low = friends.filter((f) => dist(u, f) <= 5);
+          if (low.some((f) => f.hp <= f.maxHp * 0.5) || low.filter((f) => f.hp <= f.maxHp * 0.7).length >= 2) {
+            if ((await cast('swiftness', u)) || (await cast('swiftness', u, true))) { note('bot swift for wind'); await stepBack(); return; }
+          }
         }
         // Fury (Swiftness for Gaha: Sonic Javelin) on a fighter with a foe in front of them
         const striker = friends.filter((f) => f !== u && E.isMelee(f) && !f.engagedWith && !St.buffOf(f) && dist(u, f) <= 3 && nearFoe(f) <= 3)
