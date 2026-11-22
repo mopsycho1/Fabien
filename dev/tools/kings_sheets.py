@@ -17,6 +17,7 @@ A20 = B + "INBOX/2026-11-20b/Alagara's sheets updated/Alagara's sheets updated/"
 FURY20 = A20 + 'Algara fury form sheets/'
 SWIFT20 = A20 + 'Algara swift form sheets/'
 A21 = B + 'INBOX/2026-11-21/email/unzipped/Alagara sheet updates/Alagara sheet updates/'
+A22 = B + 'INBOX/2026-11-22/email/Alagara update/Alagara update/'   # 6.90: his true battle stance and his new attack sheet
 WIN21 = B + "INBOX/2026-11-21/email/unzipped/Alagara and Gadara's victory sheets/"   # 6.85
 
 # name: (file, layout)
@@ -40,8 +41,9 @@ SHEETS = {
     'gadara_sunder_slash': (GADS + 'Sunder boon/Slashing.png', 'grid'),
     # King Alagara (hero king, "h5")
     'alagara_stand':  (A21 + 'Alagara neutral turnaround sheet..png', 'grid'),   # 21 Nov: gold fastenings on the scarf
-    'alagara_battle': (A21 + 'Alagara’s Ornate Saber Action Sheet.png', 'grid'),   # 21 Nov: his battle stance (08:45)
-    'alagara_strike': (ISO + 'PHOTO-2026-10-31-10-27-30.jpg', 'row'),   # the drawn lunge (no attack sheet in the new look yet)
+    'alagara_battle': (A22 + 'Alagara battle stance.jpeg', 'row'),   # 22 Nov (1.96): his true battle stance, the saber sheathed
+    'alagara_windup': (A21 + 'Alagara’s Ornate Saber Action Sheet.png', 'grid'),   # 21 Nov: the saber drawn, low: his wind-up (it stood in for the battle stance until 22 Nov)
+    'alagara_strike': (A22 + 'Alagara’s Isometric Saber Action Sheet.png', 'grid'),   # 22 Nov (6.90): his attack, the saber swung wide
     'alagara_ready':  (ALA + 'Four-Panel Warrior Pose Study.png', 'row'),   # injured
     'alagara_guard':  (ALA + 'Alagara’s Four-View Guarding Stance.png', 'row'),
     'alagara_victory': (WIN21 + 'Alagara’s Triumphant Four-Angle Turnaround.png', 'grid'),   # 21 Nov (6.85)

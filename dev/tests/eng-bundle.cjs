@@ -1235,6 +1235,23 @@ var spells_default = {
     note: '1.99 (Suleiman 22 Nov 02:09: "Rend should become a fully active skill for Alagara in all his forms"): no longer tied to Fury (it was full strength under an Active Fury and 75 percent from the Echo); full strength in every form and with no Verse.',
     text: "In any form. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). Ready again after 3 turns."
   },
+  radiantRift: {
+    category: "Spells",
+    name: "Radiant Rift",
+    button: "Radiant Rift",
+    short: "RIFT",
+    kind: "rift",
+    color: "#c9a6ff",
+    range: 4,
+    power: 0,
+    spentBonus: 4,
+    unbuffedPower: 5,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "10.52 (Suleiman 22 Nov 02:26 to 02:38): a long range slash of light that deals MAGIC damage and spends whatever buff he holds for extra damage; with no magic buff it does less. Numbers picked by Claude (none given): range 4 tiles with a clear line; power = his attack (7, his blade; his own magic attack is 1) + spentBonus 4 when he spends a magic buff (his Active Verse, the Echo then takes over as when a buff is stripped, and a claimed Enchant), against the target's magic defense; with no magic buff the power is unbuffedPower 5. Against magic defense 3: 8 with a buff spent, 2 without. Cooldown 3. Effect: his Prismatic Energy Slash (6.90) round the swing and flying to the target, after his Arcane Charging Spiral.",
+    text: "A slash of light at a foe up to 4 tiles away in a clear line: magic damage. It spends his Active Verse (or a claimed Enchant) for much more damage; with no magic buff it is weak. Ready again after 3 turns."
+  },
   bulwarkShield: {
     category: "Spells",
     name: "Aegis",

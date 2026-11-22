@@ -235,12 +235,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     check('...and his Swift attack is still the attack picture', atk && /alagara_swift_f/.test(atk.key), atk && atk.key);
   }
 
-  // 11. the skills list: more than three skills go on pages (More)
+  // 11. the skills list: since 1.100 (22 Nov) his skills show by category, so the list fits on one page (no More)
   park();
   St.applyBuff(a, 'fury'); St.applyBuff(a, 'swiftness');
   b.onSpellButton();
   const labels = () => b.slots.map((s) => s.label && s.label.text).filter(Boolean);
-  check('his skills list has pages (More)', labels().some((l) => /More/.test(l)), labels().join(' | '));
+  check('1.100 his skills list fits on one page by category', !labels().some((l) => /More/.test(l)) && labels().some((l) => /Forms/.test(l)), labels().join(' | '));
   b.cancelMode();
 
   // 12. the AI (he can play on the enemy side too: the same choices)

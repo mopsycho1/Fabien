@@ -54,8 +54,10 @@ VIEWS = {
     # 20 and 21 Nov sheets (roadmap 6.83). Looked at on a numbered sheet: on nearly every new sheet
     # 1 faces up-left, 2 up-right, 3 down-left, 4 down-right; dev/tools/facing_check.py confirms the pairs.
     'alagara_stand': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
-    'alagara_battle': {'upLeft': 1, 'downRight': 2, 'downLeft': 3, 'upRight': 4},
-    'alagara_strike': {'downLeft': 1, 'upRight': 3},
+    # 22 Nov (6.90, 1.96): read off the figures with a contact sheet (backs turn their head the way they face; the saber leads)
+    'alagara_battle': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
+    'alagara_windup': {'downRight': 2, 'downLeft': 3, 'upRight': 4},   # the 21 Nov saber sheet: figure 1 shows his FACE, so it is no up-left view (22 Nov); the game mirrors up-right
+    'alagara_strike': {'upLeft': 1, 'upRight': 2, 'downLeft': 3, 'downRight': 4},
     'alagara_ready': {'downLeft': 1, 'downRight': 2, 'upLeft': 1},   # injured: no back view
     'alagara_guard': {'downLeft': 3, 'upLeft': 1},
     'alagara_victory': {'upLeft': 1, 'upRight': 2, 'downLeft': 3},   # 21 Nov (6.85); 4 faces the same way as 3
@@ -107,13 +109,12 @@ HAND = {
 # judged by the head and the sandals. The head finder reads his afro, the Fury flames and the Swift white hair badly
 # (it often lands on the trousers), so the finder's reading is noted and the size is pinned.
 HAND_ALAGARA = {
-    'alagara_battle': 0.961,        # by eye 1.10 of standing at 1.057
+    'alagara_windup': 0.961,        # by eye 1.10 of standing at 1.057 (the 21 Nov saber sheet; it was 'alagara_battle' until 22 Nov)
     'alagara_ready': 0.850,         # by eye 1.35 of standing at 1.252, then 1.10 at 0.927 (second look)
     'alagara_guard': 0.816,         # by eye 1.00 of standing at 0.816
     'alagara_dodge': 1.077,         # by eye 1.12 of standing at 1.206
     'alagara_hurt': 0.981,          # by eye 1.12 of standing at 1.098
     'alagara_down': 1.043,          # by eye 1.15 of standing at 1.200
-    'alagara_strike': 1.288,        # by eye 1.00 of standing at 1.288
     'alagara_claim_reach': 1.053,   # by eye 1.00 of standing at 1.053
     'alagara_claim_snatch': 0.993,  # by eye 1.00 of standing at 0.993
     'alagara_claim_store': 0.947,   # by eye 1.00 of standing at 0.947

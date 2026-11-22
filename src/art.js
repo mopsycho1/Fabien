@@ -67,6 +67,15 @@ export function setLookLookup(fn) {
 export function artHasLook(id, look) {
   return !!(art[id] && art[id][look] && art[id][look].battle);
 }
+// The slash arc drawn round a fighter's blow, on the frame his strike picture shows ("swingFx" in art.json, an effect name from
+// fxSlots.json spells), or null. 22 Nov (photo 1768): Alagara's attack sheet has the arc round each swing; the effect lands with it.
+export function swingFxOf(id) {
+  return (art[id] && art[id].swingFx) || null;
+}
+// True if the fighter shows a channel effect while she casts ("channelFx" in art.json: Layra, 1.97).
+export function hasChannelFx(id) {
+  return !!(art[id] && art[id].channelFx);
+}
 // True if the unit has a weak (badly hurt) stance.
 export function artHasWeak(id) {
   return !!(art[id] && art[id].weak);

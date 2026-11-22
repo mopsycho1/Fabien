@@ -9,12 +9,12 @@ import Phaser from 'phaser';
 import spells from './data/spells.json';
 import { GRID_SIZE, TILE_WIDTH, TILE_HEIGHT } from './config.js';
 import { tileToScreen, isInsideGrid, getHeight, depthFor } from './grid.js';
-import { getHitChance, getDamage, distance } from './combat.js';
+import { getHitChance, getDamage, distance, hasClearShot } from './combat.js';
 import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMomentum } from './engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
 import { TURN_COST } from './turnOrder.js';
 import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
-import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome } from './spellArt.js';
+import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome, sfxInfo } from './spellArt.js';
 import { play } from './audio.js';
 import { floorLight, lightNearby } from './fxLayers.js';
 import { screenShake } from './effects.js';
@@ -24,13 +24,15 @@ import conditions from './data/conditions.json';
 const G = KING_RULES.gadara;
 const A = KING_RULES.alagara;
 // the skill kinds this file plays (castSpell hands them here)
-export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending', 'shield'];
+export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending', 'shield', 'rift'];
 // skills cast on himself: tap the skill again (or his own tile) to use it
 export const KING_SELF_KINDS = ['singularity', 'mantle', 'shield'];
 const isKingSkill = (id) => !!spells[id] && KING_KINDS.includes(spells[id].kind);
 const foeOf = (a, b) => b && a && b.alive && !b.isDecoy && b.side !== a.side;
 const hasBlessing = (u) => !!(u && ((u.status && ((u.status.buff && spells[u.status.buff.id] && spells[u.status.buff.id].kind === 'buff') || u.status.enchant)) || u.fury > 0)); // a Verse, an Enchanted weapon or Bloodied stacks (10.41)
 const straight = (a, b) => a.col === b.col || a.row === b.row;
+const sfxFrameMs = (name) => (sfxInfo(name) && sfxInfo(name).frameMs) || 140;
+const ORB_BURST_FRAME = 6.5; // the frame of his orb GIF where it bursts (6.91; frames 0 to 6 the orb forms and cracks)
 
 // The Gale Cut GIF for Alagara's form now: Fury's flame cut, Swiftness's wind cut, else the gold one (no Stone art yet).
 export function galeFx(scene, unit) {
@@ -77,6 +79,8 @@ export const kingMethods = {
         return seen.filter((t) => t !== unit && !t.isDecoy && distance(unit, t) === 1 && hasBlessing(t));
       case 'gale':
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && this.galePlan(unit, t).hits.includes(t));
+      case 'rift': // Radiant Rift (10.52): a foe up to its range away in a clear line
+        return seen.filter((t) => foeOf(unit, t) && distance(unit, t) <= spell.range && hasClearShot(unit, t));
       default: // cleave, drawn, rending: the foe next to him
         return seen.filter((t) => foeOf(unit, t) && distance(unit, t) <= (spell.range || 1));
     }
@@ -186,8 +190,64 @@ export const kingMethods = {
       case 'mantle': return this.castMantle(caster, spell, onDone);
       case 'gale': return this.castGaleCut(caster, target, spell, onDone, verseSkillPower(caster, id));
       case 'shield': return this.castBulwarkShield(caster, spell, onDone, verseSkillPower(caster, id));
+      case 'rift': return this.castRadiantRift(caster, target, spell, onDone);
       default: return onDone();
     }
+  },
+
+  // ---------- Alagara: Radiant Rift (10.52, Suleiman 22 Nov) ----------
+  // The magic buffs he would spend now: his Active Verse and a claimed Enchant. Returns their names (empty: none).
+  riftFuel(unit) {
+    const st = unit.status || {};
+    const out = [];
+    if (st.buff && spells[st.buff.id] && spells[st.buff.id].kind === 'buff') out.push(spells[st.buff.id].button);
+    if (st.enchant) out.push('Enchant');
+    return out;
+  },
+  // How much Radiant Rift would do to a target now (for the AI and the preview): magic, against magic defense.
+  riftDamage(unit, target, spell = spells.radiantRift) {
+    const power = this.riftFuel(unit).length ? unit.attack + spell.spentBonus : spell.unbuffedPower;
+    return Math.max(1, power - (target.magicDefense || 0));
+  },
+  // A slash of light: he gathers it (his Arcane Charging Spiral), swings (the Prismatic Energy Slash round the blade, the same
+  // frame the strike picture shows) and the crescent flies to the target. It spends his Active Verse (his Echo takes over, as
+  // when a buff is stripped) and a claimed Enchant for spentBonus more power; with no magic buff the power is unbuffedPower.
+  castRadiantRift(caster, target, spell, onDone) {
+    const fuel = this.riftFuel(caster);
+    const power = fuel.length ? caster.attack + spell.spentBonus : spell.unbuffedPower;
+    const st = caster.status;
+    if (fuel.length) {
+      if (st.buff && spells[st.buff.id] && spells[st.buff.id].kind === 'buff') {
+        st.buff = null;
+        if (caster.attune && caster.attune.echo) { st.buff = caster.attune.echo; caster.attune.echo = null; } // his Echo takes over
+      }
+      st.enchant = null;
+    }
+    const mage = { ...caster, attackType: 'magic', magicAttack: power, attackEffect: 'slash', status: st };
+    const result = this.kingStrike(mage, target);
+    const dx = target.view.x - caster.view.x;
+    this.faceToward(caster, dx, target.view.y - caster.view.y);
+    if (this.hasPose(caster, 'windup')) this.showPose(caster, 'windup', dx);
+    const body = () => ({ x: caster.view.x, y: caster.view.y - (caster.centerY || 40) });
+    sfxAt(this, 'arcane_charge', caster.view.x, caster.view.y + 6, { size: 1.15, depth: caster.view.depth + 0.5 }); // the gathering
+    if (fuel.length) this.floatText(caster, fuel.join(' + ') + ' spent', spell.color, { rise: 40 });
+    const CHARGE = 520, FLY = 230;
+    this.time.delayedCall(CHARGE, () => {
+      play('whoosh');
+      this.showPose(caster, 'attack', dx);
+      const p = body();
+      sfxAt(this, 'rift', p.x, p.y, { flip: dx < 0, size: 1.5, depth: caster.view.depth + 0.6 }); // round the swing (photo 1814)
+      const crescent = sfxAt(this, 'rift', p.x, p.y, { flip: dx < 0, size: 0.9, depth: 90 });
+      const end = this.centerOf(target);
+      if (crescent) this.tweens.add({ targets: crescent, x: end.x, y: end.y, duration: FLY, ease: 'Quad.easeIn' });
+    });
+    this.time.delayedCall(CHARGE + FLY, () => {
+      this.showImpact(mage, target, result, dx, target.hp === 0);
+      if (result.hit && target.alive) this.floatText(target, 'Rift!', spell.color, { rise: 46 });
+      this.refreshStatusTags();
+    });
+    this.time.delayedCall(CHARGE + FLY + 600, () => caster.alive && this.showStanding(caster));
+    this.kingFinish(onDone, CHARGE + FLY + 900);
   },
 
   // A two-step move: the wind-up picture, then the strike picture, then fn() at the moment it lands.
@@ -199,6 +259,7 @@ export const kingMethods = {
     this.time.delayedCall(lead, () => {
       if (strike && this.hasPose(unit, strike)) this.showPose(unit, strike, dx);
       else this.showPose(unit, 'attack', dx);
+      if (strike === 'attack' || !strike) this.swingArc(unit, dx); // a blade swing: his arc lands with it (22 Nov)
       fn(dx);
     });
     this.time.delayedCall(lead + 700, () => unit.alive && !unit.engagedWith && this.showStanding(unit));
@@ -415,7 +476,17 @@ export const kingMethods = {
       for (const { f, pulled, blow } of pulls) {
         if (pulled.path.length || pulled.fall) this.knockBack(f, pulled, caster.view.x - f.view.x, { text: pulled.fall && pulled.fall.slam ? 'Crushed in!' : 'Pulled!', color: '#c9a8ff' });
         // the blow lands as the foe arrives (1.80)
-        if (blow && blow.hit) this.time.delayedCall(pulled.path.length || pulled.fall ? 700 : 150, () => this.showImpact(caster, f, blow, f.view.x - caster.view.x, f.hp === 0));
+        // 6.91 (22 Nov, his Dark Magic Orb Explosion): a dark orb forms at the foe's feet where the pull ends and bursts as the
+        // blow lands. The GIF bursts at frame ORB_BURST_FRAME, so it starts that long before the blow (the blow waits for it).
+        let at = pulled.path.length || pulled.fall ? 700 : 150;
+        if (blow && blow.hit && sfxHas(this, 'orb_burst')) {
+          const lead = Math.round(ORB_BURST_FRAME * sfxFrameMs('orb_burst'));
+          const end = pulled.path.length ? pulled.path[pulled.path.length - 1] : { col: f.col, row: f.row };
+          const p = tileToScreen(end.col, end.row);
+          at = Math.max(at, lead);
+          this.time.delayedCall(at - lead, () => sfxAt(this, 'orb_burst', p.x, p.y + 6, { size: 1.25, depth: depthFor(end.col, end.row) + 2 }));
+        }
+        if (blow && blow.hit) this.time.delayedCall(at, () => this.showImpact(caster, f, blow, f.view.x - caster.view.x, f.hp === 0));
         if (f.alive && isOffBalance(f)) this.time.delayedCall(500, () => f.alive && this.floatText(f, 'Off-Balance', '#ff6b5a', { rise: 60 }));
       }
     });
@@ -878,6 +949,13 @@ export const kingMethods = {
     if (near.length && this.aiReady(unit, 'drawnBlade') && !unit.engagedWith) {
       const rescue = near.filter((t) => canBeCaught(t) && this.drawnFrees(unit, t)).sort((a, b) => a.engagedWith.hp / a.engagedWith.maxHp - b.engagedWith.hp / b.engagedWith.maxHp)[0];
       if (rescue) return this.aiCast(unit, rescue, 'drawnBlade', finish);
+    }
+    // Radiant Rift (10.52): with a magic buff to spend, at a foe he cannot reach with his blade this turn, or one it would finish
+    if (this.aiReady(unit, 'radiantRift') && this.riftFuel(unit).length) {
+      const rifts = this.kingTargets(unit, 'radiantRift').sort((a, b) => a.hp - b.hp);
+      const killable = rifts.find((t) => this.riftDamage(unit, t) >= t.hp);
+      const pick = killable || (!near.length ? rifts[0] : null);
+      if (pick) return this.aiCast(unit, pick, 'radiantRift', finish);
     }
     if (near.length) {
       const t = [...near].sort((a, b) => (isOffBalance(b) - isOffBalance(a)) || a.hp - b.hp)[0];

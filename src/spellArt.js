@@ -1080,6 +1080,22 @@ export function aegisDome(scene, unit) {
   return img;
 }
 
+// Layra's channel (1.97, 22 Nov, Suleiman: "a new effect for when she's channeling magic that should play while she's casting a
+// spell ... alter the color of the effect based on the spell she's casting"). Until his own effect comes, the white copy of
+// Alagara's Arcane Charging Spiral (fxSlots "channel", dev/tools/make_channel_fx.py) rises round her feet, tinted with the
+// spell's colour, its nine frames spread over the channel (ms). Only fighters with "channelFx" in art.json. Returns it or null.
+export function channelSpiral(scene, unit, color, ms) {
+  if (!unit || !unit.view || !sfxHas(scene, 'channel')) return null;
+  const info = SFX.channel, keys = sfxKeys('channel'), f = SFX_FIT('channel');
+  const scale = f ? (bodyHeight(unit) * 1.1) / f.h : 0.5;
+  const img = scene.add.sprite(unit.view.x, unit.view.y + 6, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale)
+    .setBlendMode(Phaser.BlendModes.ADD).setTint(color).setDepth(unit.view.depth + 0.5);
+  const step = Math.max(40, Math.round(ms / keys.length));
+  keys.forEach((k, i) => scene.time.delayedCall(i * step, () => img.active && img.setTexture('fx:' + k)));
+  scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * step, duration: 200, onComplete: () => img.destroy() });
+  return img;
+}
+
 // The clash shockwave (6.88, "Shockwave for clash", 21 Nov): a ring rushing out along the ground between the two
 // fighters when a clash beat lands. strong = a decisive beat (a bigger ring).
 export function clashShock(scene, a, b, strong = false) {

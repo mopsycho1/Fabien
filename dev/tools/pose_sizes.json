@@ -558,7 +558,7 @@
    "alagara_battle": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.926
+    "h": 0.845
    },
    "alagara_ready": {
     "size": 1.0,
@@ -588,7 +588,7 @@
    "alagara_strike": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.872
+    "h": 0.811
    },
    "alagara_claim_reach": {
     "size": 1.0,

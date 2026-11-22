@@ -26,7 +26,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const miss = [];
   for (const [id, s] of Object.entries(slots.buffs)) for (const part of ['loop', 'move', 'rooted']) for (let i = 0; i < (s[part] || 0); i++) if (!game.textures.exists('fx:buff_' + id + '_' + part + '_' + i)) miss.push(id + part + i);
   for (const [n, s] of Object.entries(slots.spells)) for (let i = 0; i < s.frames; i++) if (!game.textures.exists('fx:sfx_' + n + '_' + i)) miss.push(n + i);
-  check('every frame of his GIF effects is loaded (3 loops, 2 in motion, 1 rooted, 5 spell pieces, 8 frames each = 88)', miss.length === 0, miss.slice(0, 4).join(','));
+  check('every frame of his GIF effects is loaded (3 loops, 2 in motion, 1 rooted, 5 spell pieces, 8 frames each = 88)', miss.length === 0, miss.slice(0, 4).join(',')); /* (22 Nov: the channel frames are made on this Mac, make_channel_fx.py) */
 
   // ---------- the Verses: his loop replaces ours ----------
   reset([[gaha, 3, 4]]);
@@ -78,7 +78,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const filmSfx = async (variant) => {
     const seen = []; const t = Date.now(); let impactAt = null;
     const realImpact = b.showImpact; b.showImpact = function (...a) { if (impactAt === null) impactAt = Date.now() - t; return realImpact.apply(this, a); };
-    const watch = setInterval(() => { for (const o of b.children.list) if (o.texture && /^fx:sfx_/.test(o.texture.key)) { const k = o.texture.key.replace(/^fx:sfx_|_\d+$/g, ''); if (!seen.includes(k)) seen.push(k); } }, 10);
+    const watch = setInterval(() => { for (const o of b.children.list) if (o.texture && /^fx:sfx_/.test(o.texture.key)) { const k = o.texture.key.replace(/^fx:sfx_|_\d+$/g, ''); if (k !== 'channel' && !seen.includes(k)) seen.push(k); /* (her channel spiral round her feet, 1.97, is not one of his spell pieces) */ } }, 10);
     b.playAttack(layra, rabdul, { hit: true, damage: 1 }, false, variant);
     await sleep(2300); clearInterval(watch); b.showImpact = realImpact;
     return { seen, impactAt };

@@ -32,14 +32,14 @@ import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
-import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxAt, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter } from '../spellArt.js';
+import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxAt, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter, channelSpiral } from '../spellArt.js';
 import { hasClashGif, loadClashGifs, pickClashGif, playClashGif, clashFilmsOn, setClashFilms } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { kingMethods, KING_KINDS, KING_SELF_KINDS } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
+import { kingMethods, KING_KINDS, KING_SELF_KINDS, galeFx } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
 import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
-import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak } from '../art.js';
+import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak, swingFxOf, hasChannelFx } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamond, emblemFor, framePanel, diamondPortrait, tileBlock } from '../battleCard.js';
 import { createHudTextures, bronzePanel, CommandButton, MenuRow, darkPanel, portraitMedallion, roundPortrait, drawIcon, textStyle, UI, hasUiArt, ringPortrait, medalPortrait, iconImage } from '../hud.js';
@@ -3168,7 +3168,7 @@ export default class BattleScene extends Phaser.Scene {
         seen.add(group);
         list.push({
           label: group + '  >',
-          enabled: visible.some((s) => (spells[s].category === group || spells[s].group === group) && canAfford(unit, s)),
+          enabled: visible.some((s) => (spells[s].category === group || spells[s].group === group) && entry(s).enabled), // live only when a skill in it can be used now
           onTap: () => this.openSpellGroup(group),
           selected: false,
           accent: GOLD,
@@ -4493,6 +4493,15 @@ export default class BattleScene extends Phaser.Scene {
     if (!this.showFrame(unit, poseFrame(unit.id, pose, right ? 'right' : 'left', facing))) this.showStanding(unit);
   }
 
+  // A fighter with a drawn slash arc ("swingFx" in art.json: Alagara) shows it round his blade the moment the strike picture
+  // appears, so the effect lands with the swing (22 Nov, photo 1768). His form's own Gale Cut arc when he is in a form.
+  swingArc(unit, dx) {
+    const fx = swingFxOf(unit.id);
+    if (!fx || !unit.view) return;
+    const name = fx === 'gale' ? galeFx(this, unit) : fx;
+    sfxAt(this, name, unit.view.x + Math.sign(dx || 1) * 10, unit.view.y - (unit.centerY || 40) * 0.8, { flip: dx < 0, size: 1.2, depth: unit.view.depth + 0.6 });
+  }
+
   // The picture as a thrown spear leaves the hand: his release picture if the
   // unit has one, else its attack picture.
   releasePose(unit) {
@@ -4683,6 +4692,7 @@ export default class BattleScene extends Phaser.Scene {
       const fire = variant && variant.element === 'fire';
       this.showPose(attacker, 'chant', dx);
       const hands = { x: attacker.view.x + Math.sign(dx || 1) * 10, y: attacker.view.y - attacker.topY * 0.72 };
+      if (hasChannelFx(attacker.id)) channelSpiral(this, attacker, fire ? 0xff8a3a : 0xb48cff, lead + 120); // 1.97: Lightning violet, Wildfire orange
       if (drawn && drawn.orb) sfxChannel(this, drawn.orb, hands.x, hands.y, { depth: attacker.view.depth + 2 });
       else chargeUp(this, hands.x, hands.y, (variant && variant.element) || (fire ? 'fire' : 'lightning'), { ms: lead, size: 0.75, depth: attacker.view.depth + 2 });
       play('select');
@@ -4805,6 +4815,7 @@ export default class BattleScene extends Phaser.Scene {
         this.unlean(leanSprite); // the lean snaps forward into the blow
         if (thrust) this.playMove(attacker, thrust, dx, { from: 3, to: 4 });
         else this.showPose(attacker, strikePose, dx);
+        this.swingArc(attacker, dx); // his slash arc on the frame the strike shows (22 Nov, photo 1768)
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
           targets: reach,
@@ -6716,6 +6727,7 @@ export default class BattleScene extends Phaser.Scene {
     chargeUp(this, caster.view.x + Math.sign(dxT || 1) * 10, caster.view.y - caster.topY * 0.72, verseElement, { ms: lead + 250, size: 0.8, depth: caster.view.depth + 2 });
     if (lead) {
       this.showPose(caster, 'chant', dxT);
+      if (hasChannelFx(caster.id)) channelSpiral(this, caster, color, lead + 250); // 1.97: the channel, in the spell's colour
       elementRise(this, caster, id, lead); // the element gathers round her (roadmap 9.10)
       this.time.delayedCall(lead, () => caster.alive && this.showPose(caster, 'cast', dxT));
     } else this.showPose(caster, spell.kind === 'hex' ? 'attack' : 'cast', dxT);
@@ -8590,6 +8602,7 @@ export default class BattleScene extends Phaser.Scene {
     this.showPose(healer, this.hasPose(healer, 'cast') ? 'cast' : 'attack', dx);
     const glow = elementOf('heal').glow;
     chargeUp(this, healer.view.x + Math.sign(dx) * 12, healer.view.y - healer.topY * 0.8, 'heal', { ms: 260, size: 0.8, depth: healer.view.depth + 2 });
+    if (hasChannelFx(healer.id)) channelSpiral(this, healer, Phaser.Display.Color.HexStringToColor(spell.color).color, 420); // 1.97
     play('whoosh');
     this.time.delayedCall(260, () => {
       // the gust: Swift's wind cut laid from her to the target when it is loaded, soft light along the way otherwise

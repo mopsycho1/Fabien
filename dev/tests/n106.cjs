@@ -51,7 +51,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   archer.status.cooldowns = {}; archer.coated = false; archer.hasActed = true; b.refreshButtons();
   check('after acting the Skills button stays live while Poison Weapon is ready', skillsBtn().enabled === true);
   const entries = b.spellMenu(archer);
-  check('...and only free skills are live in the list then', entries.filter((e) => e.enabled).length === 1 && /Poison Weapon/.test(entries.find((e) => e.enabled).label), entries.filter((e) => e.enabled).map((e) => e.label).join(','));
+  // 1.100 (22 Nov): her list shows by category (Shots, Tricks); the one live row is the category that holds Poison Weapon
+  let live = entries.filter((e) => e.enabled);
+  if (live.length === 1 && />$/.test(live[0].label.trim())) { b.openSpellGroup(live[0].label.replace('>', '').trim()); live = b.spellMenu(archer).filter((e) => e.enabled); b.spellGroup = null; }
+  check('...and only free skills are live in the list then', live.length === 1 && /Poison Weapon/.test(live[0].label), live.map((e) => e.label).join(','));
   archer.hasActed = false; b.cancelMode();
   b.chooseSpell('poisonWeapon');
   let tries = 0;

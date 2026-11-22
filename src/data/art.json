@@ -2440,7 +2440,9 @@
         "footX": 0.597
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "channelFx": true,
+    "note_channel": "22 Nov (1.97): \"channelFx\": while she casts (a Verse, a Hex, Healing Wind, her Lightning or Wildfire) a channel spiral rises round her feet in the spell's colour (spellArt.channelSpiral). It is the white copy of Alagara's Arcane Charging Spiral until Suleiman's own channel effect comes."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -6059,19 +6061,19 @@
     "battle": {
       "upLeft": {
         "file": "alagara_battle_f1.png",
-        "originX": 0.782
+        "originX": 0.43
       },
-      "downRight": {
+      "upRight": {
         "file": "alagara_battle_f2.png",
-        "originX": 0.774
+        "originX": 0.546
       },
       "downLeft": {
         "file": "alagara_battle_f3.png",
-        "originX": 0.056
+        "originX": 0.469
       },
-      "upRight": {
+      "downRight": {
         "file": "alagara_battle_f4.png",
-        "originX": 0.249
+        "originX": 0.336
       }
     },
     "weak": {
@@ -6092,19 +6094,19 @@
       "ready": {
         "upLeft": {
           "file": "alagara_battle_f1.png",
-          "originX": 0.782
+          "originX": 0.43
         },
-        "downRight": {
+        "upRight": {
           "file": "alagara_battle_f2.png",
-          "originX": 0.774
+          "originX": 0.546
         },
         "downLeft": {
           "file": "alagara_battle_f3.png",
-          "originX": 0.056
+          "originX": 0.469
         },
-        "upRight": {
+        "downRight": {
           "file": "alagara_battle_f4.png",
-          "originX": 0.249
+          "originX": 0.336
         }
       },
       "guard": {
@@ -6132,49 +6134,53 @@
         }
       },
       "windup": {
-        "upLeft": {
-          "file": "alagara_battle_f1.png",
-          "originX": 0.782
-        },
         "downRight": {
-          "file": "alagara_battle_f2.png",
+          "file": "alagara_windup_f2.png",
           "originX": 0.774
         },
         "downLeft": {
-          "file": "alagara_battle_f3.png",
+          "file": "alagara_windup_f3.png",
           "originX": 0.056
         },
         "upRight": {
-          "file": "alagara_battle_f4.png",
+          "file": "alagara_windup_f4.png",
           "originX": 0.249
         }
       },
       "attack": {
-        "downLeft": {
+        "upLeft": {
           "file": "alagara_strike_f1.png",
-          "originX": 0.211
+          "originX": 0.471
         },
         "upRight": {
+          "file": "alagara_strike_f2.png",
+          "originX": 0.215
+        },
+        "downLeft": {
           "file": "alagara_strike_f3.png",
-          "originX": 0.073
+          "originX": 0.292
+        },
+        "downRight": {
+          "file": "alagara_strike_f4.png",
+          "originX": 0.735
         }
       },
       "drawn": {
         "upLeft": {
           "file": "alagara_battle_f1.png",
-          "originX": 0.782
+          "originX": 0.43
         },
-        "downRight": {
+        "upRight": {
           "file": "alagara_battle_f2.png",
-          "originX": 0.774
+          "originX": 0.546
         },
         "downLeft": {
           "file": "alagara_battle_f3.png",
-          "originX": 0.056
+          "originX": 0.469
         },
-        "upRight": {
+        "downRight": {
           "file": "alagara_battle_f4.png",
-          "originX": 0.249
+          "originX": 0.336
         }
       },
       "claimReach": {
@@ -6671,6 +6677,7 @@
     "portraitHurt": "alagara_face_hurt.png",
     "shout": "alagara_face_angry.png",
     "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (alagara_face_smiling.png, alagara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36.",
+    "note_n22": "22 Nov (6.90, 1.96, dev/tools/make_kings.py): his true battle stance (\"Alagara battle stance.jpeg\", the saber sheathed) is his battle and ready look; the 21 Nov saber-drawn sheet, which stood in for it, is his wind-up; the new \"Isometric Saber Action Sheet\" is his attack (four true views; it replaces the 31 Oct lunge).",
     "ruler": {
       "alagara_stand_f3.png": {
         "footX": 0.484
@@ -6679,16 +6686,13 @@
         "footX": 0.516
       },
       "alagara_battle_f1.png": {
-        "footX": 0.729
-      },
-      "alagara_battle_f2.png": {
-        "footX": 0.635
+        "footX": 0.489
       },
       "alagara_battle_f3.png": {
-        "footX": 0.127
+        "footX": 0.447
       },
       "alagara_battle_f4.png": {
-        "footX": 0.269
+        "footX": 0.37
       },
       "alagara_ready_f1.png": {
         "footX": 0.401
@@ -6705,11 +6709,29 @@
       "alagara_dodge_f1.png": {
         "footX": 0.469
       },
+      "alagara_windup_f2.png": {
+        "scale": 1.12,
+        "footX": 0.635
+      },
+      "alagara_windup_f3.png": {
+        "scale": 1.12,
+        "footX": 0.127
+      },
+      "alagara_windup_f4.png": {
+        "scale": 1.12,
+        "footX": 0.269
+      },
       "alagara_strike_f1.png": {
-        "footX": 0.227
+        "footX": 0.545
+      },
+      "alagara_strike_f2.png": {
+        "footX": 0.318
       },
       "alagara_strike_f3.png": {
-        "footX": 0.109
+        "footX": 0.321
+      },
+      "alagara_strike_f4.png": {
+        "footX": 0.598
       },
       "alagara_claim_reach_f2.png": {
         "footX": 0.462
@@ -6880,6 +6902,8 @@
         "footX": 0.415
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
+    "swingFx": "gale",
+    "note_swing": "22 Nov (photo 1768): \"swingFx\" is the slash arc drawn round his blade on the frame the strike picture shows (his form's Gale Cut arc: gold, Fury flame, Swift wind), so the effect lands with the swing."
   }
 }

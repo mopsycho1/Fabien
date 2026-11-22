@@ -28,9 +28,11 @@ const spellsJson = require('../../src/data/spells.json');
   check('1.100 Alagara: no more than 4 rows at the top', top.length <= 4, top.length);
   b.openSpellGroup('Techniques'); const tech = labels(ala); b.spellGroup = null;
   check('1.100 inside Techniques: Drawn Blade, Gale Cut, Rending Draw', ['Drawn Blade', 'Gale Cut', 'Rending Draw'].every((n) => tech.some((l) => l.startsWith(n))) && tech.length === 3, tech.join(' | '));
-  S.applyBuff(ala, 'stone'); // Aegis shows only under Stone
+  // in Swift form his Spells holds only Radiant Rift (Aegis needs Stone): a one-skill category shows the skill itself
+  check('1.100 a one-skill category shows the skill itself (Spells: Radiant Rift)', top.some((l) => l.startsWith('Radiant Rift')) && !top.some((l) => /^Spells\s+>/.test(l)), top.join(' | '));
+  S.applyBuff(ala, 'stone'); // Aegis shows only under Stone: then Spells holds two
   top = labels(ala);
-  check('1.100 a one-skill category shows the skill itself (Spells: Aegis)', top.some((l) => l.startsWith('Aegis')) && !top.some((l) => /^Spells\s+>/.test(l)), top.join(' | '));
+  check('1.100 under Stone, Spells (Aegis, Radiant Rift) is a category', top.some((l) => /^Spells\s+>/.test(l)), top.join(' | '));
   b.activeUnit = gad; const gtop = labels(gad);
   check('1.100 Gadara: grouped (Techniques)', gtop.some((l) => /^Techniques\s+>/.test(l)), gtop.join(' | '));
   const sud = b.units.find((u) => u.id === 'h1');
