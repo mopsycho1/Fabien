@@ -5453,7 +5453,9 @@ export default class BattleScene extends Phaser.Scene {
     }
     // Nobody to strike this turn: it forages (roadmap 13.48). It digs up what is buried or
     // dropped beside it, or walks to a spot it can reach this turn and digs there.
-    const forage = this.forageChoice(unit);
+    // (Rabdul does not dig while a Spear Ward or Hold the Line is his better move: foes coming, none next to him, 10.31)
+    const wardDue = unit.spells.includes('spearWard') && (() => { const p = this.rabdulChoice(unit); return !!(p && p.target === unit); })();
+    const forage = wardDue ? null : this.forageChoice(unit);
     if (forage) {
       const dig = () => {
         if (distance(unit, forage.site) > 1) return this.enemyAttack(unit); // stopped short by a Spear Ward (19.4)

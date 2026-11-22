@@ -146,6 +146,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.placeUnit(bull, 5, 4); layra.alive = true; sudeen.alive = true;
   const level = w.__ai.keepWithLine(rabdul, b.units, { col: 4, row: 4 });
   check('AI: level with an ally he walks as before', level && level.col === 4 && level.row === 4, level ? level.col + ',' + level.row : 'stays');
+  // ...and he stays within 3 tiles of a close-fighting ally: no wandering down the other flank alone
+  b.placeUnit(rabdul, 5, 2); b.placeUnit(bull, 9, 2);
+  const flank = w.__ai.keepWithLine(rabdul, b.units, { col: 2, row: 3 });
+  const toBull = (t) => Math.abs(t.col - bull.col) + Math.abs(t.row - bull.row);
+  check('AI: he does not walk off away from his allies', !flank || toBull(flank) <= 3, flank ? flank.col + ',' + flank.row : 'stays');
   check('no page errors', errors.filter((e) => !/focus\(\)/.test(e)).length === 0, errors.slice(0, 2).join(' | '));
   console.log(fails ? 'FAILED ' + fails : 'ALL PASSED');
   process.exit(fails ? 1 : 0);

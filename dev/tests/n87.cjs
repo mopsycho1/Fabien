@@ -42,7 +42,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 1. profile (10.17)
   park();
-  check('Scout, Sovereign: agility high, defense low, cooldowns not SP', a.job === 'vessel' && a.contest.agility >= 7 && a.defense <= 2 && a.maxMp === 0, [a.attack, a.defense, a.evade, a.speed, a.move].join(','));
+  check('Scout, Sovereign: agility high, defense low, cooldowns not SP', a.job === 'vessel' && a.contest.agility >= 7 && a.defense <= 3 /* 2 to 3 in the balance pass (10.31): still the light fighters' defense, below the tanks' 4 and 5 */ && a.maxMp === 0, [a.attack, a.defense, a.evade, a.speed, a.move].join(','));
   check('two Verse slots (Attunement)', !!a.attune && a.attune.echo === null);
 
   // 2. Attunement: a second Verse sends the first to the Echo

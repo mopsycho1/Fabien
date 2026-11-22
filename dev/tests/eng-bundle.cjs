@@ -104,6 +104,10 @@ var engagement_default = {
   decisivePush: {
     overpower: 2
   },
+  weaponDamageBonus: 2,
+  weaponDamageNote: "Balance pass (roadmap 18.32, 22 Nov): every weapon hit (spear, sword, mace, arrow, dagger) does this much more after defense, before the other bonuses. With attack minus defense alone, hits on the armoured fighters were 1 to 3 (Sudeen on Gadara 1, Gaha on Tayo 4) and bot battles took 107 to 126 turns (17 to 22 rounds). 0 = the old rule. Magic (Lightning, Kofi's bolt) is not changed: it already hit for about 5.",
+  healthScale: 0.75,
+  healthScaleNote: "Balance pass (roadmap 18.32, 22 Nov): every fighter's health in battle is its health in units.json or jobs.json times this, rounded (Sudeen 48 is 36, Rabdul 34 is 26, Gadara 60 is 45). Suleiman's numbers stay as written; this is one dial for battle length. 1 = the old health. With 1, bot battles took 16 to 18 rounds even with weaponDamageBonus; the aim is 8 to 15.",
   distractedHitBonus: 10,
   distractedDamageBonus: 2,
   distractedNote: "A fighter locked in a clash with SOMEONE ELSE is Distracted: every other attacker hits it 10 points more often (distractedHitBonus) and for 2 more damage (distractedDamageBonus, 1.77, 21 Nov: before this there was no damage bonus at all). The two in the clash do not get it against each other.",
