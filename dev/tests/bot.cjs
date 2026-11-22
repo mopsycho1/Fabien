@@ -18,11 +18,27 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     if (process.env.NO_ENCHANT) for (const u of b.units) u.spells = u.spells.filter((s) => s !== 'enchant'); // balance runs: Enchant off
     const dmg = {}; const acts = {};
     const origAtk = b.performAttack.bind(b);
-    b.performAttack = (a, t, d) => { const before = t.hp; const r = origAtk(a, t, d); dmg[a.label] = (dmg[a.label] || 0) + (before - t.hp); acts[a.label] = (acts[a.label] || 0) + 1; return r; };
+    b.performAttack = (a, t, d) => { if (process.env.BAL_LOG && t && t.label === process.env.BAL_LOG) console.log('LOG   hit by', a.label, 'hp before', t.hp); const before = t.hp; const r = origAtk(a, t, d); dmg[a.label] = (dmg[a.label] || 0) + (before - t.hp); acts[a.label] = (acts[a.label] || 0) + 1; return r; };
     b.__dmg = dmg; b.__acts = acts;
     // poison ticks (shown as 'Poison -N' over the poisoned unit) are counted per side that took them, so the
     // archer's real damage can be read (Batch 7): "poison on heroes" is hers in the default teams
     if (!b.__poisonWatch) { b.__poisonWatch = true; const ft = b.floatText.bind(b); b.floatText = (u, text, ...rest) => { const m = /^Poison -(\d+)/.exec(text || ''); if (m && u && b.__dmg) { const k = 'poison on ' + (u.side === 'hero' ? 'heroes' : 'enemies'); b.__dmg[k] = (b.__dmg[k] || 0) + Number(m[1]); } return ft(u, text, ...rest); }; }
+    // balance pass (10.31, 18.32): rounds (each turn counts 1 / fighters alive, so 8 turns with 8 alive = 1 round),
+    // who falls and when, healing done, misses and Guarded clashes, to see what drags a battle out
+    b.__bal = { rounds: 0, deaths: [], heal: 0, miss: 0, hits: 0 };
+    if (!b.__balWatch) {
+      b.__balWatch = true;
+      const st = b.startTurn.bind(b); b.startTurn = (...a) => {
+        if (b.__bal && !b.battleOver) b.__bal.rounds += 1 / Math.max(1, b.units.filter((x) => x.alive).length);
+        if (process.env.BAL_LOG && b.activeUnit && b.activeUnit.label === process.env.BAL_LOG) console.log('LOG   end of turn at', b.activeUnit.col + ',' + b.activeUnit.row, 'zone', b.activeUnit.zone ? b.activeUnit.zone.name : '-');
+        const r = st(...a);
+        // BAL_LOG=E1 prints that fighter's every turn: round, tile, health, nearest friend and foe (why does he fall first?)
+        const who = b.activeUnit; if (process.env.BAL_LOG && who && who.label === process.env.BAL_LOG) { const d = (o) => Math.abs(o.col - who.col) + Math.abs(o.row - who.row); const fr = b.units.filter((o) => o.alive && o !== who && o.side === who.side).map(d), fo = b.units.filter((o) => o.alive && o.side !== who.side).map(d); console.log('LOG', who.label, 'round', b.__bal.rounds.toFixed(1), 'at', who.col + ',' + who.row, 'hp', who.hp + '/' + who.maxHp, 'nearest friend', Math.min(...fr), 'foes within 2:', fo.filter((x) => x <= 2).length, 'within 5:', fo.filter((x) => x <= 5).length, process.env.BAL_TRAIL ? '| ' + (b.__trail || []).filter((x) => x.includes('E1')).slice(-6).join(' > ') : ''); }
+        return r;
+      };
+      const pd = b.playDefeat.bind(b); b.playDefeat = (u, ...a) => { if (b.__bal && u && !u.__fellLogged) { u.__fellLogged = true; b.__bal.deaths.push(u.label + '@' + (b.__bal.rounds).toFixed(1)); } return pd(u, ...a); };
+      const ft = b.floatText.bind(b); b.floatText = (u, text, ...rest) => { if (b.__bal && typeof text === 'string') { const m = /^\+(\d+)/.exec(text); if (m) b.__bal.heal += Number(m[1]); if (text === 'Miss') b.__bal.miss++; } return ft(u, text, ...rest); };
+    }
     // a short trail of what last moved bodies about, printed with any OFF TILE line
     b.__trail = [];
     // every skill and item each fighter uses, counted per battle (checklist G3: the enemies use every
@@ -191,7 +207,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     const r = allTexts(b).includes('Victory') ? 'Victory' : allTexts(b).includes('Defeat') ? 'Defeat' : 'NONE';
     if (tally[r] !== undefined) tally[r]++;
     turnsList.push(b.turnCount);
-    console.log(`battle ${n}: ${r} after ${b.turnCount} turns | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);
+    console.log(`battle ${n}: ${r} after ${b.turnCount} turns (${b.__bal.rounds.toFixed(1)} rounds) | fell ${b.__bal.deaths.join(' ')} | healed ${b.__bal.heal} | misses ${b.__bal.miss} | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);
     // sanity: no leftover engagement with a fallen unit
     if (b.units.some((u) => u.engagedWith && (!u.alive || !u.engagedWith.alive))) console.log('  WARNING: engaged with a fallen unit');
     b.resultButtons[b.resultButtons.length - 1].hit.emit('pointerdown');

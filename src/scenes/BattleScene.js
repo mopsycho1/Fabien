@@ -27,7 +27,7 @@ import { getHitChance, getDamage, getTargetsInRange, inReach, rollAttack, usesCl
 import terrain from '../data/terrain.json'; // height rules: accuracy, falls, pushes, line of sight
 import conditions from '../data/conditions.json'; // stun, disoriented
 import relayRules from '../data/relay.json'; // Relay Strike numbers
-import { chooseMoveTile, chooseAfterTile, isCaster } from '../enemyAi.js';
+import { chooseMoveTile, chooseAfterTile, isCaster, keepWithLine } from '../enemyAi.js';
 import { smokeCloud } from '../smokeArt.js';
 import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow, hitLevel, FEEL, elementOf } from '../fxLayers.js'; // the layers round every effect (roadmap 18.23)
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
@@ -5467,7 +5467,9 @@ export default class BattleScene extends Phaser.Scene {
       else dig();
       return;
     }
-    const tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
+    let tile = chooseMoveTile(unit, this.enemyEyes(), hiddenAt);
+    // Rabdul does not walk in ahead of his allies (balance pass 10.31): he holds level with the line and sets Spear Ward
+    if (unit.spells.includes('spearWard')) tile = keepWithLine(unit, this.enemyEyes(), tile, hiddenAt);
 
     if (tile) {
       this.moveUnit(unit, tile.col, tile.row, () => this.enemyAttack(unit));
@@ -5530,6 +5532,15 @@ export default class BattleScene extends Phaser.Scene {
     if ((unit.grip || unit.attune) && this.kingAiAct(unit, finish)) return;
     // Rabdul sets Shango's symbol on the weapon that will do most with it:
     // the hardest-hitting ally (or himself) who is in the fight (roadmap 4.1)
+    // Rabdul's Haft Sweep, Spear Ward and Hold the Line (19.4). A ward comes before Enchant when 2 or more foes could
+    // reach him next turn (balance pass 10.31: he used to Enchant, then stand unguarded while four heroes closed in)
+    const rab = unit.spells.includes('spearWard') ? this.rabdulChoice(unit) : null;
+    const wardFirst = rab && rab.target === unit && this.enemyEyes().filter((t) => t.alive && !t.isDecoy && t.side !== unit.side && distance(unit, t) <= moveOf(t) + (t.range || 1)).length >= 2;
+    if (wardFirst) {
+      this.busy = true;
+      this.castSpell(unit, rab.target, rab.id, finish);
+      return;
+    }
     const enchantId = unit.spells.includes('enchant') ? activeMove(unit, 'enchant') : null; // (under Fury: Kindle the Haft, his own spear only, 19.4)
     if (enchantId && canAfford(unit, enchantId)) {
       const ally = spells[enchantId].self ? (isEnchanted(unit) ? null : unit) : this.enchantPick(unit);
@@ -5544,8 +5555,6 @@ export default class BattleScene extends Phaser.Scene {
         return;
       }
     }
-    // Rabdul's Haft Sweep, Spear Ward and Hold the Line (19.4)
-    const rab = unit.spells.includes('spearWard') ? this.rabdulChoice(unit) : null;
     if (rab) {
       this.busy = true;
       this.castSpell(unit, rab.target, rab.id, finish);
@@ -5757,7 +5766,9 @@ export default class BattleScene extends Phaser.Scene {
       if (cannot() || this.busy) return end();
       const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || this.isDecoyAt(c, r);
       const aim = unit.aiming && unit.aiming.target && unit.aiming.target.alive ? { target: unit.aiming.target, range: (spells[unit.aiming.spellId] || {}).range || unit.range } : null;
-      const tile = chooseAfterTile(unit, this.enemyEyes(), this.stepsLeft(unit), hiddenAt, aim);
+      let tile = chooseAfterTile(unit, this.enemyEyes(), this.stepsLeft(unit), hiddenAt, aim);
+      // Rabdul with a Spear Ward or Hold the Line set guards the tile he set it on (a Rapid Ward walks with him); otherwise he keeps with the line (10.31)
+      if (unit.spells.includes('spearWard')) tile = unit.zone && unit.zone.name !== spells.rapidWard.button ? null : keepWithLine(unit, this.enemyEyes(), tile, hiddenAt, this.stepsLeft(unit));
       if (!tile) return end();
       this.moveUnit(unit, tile.col, tile.row, () => end());
     });

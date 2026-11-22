@@ -184,3 +184,32 @@ export function chooseAfterTile(unit, units, steps, extraBlocked = () => false, 
   return best;
 }
 
+
+// Rabdul stays with the line (balance pass, roadmap 10.31, 22 Nov). He is "fast, evasive, fragile" (his kit sheet:
+// health 34, defense 3 are his weaknesses) and his job is denying the approach with Spear Ward. Walking in on his own,
+// he arrived a turn before the others and all four heroes struck him: he fell first in 8 of 12 bot battles, at round 3.
+// So he goes no nearer the foes than the foremost of his close-fighting allies (archers and casters are not the line),
+// unless he can strike from there and no more than 2 foes could reach him next turn. Returns the tile to walk to, or null to stay.
+//   tile: the walk chooseMoveTile (or chooseAfterTile) picked; the rule only ever shortens it
+//   steps: how far he may still walk (his whole move before acting, what is left after)
+export function keepWithLine(unit, units, tile, extraBlocked = () => false, steps = moveOf(unit)) {
+  if (!tile) return null;
+  const opponents = units.filter((o) => o.alive && o.side !== unit.side && !o.isDecoy);
+  if (!opponents.length) return tile;
+  const nearFoe = (t) => Math.min(...opponents.map((o) => distance(t, o)));
+  const line = units.filter((a) => a.alive && a !== unit && a.side === unit.side && !a.isDecoy && a.range <= 1);
+  if (!line.length) return tile;
+  const front = Math.min(...line.map(nearFoe)); // how close the foremost ally stands to the foes
+  if (nearFoe(tile) >= front) return tile;      // not ahead of the line
+  // ahead of the line he still goes to strike a foe, but only where no more than 2 foes could reach him next turn
+  // (with more, he holds back: the foes have to walk onto his Spear Ward)
+  const threats = (t) => opponents.filter((o) => distance(t, o) <= moveOf(o) + (o.range || 1)).length;
+  if (opponents.some((o) => distance(tile, o) <= unit.range) && threats(tile) <= 2) return tile;
+  const isBlocked = (col, row) => extraBlocked(col, row) || units.some((o) => o.alive && o.col === col && o.row === row);
+  const tiles = [{ col: unit.col, row: unit.row }, ...getReachableTiles(unit.col, unit.row, steps, isBlocked, moveRules(unit))];
+  // the tile nearest the foes that is still level with the line (or behind it), fewest steps breaking ties
+  const ok = tiles.filter((t) => nearFoe(t) >= front).sort((a, b) => nearFoe(a) - nearFoe(b) || distance(unit, a) - distance(unit, b));
+  const pick = ok[0];
+  if (!pick || (pick.col === unit.col && pick.row === unit.row)) return null;
+  return pick;
+}

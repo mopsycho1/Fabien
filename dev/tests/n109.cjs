@@ -127,6 +127,25 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   rabdul.status.cooldowns.spearWard = 2;
   const p2 = b.rabdulChoice(rabdul);
   check('AI: Hold the Line while Spear Ward cools down', p2 && p2.id === 'holdLine', p2 && p2.id);
+  // 8. he keeps with the line (balance pass 10.31, 22 Nov): no walking in ahead of his allies where 3 or more foes could
+  // reach him next turn; level with the line (or with only one or two foes about) he walks as before
+  park();
+  const others = b.units.filter((u) => ![rabdul, gaha].includes(u));
+  for (const u of others) u.alive = false;
+  const tayo = U('e1'); const sudeen = U('h1');
+  for (const u of [tayo, bull, layra, sudeen].filter(Boolean)) u.alive = true;
+  b.placeUnit(rabdul, 5, 2); b.placeUnit(bull, 6, 1); if (tayo) { tayo.alive = false; }
+  b.placeUnit(gaha, 5, 6); b.placeUnit(sudeen, 4, 7); b.placeUnit(layra, 6, 7);
+  const ahead = { col: 5, row: 5 }; // next to Gaha, three rows in front of the Bull
+  const kept = w.__ai.keepWithLine(rabdul, b.units, ahead);
+  const near = (t) => Math.min(...[gaha, sudeen, layra].map((f) => Math.abs(f.col - t.col) + Math.abs(f.row - t.row)));
+  check('AI: with 3 foes about he does not walk in ahead of his line', !kept || near(kept) >= near(bull), kept ? kept.col + ',' + kept.row : 'stays');
+  layra.alive = false; sudeen.alive = false;
+  const alone = w.__ai.keepWithLine(rabdul, b.units, ahead);
+  check('AI: against one foe he still walks up to strike', alone && alone.col === 5 && alone.row === 5, alone ? alone.col + ',' + alone.row : 'stays');
+  b.placeUnit(bull, 5, 4); layra.alive = true; sudeen.alive = true;
+  const level = w.__ai.keepWithLine(rabdul, b.units, { col: 4, row: 4 });
+  check('AI: level with an ally he walks as before', level && level.col === 4 && level.row === 4, level ? level.col + ',' + level.row : 'stays');
   check('no page errors', errors.filter((e) => !/focus\(\)/.test(e)).length === 0, errors.slice(0, 2).join(' | '));
   console.log(fails ? 'FAILED ' + fails : 'ALL PASSED');
   process.exit(fails ? 1 : 0);
