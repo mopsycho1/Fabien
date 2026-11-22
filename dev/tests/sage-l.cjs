@@ -27,7 +27,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 2. magic and weapon damage are separate
   check('lightning uses magic attack against magic defense', combat.getDamage(sage, eg) === sage.magicAttack - eg.magicDefense, combat.getDamage(sage, eg));
-  check('a spear uses attack: 8 attack - 3 defense = 5 on Rabdul', combat.getDamage(scout, eg) === 5, combat.getDamage(scout, eg));
+  check('a spear uses attack: 8 attack - 3 defense + 2 (weaponDamageBonus, 18.32) = 7 on Rabdul', combat.getDamage(scout, eg) === 7, combat.getDamage(scout, eg));
 
   // 3. too close to aim
   put(ew, 3, 6); const near = combat.getHitChance(sage, ew); put(ew, 3, 5); const far = combat.getHitChance(sage, ew);

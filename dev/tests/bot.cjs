@@ -31,12 +31,17 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
       const st = b.startTurn.bind(b); b.startTurn = (...a) => {
         if (b.__bal && !b.battleOver) b.__bal.rounds += 1 / Math.max(1, b.units.filter((x) => x.alive).length);
         if (process.env.BAL_LOG && b.activeUnit && b.activeUnit.label === process.env.BAL_LOG) console.log('LOG   end of turn at', b.activeUnit.col + ',' + b.activeUnit.row, 'zone', b.activeUnit.zone ? b.activeUnit.zone.name : '-');
+        // what the turn that just ended was spent on (balance pass 18.32): clash, attack, skill, item, dig, or nothing (walk / wait)
+        if (b.__bal && b.__turnWho) { const k = b.__turnWho.side + ' ' + (b.__turnInClash ? 'clash' : b.__turnAct || 'walk or wait'); b.__bal.spent = b.__bal.spent || {}; b.__bal.spent[k] = (b.__bal.spent[k] || 0) + 1; }
         const r = st(...a);
+        b.__turnWho = b.activeUnit; b.__turnInClash = !!(b.activeUnit && b.activeUnit.engagedWith); b.__turnAct = null;
         // BAL_LOG=E1 prints that fighter's every turn: round, tile, health, nearest friend and foe (why does he fall first?)
         const who = b.activeUnit; if (process.env.BAL_LOG && who && who.label === process.env.BAL_LOG) { const d = (o) => Math.abs(o.col - who.col) + Math.abs(o.row - who.row); const fr = b.units.filter((o) => o.alive && o !== who && o.side === who.side).map(d), fo = b.units.filter((o) => o.alive && o.side !== who.side).map(d); console.log('LOG', who.label, 'round', b.__bal.rounds.toFixed(1), 'at', who.col + ',' + who.row, 'hp', who.hp + '/' + who.maxHp, 'nearest friend', Math.min(...fr), 'foes within 2:', fo.filter((x) => x <= 2).length, 'within 5:', fo.filter((x) => x <= 5).length, process.env.BAL_TRAIL ? '| ' + (b.__trail || []).filter((x) => x.includes('E1')).slice(-6).join(' > ') : ''); }
         return r;
       };
       const pd = b.playDefeat.bind(b); b.playDefeat = (u, ...a) => { if (b.__bal && u && !u.__fellLogged) { u.__fellLogged = true; b.__bal.deaths.push(u.label + '@' + (b.__bal.rounds).toFixed(1)); } return pd(u, ...a); };
+      const mark = (fn, what) => { if (typeof b[fn] !== 'function') return; const o = b[fn].bind(b); b[fn] = (...a) => { if (!b.__turnAct || b.__turnAct === 'walk or wait') b.__turnAct = what; return o(...a); }; };
+      mark('performAttack', 'attack'); mark('castSpell', 'skill'); mark('castKingSkill', 'skill'); mark('castEnchant', 'skill'); mark('castEarthDrive', 'skill'); mark('castClap', 'skill'); mark('castElementBlast', 'skill'); mark('castShieldToss', 'skill'); mark('castPoisonArrow', 'skill'); mark('castSmokeBomb', 'skill'); mark('castDoubleHit', 'attack'); mark('performEngage', 'start a clash'); mark('useItem', 'item'); mark('digUp', 'dig');
       const ft = b.floatText.bind(b); b.floatText = (u, text, ...rest) => { if (b.__bal && typeof text === 'string') { const m = /^\+(\d+)/.exec(text); if (m) b.__bal.heal += Number(m[1]); if (text === 'Miss') b.__bal.miss++; } return ft(u, text, ...rest); };
     }
     // a short trail of what last moved bodies about, printed with any OFF TILE line
@@ -207,7 +212,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     const r = allTexts(b).includes('Victory') ? 'Victory' : allTexts(b).includes('Defeat') ? 'Defeat' : 'NONE';
     if (tally[r] !== undefined) tally[r]++;
     turnsList.push(b.turnCount);
-    console.log(`battle ${n}: ${r} after ${b.turnCount} turns (${b.__bal.rounds.toFixed(1)} rounds) | fell ${b.__bal.deaths.join(' ')} | healed ${b.__bal.heal} | misses ${b.__bal.miss} | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);
+    console.log(`battle ${n}: ${r} after ${b.turnCount} turns (${b.__bal.rounds.toFixed(1)} rounds) | fell ${b.__bal.deaths.join(' ')} | healed ${b.__bal.heal} | misses ${b.__bal.miss} | spent ${JSON.stringify(b.__bal.spent || {})} | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);
     // sanity: no leftover engagement with a fallen unit
     if (b.units.some((u) => u.engagedWith && (!u.alive || !u.engagedWith.alive))) console.log('  WARNING: engaged with a fallen unit');
     b.resultButtons[b.resultButtons.length - 1].hit.emit('pointerdown');

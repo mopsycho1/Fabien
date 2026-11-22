@@ -44,11 +44,11 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('when she shows herself she is back to normal', !layra.hidden && layra.sprite.blendMode !== ADD && layra.sprite.tintTopLeft === 0xffffff, layra.sprite.blendMode + ' ' + layra.sprite.tintTopLeft.toString(16));
 
   // Herbs on yourself
-  park(); put(sudeen, 2, 6); sudeen.hp = 30; turnOf(sudeen);
+  park(); put(sudeen, 2, 6); sudeen.hp = 20; turnOf(sudeen); // (his health is 36 since healthScale, 18.32)
   b.onSpellButton(); b.chooseSpell('herbs');
   check('first tap on Herbs: the hint says tap again for yourself', /Tap Herbs again to use them on yourself/.test(b.statusText.text), JSON.stringify(b.statusText.text));
   b.chooseSpell('herbs'); await idle(); await sleep(300);
-  check('second tap on Herbs heals Sudeen himself', sudeen.hp === 40, sudeen.hp);
+  check('second tap on Herbs heals Sudeen himself', sudeen.hp === 30, sudeen.hp);
 
   // Slow: effect, aura and icon
   park(); put(layra, 3, 6); put(bull, 3, 3); turnOf(layra); layra.mp = 12;

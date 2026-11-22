@@ -1,4 +1,5 @@
 import { startBag } from './items.js';
+import combatRules from './data/engagement.json'; // healthScale (battle length, 18.32)
 // Jobs: a job is a bundle of battle numbers (health, attack, speed, and so on).
 // Instead of typing every number for every unit, a unit in units.json just
 // says which job it has. The numbers for each job live in src/data/jobs.json.
@@ -46,6 +47,9 @@ export function buildUnit(entry, jobs) {
   for (const key of Object.keys(DEFAULT_STATS)) {
     if (entry[key] !== undefined) stats[key] = entry[key];
   }
+
+  // battle length (roadmap 18.32): health in battle is the written health times healthScale (engagement.json)
+  stats.hp = Math.max(1, Math.round(stats.hp * (combatRules.healthScale || 1)));
 
   return {
     ...entry,

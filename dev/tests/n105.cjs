@@ -61,10 +61,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); St.applyBuff(layra, 'swiftness');
   check('nobody hurt: Lightning', b.healAttack(layra) === null);
   // 6. Herself: tap the button twice
-  park(); St.applyBuff(layra, 'swiftness'); layra.hp = 10;
+  park(); St.applyBuff(layra, 'swiftness'); layra.hp = 8; // (her health is 21 since healthScale, 18.32)
   b.onAttackButton(); b.onAttackButton();
   await idle();
-  check('tapped twice: she heals herself +12', layra.hp === 22, layra.hp);
+  check('tapped twice: she heals herself +12', layra.hp === 20, layra.hp);
   // 7. It cures poison
   park(); St.applyBuff(layra, 'swiftness'); St.applyPoison(sudeen, 'poisonArrow');
   check('a poisoned ally counts as hurt', b.healAttack(layra) === 'healingWind');

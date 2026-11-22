@@ -28,7 +28,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const cb = cardBox();
   check('8.2 the profile card sits bottom left, on screen', cb.x < 40 && cb.bottom <= 1280 && cb.bottom > 1200, Math.round(cb.x) + ',' + Math.round(cb.y) + ' ' + Math.round(cb.width) + 'x' + Math.round(cb.height));
   const texts = []; const walk = (c) => c.list.forEach((o) => (o.list ? walk(o) : o.type === 'Text' && texts.push(o.text))); walk(b.cardLayer);
-  check('8.2 the card has the HP bar with numbers, and the numbers row (no CT bar for the unit acting, 8.12)', texts.includes('HP') && texts.includes('36/36') && !texts.includes('CT') && !texts.includes('Next turn') && ['ATK', 'DEF', 'MAG', 'MDF', 'SPD', 'MOV', 'RNG'].every((k) => texts.includes(k)), texts.join(' '));
+  check('8.2 the card has the HP bar with numbers, and the numbers row (no CT bar for the unit acting, 8.12)', texts.includes('HP') && texts.includes('27/27') /* Gaha 36 x healthScale 0.75 (18.32) */ && !texts.includes('CT') && !texts.includes('Next turn') && ['ATK', 'DEF', 'MAG', 'MDF', 'SPD', 'MOV', 'RNG'].every((k) => texts.includes(k)), texts.join(' '));
   b.showMessage('A test message for the info card');
   await sleep(50);
   const ib = b.infoPanel.getBounds ? null : null;

@@ -105,7 +105,9 @@ export function getDamage(attacker, defender) {
   // a weapon under Rabdul's Enchant burns: extra damage on top (less on a Drenched target)
   // Prime Bow (1.82): a drawn bow adds its bonus to the archer's attack
   const primed = primeBonus(attacker, defender, usesCloseWeapon(attacker, defender));
-  return soaked(attacker, defender, Math.max(1, attack + primed - (defender.defense + statMod(defender, 'defense'))) + flank) + enchantBonus(attacker, defender);
+  // every weapon hit does weaponDamageBonus more after defense (balance pass 18.32: battles were too long)
+  const bonus = rules.weaponDamageBonus || 0;
+  return soaked(attacker, defender, Math.max(1, attack + primed - (defender.defense + statMod(defender, 'defense'))) + bonus + flank) + enchantBonus(attacker, defender);
 }
 
 // A Drenched target (roadmap 11.4) takes more from lightning and less from

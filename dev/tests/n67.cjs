@@ -19,7 +19,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // ---------- the card ----------
   b.cardOpen = false; turnOf(gaha);
-  check('closed, the card is his compact card: name, Lv., HP MP CT with numbers, class line, no ATK (18.35)', !num('ATK') && cardWords().includes('Gaha') && cardWords().some((w) => /36 \/ 36|36\/36/.test(w)) && cardWords().includes('CT'), cardWords().join(' '));
+  check('closed, the card is his compact card: name, Lv., HP MP CT with numbers, class line, no ATK (18.35)', !num('ATK') && cardWords().includes('Gaha') && cardWords().some((w) => /27 \/ 27|27\/27/ /* Gaha 36 x healthScale 0.75 (18.32) */.test(w)) && cardWords().includes('CT'), cardWords().join(' '));
   const h1 = b.cardHeight;
   check('the slim bar is at least a finger tall', h1 >= b.lay.minTap, h1 + ' ' + b.lay.minTap);
   b.cardHit.emit('pointerdown');

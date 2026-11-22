@@ -47,7 +47,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 1. profile (10.24)
   park();
-  check('his numbers: HP 60, attack 9, defense 5, speed 6, move 3, evade 5', g.maxHp === 60 && g.attack === 9 && g.defense === 5 && g.speed === 6 && g.move === 3 && g.evade === 5, [g.maxHp, g.attack, g.defense, g.speed, g.move, g.evade].join(','));
+  check('his numbers: HP 45 (60 x healthScale 0.75, 18.32), attack 9, defense 5, speed 6, move 3, evade 5', g.maxHp === 45 && g.attack === 9 && g.defense === 5 && g.speed === 6 && g.move === 3 && g.evade === 5, [g.maxHp, g.attack, g.defense, g.speed, g.move, g.evade].join(','));
   check('he starts with the fork end, the Mask Gauge at 0', g.grip === 'fork' && g.mask === 0 && g.attackName === 'Fork Strike');
   check('clash: Press strong, Guard average, Slip weak (Power 8, Guard 6, Agility 2)', g.stances.press === 'strong' && g.stances.guard === 'average' && g.stances.slip === 'weak' && g.contest.power === 8 && g.contest.guard === 6 && g.contest.agility === 2);
 
