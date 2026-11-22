@@ -372,6 +372,7 @@ export function stanceRating(unit, stance) {
   let rating = unit.contest ? unit.contest[stat] || 0 : 0;
   const buff = buffOf(unit);
   if (buff && buff.stat === stat) rating += buff.amount;
+  if (stat === 'guard' && unit.zone && unit.zone.guardBonus) rating += unit.zone.guardBonus; // Rabdul's Hold the Line (19.4)
   return rating;
 }
 

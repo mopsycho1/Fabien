@@ -141,6 +141,38 @@ module.exports = function makeBrain(w, tally) {
       if (u.maxMp > 0 && u.mp < 3 && await useItem('spiritWater', u)) return;
       if (E.isMelee(u) && E.poiseOf(u) === 0 && nearFoe(u) <= 2 && await useItem('kolaNut', u)) return;
 
+      // ----- Sudeen (19.3): Intercept Ally pulls a badly hurt friend out of a clash and takes it over
+      if (u.spells.includes('interceptAlly') && St.canAfford(u, 'interceptAlly') && !u.engagedWith) {
+        const hurt = friends.filter((f) => f !== u && f.engagedWith && f.hp <= f.maxHp * 0.5).sort((a, c) => a.hp / a.maxHp - c.hp / c.maxHp)[0];
+        if (hurt && await cast('interceptAlly', hurt)) return;
+      }
+      // ----- Rabdul on the heroes' side (19.4): the scene's own choice of Haft Sweep, Spear Ward or Hold the Line,
+      // pressed through the menu (a stance is tapped twice; a Verse form has its own id)
+      if (u.spells.includes('spearWard') && !u.engagedWith) {
+        const pick = b.rabdulChoice(u);
+        if (pick) {
+          b.onSpellButton(); b.chooseSpell(pick.id);
+          if (pick.target === u) b.chooseSpell(pick.id);
+          else if (b.mode === 'spellTarget' && b.targetsInRange.includes(pick.target)) { b.handleTap(pick.target.col, pick.target.row); b.handleTap(pick.target.col, pick.target.row); }
+          await waitIdle();
+          if (u.hasActed) { used(pick.id); return; }
+          b.cancelMode();
+        }
+      }
+      // ----- the Bull on the heroes' side (19.5): Horn Charge down an open lane (the scene's own choice)
+      if (u.spells.includes('hornCharge') && St.canAfford(u, 'hornCharge') && !u.engagedWith) {
+        const t = b.hornChoice(u);
+        if (t && await cast('hornCharge', t)) return;
+      }
+      // ----- the archer on the heroes' side (1.82, 19.6): Poison Weapon through its button (free), then the scene's
+      // own choice of Pinning Shot or Prime Bow, played through the menu like a player would
+      if (u.closeWeapon && !u.engagedWith) {
+        if (u.spells.includes('poisonWeapon') && St.canAfford(u, 'poisonWeapon') && !u.coated && nearFoe(u) <= u.range + 3) {
+          b.onSpellButton(); b.chooseSpell('poisonWeapon'); used('poisonWeapon'); b.cancelMode();
+        }
+        const pick = b.archerChoice(u, foes);
+        if (pick && (pick.id === 'primeBow' ? await cast('primeBow', u, true) : await cast(pick.id, pick.target))) return;
+      }
       // ----- 2. the caster's own tricks -----
       if (u.spells.includes('husk')) {
         const fists = foes.filter((f) => !isArcher(f) && dist(u, f) === 1);

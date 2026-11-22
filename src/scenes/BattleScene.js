@@ -86,7 +86,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement } from '../status.js';
+import { healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement, applyPinned, isPinned, pinnedFrom, patientBonus, setWardUnits, wardShare, wardActive } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
@@ -226,6 +226,7 @@ export default class BattleScene extends Phaser.Scene {
       return b ? b.id : (u && u.alive && u.fury > 0 ? 'bloodied' : null); // Bloodied Press stacks have their own look
     });
     // Gadara's Dominion (Phase 10): a foe's buff within 2 tiles of him is a step weaker
+    setWardUnits(() => this.units || []); // Sudeen's Ward finds him through this (19.3)
     setDominionLookup((u) => !!(this.units && u && u.side && this.units.some((g) => g.alive && g.dominion && g.side !== u.side && distance(g, u) <= KING_RULES.gadara.dominion.radius)));
     // The battle's speed factors (see setSpeed). A restarted battle starts at normal speed.
     this.speed = { base: 1, skip: 1, hitStop: 1, slowMo: 1 };
@@ -2054,6 +2055,8 @@ export default class BattleScene extends Phaser.Scene {
     this.activeUnit.surgeStone = false; // (a Stone Surge lasts only the turn it came in)
     for (const unit of this.units) if (unit.engagedWith) unit.lastEngagedTurn = this.turnCount;
     this.readyCloseWeapons(); // archers: dagger out for a foe next to them, bow otherwise (1.46)
+    this.primeTurn(this.activeUnit); // her bow drawn last turn is ready now (Prime Bow, 1.82)
+    if (this.activeUnit.zone) { this.activeUnit.zone = null; this.clearZoneMark(this.activeUnit); } // Rabdul's Spear Ward or Hold the Line ends (19.4)
     for (const unit of this.units) this.faceNearestOpponent(unit);
     this.refreshStatusTags();
     this.activeUnit.hasMoved = false;
@@ -2763,7 +2766,7 @@ export default class BattleScene extends Phaser.Scene {
         selected: this.mode === 'engage',
         accent: ENGAGE_COLOR,
       });
-      this.halves[1].set('Skills', 'star', free, () => this.onSpellButton(), { accent: GOLD });
+      this.halves[1].set('Skills', 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD });
     } else if (isMelee(unit)) {
       c.set('Engage', 'charge', free && engageTargets(unit, this.units).length > 0, () => this.onEngageButton(), {
         selected: this.mode === 'engage',
@@ -3322,7 +3325,7 @@ export default class BattleScene extends Phaser.Scene {
   // clear line to the target: a higher block in the way stops them, unless the
   // skill pierces ("pierce": true in spells.json). Magic is never stopped.
   clearShot(user, target, spell) {
-    const missile = ['throw', 'toss', 'poison'].includes(spell.kind) && !spell.pierce;
+    const missile = ['throw', 'toss', 'poison', 'pin'].includes(spell.kind) && !spell.pierce;
     return !missile || hasClearShot(user, target);
   }
 
@@ -3731,6 +3734,7 @@ export default class BattleScene extends Phaser.Scene {
         this.readyCloseWeapons(); // an archer it stopped next to draws her dagger at once (1.46)
         // everyone else may now be closer to (or further from) an enemy: relaxed or battle stance
         for (const u of this.units) if (u !== unit && u.alive && !u.engagedWith) this.showStanding(u);
+        if (unit.zone && unit.zone.charges > 0) this.drawZoneMark(unit, unit.zone.color); // Rapid Ward: the guard goes with him (19.4)
         this.busy = false;
         this.refreshStatus();
         if (onDone) onDone();
@@ -5350,6 +5354,16 @@ export default class BattleScene extends Phaser.Scene {
       });
       return;
     }
+    // The Bull's Horn Charge (19.5): an open lane 2 or 3 tiles long to a foe is his walk and his blow at once
+    const horn = unit.spells.includes('hornCharge') ? this.hornChoice(unit) : null;
+    if (horn) {
+      this.busy = true;
+      this.castSpell(unit, horn, 'hornCharge', () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
     // The archer throws a Smoke Bomb when a foe is next to her and she is hurt or cornered (13.26)
     const smokeTile = this.smokeChoice(unit);
     if (smokeTile) {
@@ -5447,18 +5461,26 @@ export default class BattleScene extends Phaser.Scene {
     if ((unit.grip || unit.attune) && this.kingAiAct(unit, finish)) return;
     // Rabdul sets Shango's symbol on the weapon that will do most with it:
     // the hardest-hitting ally (or himself) who is in the fight (roadmap 4.1)
-    if (unit.spells.includes('enchant') && canAfford(unit, 'enchant')) {
-      const ally = this.enchantPick(unit);
+    const enchantId = unit.spells.includes('enchant') ? activeMove(unit, 'enchant') : null; // (under Fury: Kindle the Haft, his own spear only, 19.4)
+    if (enchantId && canAfford(unit, enchantId)) {
+      const ally = spells[enchantId].self ? (isEnchanted(unit) ? null : unit) : this.enchantPick(unit);
       // his own weapon can wait when a foe is already in reach: he strikes now
       const strikeNow = ally === unit && getTargetsInRange(unit, this.enemyEyes()).length > 0;
       if (ally && !strikeNow) {
         this.busy = true;
-        spendMp(unit, 'enchant');
-        startCooldown(unit, 'enchant');
+        spendMp(unit, enchantId);
+        startCooldown(unit, enchantId);
         unit.hasActed = true;
-        this.castEnchant(unit, ally, spells.enchant, finish);
+        this.castEnchant(unit, ally, spells[enchantId], finish);
         return;
       }
+    }
+    // Rabdul's Haft Sweep, Spear Ward and Hold the Line (19.4)
+    const rab = unit.spells.includes('spearWard') ? this.rabdulChoice(unit) : null;
+    if (rab) {
+      this.busy = true;
+      this.castSpell(unit, rab.target, rab.id, finish);
+      return;
     }
     // Layra under Swift heals with Healing Wind in place of Lightning (10.50): the most hurt one in reach below 60 percent
     const wind = this.healAttack(unit);
@@ -5513,12 +5535,25 @@ export default class BattleScene extends Phaser.Scene {
     // The whole enemy side also shares one wait (roadmap 18.15, 14 Nov): after any enemy starts a
     // clash, no enemy starts another for "enemyClashGap" turns (engagement.json). Without it the
     // heroes spent more turns in stances than attacking and almost never won.
+    // Sudeen's Intercept Ally (19.3): pull a badly hurt ally out of a clash and take it over himself
+    if (unit.spells.includes('interceptAlly') && canAfford(unit, 'interceptAlly') && !unit.engagedWith) {
+      const ally = this.units.filter((a) => a.alive && a !== unit && !a.isDecoy && a.side === unit.side && a.engagedWith && a.hp <= a.maxHp * 0.5 && this.swapReach(unit, a, spells.interceptAlly))
+        .sort((a, c) => a.hp / a.maxHp - c.hp / c.maxHp)[0];
+      if (ally) {
+        this.busy = true;
+        this.castSpell(unit, ally, 'interceptAlly', () => {
+          this.busy = false;
+          this.enemyWrapUp(unit);
+        });
+        return;
+      }
+    }
     const sideRested = this.lastEnemyClashTurn === undefined || this.turnCount - this.lastEnemyClashTurn >= (engagementRules.enemyClashGap || 0);
     const rested = sideRested && (!unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6);
     const seen = this.enemyEyes();
     const pins = engageTargets(unit, seen).filter((t) => !t.isDecoy && allyNear(t));
     // (tanks with a signature stance, like the Bruiser and the Warlord, want clashes too)
-    if ((styleOf(unit) === 'defence' || unit.signature) && rested && pins.length > 0) {
+    if ((styleOf(unit) === 'defence' || (unit.signature && unit.signature.seek !== false)) && rested && pins.length > 0) { // (Rabdul's Switch Ends is no reason to seek clashes: "seek": false, 19.4)
       pins.sort((a, b) => b.attack - a.attack); // the most dangerous one
       this.busy = true;
       this.lastEnemyClashTurn = this.turnCount;
@@ -5529,18 +5564,20 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    // A Shield Toss from a distance: stun a foe it cannot reach this turn (a caster first)
-    if (unit.spells.includes('shieldToss') && canAfford(unit, 'shieldToss') && getTargetsInRange(unit, seen).length === 0) {
-      const reach = spells.shieldToss.range;
+    // A Shield Toss (19.5): the Stun needs a foe that is already Off-Balance, so one of those first, even when someone
+    // is in mace reach; otherwise from a distance at a foe it cannot reach this turn (a caster first). Its Verse form too.
+    const tossId = unit.spells.includes('shieldToss') ? activeMove(unit, 'shieldToss') : null;
+    if (tossId && canAfford(unit, tossId)) {
+      const reach = spells[tossId].range;
       const marks = seen
         .filter((t) => t.side !== unit.side && t.alive && !t.isDecoy && !isStunned(t) && distance(unit, t) >= 2 && distance(unit, t) <= reach && hasClearShot(unit, t))
-        .sort((a, b) => isCaster(b) - isCaster(a) || b.attack - a.attack);
-      if (marks.length > 0) {
+        .sort((a, b) => isOffBalance(b) - isOffBalance(a) || isCaster(b) - isCaster(a) || b.attack - a.attack);
+      if (marks.length > 0 && (isOffBalance(marks[0]) || getTargetsInRange(unit, seen).length === 0)) {
         this.busy = true;
-        spendMp(unit, 'shieldToss');
-        startCooldown(unit, 'shieldToss');
+        spendMp(unit, tossId);
+        startCooldown(unit, tossId);
         unit.hasActed = true;
-        this.castShieldToss(unit, marks[0], spells.shieldToss, () => {
+        this.castShieldToss(unit, marks[0], spells[tossId], () => {
           this.busy = false;
           this.enemyWrapUp(unit);
         });
@@ -6781,7 +6818,7 @@ export default class BattleScene extends Phaser.Scene {
       const to = this.centerOf(target);
       play('whoosh');
       enchantSigil(this, from, to, () => {
-        applyEnchant(target, 'enchant', target === this.activeUnit);
+        applyEnchant(target, spell.self ? 'kindleHaft' : 'enchant', target === this.activeUnit); // (Kindle the Haft, his Fury variant, 19.4)
         enchantLand(this, to.x, to.y);
         floorLight(this, target.view.x, target.view.y, elementOf('fire').glow, { size: 1.5, peak: 0.6, ms: 700 });
         lightNearby(this, to.x, to.y, elementOf('fire').glow, { radius: 150, peak: 0.55, ms: 480 });
@@ -7134,16 +7171,46 @@ export default class BattleScene extends Phaser.Scene {
   // Shield Toss: the shield spins across and slams the target, which is
   // stunned for a turn if it is hit.
   castShieldToss(thrower, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // (Quake Toss pushes: allies may Relay)
     const hit = Math.random() * 100 < getHitChance(thrower, target);
     let damage = 0;
     let note = null;
+    let stunned = false, unbalanced = false;
+    const wasOffBalance = isOffBalance(target); // 19.5: the Stun only lands on a foe that was already Off-Balance
+    const quaked = [];
+    let bounce = null;
     if (hit) {
       const landed = this.landHit(target, this.skillHit(thrower, target, spell));
       damage = landed.damage;
       note = landed.note;
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) this.defeat(target);
-      else { applyStun(target); this.breakChannel(target, 'Stunned'); }
+      else if (spell.offBalanceOnHit) { applyOffBalance(target); unbalanced = true; } // Wrath Toss
+      else if (spell.stunIfOffBalance === false || (spell.stunIfOffBalance && wasOffBalance)) { applyStun(target); this.breakChannel(target, 'Stunned'); stunned = true; }
+      // Quake Toss: the other foes next to it are thrown a tile away
+      if (spell.quake) {
+        for (const o of this.units) {
+          if (o === target || !o.alive || o.isDecoy || o.side !== target.side || distance(o, target) !== 1) continue;
+          const pushed = this.pushLoser(o, target, spell.quake);
+          if (o.engagedWith && distance(o, o.engagedWith) > 1) endDuel(o);
+          quaked.push({ o, pushed });
+        }
+      }
+    }
+    // Ricochet Toss: then to another foe within 2 tiles of the first, rolled on its own, half damage, no Stun
+    if (spell.ricochet) {
+      const next = this.units.filter((o) => o !== target && o.alive && !o.isDecoy && o.side === target.side && distance(o, target) <= spell.ricochet).sort((a, c) => distance(a, target) - distance(c, target))[0];
+      if (next) {
+        const hit2 = Math.random() * 100 < getHitChance(thrower, next);
+        let d2 = 0, n2 = null;
+        if (hit2) {
+          const l2 = this.landHit(next, this.skillHit(thrower, next, spell));
+          d2 = l2.damage; n2 = l2.note;
+          next.hp = Math.max(0, next.hp - d2);
+          if (next.hp === 0) this.defeat(next);
+        }
+        bounce = { target: next, hit: hit2, damage: d2, note: n2 };
+      }
     }
     const outcome = this.checkBattleEnd();
     if (outcome) this.battleOver = true;
@@ -7187,9 +7254,24 @@ export default class BattleScene extends Phaser.Scene {
         ease: 'Quad.easeIn',
         onComplete: () => {
           this.showImpact(thrower, target, { hit, damage, note }, dx, target.hp === 0);
-          if (hit && target.alive) {
-            this.floatText(target, 'Stunned!', '#ffe08a', { rise: 46 });
+          if (hit && target.alive && (stunned || unbalanced)) {
+            this.floatText(target, stunned ? 'Stunned!' : 'Off-Balance', stunned ? '#ffe08a' : '#ff6b5a', { rise: 46 });
             this.refreshStatusTags();
+          }
+          if (quaked.length) {
+            screenShake(this, 0.008, 220);
+            groundRing(this, target.view.x, target.view.y, 0xd9b77a, 1.4);
+            for (const { o, pushed } of quaked) if (pushed && (pushed.path.length || pushed.fall)) this.knockBack(o, pushed, o.view.x - target.view.x, { text: 'Quake!', color: '#d9b77a' });
+          }
+          if (bounce) {
+            // the shield bounces on to the second foe before it comes home
+            const c2 = this.centerOf(bounce.target);
+            const glint = this.add.graphics().setDepth(79).setPosition(b.x, b.y);
+            glint.fillStyle(0xd9b77a, 1).fillCircle(0, 0, 9); glint.lineStyle(2, 0xfff2c4, 1).strokeCircle(0, 0, 9);
+            this.tweens.add({ targets: glint, x: c2.x, y: c2.y, duration: 220, ease: 'Quad.easeIn', onComplete: () => {
+              glint.destroy();
+              this.showImpact(thrower, bounce.target, { hit: bounce.hit, damage: bounce.damage, note: bounce.note }, bounce.target.view.x - target.view.x, bounce.target.hp === 0);
+            } });
           }
           if (directional) shield.setTexture(flightPic(-dx, -dyT).key); // on its way back it flies the other way
           this.tweens.add({ targets: shield, x: a.x, y: a.y, duration: 280, ease: 'Quad.easeOut', onComplete: () => shield.destroy() });
@@ -7197,11 +7279,106 @@ export default class BattleScene extends Phaser.Scene {
       });
     });
     this.time.delayedCall(1000, () => thrower.alive && this.showStanding(thrower));
-    this.time.delayedCall(1500, () => {
+    this.time.delayedCall(bounce || quaked.length ? 1900 : 1500, () => {
       if (outcome) {
         this.busy = false;
         this.showResult(outcome);
       } else onDone();
+    });
+  }
+
+  // ---------- The Bull's Horn Charge (19.5, 6.73) ----------
+  // The lane: same row or column, 2 or 3 tiles, every tile before the foe free and no step up of more than spell.climb
+  // levels. The foe must be the first one in the line (the tiles before it are free, so it is). Returns { path, spot, d }.
+  hornLine(unit, target, spell = spells.hornCharge) {
+    if (!target || target.isDecoy || target.side === unit.side || unit.engagedWith || isPinned(unit)) return null;
+    if (unit.col !== target.col && unit.row !== target.row) return null;
+    const d = distance(unit, target);
+    if (d < (spell.minRange || 2) || d > spell.range) return null;
+    const dc = Math.sign(target.col - unit.col), dr = Math.sign(target.row - unit.row);
+    const path = [];
+    let prev = { col: unit.col, row: unit.row };
+    for (let k = 1; k < d; k++) {
+      const t = { col: unit.col + dc * k, row: unit.row + dr * k };
+      if (!isInsideGrid(t.col, t.row) || this.isBlocked(t.col, t.row)) return null;
+      if (getHeight(t.col, t.row) - getHeight(prev.col, prev.row) > (spell.climb ?? 1)) return null;
+      path.push(t);
+      prev = t;
+    }
+    return { path, spot: path[path.length - 1], d };
+  }
+
+  // A foe is Guarding when it holds Guard in a clash, stands Rooted, or holds the line (Rabdul): the charge then
+  // knocks it Off-Balance instead of pushing it
+  isGuarding(u) {
+    return (!!u.engagedWith && u.stance === 'guard') || isRooted(u) || !!(u.zone && u.zone.mode === 'hold');
+  }
+
+  // His AI: the longest charge first (a full blow), a foe it can push first, then a caster, then the weakest
+  hornChoice(unit) {
+    if (!canAfford(unit, 'hornCharge') || unit.engagedWith) return null;
+    const lanes = this.enemyEyes().map((t) => ({ t, line: this.hornLine(unit, t) })).filter((x) => x.line);
+    if (!lanes.length) return null;
+    lanes.sort((a, b) => b.line.d - a.line.d || this.isGuarding(a.t) - this.isGuarding(b.t) || isCaster(b.t) - isCaster(a.t) || a.t.hp - b.t.hp);
+    return lanes[0].t;
+  }
+
+  castHornCharge(bull, target, spell, onDone) {
+    onDone = this.collectRelays(onDone); // Relay Strike: allies hit a pushed foe
+    const line = this.hornLine(bull, target, spell);
+    if (!line) { onDone(); return; }
+    bull.col = line.spot.col;
+    bull.row = line.spot.row;
+    bull.hasMoved = true;
+    bull.stepsUsed = Infinity;
+    const hit = Math.random() * 100 < getHitChance(bull, target);
+    let damage = 0, note = null, pushed = null, unbalanced = false;
+    if (hit) {
+      const share = line.d >= 3 ? spell.share3 : spell.share2;
+      const landed = this.landHit(target, Math.max(1, Math.round(getDamage(bull, target) * share)));
+      damage = landed.damage;
+      note = landed.note;
+      target.hp = Math.max(0, target.hp - damage);
+      if (target.hp === 0) this.defeat(target);
+      else if (this.isGuarding(target)) { applyOffBalance(target); unbalanced = true; }
+      else {
+        pushed = this.pushLoser(target, bull, spell.push);
+        if (target.engagedWith && distance(target, target.engagedWith) > 1) { endDuel(target); this.refreshEngagementMarks(); }
+      }
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    play('whoosh');
+    const dxT = target.view.x - bull.view.x;
+    const steps = line.path.map((tile) => {
+      const p = tileToScreen(tile.col, tile.row);
+      return {
+        x: p.x, y: p.y, duration: 140, ease: 'Linear', // (even steps: an ease-in made each step's end jump a tile in 80 ms, jumps.cjs)
+        onStart: () => {
+          bull.view.setDepth(depthFor(tile.col, tile.row) + 1);
+          this.afterimage(bull);
+          dustPuff(this, bull.view.x, bull.view.y);
+          this.showPose(bull, this.hasPose(bull, 'charge') ? 'charge' : 'guard', dxT);
+        },
+      };
+    });
+    const slam = () => {
+      const dx = target.view.x - bull.view.x;
+      const fiery = isEnchanted(bull);
+      sfxAt(this, fiery ? 'horn_fire' : 'horn_dust', (bull.view.x + target.view.x) / 2, (bull.view.y + target.view.y) / 2 + 4, { flip: dx < 0, depth: target.view.depth + 2 });
+      screenShake(this, line.d >= 3 ? 0.01 : 0.007, 180);
+      this.cameraPunch(line.d >= 3 ? 2 : 1);
+      play(hit ? 'crash' : 'whoosh');
+      this.showImpact(bull, target, { hit, damage, note }, dx, target.hp === 0);
+      if (hit && target.alive && unbalanced) this.floatText(target, 'Off-Balance', '#ff6b5a', { rise: 46 });
+      if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(260, () => this.knockBack(target, pushed, dx, { text: 'Gored!', color: '#e8c08a' }));
+      this.time.delayedCall(520, () => { if (bull.alive) { this.placeUnit(bull, bull.col, bull.row); this.showStanding(bull); } this.refreshStatusTags(); });
+    };
+    if (steps.length) this.tweens.chain({ targets: bull.view, tweens: steps, onComplete: slam });
+    else slam();
+    this.time.delayedCall(steps.length * 140 + 1200, () => {
+      if (outcome) { this.busy = false; this.showResult(outcome); } else onDone();
     });
   }
 
@@ -7754,7 +7931,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // How much a Poison Arrow hurts on landing: a share of a bow shot (never the dagger).
   poisonHit(shooter, target, spell) {
-    return Math.max(1, Math.round(getDamage({ ...shooter, closeWeapon: null }, target) * spell.damageShare));
+    return Math.max(1, Math.round(getDamage({ ...shooter, closeWeapon: null, primed: null }, target) * spell.damageShare));
   }
 
   // Poison Arrow, part 1: she crouches, dips an arrow and takes aim at the
@@ -7803,7 +7980,7 @@ export default class BattleScene extends Phaser.Scene {
   // The arrow itself. A hit does a little damage now and poisons the target
   // for a few turns (see tickPoison).
   shootPoisonArrow(shooter, target, spell, onDone) {
-    const bow = { ...shooter, closeWeapon: null };
+    const bow = { ...shooter, closeWeapon: null, noPatient: true, primed: null }; // (aimed last turn: no Patient Hunter, and Prime Bow is for her Attack, 19.6)
     const hit = Math.random() * 100 < getHitChance(bow, target);
     let damage = 0;
     let note = null;
@@ -7842,6 +8019,411 @@ export default class BattleScene extends Phaser.Scene {
         this.busy = false;
         this.showResult(outcome);
       } else onDone();
+    });
+  }
+
+  // ---------- The archer's Poison Weapon, Prime Bow and Pinning Shot (1.82, 19.6) ----------
+  // A skill she may still use after acting this turn (Poison Weapon is free at any time).
+  freeSkillReady(unit) {
+    return !unit.engagedWith && (unit.spells || []).some((id) => spells[id].freeAction && canAfford(unit, id) && !(spells[id].kind === 'coat' && unit.coated));
+  }
+
+  // Poison Weapon: free and at once. Her next hit that lands poisons (see coatLands).
+  castPoisonWeapon(unit) {
+    const spell = spells.poisonWeapon;
+    startCooldown(unit, 'poisonWeapon');
+    unit.coated = true;
+    play('select');
+    chargeUp(this, unit.view.x, unit.view.y - unit.topY * 0.55, 'poison', { ms: 360, size: 0.7, depth: unit.view.depth + 2 });
+    this.floatText(unit, 'Poisoned weapon', spell.color);
+    this.refreshStatusTags();
+    this.cancelMode(); // back to the main menu: her turn goes on
+  }
+
+  // After one of her hits lands on a living foe: the coat poisons it (1.82). Returns true if it did.
+  coatLands(attacker, target) {
+    if (!attacker.coated || !target || !target.alive || target.isDecoy) return false;
+    attacker.coated = false;
+    applyPoison(target, 'poisonArrow');
+    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, 'Poisoned', '#9fdc6a', { rise: 46 }); this.refreshStatusTags(); } });
+    return true;
+  }
+
+  // Prime Bow: she draws and holds; it uses her turn. From the start of her next turn her bow Attack has the bonus
+  // and reaches further (primeTurn); it is gone after that turn, or if she is caught in a clash.
+  castPrimeBow(unit, spell, onDone) {
+    unit.primed = { ready: false };
+    unit.hasMoved = true;
+    unit.stepsUsed = Infinity;
+    if (holdsDagger(unit)) this.switchWeapon(unit, 'bow');
+    this.showPose(unit, 'poison', 1); // (the crouched draw, the nearest picture she has to holding a drawn bow)
+    play('spell');
+    chargeUp(this, unit.view.x, unit.view.y - unit.topY * 0.6, 'spirit', { ms: 520, size: 0.9, depth: unit.view.depth + 2 });
+    buffAura(this, unit.view.x, unit.view.y, 0xffd27a);
+    this.floatText(unit, 'Bow drawn', spell.color, { pop: true });
+    this.refreshStatusTags();
+    this.refreshButtons();
+    this.time.delayedCall(900, () => {
+      onDone();
+      if (unit.side === 'hero' && this.activeUnit === unit && !this.battleOver) this.endTurn(); // (an enemy's turn is ended by enemyWrapUp)
+    });
+  }
+
+  // The archer's AI for her kit (1.82, 19.6). Coats her weapon at once when a foe is near (free). Then: a Pinning
+  // Shot at a close fighter who could reach her next turn; or Prime Bow when nobody is in reach, or when her plain
+  // shot would do 2 or less and nobody is within 3 tiles. Returns { id, target } or null (then she plays as before).
+  archerChoice(unit, seen) {
+    const foes = seen.filter((t) => t.alive && !t.isDecoy && t.side !== unit.side);
+    if (!foes.length) return null;
+    const near = Math.min(...foes.map((t) => distance(unit, t)));
+    if (unit.spells.includes('poisonWeapon') && canAfford(unit, 'poisonWeapon') && !unit.coated && near <= unit.range + 3) this.castPoisonWeapon(unit);
+    if (isBlinded(unit) || holdsDagger(unit) || unit.engagedWith) return null;
+    if (unit.spells.includes('pinningShot') && canAfford(unit, 'pinningShot')) {
+      const threats = foes.filter((t) => isMelee(t) && !t.engagedWith && !isPinned(t) && distance(unit, t) >= 2 && distance(unit, t) <= spells.pinningShot.range &&
+        distance(unit, t) <= moveOf(t) + (t.range || 1) + 1 && hasClearShot(unit, t)).sort((a, b) => distance(unit, a) - distance(unit, b));
+      if (threats.length) return { id: 'pinningShot', target: threats[0] };
+    }
+    if (unit.spells.includes('primeBow') && canAfford(unit, 'primeBow') && !unit.primed) {
+      const inReachNow = getTargetsInRange(unit, seen).filter((t) => !t.isDecoy);
+      const best = Math.max(0, ...inReachNow.map((t) => getDamage(unit, t)));
+      const poisonReady = unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow') && inReachNow.some((t) => !isPoisoned(t));
+      if ((inReachNow.length === 0 && near <= unit.range + spells.primeBow.rangeBonus + 3) || (best <= 2 && !poisonReady && near > 3)) return { id: 'primeBow', target: unit };
+    }
+    return null;
+  }
+
+  // At the start of the archer's turn: a bow drawn last turn is ready (more reach, harder shot); a draw already
+  // used for a whole turn, or held into a clash, is let go.
+  primeTurn(unit) {
+    if (!unit.primed) return;
+    if (unit.engagedWith || unit.primed.ready) return this.dropPrime(unit, unit.engagedWith ? 'Draw lost' : null);
+    unit.primed.ready = true;
+    unit.range += spells.primeBow.rangeBonus;
+    this.floatText(unit, 'Primed', spells.primeBow.color, { rise: 40 });
+  }
+
+  dropPrime(unit, why = null) {
+    if (!unit.primed) return;
+    if (unit.primed.ready) unit.range -= spells.primeBow.rangeBonus;
+    unit.primed = null;
+    if (why && unit.alive) this.floatText(unit, why, '#e8d5a8');
+    this.refreshStatusTags();
+  }
+
+  // Pinning Shot: a bow shot for half damage; a hit Pins the target through its next turn (19.6).
+  castPinningShot(shooter, target, spell, onDone) {
+    const bow = { ...shooter, closeWeapon: null, primed: null };
+    const hit = Math.random() * 100 < getHitChance(bow, target);
+    let damage = 0;
+    let note = null;
+    if (hit) {
+      const landed = this.landHit(target, Math.max(1, Math.round(getDamage(bow, target) * spell.damageShare)));
+      damage = landed.damage;
+      note = landed.note;
+      target.hp = Math.max(0, target.hp - damage);
+      if (target.hp === 0) this.defeat(target);
+      else {
+        applyPinned(target);
+        this.coatLands(shooter, target);
+      }
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    shooter.hasActed = true;
+    this.refreshButtons();
+    const dx = target.view.x - shooter.view.x;
+    this.faceToward(shooter, dx, target.view.y - shooter.view.y);
+    this.showPose(shooter, 'poisonShot', dx);
+    play('arrow');
+    const a = this.centerOf(shooter);
+    const b = this.centerOf(target);
+    this.time.delayedCall(200, () => arrowShot(this, a.x, a.y, b.x, b.y, () => {
+      this.showImpact(bow, target, { hit, damage, note }, dx, target.hp === 0);
+      if (hit && target.alive) {
+        groundRing(this, target.view.x, target.view.y, 0xd9b77a, 0.9);
+        dustPuff(this, target.view.x, target.view.y);
+        this.floatText(target, 'Pinned!', spell.color, { rise: 46 });
+        this.refreshStatusTags();
+      }
+    }));
+    this.time.delayedCall(900, () => shooter.alive && this.showStanding(shooter));
+    this.time.delayedCall(1500, () => {
+      if (outcome) {
+        this.busy = false;
+        this.showResult(outcome);
+      } else onDone();
+    });
+  }
+
+  // ---------- Sudeen: Ward, Shield Bash, Intercept Ally (19.3, 13.68) ----------
+  onWardButton() {
+    const unit = this.activeUnit;
+    if (!unit || unit.side !== 'hero' || this.busy || !unit.passives || !unit.passives.ward) return;
+    unit.wardOff = !unit.wardOff;
+    play('select');
+    this.floatText(unit, unit.wardOff ? 'Ward off' : 'Ward on', unit.wardOff ? '#8a8f99' : '#9fd4ff');
+    this.refreshStatusTags();
+    this.refreshButtons();
+    this.refreshStatus();
+  }
+
+  // A blue flash from the ally to Sudeen, and his share over him
+  wardFlash(warder, ally, share) {
+    this.updateHpBar(warder);
+    this.time.delayedCall(380, () => {
+      if (!warder.view || !warder.view.active || !ally.view || !ally.view.active) return;
+      const g = this.add.graphics().setDepth(80).setBlendMode(Phaser.BlendModes.ADD);
+      g.lineStyle(4, 0x9fd4ff, 0.9).lineBetween(ally.view.x, ally.view.y - ally.centerY, warder.view.x, warder.view.y - warder.centerY);
+      this.tweens.add({ targets: g, alpha: 0, duration: 320, onComplete: () => g.destroy() });
+      this.floatText(warder, 'Ward -' + share, '#9fd4ff', { rise: 40 });
+    });
+  }
+
+  // Shield Bash: on a hit, a chance to Disorient (more against an Off-Balance or Distracted foe); not on one already
+  // Disoriented, and not while it cools down (2 of his turns, only after it lands). Returns the extra damage dealt.
+  shieldBashDaze(attacker, target) {
+    const k = attacker.passives && attacker.passives.shieldBash;
+    if (!k || target.isDecoy || isDisoriented(target) || (attacker.status.cooldowns.shieldBash || 0) > 0) return 0;
+    const chance = k.chance + (isOffBalance(target) || isDistracted(target, attacker) ? k.openingBonus : 0);
+    if (Math.random() * 100 >= chance) return 0;
+    applyDisoriented(target, false, 1, attacker);
+    attacker.status.cooldowns.shieldBash = k.cooldown;
+    const extra = Math.min(k.impact, target.hp);
+    target.hp -= extra;
+    if (target.hp === 0) this.defeat(target);
+    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, 'Disoriented', '#e3a8ff', { rise: 46 }); this.refreshStatusTags(); } });
+    return extra;
+  }
+
+  // Intercept Ally: the ally can be reached by walking at most spell.range steps (the ally's own tile counted as
+  // free) and its tile is within spell.climb levels of his.
+  swapReach(unit, ally, spell) {
+    if (unit.engagedWith || isPinned(unit)) return false;
+    if (Math.abs(getHeight(unit.col, unit.row) - getHeight(ally.col, ally.row)) > (spell.climb ?? 1)) return false;
+    const tiles = getReachableTiles(unit.col, unit.row, spell.range, (c, r) => (c === ally.col && r === ally.row ? false : this.isBlocked(c, r)), moveRules(unit));
+    return tiles.some((t) => t.col === ally.col && t.row === ally.row);
+  }
+
+  castInterceptAlly(sudeen, ally, spell, onDone) {
+    const from = { col: sudeen.col, row: sudeen.row };
+    const to = { col: ally.col, row: ally.row };
+    const foe = ally.engagedWith && ally.engagedWith.alive ? ally.engagedWith : null;
+    sudeen.col = to.col; sudeen.row = to.row;
+    ally.col = from.col; ally.row = from.row;
+    sudeen.hasMoved = true;
+    sudeen.stepsUsed = Infinity;
+    let took = false;
+    if (foe) {
+      endDuel(ally); // the ally steps out of the clash
+      if (canBeCaught(foe)) {
+        if (isStanceDuel()) startDuel(sudeen, foe);
+        else startEngagement(sudeen, foe);
+        took = true;
+      }
+    }
+    this.refreshButtons();
+    play('whoosh');
+    // the two trade places in one quick hop, Sudeen behind his shield
+    const hop = (u, tile, lift) => {
+      const p = tileToScreen(tile.col, tile.row);
+      this.afterimage(u);
+      this.tweens.add({ targets: u.view, x: p.x, duration: 300, ease: 'Quad.easeInOut' });
+      this.tweens.add({ targets: u.view, y: p.y, duration: 300, ease: 'Quad.easeInOut', onUpdate: (tw) => u.view.setDepth(depthFor(tile.col, tile.row) + 1 + (lift ? 1 : 0)) });
+    };
+    this.showPose(sudeen, 'guard', tileToScreen(to.col, to.row).x - sudeen.view.x);
+    hop(sudeen, to, true);
+    hop(ally, from, false);
+    this.time.delayedCall(330, () => {
+      for (const [u, t] of [[sudeen, to], [ally, from]]) if (u.view && u.view.active) this.placeUnit(u, t.col, t.row);
+      this.faceNearestOpponent(sudeen);
+      this.faceNearestOpponent(ally);
+      this.showStanding(ally);
+      if (!took) this.showStanding(sudeen);
+      dustPuff(this, sudeen.view.x, sudeen.view.y);
+      if (took) {
+        clashFlash(this, (sudeen.view.x + foe.view.x) / 2, (sudeen.view.y + foe.view.y) / 2 - foe.centerY);
+        play('clash');
+        this.floatText(foe, 'Locked in!', '#ffb35c', { rise: 46 });
+        this.time.delayedCall(250, () => ally.alive && this.floatText(ally, 'Free!', '#9fd4ff', { pop: true }));
+      } else this.floatText(sudeen, 'Intercept!', spell.color);
+      this.refreshEngagementMarks();
+      this.refreshStatusTags();
+    });
+    this.time.delayedCall(900, () => {
+      onDone();
+      // locked in a clash: in the stance duel his turn is over (as with Intercept)
+      if (took && sudeen.side === 'hero' && isStanceDuel() && this.activeUnit === sudeen && !this.battleOver) this.endTurn();
+    });
+  }
+
+  // ---------- Rabdul: Spear Ward, Hold the Line, Haft Sweep (19.4) ----------
+  castZoneWard(unit, spell, onDone) {
+    unit.zone = { name: spell.button, color: spell.color, mode: spell.mode, charges: spell.charges, damageShare: spell.damageShare || 0, pushOnHit: spell.pushOnHit || 0, guardBonus: spell.guardBonus || 0 };
+    unit.hasMoved = true;
+    // he cannot move while it holds; Rapid Ward lets him take a few more steps first (the ward goes with him)
+    unit.stepsUsed = spell.steps ? Math.max(unit.stepsUsed || 0, moveOf(unit) - spell.steps) : Infinity;
+    if (spell.rooted) { unit.status.rooted = true; }
+    play(spell.mode === 'spear' ? 'whoosh' : 'select');
+    this.showPose(unit, spell.mode === 'spear' ? 'attack' : 'guard', 1);
+    groundRing(this, unit.view.x, unit.view.y, Phaser.Display.Color.HexStringToColor(spell.color).color, 1.6);
+    this.floatText(unit, spell.button, spell.color, { pop: true });
+    this.drawZoneMark(unit, spell.color);
+    this.refreshStatusTags();
+    this.refreshButtons();
+    this.time.delayedCall(700, () => { if (unit.alive) this.showStanding(unit); onDone(); });
+  }
+
+  // The 8 tiles he guards, faintly lit on the floor while the stance holds
+  drawZoneMark(unit, color) {
+    this.clearZoneMark(unit);
+    const g = this.add.graphics().setDepth(2);
+    const c = Phaser.Display.Color.HexStringToColor(color).color;
+    for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) {
+      if (!dc && !dr) continue;
+      const col = unit.col + dc, row = unit.row + dr;
+      if (!isInsideGrid(col, row)) continue;
+      const p = tileToScreen(col, row);
+      const hw = TILE_WIDTH / 2 * 0.86, hh = TILE_HEIGHT / 2 * 0.86;
+      g.lineStyle(2, c, 0.55).fillStyle(c, 0.12).fillPoints([{ x: p.x, y: p.y - hh }, { x: p.x + hw, y: p.y }, { x: p.x, y: p.y + hh }, { x: p.x - hw, y: p.y }], true).strokePoints([{ x: p.x, y: p.y - hh }, { x: p.x + hw, y: p.y }, { x: p.x, y: p.y + hh }, { x: p.x - hw, y: p.y }], true);
+    }
+    unit.zoneMark = g;
+    this.boardObjects.push(g);
+  }
+
+  clearZoneMark(unit) {
+    if (unit.zoneMark) { unit.zoneMark.destroy(); unit.zoneMark = null; }
+  }
+
+  // The first step of this path that walks into a foe's guarded tiles, or null
+  wardTrigger(unit, path, seen) {
+    if (unit.isDecoy) return null;
+    const near = (p, w) => Math.max(Math.abs(p.col - w.col), Math.abs(p.row - w.row)) === 1;
+    let prev = { col: unit.col, row: unit.row };
+    for (const tile of path) {
+      for (const w of this.units) {
+        if (!w.alive || !w.zone || w.zone.charges <= 0 || w.side === unit.side || w.engagedWith || isStunned(w) || seen.has(w)) continue;
+        if (near(tile, w) && !near(prev, w)) return { tile, warder: w };
+      }
+      prev = tile;
+    }
+    return null;
+  }
+
+  // The warder answers a foe stepping in: Spear Ward strikes (a hit stops it; Anchored Ward also pushes it back);
+  // Hold the Line contests (his hit chance; a win stops it, no damage). done(stopped).
+  wardReaction(w, walker, done) {
+    const z = w.zone;
+    z.charges -= 1;
+    const chance = getHitChance(w, walker);
+    const won = Math.random() * 100 < chance;
+    let damage = 0, note = null, pushed = null;
+    if (z.mode === 'spear' && won) {
+      const landed = this.landHit(walker, Math.max(1, Math.round(getDamage(w, walker) * z.damageShare)));
+      damage = landed.damage;
+      note = landed.note;
+      walker.hp = Math.max(0, walker.hp - damage);
+      if (walker.hp === 0) this.defeat(walker);
+      else if (z.pushOnHit) pushed = this.pushLoser(walker, w, z.pushOnHit);
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    if (z.charges <= 0) this.clearZoneMark(w);
+    const dx = walker.view.x - w.view.x;
+    this.faceToward(w, dx, walker.view.y - w.view.y);
+    this.floatText(w, z.mode === 'spear' ? 'Spear Ward!' : 'Hold the Line!', z.mode === 'spear' ? '#9fc4e8' : '#d9b77a', { rise: 30 });
+    if (z.mode === 'spear') {
+      this.showPose(w, 'attack', dx);
+      play('slash');
+      this.time.delayedCall(160, () => this.showImpact(w, walker, { hit: won, damage, note }, dx, walker.hp === 0));
+      if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(420, () => this.knockBack(walker, pushed, dx));
+    } else {
+      this.showPose(w, 'guard', dx);
+      play(won ? 'clash' : 'cancel');
+      if (won) clashFlash(this, (w.view.x + walker.view.x) / 2, (w.view.y + walker.view.y) / 2 - walker.centerY);
+    }
+    if (won && walker.alive) { walker.stepsUsed = Infinity; this.time.delayedCall(300, () => this.floatText(walker, 'Stopped!', '#ffe08a', { rise: 46 })); } // (stopped for the rest of its walk; it may still act)
+    this.refreshStatusTags();
+    this.time.delayedCall(z.mode === 'spear' ? 800 : 600, () => {
+      if (w.alive && !w.engagedWith) this.showStanding(w);
+      if (outcome) { this.busy = false; this.showResult(outcome); return; }
+      done(won);
+    });
+  }
+
+  // Rabdul's AI for his kit (19.4). Haft Sweep on a foe next to him when the push drops it down a level, slams it, or
+  // lands it next to one of his allies (a Relay), else now and then. With nobody next to him but a foe who could reach
+  // him next turn: Spear Ward (or its Verse form), or Hold the Line while the ward cools down. Returns { id, target }.
+  rabdulChoice(unit) {
+    if (unit.engagedWith) return null;
+    const foes = this.enemyEyes().filter((t) => t.alive && !t.isDecoy && t.side !== unit.side);
+    const near = foes.filter((t) => distance(unit, t) === 1);
+    if (near.length && unit.spells.includes('haftSweep') && canAfford(unit, 'haftSweep')) {
+      const good = near.find((t) => {
+        const plan = this.pushPlan(t, unit, spells.haftSweep.push);
+        if (plan.held || !plan.path.length) return false;
+        const end = plan.path[plan.path.length - 1];
+        return plan.levels > 0 || plan.slam || this.units.some((a) => a.alive && a !== unit && a.side === unit.side && distance(a, end) === 1);
+      });
+      if (good) return { id: 'haftSweep', target: good };
+      if (Math.random() < 0.3) return { id: 'haftSweep', target: near[0] };
+    }
+    if (near.length || unit.zone) return null;
+    const coming = foes.some((t) => distance(unit, t) <= moveOf(t) + 2);
+    if (!coming) return null;
+    const ward = unit.spells.includes('spearWard') ? activeMove(unit, 'spearWard') : null;
+    if (ward && canAfford(unit, ward)) return { id: ward, target: unit };
+    if (unit.spells.includes('holdLine') && canAfford(unit, 'holdLine')) return { id: 'holdLine', target: unit };
+    return null;
+  }
+
+  // Kindle the Haft: his first hit each turn sets the foe alight (2 a turn for 3 turns); a Drenched foe does not catch
+  // fire and takes 1 more damage instead
+  kindleLands(attacker, target) {
+    const e = attacker.status && attacker.status.enchant;
+    if (!e || e.id !== 'kindleHaft' || attacker.kindledTurn === this.turnCount || !target.alive || target.isDecoy) return;
+    attacker.kindledTurn = this.turnCount;
+    if (isDrenched(target)) {
+      target.hp = Math.max(1, target.hp - 1);
+      this.time.delayedCall(560, () => target.alive && this.floatText(target, 'Too wet to burn -1', '#bfe8ff', { rise: 46 }));
+      return;
+    }
+    applyBurn(target, 'kindleBurn');
+    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); } });
+  }
+
+  // Haft Sweep: half a blow, Off-Balance and a push of 1 tile (allies may Relay the pushed foe)
+  castHaftSweep(user, target, spell, onDone) {
+    onDone = this.collectRelays(onDone);
+    const hit = Math.random() * 100 < getHitChance(user, target);
+    let damage = 0, note = null, pushed = null;
+    if (hit) {
+      const landed = this.landHit(target, this.skillHit(user, target, spell));
+      damage = landed.damage;
+      note = landed.note;
+      target.hp = Math.max(0, target.hp - damage);
+      if (target.hp === 0) this.defeat(target);
+      else {
+        applyOffBalance(target);
+        pushed = this.pushLoser(target, user, spell.push);
+        if (target.engagedWith && distance(target, target.engagedWith) > 1) { endDuel(target); this.refreshEngagementMarks(); }
+      }
+    }
+    const outcome = this.checkBattleEnd();
+    if (outcome) this.battleOver = true;
+    this.refreshButtons();
+    const dx = target.view.x - user.view.x;
+    this.faceToward(user, dx, target.view.y - user.view.y);
+    this.showPose(user, 'attack', dx);
+    play('whoosh');
+    this.time.delayedCall(180, () => {
+      this.showImpact(user, target, { hit, damage, note }, dx, target.hp === 0);
+      if (hit && target.alive) this.floatText(target, 'Off-Balance', '#ff6b5a', { rise: 46 });
+    });
+    if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(420, () => this.knockBack(target, pushed, dx));
+    this.time.delayedCall(1100, () => {
+      if (user.alive && !user.engagedWith) this.showStanding(user);
+      this.refreshStatusTags();
+      if (outcome) { this.busy = false; this.showResult(outcome); } else onDone();
     });
   }
 

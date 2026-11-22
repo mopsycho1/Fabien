@@ -6,7 +6,14 @@
     "stats": { "hp": 40, "attack": 6, "defense": 4, "magicAttack": 1, "magicDefense": 2, "accuracy": 85, "evade": 10, "speed": 9, "move": 3, "range": 1 },
     "contest": { "style": "defence", "power": 4, "guard": 8, "agility": 3 },
     "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
-    "spells": ["herbs", "intercept"]
+    "spells": ["wardSwitch", "herbs", "intercept", "interceptAlly"],
+    "attackName": "Shield Bash",
+    "signature": { "id": "bulwark", "stance": "guard", "name": "Bulwark" },
+    "passives": {
+      "ward": { "defense": 1, "stoneDefense": 2, "shareOf": 3, "cap": 4, "stoneShareOf": 2, "stoneCap": 5 },
+      "shieldBash": { "chance": 50, "openingBonus": 20, "impact": 2, "cooldown": 2 }
+    },
+    "note": "Batch 7 (19.3, 13.68, 21 Nov): his damage is in clashes (Bulwark: a Guard beat he wins hits back for winHitBase + his level, engagement.json). Ward: allies next to him get +1 defense (+2 under Stone) and he takes a third of each hit on them (half under Stone), rounded up, at most 4 (5); never below 1 health; off in a clash, when Stunned, at 1 health, or when switched off. Shield Bash (his Attack): 50 percent to Disorient on a hit (70 against an Off-Balance or Distracted foe), 2 more damage when it does; then 2 of his turns before it can again."
   },
   "scout": {
     "name": "Scout",
@@ -57,7 +64,10 @@
     "stats": { "hp": 34, "mp": 9, "attack": 7, "defense": 3, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 14, "speed": 9, "move": 3, "range": 1 },
     "contest": { "style": "overpower", "power": 6, "guard": 5, "agility": 5 },
     "stances": { "press": "strong", "guard": "average", "slip": "average", "break": "average" },
-    "spells": ["doubleHit", "enchant"],
+    "spells": ["doubleHit", "enchant", "spearWard", "holdLine", "haftSweep"],
+    "signature": { "id": "switchEnds", "stance": "press", "name": "Switch Ends", "seek": false },
+    "passives": { "noBlindSide": 5, "switchEnds": { "secondHit": 1 } },
+    "note_kit": "Batch 7 (19.4, 21 Nov): Spear Ward and Hold the Line (one stance at a time), Haft Sweep; Switch Ends (a Press beat he wins in a clash adds a rear-blade strike, engagement.json signatures.switchEnds; the second blow of his Double Hit +1); No Blind Side (attackers get +5 to hit him while he is in a clash with someone else, not +10).",
     "note_mp": "Enchant (roadmap 4.1) is magic, so Rabdul has his own MP: 9, Enchant costs 3."
   },
   "bruiser": {
@@ -137,7 +147,8 @@
     "contest": { "style": "evasion", "power": 2, "guard": 3, "agility": 5 },
     "stances": { "press": "weak", "guard": "weak", "slip": "average", "break": "average" },
     "closeWeapon": { "name": "Dagger", "attack": -2, "pose": "dagger" },
-    "spells": ["poisonArrow", "smokeBomb"],
+    "spells": ["poisonArrow", "pinningShot", "primeBow", "poisonWeapon", "smokeBomb"],
+    "passives": { "patientHunter": 5 },
     "stats": { "hp": 24, "attack": 7, "defense": 1, "magicAttack": 1, "magicDefense": 3, "accuracy": 90, "evade": 15, "speed": 11, "move": 3, "range": 5 },
     "note": "Range 5 (Suleiman, 29 Oct: at least double Gaha's reach, \"if not a little extra\"). Her AI keeps its distance. 8 Nov (13.29): she chooses her weapon (Switch weapon, free once a turn): the bow reaches 2 to 5 tiles (no room to draw it next to a foe), the dagger only the tile next to her."
   },

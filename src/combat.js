@@ -1,4 +1,4 @@
-import { statMod, isStunned, isDisoriented, isDrenched, isBlinded, attackElement, enchantBonus, isEnchanted } from './status.js';
+import { statMod, isStunned, isDisoriented, isDrenched, isBlinded, attackElement, enchantBonus, isEnchanted, primeBonus, patientBonus } from './status.js';
 import conditions from './data/conditions.json';
 import rules from './data/engagement.json';
 import terrain from './data/terrain.json';
@@ -101,7 +101,9 @@ export function getDamage(attacker, defender) {
   }
   const attack = attacker.attack + statMod(attacker, 'attack') + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
   // a weapon under Rabdul's Enchant burns: extra damage on top (less on a Drenched target)
-  return soaked(attacker, defender, Math.max(1, attack - (defender.defense + statMod(defender, 'defense'))) + flank) + enchantBonus(attacker, defender);
+  // Prime Bow (1.82): a drawn bow adds its bonus to the archer's attack
+  const primed = primeBonus(attacker, defender, usesCloseWeapon(attacker, defender));
+  return soaked(attacker, defender, Math.max(1, attack + primed - (defender.defense + statMod(defender, 'defense'))) + flank) + enchantBonus(attacker, defender);
 }
 
 // A Drenched target (roadmap 11.4) takes more from lightning and less from

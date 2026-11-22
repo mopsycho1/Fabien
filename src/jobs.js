@@ -61,6 +61,7 @@ export function buildUnit(entry, jobs) {
     bag: startBag(entry), // items carried: { sheaBalm: 1 } (items.json, roadmap Phase 5)
     spells: job && job.spells ? [...job.spells] : [], // spells and skills this job can use
     signature: job && job.signature ? { ...job.signature } : null, // its signature stance in a clash, if any
+    passives: job && job.passives ? { ...job.passives } : {}, // quiet rules of its own: the archer's Patient Hunter (19.6), Sudeen's Ward (19.3)...
     counterstep: !!(job && job.counterstep), // Gaha's passive: a close fighter who misses him takes a free Thrust (roadmap 13.59)
     melee: !!(job && job.melee), // a close fighter even with a range above 1 (a spear's reach)
     lineReach: !!(job && job.lineReach), // past 1 tile it only reaches in a straight line

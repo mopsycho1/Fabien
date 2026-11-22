@@ -1,37 +1,403 @@
 {
   "note": "The skill panel, bottom right of the battle screen (UI rework 16 Nov, Suleiman's mock-up). One entry per skill: area (the words), grid (the small picture of the area: rows top to bottom, x = hit, c = the caster, . = nothing), effect (one short tag, like 'Inflicts Burn') and line (one short line). Change the words freely; the full text stays in spells.json.",
   "skills": {
-    "swiftness": { "area": "1 unit", "grid": ["x"], "effect": "Grants Swift", "line": "+15 evade and +1 move." },
-    "stone": { "area": "1 unit", "grid": ["x"], "effect": "Grants Bulwark", "line": "+2 defense, harder to push." },
-    "fury": { "area": "1 unit", "grid": ["x"], "effect": "Grants Fury", "line": "+2 attack, +3 power in a clash." },
-    "renewal": { "area": "1 unit", "grid": ["x"], "effect": "Heals each turn", "line": "About 5% health a turn for 3 turns." },
-    "spiritBoltFire": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Burn", "line": "2 damage a turn for 3 turns." },
-    "spiritBoltWater": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Drenched", "line": "Lightning hurts it more for 2 turns." },
-    "spiritBoltEarth": { "area": "1 foe", "grid": ["x"], "effect": "Knockback 1", "line": "Into a wall, it slams." },
-    "spiritBoltStorm": { "area": "Foe + 1 jump", "grid": ["x.", ".x"], "effect": "Jumps", "line": "Half damage to a second foe within 2." },
-    "haunt": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Haunt", "line": "2 damage each turn for 3 turns." },
-    "infuse": { "area": "1 ally", "grid": ["x"], "effect": "Blessing", "line": "A blessing from the element Kofi reads." },
-    "slow": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Slow", "line": "Its next turn comes later." },
-    "husk": { "area": "Self", "grid": ["c"], "effect": "Decoy", "line": "Leave a decoy and slip up to 3 tiles." },
-    "meditate": { "area": "Self", "grid": ["c"], "effect": "+6 MP", "line": "Trance for a turn, then MP comes back." },
-    "spearThrow": { "area": "1 foe", "grid": ["x"], "effect": "Knockback 1", "line": "Hurl the spear up to 3 tiles." },
-    "lunge": { "area": "Line", "grid": ["c.x"], "effect": "+1 per tile", "line": "Run in a straight line, then Thrust." },
-    "herbs": { "area": "1 ally", "grid": ["x"], "effect": "Heals 10", "line": "Cures poison and puts out a burn." },
-    "poisonArrow": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Poison", "line": "Flies next turn; 3 damage a turn." },
-    "intercept": { "area": "1 foe", "grid": ["c.x"], "effect": "Locks a clash", "line": "Charge up to 4 tiles, half damage." },
-    "shieldToss": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Stun", "line": "Half damage, it loses its next turn." },
-    "doubleHit": { "area": "1 foe", "grid": ["cx"], "effect": "Two hits", "line": "Two quick hits, each 60%." },
-    "shieldRam": { "area": "1 foe", "grid": ["c.x"], "effect": "Knockback 2", "line": "Charge and ram it 2 tiles back." },
-    "furyCharge": { "area": "1 foe", "grid": ["c.x"], "effect": "Full damage", "line": "Charge and hit with full strength." },
-    "blitz": { "area": "1 foe", "grid": ["c.x"], "effect": "Inflicts Stun", "line": "A charge too fast to answer." },
-    "sonicJavelin": { "area": "Line", "grid": ["cxxx"], "effect": "Never misses", "line": "Hits every foe in its line." },
-    "furyDive": { "area": "Foe + around", "grid": [".x.", "xxx", ".x."], "effect": "Off-Balance", "line": "Leap and slam for 1.5x damage." },
-    "thunderclap": { "area": "Foe + 1 jump", "grid": ["x.", ".x"], "effect": "Knockback 1", "line": "The bolt knocks it back and jumps." },
-    "wildfire": { "area": "1 foe", "grid": ["x"], "effect": "Inflicts Burn", "line": "2 damage a turn for 3 turns." },
-    "enchant": { "area": "1 ally", "grid": ["x"], "effect": "Fire weapon", "line": "+2 damage on every hit, 3 turns." },
-    "earthDrive": { "area": "1 foe", "grid": ["cx"], "effect": "Knockback 1", "line": "A rock spike that stays as a wall." },
-    "clap": { "area": "2 tiles round", "grid": ["..x..", ".xxx.", "xxcxx", ".xxx.", "..x.."], "effect": "Knockback 1", "line": "Blasts every foe within 2 tiles." },
-    "elementBlast": { "area": "Line", "grid": ["cxxx"], "effect": "Uses the element", "line": "Fires the element down a line." },
-    "smokeBomb": { "area": "Around you", "grid": [".x.", "xcx", ".x."], "effect": "Inflicts Blind", "line": "Blind foes next to you, then hide." }
+    "swiftness": {
+      "area": "1 unit",
+      "grid": [
+        "x"
+      ],
+      "effect": "Grants Swift",
+      "line": "+15 evade and +1 move."
+    },
+    "stone": {
+      "area": "1 unit",
+      "grid": [
+        "x"
+      ],
+      "effect": "Grants Bulwark",
+      "line": "+2 defense, harder to push."
+    },
+    "fury": {
+      "area": "1 unit",
+      "grid": [
+        "x"
+      ],
+      "effect": "Grants Fury",
+      "line": "+2 attack, +3 power in a clash."
+    },
+    "renewal": {
+      "area": "1 unit",
+      "grid": [
+        "x"
+      ],
+      "effect": "Heals each turn",
+      "line": "About 5% health a turn for 3 turns."
+    },
+    "spiritBoltFire": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Burn",
+      "line": "2 damage a turn for 3 turns."
+    },
+    "spiritBoltWater": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Drenched",
+      "line": "Lightning hurts it more for 2 turns."
+    },
+    "spiritBoltEarth": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Knockback 1",
+      "line": "Into a wall, it slams."
+    },
+    "spiritBoltStorm": {
+      "area": "Foe + 1 jump",
+      "grid": [
+        "x.",
+        ".x"
+      ],
+      "effect": "Jumps",
+      "line": "Half damage to a second foe within 2."
+    },
+    "haunt": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Haunt",
+      "line": "2 damage each turn for 3 turns."
+    },
+    "infuse": {
+      "area": "1 ally",
+      "grid": [
+        "x"
+      ],
+      "effect": "Blessing",
+      "line": "A blessing from the element Kofi reads."
+    },
+    "slow": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Slow",
+      "line": "Its next turn comes later."
+    },
+    "husk": {
+      "area": "Self",
+      "grid": [
+        "c"
+      ],
+      "effect": "Decoy",
+      "line": "Leave a decoy and slip up to 3 tiles."
+    },
+    "meditate": {
+      "area": "Self",
+      "grid": [
+        "c"
+      ],
+      "effect": "+6 MP",
+      "line": "Trance for a turn, then MP comes back."
+    },
+    "spearThrow": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Knockback 1",
+      "line": "Hurl the spear up to 3 tiles."
+    },
+    "lunge": {
+      "area": "Line",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "+1 per tile",
+      "line": "Run in a straight line, then Thrust."
+    },
+    "herbs": {
+      "area": "1 ally",
+      "grid": [
+        "x"
+      ],
+      "effect": "Heals 10",
+      "line": "Cures poison and puts out a burn."
+    },
+    "poisonArrow": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Poison",
+      "line": "Flies next turn; 3 damage a turn."
+    },
+    "intercept": {
+      "area": "1 foe",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "Locks a clash",
+      "line": "Charge up to 4 tiles, half damage."
+    },
+    "shieldToss": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Stun if Off-Bal",
+      "line": "Half damage; Stuns a foe already Off-Balance."
+    },
+    "doubleHit": {
+      "area": "1 foe",
+      "grid": [
+        "cx"
+      ],
+      "effect": "Two hits",
+      "line": "Two quick hits, each 60%."
+    },
+    "shieldRam": {
+      "area": "1 foe",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "Knockback 2",
+      "line": "Charge and ram it 2 tiles back."
+    },
+    "furyCharge": {
+      "area": "1 foe",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "Full damage",
+      "line": "Charge and hit with full strength."
+    },
+    "blitz": {
+      "area": "1 foe",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "Inflicts Stun",
+      "line": "A charge too fast to answer."
+    },
+    "sonicJavelin": {
+      "area": "Line",
+      "grid": [
+        "cxxx"
+      ],
+      "effect": "Never misses",
+      "line": "Hits every foe in its line."
+    },
+    "furyDive": {
+      "area": "Foe + around",
+      "grid": [
+        ".x.",
+        "xxx",
+        ".x."
+      ],
+      "effect": "Off-Balance",
+      "line": "Leap and slam for 1.5x damage."
+    },
+    "thunderclap": {
+      "area": "Foe + 1 jump",
+      "grid": [
+        "x.",
+        ".x"
+      ],
+      "effect": "Knockback 1",
+      "line": "The bolt knocks it back and jumps."
+    },
+    "wildfire": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Burn",
+      "line": "2 damage a turn for 3 turns."
+    },
+    "enchant": {
+      "area": "1 ally",
+      "grid": [
+        "x"
+      ],
+      "effect": "Fire weapon",
+      "line": "+2 damage on every hit, 3 turns."
+    },
+    "earthDrive": {
+      "area": "1 foe",
+      "grid": [
+        "cx"
+      ],
+      "effect": "Knockback 1",
+      "line": "A rock spike that stays as a wall."
+    },
+    "clap": {
+      "area": "2 tiles round",
+      "grid": [
+        "..x..",
+        ".xxx.",
+        "xxcxx",
+        ".xxx.",
+        "..x.."
+      ],
+      "effect": "Knockback 1",
+      "line": "Blasts every foe within 2 tiles."
+    },
+    "elementBlast": {
+      "area": "Line",
+      "grid": [
+        "cxxx"
+      ],
+      "effect": "Uses the element",
+      "line": "Fires the element down a line."
+    },
+    "smokeBomb": {
+      "area": "Around you",
+      "grid": [
+        ".x.",
+        "xcx",
+        ".x."
+      ],
+      "effect": "Inflicts Blind",
+      "line": "Blind foes next to you, then hide."
+    },
+    "pinningShot": {
+      "area": "1 foe",
+      "grid": [
+        "c..x"
+      ],
+      "effect": "Inflicts Pin",
+      "line": "Half damage; it cannot walk next turn."
+    },
+    "primeBow": {
+      "area": "You",
+      "grid": [
+        "c"
+      ],
+      "effect": "+4 attack, +2 reach",
+      "line": "Uses this turn; next shot hits harder."
+    },
+    "poisonWeapon": {
+      "area": "You",
+      "grid": [
+        "c"
+      ],
+      "effect": "Free: poison",
+      "line": "Your next hit that lands poisons."
+    },
+    "wardSwitch": {
+      "area": "Around you",
+      "grid": [
+        ".x.",
+        "xcx",
+        ".x."
+      ],
+      "effect": "Shares hits",
+      "line": "Allies next to you +1 DEF; you take a third."
+    },
+    "interceptAlly": {
+      "area": "1 ally",
+      "grid": [
+        "c.x"
+      ],
+      "effect": "Swap, take clash",
+      "line": "Swap places; take over its clash."
+    },
+    "spearWard": {
+      "area": "Around you",
+      "grid": [
+        "xxx",
+        "xcx",
+        "xxx"
+      ],
+      "effect": "Overwatch x2",
+      "line": "Strike foes that step next to you."
+    },
+    "holdLine": {
+      "area": "Around you",
+      "grid": [
+        "xxx",
+        "xcx",
+        "xxx"
+      ],
+      "effect": "+2 Guard, no push",
+      "line": "Stop the first foe that comes next to you."
+    },
+    "haftSweep": {
+      "area": "1 foe",
+      "grid": [
+        "cx"
+      ],
+      "effect": "Off-Bal, push 1",
+      "line": "Half damage, knocked a tile back."
+    },
+    "rapidWard": {
+      "area": "Around you",
+      "grid": [
+        "xxx",
+        "xcx",
+        "xxx"
+      ],
+      "effect": "Ward, then move",
+      "line": "Set the ward and still walk 2 tiles."
+    },
+    "anchoredWard": {
+      "area": "Around you",
+      "grid": [
+        "xxx",
+        "xcx",
+        "xxx"
+      ],
+      "effect": "Ward + push",
+      "line": "A strike that hits pushes it back."
+    },
+    "kindleHaft": {
+      "area": "You",
+      "grid": [
+        "c"
+      ],
+      "effect": "Inflicts Burn",
+      "line": "+2 a hit; first hit a turn sets it alight."
+    },
+    "hornCharge": {
+      "area": "Line",
+      "grid": [
+        "c..x"
+      ],
+      "effect": "Push 1 / Off-Bal",
+      "line": "Charge 2 or 3 tiles straight, no clash."
+    },
+    "ricochetToss": {
+      "area": "2 foes",
+      "grid": [
+        "x.x"
+      ],
+      "effect": "Bounces",
+      "line": "Half damage, then a second foe nearby."
+    },
+    "wrathToss": {
+      "area": "1 foe",
+      "grid": [
+        "x"
+      ],
+      "effect": "Inflicts Off-Bal",
+      "line": "A full blow, knocked Off-Balance."
+    },
+    "quakeToss": {
+      "area": "1 foe + next",
+      "grid": [
+        ".x.",
+        "xxx",
+        ".x."
+      ],
+      "effect": "Throws foes",
+      "line": "Half damage; foes next to it thrown back."
+    }
   }
 }

@@ -13,6 +13,10 @@
     "evade": 10,
     "magicDamage": 3
   },
+  "pinned": {
+    "note": "Pinned (the archer's Pinning Shot, 19.6): through its next turn it cannot walk or use a skill that moves it (a charge, a lunge, a dive, Husk, Smoke Bomb). It can still attack, cast and fight in a clash; pushes and pulls still move it.",
+    "turns": 1
+  },
   "blinded": {
     "note": "Blinded (the archer's Smoke Bomb, roadmap 13.26): a unit next to the cloud cannot see. Until the end of its next turn every attack it makes has missPenalty less chance to hit (never below 5), and it cannot start a clash or take aim (Poison Arrow).",
     "missPenalty": 45,

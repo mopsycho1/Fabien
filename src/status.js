@@ -87,7 +87,14 @@ export function clearExposed(unit) {
 export function canAfford(unit, spellId) {
   const spell = spells[spellId];
   if (spell.verse && !hasOwnMp(unit)) return lentMp(unit) >= (spell.mp || 0);
-  return (unit.mp || 0) >= (spell.mp || 0) && cooldownOf(unit, spellId) === 0 && usesLeft(unit, spellId) !== 0;
+  return (unit.mp || 0) >= (spell.mp || 0) && cooldownOf(unit, spellId) === 0 && usesLeft(unit, spellId) !== 0 && !pinnedFrom(unit, spellId);
+}
+
+// The skills that carry their user across the board (a charge, a lunge, a dive, Husk, Smoke Bomb's slip, the bull's
+// Horn Charge). A Pinned unit (the archer's Pinning Shot, 19.6) cannot use them.
+export const MOVING_KINDS = ['charge', 'lunge', 'dive', 'escape', 'smoke', 'hornCharge'];
+export function pinnedFrom(unit, spellId) {
+  return isPinned(unit) && !!spells[spellId] && MOVING_KINDS.includes(spells[spellId].kind);
 }
 
 // A skill with "uses" in spells.json can be used only that many times a battle
@@ -599,6 +606,9 @@ export function statusTags(unit) {
   if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
   if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall
+  if (statusOf(unit).pinned) tags.push({ text: 'PINNED', color: '#d9b77a' }); // the archer's Pinning Shot (19.6)
+  if (unit.coated) tags.push({ text: 'POISON BLADE', color: '#9fdc6a', icon: 'poison' }); // her next hit poisons (1.82)
+  if (unit.primed) tags.push({ text: 'PRIMED', color: '#ffd27a' }); // Prime Bow drawn (1.82)
   if (statusOf(unit).blinded) tags.push({ text: 'BLINDED', color: '#c9c0b4', icon: 'blinded' }); // the archer's Smoke Bomb
   if (statusOf(unit).drenched) tags.push({ text: 'DRENCHED', color: '#7fd0ff', icon: 'drenched' }); // waded through the cavern's water
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
