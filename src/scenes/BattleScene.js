@@ -2927,7 +2927,7 @@ export default class BattleScene extends Phaser.Scene {
 
   onSpellButton() {
     const unit = this.activeUnit;
-    if (unit.side !== 'hero' || this.busy || this.battleOver || unit.hasActed) return;
+    if (unit.side !== 'hero' || this.busy || this.battleOver || (unit.hasActed && !this.freeSkillReady(unit))) return; // (after acting: only the free skills, Poison Weapon and Ward)
     this.cancelMode();
     this.mode = 'spell';
     this.refreshStatus();
@@ -3113,8 +3113,8 @@ export default class BattleScene extends Phaser.Scene {
       const block = this.kingBlock(unit, id);
       const free = spell.kind === 'grip' ? '  to ' + (unit.grip === 'blade' ? 'Fork' : 'Blade') : '';
       return {
-        label: spell.button + free + (left !== null && spell.kind !== 'singularity' ? ' x' + left : '') + (wait ? '  (' + wait + ')' : block ? '  ' + block : spell.mp ? '  ' + spell.mp + ' MP' : ''),
-        enabled: canAfford(unit, id) && !block && !this.busy,
+        label: (spell.kind === 'wardSwitch' ? (unit.wardOff ? 'Ward: off' : 'Ward: on') : spell.button) + free + (left !== null && spell.kind !== 'singularity' ? ' x' + left : '') + (wait ? '  (' + wait + ')' : block ? '  ' + block : spell.mp ? '  ' + spell.mp + ' MP' : ''),
+        enabled: canAfford(unit, id) && !block && !this.busy && (!unit.hasActed || !!spell.freeAction) && !(spell.kind === 'coat' && unit.coated),
         onTap: () => this.chooseSpell(id),
         selected: this.selectedSpell === id,
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
@@ -3215,8 +3215,27 @@ export default class BattleScene extends Phaser.Scene {
       this.showMessage(cooldownOf(unit, id) ? spell.button + ' is ready again in ' + cooldownOf(unit, id) + ' turns' : 'Not enough MP');
       return;
     }
+    // Sudeen's Ward switch (13.68): free, at once, any time in his turn
+    if (spell.kind === 'wardSwitch') {
+      this.onWardButton();
+      this.cancelMode();
+      return;
+    }
+    // Poison Weapon (1.82): free, at once, at any time in her turn
+    if (spell.kind === 'coat') {
+      if (unit.coated) this.showMessage('Your weapon is already poisoned');
+      else this.castPoisonWeapon(unit);
+      return;
+    }
+    // Prime Bow (1.82), Spear Ward and Hold the Line (19.4): tap it again to use it
+    if ((spell.kind === 'prime' || spell.kind === 'zoneWard') && this.selectedSpell === id && this.mode === 'spellTarget') {
+      this.pendingTarget = unit;
+      this.confirmSpell();
+      return;
+    }
     // Poison Arrow: a blinded archer cannot take aim, and it needs the bow in hand (Smoke Bomb, 13.26; Switch weapon, 13.29)
-    if (spell.kind === 'poison') {
+    // (the same for Pinning Shot and Prime Bow, 19.6 and 1.82)
+    if (spell.kind === 'poison' || spell.kind === 'pin' || spell.kind === 'prime') {
       if (isBlinded(unit)) {
         this.showMessage('Blinded: you cannot take aim');
         return;
@@ -3285,12 +3304,14 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
-    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse';
-    this.targetsInRange = KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
+    const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
+    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap';
+    this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
-        u.alive && this.canSee(unit, u) && (spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
+        u.alive && this.canSee(unit, u) && (spell.kind === 'hornCharge' ? !!this.hornLine(unit, u, spell) : spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
+        (spell.kind !== 'allySwap' || (u !== unit && this.swapReach(unit, u, spell))) && // Intercept Ally: a clear path to the ally (19.3)
+        (spell.kind !== 'pin' || distance(unit, u) >= 2) && // Pinning Shot is a bow shot: no room to draw it next to a foe (19.6)
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
@@ -5388,6 +5409,7 @@ export default class BattleScene extends Phaser.Scene {
     const forage = this.forageChoice(unit);
     if (forage) {
       const dig = () => {
+        if (distance(unit, forage.site) > 1) return this.enemyAttack(unit); // stopped short by a Spear Ward (19.4)
         this.busy = true;
         this.digUp(unit, forage.site, () => {
           this.busy = false;
@@ -5616,6 +5638,17 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // the archer's kit (1.82, 19.6): Poison Weapon, Pinning Shot, Prime Bow
+    const archer = unit.closeWeapon ? this.archerChoice(unit, seen) : null;
+    if (archer) {
+      this.busy = true;
+      this.castSpell(unit, archer.target, archer.id, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
+
     const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
@@ -5738,6 +5771,7 @@ export default class BattleScene extends Phaser.Scene {
   // levels: how far it falls; slam: true if something stopped it short).
   pushPlan(loser, winner, steps, moved = null) {
     if (isRooted(loser) && steps > 0) return { held: true, rooted: true, path: [], levels: 0, slam: false };
+    if (loser.zone && loser.zone.mode === 'hold' && steps > 0) return { held: true, rooted: true, path: [], levels: 0, slam: false }; // Rabdul holding the line (19.4)
     steps = Math.max(0, steps - pushResist(loser)); // Bulwark: a warden in Guard is hard to move
     if (steps === 0) return { held: true, path: [], levels: 0, slam: false };
     const blocked = (c, r) => {

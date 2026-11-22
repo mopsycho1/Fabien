@@ -29,6 +29,43 @@ export function setDominionLookup(fn) {
   underDominion = fn;
 }
 
+// ---------- Sudeen's Ward (19.3, 13.68) ----------
+// Allies on the tiles next to him get more defense, and he takes a share of each hit that lands on them (the scene's
+// landHit). Off while he is in a clash, Stunned, at 1 health, or switched off (unit.wardOff). The scene hands over
+// its list of units once (setWardUnits), so statMod can find him.
+let wardUnits = () => [];
+export function setWardUnits(fn) {
+  wardUnits = fn;
+}
+export function wardActive(warder) {
+  return !!(warder && warder.alive && warder.passives && warder.passives.ward && !warder.wardOff && !warder.engagedWith && !isStunned(warder) && warder.hp > 1);
+}
+// The Ward-er covering this unit, or null
+export function wardOf(unit) {
+  if (!unit || unit.isDecoy) return null;
+  return wardUnits().find((w) => w !== unit && w.side === unit.side && wardActive(w) && Math.abs(w.col - unit.col) + Math.abs(w.row - unit.row) === 1) || null;
+}
+function wardStone(warder) {
+  const b = warder.status && warder.status.buff;
+  return !!(b && b.id === 'stone');
+}
+export function wardDefense(unit) {
+  const w = wardOf(unit);
+  if (!w) return 0;
+  const k = w.passives.ward;
+  return wardStone(w) ? k.stoneDefense : k.defense;
+}
+// How much of a hit of "damage" the Ward-er takes: a third rounded up, at most 4 (under Stone half, at most 5), and
+// never so much that he drops below 1 health. Returns { warder, share } or null.
+export function wardShare(unit, damage) {
+  const w = wardOf(unit);
+  if (!w || damage <= 0) return null;
+  const k = w.passives.ward;
+  const stone = wardStone(w);
+  const share = Math.min(stone ? k.stoneCap : k.cap, Math.ceil(damage / (stone ? k.stoneShareOf : k.shareOf)), w.hp - 1, damage);
+  return share > 0 ? { warder: w, share } : null;
+}
+
 function statusOf(unit) {
   if (!unit.status) unit.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
   return unit.status;
@@ -65,6 +102,7 @@ export function statMod(unit, stat) {
   if (exposed && exposed[stat]) mod -= exposed[stat];
   // slammed into a wall: it fights worse for a moment (conditions.json)
   if (isDisoriented(unit) && ['attack', 'defense', 'evade'].includes(stat)) mod -= conditions.disoriented[stat];
+  if (stat === 'defense') mod += wardDefense(unit); // next to Sudeen (19.3): armour, so it stacks with any Verse
   return mod;
 }
 
@@ -145,6 +183,7 @@ export function restoreMp(unit, amount) {
 
 // How far a unit can walk this turn (a Verse of Swiftness adds a step).
 export function moveOf(unit) {
+  if (isPinned(unit)) return 0; // pinned to the ground by an arrow (19.6): no walking this turn
   return Math.max(0, unit.move + statMod(unit, 'move'));
 }
 
@@ -595,6 +634,8 @@ export function statusTags(unit) {
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a', icon: 'charge', count: unit.charge });
   if (unit.riposte) tags.push({ text: 'RIPOSTE ' + unit.riposte, color: '#9fd4ff', icon: 'bloodied', count: unit.riposte }); // Gaha's stacks (no icon of its own yet)
   if (unit.shield && unit.shield.hp > 0) tags.push({ text: 'SHIELD ' + unit.shield.hp, color: '#e8c87a', icon: 'bulwark', count: unit.shield.hp }); // Alagara's Bulwark Shield (10.46)
+  if (unit.passives && unit.passives.ward && unit.alive && (wardActive(unit) || unit.wardOff)) tags.push(unit.wardOff ? { text: 'WARD OFF', color: '#8a8f99' } : { text: 'WARD', color: '#9fd4ff' }); // Sudeen's Ward (19.3)
+  if (unit.zone && unit.zone.charges > 0) tags.push(unit.zone.mode === 'spear' ? { text: 'SPEAR WARD ' + unit.zone.charges, color: '#9fc4e8', count: unit.zone.charges } : { text: 'HOLD THE LINE', color: '#d9b77a' }); // Rabdul's stances (19.4)
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a', icon: 'bulwark', count: unit.bulwark });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a', icon: 'hidden' }); // Husk: enemies chase the decoy
   if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4', icon: 'meditating' }); // her next turn is spent in the trance
