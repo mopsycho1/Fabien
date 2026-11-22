@@ -10,6 +10,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'utf8'));
 (async () => {
   const { w, game, errors } = await start();
+  w.localStorage.setItem('fabien.clashFilms', 'on'); /* 1.101: the films are off by default; this test is about them */
   const b = await battle(game); await sleep(600);
   const St = w.__status;
   const U = (id) => b.units.find((u) => u.id === id);
@@ -32,6 +33,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(__dirname + '/../../' + p, 'u
   for (let i = 0; i < 40 && !(b.textures.exists('clashgif:dance:9') && b.textures.exists('clashgif:strike:8') && b.textures.exists('clashgif:duel:6')); i++) await sleep(250);
   check('the 23 frames load in the background once a battle has Gaha and the Bull', b.textures.exists('clashgif:dance:9') && b.textures.exists('clashgif:strike:8') && b.textures.exists('clashgif:duel:6'));
   // 6.80: the GIF plays ON the board over the two fighters, no panel: where it stands, how big, which way round
+  global.window = global.window || { localStorage: { getItem: (k) => (k === 'fabien.clashFilms' ? 'on' : null), setItem() {} } }; /* 1.101: films on for this check (plain Node has no storage) */
   const CG = require('./cg-bundle.cjs');
   for (const name of ['dance', 'strike', 'duel']) {
     const g = cg.gifs[name];

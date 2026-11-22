@@ -153,6 +153,7 @@
     "note": "Range 5 (Suleiman, 29 Oct: at least double Gaha's reach, \"if not a little extra\"). Her AI keeps its distance. 8 Nov (13.29): she chooses her weapon (Switch weapon, free once a turn): the bow reaches 2 to 5 tiles (no room to draw it next to a foe), the dagger only the tile next to her."
   },
   "sovereign": {
+    "skillCategories": "always",
     "name": "Sovereign",
     "badge": "K",
     "attackEffect": "slash",

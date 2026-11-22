@@ -33,7 +33,7 @@ import { impactLayers, floorLight, lightNearby, chargeUp, energyWaves, afterglow
 import { planSkill, planAttack, planHusk, drawPlan } from '../preview.js'; // skills show what they will do (roadmap 18.4)
 import { playKnockback } from '../knockback.js'; // every push is drawn there (roadmap 18.1)
 import { buffCastFx, hasBuffLoop, hasBuffPart, buffLoopFx, weaponAuraFx, buffMoveFx, buffFuseFx, sfxHas, sfxAt, sfxInfo, sfxChannel, sfxBeam, sfxStrike, sandImpact, lightningStrike, verseAura, speedStreak, slowCast, slowAura, swiftAura, swiftTrail, furyAura, bulwarkAura, fxMode, setFxMode, fxSetActive, fxWatchFrameRate, goldDissolve, hasSonicArt, sonicSpear, sonicTrail, sonicRing, sonicImpact, earthBurst, fireball, flameBurst, burnAura, empowerAura, elementRise, enchantChant, enchantSigil, enchantLand, enchantAura, verseKinds, stepEffect, hitEffect, raiseSpike, crumbleSpike, elementOrb, elementHold, clashSparks, clashRing, clashShock, decisiveBurst, fxEmitter } from '../spellArt.js';
-import { hasClashGif, loadClashGifs, pickClashGif, playClashGif } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
+import { hasClashGif, loadClashGifs, pickClashGif, playClashGif, clashFilmsOn, setClashFilms } from '../clashGif.js'; // Gaha against the Bull Commander: his clash GIFs (6.62)
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
@@ -132,6 +132,10 @@ const ENEMY_THINK_MS = 400; // the pause before an enemy acts
 const PACE_KEY = 'fabien.enemyPace';
 const READ_NAMES = { fire: 'Fire', water: 'Water', earth: 'Earth', storm: 'Storm' }; // Kofi's four elements (6.38)
 const CHANNEL_MS = 280; // how long a caster channels a plain spell attack before casting (13.10)
+// The pace of a clash beat and its opening banner (1.101, 22 Nov, Suleiman: "speed up the animations we have currently to give the
+// illusion of fluid combat"; the new shockwave carries the hit): every step of playBeat and the banner's hold run at this
+// part of their old time (a plain beat hands back after 1.0 s, was 1.5 s; a decisive one 1.6 s, was 2.5 s; the banner 0.8 s, was 1.24 s).
+const CLASH_PACE = 0.65;
 const DOUBLE_WINDUP_MS = 110; // the lean before each of Rabdul's two strikes (18.29)
 const SHIELD_FACINGS = ['upLeft', 'upRight', 'downLeft', 'downRight']; // the order of the bull's four flaming shield pictures (18.31)
 const WINDUP_LEAN_DEG = 6; // how far a melee fighter leans back in the wind-up before the blow, when it has no drawn wind-up (18.29)
@@ -160,6 +164,9 @@ function saveMenuPin(pin) {
     else window.localStorage.removeItem(MENU_PIN_KEY);
   } catch (e) { /* not remembered, still works */ }
 }
+
+// A skills list this long or longer is shown by category (1.100): five rows is where a phone's list starts to scroll.
+const SKILL_CATEGORIES_AT = 5;
 
 export default class BattleScene extends Phaser.Scene {
   constructor() {
@@ -845,7 +852,7 @@ export default class BattleScene extends Phaser.Scene {
     const rowH2 = Math.max(S(48), this.lay.minTap + S(6));
     const sheetW = Math.min(W - 2 * m, Math.max(S(380), T(15) * 20));
     const sheetRows = [];
-    const sheetH = S(56) + 6 * rowH2 + S(14);
+    const sheetH = S(56) + 7 * rowH2 + S(14);
     const sx0 = Math.round((W - sheetW) / 2), sy0 = Math.round((H - sheetH) / 2);
     const veil = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive(); // taps outside close it
     const panel = this.add.graphics();
@@ -890,7 +897,11 @@ export default class BattleScene extends Phaser.Scene {
     const markLabel = sheetRow(4, () => { setMarkerMode(markerMode() === 'tiles' ? 'rings' : 'tiles'); showMarks(); this.updateMarks(); play('click'); });
     const showMarks = () => markLabel.setText('Markers: ' + (markerMode() === 'tiles' ? 'Tiles' : 'Rings'));
     showMarks();
-    sheetRow(5, () => openSheet(false)).setText('Close');
+    // Clash films: Off / On (1.101): Suleiman's painted clash GIFs (Gaha against the Bull). Off by default; the normal clash is faster.
+    const filmLabel = sheetRow(5, () => { setClashFilms(!clashFilmsOn()); showFilms(); if (clashFilmsOn() && loadClashGifs(this, this.units)) this.load.start(); play('click'); });
+    const showFilms = () => filmLabel.setText('Clash films: ' + (clashFilmsOn() ? 'On' : 'Off'));
+    showFilms();
+    sheetRow(6, () => openSheet(false)).setText('Close');
     this.settingsRows = sheetRows; // (the HTML sheet shows these words and taps these rows, 18.44)
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
@@ -3129,31 +3140,53 @@ export default class BattleScene extends Phaser.Scene {
         ring: Phaser.Display.Color.HexStringToColor(spell.color).color,
       };
     };
-    if (this.spellGroup) return unit.spells.filter((id) => spells[id].group === this.spellGroup).map((id) => entry(id));
+    // which of his skills show at all now (the same rule for the whole list and inside a group or category)
+    const visible = unit.spells.filter((id) => {
+      if (spells[id].kind === 'rest') return false; // Meditate has its own row on the main menu (8.10)
+      if (spells[id].reaction) return false; // Alagara's Unmoved happens by itself
+      if (spells[id].grip && spells[id].grip !== unit.grip) return false; // Gadara: only the skills of the end he holds
+      if (spells[id].verseSkill && this.kingBlock(unit, id)) return false; // Alagara: a Verse skill only with its Verse
+      return true;
+    });
+    // Categories (1.100, 22 Nov, Suleiman: "categorize alagara's techniques so they're more accessible, the scrolling to find a
+    // skill is a little tedious ... gadara too"): a list of SKILL_CATEGORIES_AT or more skills is shown by "category" in
+    // spells.json (Forms, Techniques, Spells...); a category with one skill in it shows that skill itself. jobs.json
+    // "skillCategories": "always" groups a class's skills however short the list (Gadara).
+    const cats = this.skillCategories(unit, visible);
+    if (this.spellGroup) {
+      const inGroup = (id) => (cats && spells[id].category === this.spellGroup) || spells[id].group === this.spellGroup;
+      return visible.filter(inGroup).map((id) => entry(id));
+    }
 
     const list = [];
     const seen = new Set();
-    for (const id of unit.spells) {
-      if (spells[id].kind === 'rest') continue; // Meditate has its own row on the main menu (8.10)
-      if (spells[id].reaction) continue; // Alagara's Unmoved happens by itself
-      if (spells[id].grip && spells[id].grip !== unit.grip) continue; // Gadara: only the skills of the end he holds
-      if (spells[id].verseSkill && this.kingBlock(unit, id)) continue; // Alagara: a Verse skill only with its Verse
-      const group = spells[id].group;
+    for (const id of visible) {
+      const group = (cats && cats[spells[id].category] > 1 && spells[id].category) || spells[id].group;
       if (!group) {
         list.push(entry(id));
       } else if (!seen.has(group)) {
         seen.add(group);
         list.push({
           label: group + '  >',
-          enabled: unit.spells.some((s) => spells[s].group === group && canAfford(unit, s)),
+          enabled: visible.some((s) => (spells[s].category === group || spells[s].group === group) && canAfford(unit, s)),
           onTap: () => this.openSpellGroup(group),
           selected: false,
           accent: GOLD,
           emblem: group === 'Hexes' ? 'hexes' : group === 'Blessings' ? 'blessings' : 'skills',
+          tip: { title: group, body: visible.filter((s) => spells[s].category === group || spells[s].group === group).map((s) => spells[activeMove(unit, s)].button).join(', ') },
         });
       }
     }
     return list;
+  }
+
+  // { category: how many visible skills in it } when this unit's skills show by category (1.100), else null.
+  skillCategories(unit, visible) {
+    const always = jobs[unit.job] && jobs[unit.job].skillCategories === 'always';
+    if (!always && visible.length < SKILL_CATEGORIES_AT) return null;
+    const count = {};
+    for (const id of visible) if (spells[id].category) count[spells[id].category] = (count[spells[id].category] || 0) + 1;
+    return Object.keys(count).length ? count : null;
   }
 
   openSpellGroup(group) {
@@ -6308,7 +6341,7 @@ export default class BattleScene extends Phaser.Scene {
       if (!this.battleOver) onDone();
     });
 
-    for (const [ms, fn] of steps) this.time.delayedCall(ms, fn);
+    for (const [ms, fn] of steps) this.time.delayedCall(Math.round(ms * CLASH_PACE), fn); // (1.101: faster clashes)
   }
 
   // ---------- Engagements ----------
@@ -9555,10 +9588,10 @@ export default class BattleScene extends Phaser.Scene {
       this.tweens.add({ targets: flash, alpha: 0, duration: 220, onComplete: () => flash.destroy() });
     });
     // then fly apart
-    this.time.delayedCall(1000, () => {
+    this.time.delayedCall(Math.round(1000 * CLASH_PACE), () => {
       this.tweens.add({ targets: t, p: 1, duration: 220, ease: 'Cubic.easeIn', onUpdate: placeAll });
     });
-    this.time.delayedCall(1240, () => {
+    this.time.delayedCall(Math.round(1240 * CLASH_PACE), () => {
       for (const side of sides) {
         side.objs.forEach((o) => o.destroy());
         if (side.mask) side.mask.destroy();

@@ -17,7 +17,18 @@ const key = (name, i) => 'clashgif:' + name + ':' + i;
 let lastName = null;
 
 // True if this clash is Gaha against the Bull Commander (either way round).
+// Settings: Clash films (1.101, 22 Nov, Suleiman: "we can actually just get rid of the gifs and speed up the animations we have
+// currently to give the illusion of fluid combat"). Off by default; a player can switch them back on. Remembered on the device.
+const MODE_KEY = 'fabien.clashFilms';
+export function clashFilmsOn() {
+  try { return window.localStorage.getItem(MODE_KEY) === 'on'; } catch (e) { return false; }
+}
+export function setClashFilms(on) {
+  try { window.localStorage.setItem(MODE_KEY, on ? 'on' : 'off'); } catch (e) { /* not remembered, still works */ }
+}
+
 export function hasClashGif(a, b) {
+  if (!clashFilmsOn()) return false;
   const ids = [a.id, b.id];
   return ids.includes(CLASH_GIF_PAIR[0]) && ids.includes(CLASH_GIF_PAIR[1]);
 }
@@ -25,6 +36,7 @@ export function hasClashGif(a, b) {
 // Queues every frame of the three GIFs, if the pair is in this battle (the loader is started by the caller).
 // Returns how many pictures it queued.
 export function loadClashGifs(scene, units) {
+  if (!clashFilmsOn()) return 0; // switched off: nothing to fetch
   const ids = units.map((u) => u.id);
   if (!CLASH_GIF_PAIR.every((id) => ids.includes(id))) return 0;
   let queued = 0;

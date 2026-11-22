@@ -11,7 +11,7 @@ fs.mkdirSync(out, { recursive: true });
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
 (async () => {
   for (const view of views) {
-    const { browser, page, errors } = await openBattle(view);
+    const { browser, page, errors } = await openBattle(view, { clashFilms: true }); // 1.101: off by default
     // wait for the background load of the frames
     await page.waitForFunction(() => { const b = window.__game.scene.getScene('BattleScene'); return b.textures.exists('clashgif:dance:9') && b.textures.exists('clashgif:strike:8') && b.textures.exists('clashgif:duel:6'); }, null, { timeout: 30000 }).catch(() => {});
     const loaded = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return ['dance:9', 'strike:8', 'duel:6'].every((k) => b.textures.exists('clashgif:' + k)); });

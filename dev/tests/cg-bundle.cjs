@@ -22,10 +22,12 @@ __export(clashGif_exports, {
   CLASH_GIF_PAIR: () => CLASH_GIF_PAIR,
   bakeSoftFrames: () => bakeSoftFrames,
   boardPlacement: () => boardPlacement,
+  clashFilmsOn: () => clashFilmsOn,
   hasClashGif: () => hasClashGif,
   loadClashGifs: () => loadClashGifs,
   pickClashGif: () => pickClashGif,
-  playClashGif: () => playClashGif
+  playClashGif: () => playClashGif,
+  setClashFilms: () => setClashFilms
 });
 module.exports = __toCommonJS(clashGif_exports);
 
@@ -62,11 +64,27 @@ var CLASH_GIF_PAIR = ["h2", "e2"];
 var NAMES = Object.keys(clashGifs_default.gifs);
 var key = (name, i) => "clashgif:" + name + ":" + i;
 var lastName = null;
+var MODE_KEY = "fabien.clashFilms";
+function clashFilmsOn() {
+  try {
+    return window.localStorage.getItem(MODE_KEY) === "on";
+  } catch (e) {
+    return false;
+  }
+}
+function setClashFilms(on) {
+  try {
+    window.localStorage.setItem(MODE_KEY, on ? "on" : "off");
+  } catch (e) {
+  }
+}
 function hasClashGif(a, b) {
+  if (!clashFilmsOn()) return false;
   const ids = [a.id, b.id];
   return ids.includes(CLASH_GIF_PAIR[0]) && ids.includes(CLASH_GIF_PAIR[1]);
 }
 function loadClashGifs(scene, units) {
+  if (!clashFilmsOn()) return 0;
   const ids = units.map((u) => u.id);
   if (!CLASH_GIF_PAIR.every((id) => ids.includes(id))) return 0;
   let queued = 0;
@@ -175,8 +193,10 @@ function playClashGif(scene, name, a, b, onDone) {
   CLASH_GIF_PAIR,
   bakeSoftFrames,
   boardPlacement,
+  clashFilmsOn,
   hasClashGif,
   loadClashGifs,
   pickClashGif,
-  playClashGif
+  playClashGif,
+  setClashFilms
 });

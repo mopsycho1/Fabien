@@ -543,6 +543,7 @@ var spells_default = {
     rangePerLevel: 1
   },
   poisonArrow: {
+    category: "Shots",
     name: "Poison Arrow",
     button: "Poison Arrow",
     short: "POISON",
@@ -587,6 +588,7 @@ var spells_default = {
     text: "Hurl the shield at an enemy up to 3 tiles away (a higher block in the way stops it): half damage. A target that was already Off-Balance is also Stunned for a turn (it loses its next turn, can't dodge, takes flank hits +3). Ready again after 3 turns."
   },
   doubleHit: {
+    category: "Techniques",
     name: "Double Hit",
     button: "Double Hit",
     short: "DOUBLE",
@@ -745,6 +747,7 @@ var spells_default = {
     text: "Fury turns her Lightning to fire: it sets the target alight, 2 damage a turn for 3 turns (never the last point; Herbs put it out). Fire doesn't jump."
   },
   enchant: {
+    category: "Spells",
     name: "Enchant",
     button: "Enchant",
     short: "ENCHANTED",
@@ -810,6 +813,7 @@ var spells_default = {
     text: "Tayo gathers the element on him into one fist and fires it down a straight line, up to 3 tiles (a higher block in the way stops it). Full damage. Enchanted: a fire blast that sets the target Burning. Drenched: a water blast that leaves the target Drenched. It spends the element (the Enchant ends, or he dries off), so it only works while one is on him. Ready again after 3 turns."
   },
   pinningShot: {
+    category: "Shots",
     name: "Pinning Shot",
     button: "Pinning Shot",
     short: "PIN",
@@ -824,6 +828,7 @@ var spells_default = {
     text: "Bow only, 2 to 5 tiles. Half damage, and a hit Pins the target through its next turn: it cannot walk or use a skill that moves it (it can still attack, cast and fight in a clash; a push still moves it). Ready again after 3 turns."
   },
   primeBow: {
+    category: "Shots",
     name: "Prime Bow",
     button: "Prime Bow",
     short: "PRIMED",
@@ -838,6 +843,7 @@ var spells_default = {
     text: "Draw the bow and hold it: this uses your turn. On your next turn your Attack with the bow has +4 attack and reaches 2 to 7 tiles. The draw is lost if you do not shoot that turn, or if you are caught in a clash. Tap again to draw. Ready again after 3 turns."
   },
   poisonWeapon: {
+    category: "Tricks",
     name: "Poison Weapon",
     button: "Poison Weapon",
     short: "COATED",
@@ -878,6 +884,7 @@ var spells_default = {
     text: "Swap places with an ally up to 4 steps away (a clear path, and its tile at most 1 level above or below yours). If the ally is in a clash, you take it over and they are free. No damage. Ready again after 2 turns."
   },
   spearWard: {
+    category: "Stances",
     name: "Spear Ward",
     button: "Spear Ward",
     short: "SPEAR WARD",
@@ -893,6 +900,7 @@ var spells_default = {
     text: "Hold the spear out until your next turn: the 8 tiles round you are guarded. A foe that steps into one is struck for 75% of a blow; a hit stops it there. 2 strikes in all. You cannot move while it holds; using it replaces Hold the Line. Tap again to set it. Ready again after 3 turns."
   },
   holdLine: {
+    category: "Stances",
     name: "Hold the Line",
     button: "Hold the Line",
     short: "HOLD",
@@ -908,6 +916,7 @@ var spells_default = {
     text: "Brace until your next turn: +2 Guard in a clash, pushes and pulls do not move you, and the first foe that walks next to you is stopped there if you win the contest (your hit chance). You cannot move; using it replaces Spear Ward. Tap again to brace. Ready again after 3 turns."
   },
   haftSweep: {
+    category: "Techniques",
     name: "Haft Sweep",
     button: "Haft Sweep",
     short: "SWEEP",
@@ -1052,6 +1061,7 @@ var spells_default = {
     text: "Stone turns Shield Toss into this: half damage, Stun if the target was already Off-Balance, and on a hit the other foes next to it are thrown 1 tile away (no Stun for them). 3 Verse MP."
   },
   smokeBomb: {
+    category: "Tricks",
     name: "Smoke Bomb",
     button: "Smoke Bomb",
     short: "SMOKE",
@@ -1064,6 +1074,7 @@ var spells_default = {
     text: "Throw a smoke bomb at your own feet. Enemies next to you are Blinded for 1 turn (their attacks mostly miss, and they cannot start a clash or take aim). Then slip up to 2 tiles away for free: you are Hidden for 1 turn, so enemies cannot target you. The cloud stays until your next turn. Ready again after 3 turns. Not during a clash."
   },
   reverseGrip: {
+    category: "Forms",
     name: "Reverse Grip",
     button: "Reverse Grip",
     short: "GRIP",
@@ -1076,6 +1087,7 @@ var spells_default = {
     text: "Free, once a turn, no action: turn the sword-staff round. Fork leading: his attack (Fork Strike) also hits the next foe straight behind the target at half damage, and Snare Hook and Sunder Boon are ready. Blade leading: his attack (Blade Strike) does 2 more damage, and Heavy Cleave is ready."
   },
   snareHook: {
+    category: "Techniques",
     name: "Snare Hook",
     button: "Snare Hook",
     short: "HOOK",
@@ -1092,6 +1104,7 @@ var spells_default = {
     text: "Fork end. Hook a foe up to 2 tiles away in a straight line: half damage, and it is pulled 1 tile toward him (into a unit or a wall: a slam). A pulled foe next to his allies can take Relay Strikes. Ready again after 3 turns."
   },
   sunderBoon: {
+    category: "Techniques",
     name: "Sunder Boon",
     button: "Sunder Boon",
     short: "SUNDER",
@@ -1105,6 +1118,7 @@ var spells_default = {
     text: "Fork end. Tear one blessing off the foe next to him (Swiftness, Earth's Bulwark, Fury or an Enchanted weapon). No damage. Adds 2 to his Mask Gauge. Ready again after 3 turns."
   },
   heavyCleave: {
+    category: "Techniques",
     name: "Heavy Cleave",
     button: "Heavy Cleave",
     short: "CLEAVE",
@@ -1120,6 +1134,7 @@ var spells_default = {
     text: "Blade end. A slow overhead strike at the foe next to him: one and a half times the damage, ignoring 2 of its defense. Ready again after 3 turns."
   },
   singularity: {
+    category: "Spells",
     name: "Singularity",
     button: "Singularity",
     short: "SINGULARITY",
@@ -1132,6 +1147,7 @@ var spells_default = {
     text: "Needs a full Mask Gauge (6). He dons the mask: it takes his whole turn, and the area within 3 tiles of him is marked. At the start of his next turn every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented, one that ends next to him is Off-Balance. Then every foe still standing takes a blow that cannot miss, 1.5 times a normal hit of his. Then he is Exposed for a turn (defense -2, evade -10) and the gauge is empty. A Stun, a fall or a slam on him while it charges breaks it. Once a battle."
   },
   verseSwap: {
+    category: "Forms",
     name: "Swap Verse",
     button: "Swap Verse",
     short: "SWAP",
@@ -1144,6 +1160,7 @@ var spells_default = {
     text: "Free, once a turn, no action: his Echo Verse becomes Active and the Active one goes to the Echo. The incoming Verse Surges once: Swiftness a free step, Fury his next Press pushes the momentum one step further, Stone shakes off Off-Balance and cancels the next push this turn."
   },
   drawnBlade: {
+    category: "Techniques",
     name: "Drawn Blade",
     button: "Drawn Blade",
     short: "DRAW",
@@ -1159,6 +1176,7 @@ var spells_default = {
     text: "The sheathed draw: he feints, then cuts the foe next to him (full damage). A hit locks them in a clash with the momentum already one step his way, a free Press. If the foe was clashing with one of his allies, the ally is free and Alagara takes over. Ready again after 3 turns."
   },
   claim: {
+    category: "Forms",
     name: "Claim",
     button: "Claim",
     short: "CLAIM",
@@ -1172,6 +1190,7 @@ var spells_default = {
     text: "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
   },
   mantle: {
+    category: "Forms",
     name: "Mantle",
     button: "Mantle",
     short: "MANTLE",
@@ -1185,6 +1204,7 @@ var spells_default = {
     text: "Share his Active Verse with every ally within 3 tiles at half strength, for their next turn. Needs an Active Verse. Ready again after 3 turns."
   },
   galeCut: {
+    category: "Techniques",
     name: "Gale Cut",
     button: "Gale Cut",
     short: "GALE",
@@ -1199,6 +1219,7 @@ var spells_default = {
     text: "In any form. He dashes in a straight line as far as his move, cutting through every foe on the way (each takes a full blow, rolled on its own, +1 for each step of movement he has left), and stops on the first free tile past the last one. Walk first and the cut is weaker. Uses his move. Ready again after 3 turns."
   },
   rendingDraw: {
+    category: "Techniques",
     name: "Rending Draw",
     button: "Rending Draw",
     short: "REND",
@@ -1215,6 +1236,7 @@ var spells_default = {
     text: "In any form. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). Ready again after 3 turns."
   },
   bulwarkShield: {
+    category: "Spells",
     name: "Aegis",
     button: "Aegis",
     short: "SHIELD",
