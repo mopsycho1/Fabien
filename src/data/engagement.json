@@ -126,10 +126,16 @@
       "maxStacks": 2,
       "winHitBase": 1
     },
+    "switchEnds": {
+      "note": "Switch Ends (Rabdul, 19.4, Batch 7): a beat he wins with Press brings the rear blade round for winHit damage (the sheet's baseline 2). One per beat, so no endless chain.",
+      "winHit": 2
+    },
     "bulwark": {
       "note": "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
       "max": 3,
       "pushResistPerLevel": 1,
+      "winHitBase": 2,
+      "winHitNote": "Batch 7 (21 Nov, Suleiman and Baiyee: Sudeen's strength shows in clashes): a beat he wins with Guard lands a Shield Bash of winHitBase + his Bulwark level (the level counts this beat): 3, then 4, then 5.",
       "standoffHeal": 2,
       "standoffPoise": 1
     }

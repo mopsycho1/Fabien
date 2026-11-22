@@ -47,7 +47,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- A4: one way in ----------
   const src = fs.readFileSync(__dirname + '/../../src/scenes/BattleScene.js', 'utf8');
   check('A4 the scene draws pushes in one place (one playKnockback call, showFall is gone)', (src.match(/playKnockback\(/g) || []).length === 1 && !/showFall/.test(src));
-  check('A4 all 9 push sites call knockBack', (src.match(/this\.knockBack\(/g) || []).length === 9, (src.match(/this\.knockBack\(/g) || []).length);
+  check('A4 all 13 push sites call knockBack (Batch 7 added Haft Sweep, Anchored Ward, Quake Toss and Horn Charge)', (src.match(/this\.knockBack\(/g) || []).length === 13, (src.match(/this\.knockBack\(/g) || []).length);
   check('A4 no push uses slideAlong any more', !/this\.slideAlong\([a-zA-Z.]+, (pushed\.)?path\)/.test(src.replace('this.slideAlong(caster, path)', '')));
 
   // ---------- A2: the curve itself (the rule, no pictures) ----------

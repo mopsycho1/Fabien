@@ -68,6 +68,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b); b.endTurn = () => {};
   w.Math.random = () => (/castShieldToss/.test(new Error().stack) ? 0.01 : real());
   b.activeUnit = bull; bull.hasActed = false; bull.hasMoved = false; bull.stepsUsed = 0;
+  bull.status.cooldowns.hornCharge = 3; St.applyOffBalance(layra); /* 19.5: the Stun needs a foe already Off-Balance; no Horn Charge down this lane */
   b.runEnemyTurn(); await sleep(400); await idle(); await sleep(1700);
   w.Math.random = real; bull.move = mv; b.runEnemyTurn = () => {};
   check('the bull Shield Tosses a foe 3 tiles away and stuns it', St.isStunned(layra) && layra.hp < layra.maxHp, 'hp ' + layra.hp);
@@ -76,7 +77,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // Intercept by Sudeen
   park(); put(sudeen, 3, 7); put(bull, 3, 3); turnOf(sudeen);
   b.onSpellButton();
-  check('Sudeen\'s Skills: Herbs and Intercept', /Herbs.*Intercept/.test(b.slots.map((s) => s.label.text).join('|')), b.slots.map((s) => s.label.text).join('|'));
+  check('Sudeen\'s Skills: Herbs and Intercept', /Herbs.*Intercept/.test(b.spellMenu(b.activeUnit).map((e) => e.label).join('|')), b.spellMenu(b.activeUnit).map((e) => e.label).join('|')); // (the list pages: Ward, Herbs, Intercept, Intercept Ally since Batch 7)
   b.chooseSpell('intercept');
   check('Intercept reaches an enemy 4 tiles away', b.targetsInRange.includes(bull), b.targetsInRange.map((u) => u.label).join());
   b.handleTap(3, 3);

@@ -43,6 +43,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const sure = (fn) => { const real = w.Math.random; let n = 0; w.Math.random = () => (n < 6 ? 0.02 + (n++ * 0.004) : real()); try { return fn(); } finally { w.Math.random = real; } };
   const waitDone = async (start) => { let done = false; start(() => { done = true; }); const t = Date.now(); while (!done && Date.now() - t < 9000) await sleep(30); await sleep(150); return done; };
   const [h1, h2, h3] = heroes;
+  h1.wardOff = true; // (Sudeen's Ward off: these checks measure Gadara's blows alone, Batch 7)
 
   // 1. profile (10.24)
   park();

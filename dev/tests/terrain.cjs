@@ -14,6 +14,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const idle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 9000) await sleep(30); await sleep(80); };
   const park = () => { for (const u of b.units) put(u, 7, 7); put(U('H1'), 0, 7); put(U('H2'), 1, 7); put(U('H3'), 2, 7); put(U('E1'), 7, 0); put(U('E2'), 6, 0); put(U('E3'), 7, 1); };
   const archer = U('E3'), scout = U('H2'), guard = U('H1'), war = U('E2');
+  archer.passives = {}; guard.wardOff = true; // (Patient Hunter and Ward off: these checks measure height alone, Batch 7)
   const combat = require('./combat-bundle.cjs'); combat.setHeightLookup((c, r) => (H[r] && H[r][c]) || 0);
   check('the rock block at 4,5 is 2 levels high (test assumption)', H[5][4] === 2 && H[6][4] === 0 && H[4][4] === 0 && H[3][4] === 0);
 

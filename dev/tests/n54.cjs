@@ -71,7 +71,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // the archer: shoots first (she has a shot from where she stands), then backs off
   fresh(archer); here(archer, 4, 7); here(gaha, 6, 7); // the flat walkway along the near wall
   const hp0 = gaha.hp;
-  archer.status.cooldowns.poisonArrow = 3; archer.status.cooldowns.smokeBomb = 3; // a plain shot this turn (taking aim is a whole turn by itself)
+  archer.status.cooldowns.poisonArrow = 3; archer.status.cooldowns.smokeBomb = 3; archer.status.cooldowns.pinningShot = 3; archer.status.cooldowns.primeBow = 3; // a plain shot this turn (taking aim is a whole turn by itself)
   let shots = 0; const realAttack = b.performAttack.bind(b); b.performAttack = (...args) => { shots++; return realAttack(...args); };
   let ok = await turn(archer);
   check('archer: her turn ends', ok);

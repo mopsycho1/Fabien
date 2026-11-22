@@ -73,10 +73,12 @@ export function getHitChance(attacker, defender) {
   // a stunned unit cannot dodge (conditions.json)
   const evade = isStunned(defender) && !conditions.stun.canDodge ? 0 : defender.evade + statMod(defender, 'evade');
   let chance = attacker.accuracy - evade;
-  if (isDistracted(defender, attacker)) chance += rules.distractedHitBonus;
+  // No Blind Side (Rabdul, 19.4): caught in a clash he still watches his flank, so others get less
+  if (isDistracted(defender, attacker)) chance += defender.passives && defender.passives.noBlindSide !== undefined ? defender.passives.noBlindSide : rules.distractedHitBonus;
   if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
   chance += heightAccuracy(attacker, defender); // shooting from high ground, or uphill
   if (isBlinded(attacker)) chance -= conditions.blinded.missPenalty; // it cannot see (Smoke Bomb)
+  chance += patientBonus(attacker, usesCloseWeapon(attacker, defender)); // the archer's Patient Hunter (19.6)
   return Math.min(95, Math.max(5, chance));
 }
 

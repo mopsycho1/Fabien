@@ -95,6 +95,11 @@ FILES = {
     # Gaha's Lunge (6.72, 21 Nov): folder INBOX/2026-11-19/email, ONLY=sfx_lunge_dust,sfx_lunge_impact
     'sfx_lunge_dust': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Dust from leap.gif', 'keep', 0.5, 0.85),       # where he leaves the ground
     'sfx_lunge_impact': ('Gaha updated character sheet/Gaha updated character sheet/Skill and Effect-Lunge/Attack impact animated.gif', 'keep', 0.5, 0.7),   # where the spear lands
+    # The Bull's Horn Charge (6.73, 19.5; Batch 7, 21 Nov): folder INBOX/2026-11-19/email, ONLY=sfx_horn_dust,sfx_horn_fire.
+    # A sweep of dust and stones where the charge lands (drawn to the right: the game flips it to the charge's way);
+    # the fiery one for the enchanted charge.
+    'sfx_horn_dust': ('Bull commander updated sheets/Bull commander updated sheets/Impact effects for normal charge and enchanted charge/Dust Charge Impact Animation.gif', 'keep', 0.5, 0.75),
+    'sfx_horn_fire': ('Bull commander updated sheets/Bull commander updated sheets/Impact effects for normal charge and enchanted charge/Fiery Sweeping Impact Frames.gif', 'keep', 0.5, 0.75),
 }
 
 # GIFs whose ground is a flat dark colour, not pure black: that colour is taken off first (6.88: the empower GIF is 12, 9, 6)

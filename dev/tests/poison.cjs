@@ -32,6 +32,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // Poison Arrow, by the enemy AI
   park(); put(archer, 3, 2); put(gaha, 3, 4); put(sudeen, 5, 2); gaha.hp = 20; // both 2 tiles away
   const mv = archer.move; archer.move = 0; // she stays put for this check
+  archer.status.cooldowns.pinningShot = 3; archer.status.cooldowns.primeBow = 3; // (her newer skills wait: this checks Poison Arrow, Batch 7)
   b.activeUnit = archer; archer.hasActed = false; archer.hasMoved = false; archer.stepsUsed = 0;
   sure(); b.runEnemyTurn(); await sleep(700); await idle(); await sleep(1200);
   check('she takes aim at one of them first (MARKED)', [gaha, sudeen].some((u) => u.markedBy === archer));

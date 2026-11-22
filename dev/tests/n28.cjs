@@ -73,7 +73,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     const floats = []; const ft = b.floatText.bind(b); b.floatText = (u, t, ...r) => { floats.push(String(t)); return ft(u, t, ...r); };
     const ghp = gaha.hp; b.activeUnit = rabdul; rabdul.hasActed = false; rabdul.hasMoved = false; rabdul.stepsUsed = 0;
     b.runEnemyTurn = Object.getPrototypeOf(b).runEnemyTurn.bind(b);
-    const mv = rabdul.move; rabdul.move = 0; rabdul.status.cooldowns = {};
+    const mv = rabdul.move; rabdul.move = 0; rabdul.status.cooldowns = { spearWard: 3, holdLine: 3, haftSweep: 3 }; /* (his Batch 7 skills wait: this checks the Double Hit) */
     b.runEnemyTurn(); await sleep(400); await idle(); await sleep(1600);
     b.runEnemyTurn = () => {}; rabdul.move = mv; w.Math.random = real; b.showFrame = sf; b.floatText = ft;
     return { lost: ghp - gaha.hp, seen, floats };

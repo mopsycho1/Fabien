@@ -407,6 +407,32 @@ export function isBlinded(unit) {
   return !!(unit && unit.status && unit.status.blinded);
 }
 
+// ---------- Pinned (the archer's Pinning Shot, 19.6) ----------
+// Through its next turn the unit cannot walk or use a skill that moves it (MOVING_KINDS). It still attacks, casts
+// and fights in a clash; a push or a pull still moves it. Set during the archer's turn, so 1 turn = its next one.
+export function applyPinned(unit) {
+  statusOf(unit).pinned = { turnsLeft: conditions.pinned.turns };
+}
+
+export function isPinned(unit) {
+  return !!(unit && unit.status && unit.status.pinned);
+}
+
+// ---------- The archer's Poison Weapon and Prime Bow (1.82) ----------
+// unit.coated: her next hit that lands poisons. unit.primed: { ready } once Prime Bow is drawn; "ready" from the
+// start of her next turn, when her bow Attack has the bonus (spells.json primeBow) and reaches further.
+export function primeBonus(attacker, defender, holdsCloseWeapon) {
+  if (!attacker || !attacker.primed || !attacker.primed.ready || holdsCloseWeapon) return 0;
+  return spells.primeBow.attackBonus;
+}
+
+// Patient Hunter (19.6): a bow shot from where she stood at the start of her turn is steadier.
+export function patientBonus(attacker, holdsCloseWeapon) {
+  const p = attacker && attacker.passives && attacker.passives.patientHunter;
+  if (!p || holdsCloseWeapon || attacker.noPatient) return 0;
+  return (attacker.stepsUsed || 0) === 0 && !attacker.hasMoved ? p : 0;
+}
+
 export function isDisoriented(unit) {
   return !!(unit && unit.status && unit.status.disoriented);
 }
@@ -607,6 +633,10 @@ export function tickBuff(unit) {
   if (status.blinded) {
     status.blinded.turnsLeft -= 1;
     if (status.blinded.turnsLeft <= 0) status.blinded = null;
+  }
+  if (status.pinned) {
+    status.pinned.turnsLeft -= 1;
+    if (status.pinned.turnsLeft <= 0) status.pinned = null;
   }
   for (const id of Object.keys(status.cooldowns)) {
     status.cooldowns[id] -= 1;

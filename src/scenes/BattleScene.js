@@ -2231,6 +2231,7 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
     this.settleBodies(); // nobody starts a turn standing between two tiles (roadmap 13.47)
+    for (const u of this.units) if (u.zone && u.zone.charges > 0 && u.alive) this.drawZoneMark(u, u.zone.color); else if (u.zoneMark) this.clearZoneMark(u); // (a guard ring follows a pushed Rabdul, 19.4)
     spreadTagRows(this.units);
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
@@ -2239,6 +2240,7 @@ export default class BattleScene extends Phaser.Scene {
       if (this.inWater(this.activeUnit)) applyDrenched(this.activeUnit, terrain.water.drenchedTurns);
       else dryOff(this.activeUnit);
     }
+    if (this.activeUnit.primed && this.activeUnit.primed.ready) this.dropPrime(this.activeUnit, 'Draw lost'); // a primed bow not shot this turn (1.82)
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
     tickShield(this.activeUnit); // the Bulwark Shield lasts 2 of the fighter's turns (10.46)
@@ -2442,6 +2444,8 @@ export default class BattleScene extends Phaser.Scene {
       if (isOffBalance(target)) notes.push('off-balance');
       if (unit.closePenalty && distance(unit, target) <= 1) notes.push('too close to aim');
       if (usesCloseWeapon(unit, target)) notes.push('with the ' + unit.closeWeapon.name.toLowerCase());
+      else if (unit.primed && unit.primed.ready) notes.push('primed: +' + spells.primeBow.attackBonus + ' attack'); // 1.82
+      if (unit.coated) notes.push('poisons'); // her Poison Weapon (1.82)
       const hAcc = heightAccuracy(unit, target);
       if (hAcc) notes.push((hAcc > 0 ? '+' : '') + hAcc + '% ' + (hAcc > 0 ? 'from high ground' : 'shooting uphill'));
       const wet = drenchedEffect(unit, target);
@@ -2785,10 +2789,10 @@ export default class BattleScene extends Phaser.Scene {
       } else if (unit.closeWeapon) {
         // an archer: Skills and Switch weapon share the row (roadmap 13.29)
         c.set(null);
-        this.halves[0].set(word, 'star', free, () => this.onSpellButton(), { accent: GOLD });
+        this.halves[0].set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (Poison Weapon is free at any time, 1.82)
         this.halves[1].set(holdsDagger(unit) ? 'To bow' : 'To dagger', 'sword', isHero && !this.busy && !unit.engagedWith && !unit.weaponSwitched, () => this.onSwitchWeaponButton(), { accent: 0xd9b77a });
       } else {
-        c.set(word, 'star', free, () => this.onSpellButton(), { accent: GOLD }); // no MP pool: skills, not spells
+        c.set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (a free skill stays usable after acting: Ward, 13.68) no MP pool: skills, not spells
       }
     } else {
       c.set(null);
@@ -3205,6 +3209,10 @@ export default class BattleScene extends Phaser.Scene {
     if (KING_SELF_KINDS.includes(spell.kind) && this.selectedSpell === id && this.mode === 'spellTarget' && canAfford(unit, id)) {
       this.pendingTarget = unit;
       this.confirmSpell();
+      return;
+    }
+    if (pinnedFrom(unit, id)) {
+      this.showMessage(spell.button + ': Pinned, you cannot move this turn');
       return;
     }
     if (!canAfford(unit, id)) {
@@ -3657,7 +3665,26 @@ export default class BattleScene extends Phaser.Scene {
   // little hop and a footstep on each tile. Its column and row change right
   // away (that is what the rules care about); the figure then walks over.
   // "onDone" is optional: something to do once it has arrived.
-  moveUnit(unit, col, row, onDone) {
+  // A walk, with Rabdul's Spear Ward and Hold the Line on the way (19.4): if the path steps into a tile next to a foe
+  // holding one (from a tile that was not), the walk goes as far as that tile, the foe reacts, and the walk goes on
+  // only if the reaction did not stop it. Each warder reacts once per walk ("seen").
+  moveUnit(unit, col, row, onDone, seen = new Set()) {
+    const path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
+    const trig = path.length ? this.wardTrigger(unit, path, seen) : null;
+    if (!trig) return this.walkUnit(unit, col, row, onDone);
+    seen.add(trig.warder);
+    this.walkUnit(unit, trig.tile.col, trig.tile.row, () => {
+      this.busy = true;
+      this.wardReaction(trig.warder, unit, (stopped) => {
+        this.busy = false;
+        if (this.battleOver) return;
+        if (stopped || !unit.alive || (unit.col === col && unit.row === row)) { if (onDone) onDone(); return; }
+        this.moveUnit(unit, col, row, onDone, seen);
+      });
+    });
+  }
+
+  walkUnit(unit, col, row, onDone) {
     this.cancelMode();
     this.busy = true;
 
@@ -4021,6 +4048,16 @@ export default class BattleScene extends Phaser.Scene {
         this.defeat(target);
       }
     }
+    // the archer (1.82): a poisoned weapon poisons on a hit; a primed bow is spent by this shot, hit or miss
+    if (result.hit && target.alive) this.coatLands(attacker, target);
+    if (result.hit && target.alive) this.kindleLands(attacker, target); // Rabdul's Kindle the Haft (19.4)
+    // Sudeen's Shield Bash (19.3): a chance to Disorient, with 2 more damage when it does
+    const dazed = result.hit && target.alive ? this.shieldBashDaze(attacker, target) : 0;
+    if (dazed) result.damage += dazed;
+    if (attacker.primed && attacker.primed.ready && !usesCloseWeapon(attacker, target)) {
+      this.dropPrime(attacker);
+      this.floatText(attacker, 'Primed shot', spells.primeBow.color, { rise: 40 });
+    }
     const lethal = result.hit && target.hp === 0;
     let pushed = null;
     if (variant && result.hit && target.alive) {
@@ -4183,6 +4220,14 @@ export default class BattleScene extends Phaser.Scene {
       landed.damage = shield.damage;
       landed.note = (landed.note ? landed.note + ', ' : '') + 'Shield -' + shield.soaked;
       this.shieldFlash(target);
+    }
+    // Sudeen's Ward (19.3): he takes a share of a hit on an ally next to him (worked out after defense)
+    const ward = wardShare(target, landed.damage);
+    if (ward) {
+      landed.damage -= ward.share;
+      ward.warder.hp -= ward.share;
+      landed.note = (landed.note ? landed.note + ', ' : '') + 'Ward -' + ward.share;
+      this.wardFlash(ward.warder, target, ward.share);
     }
     this.damageTaken[target.id] = (this.damageTaken[target.id] || 0) + (landed.damage || 0); // for the result screen (M12)
     if (landed.damage > 0) this.interrupt(target);
@@ -6570,6 +6615,12 @@ export default class BattleScene extends Phaser.Scene {
     }
     if (spell.kind === 'throw') return this.castThrow(caster, target, spell, onDone);
     if (spell.kind === 'poison') return this.castPoisonArrow(caster, target, spell, onDone);
+    if (spell.kind === 'pin') return this.castPinningShot(caster, target, spell, onDone);
+    if (spell.kind === 'allySwap') return this.castInterceptAlly(caster, target, spell, onDone);
+    if (spell.kind === 'zoneWard') return this.castZoneWard(caster, spell, onDone);
+    if (spell.kind === 'hornCharge') return this.castHornCharge(caster, target, spell, onDone);
+    if (spell.kind === 'sweep') return this.castHaftSweep(caster, target, spell, onDone);
+    if (spell.kind === 'prime') return this.castPrimeBow(caster, spell, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
     if (spell.kind === 'elementBlast') return this.castElementBlast(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
@@ -7918,11 +7969,14 @@ export default class BattleScene extends Phaser.Scene {
       let damage = 0;
       let note = null;
       if (hit) {
-        const landed = this.landHit(target, this.skillHit(user, target, spell));
+        // Switch Ends (Rabdul, 19.4): the other head follows up, a little harder on the same foe
+        const follow = i > 0 && user.passives && user.passives.switchEnds ? user.passives.switchEnds.secondHit : 0;
+        const landed = this.landHit(target, this.skillHit(user, target, spell) + follow);
         damage = landed.damage;
         note = landed.note;
         target.hp = Math.max(0, target.hp - damage);
         if (target.hp === 0) this.defeat(target);
+        else this.kindleLands(user, target);
       }
       strikes.push({ hit, damage, note, lethal: hit && target.hp === 0 });
     }

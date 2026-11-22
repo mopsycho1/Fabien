@@ -94,7 +94,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('4.1 nobody gets it twice: next he picks someone else in the fight (or himself)', cast !== bull, cast && cast.name);
   // his own weapon waits when a foe is already in reach: he strikes instead
   reset([[rabdul, 4, 5], [sudeen, 4, 6]]);
-  rabdul.mp = 9; rabdul.status = null; cast = null;
+  rabdul.mp = 9; rabdul.status = { offBalance: false, buff: null, hex: null, cooldowns: { spearWard: 3, holdLine: 3, haftSweep: 3 } }; cast = null; /* (his Batch 7 skills wait) */
   let struck = false; const realAtk = b.performAttack.bind(b); const realDouble = b.castDoubleHit.bind(b);
   b.performAttack = (a, t, done) => { struck = true; done(); }; b.castDoubleHit = (a, t, sp2, done) => { struck = true; done(); };
   b.activeUnit = rabdul; b.enemyAttack(rabdul); await sleep(400);

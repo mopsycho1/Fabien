@@ -81,7 +81,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('Lunge over 1 tile hits for a Thrust plus 1', hitDmg === combat.getDamage(gaha, bull) + 1, 'got ' + hitDmg);
 
   // ---------- Lunge: the enemy AI ----------
-  park(); fresh(rabdul); rabdul.spells = [...rabdul.spells, 'lunge']; rabdul.lineReach = true; rabdul.range = 2; rabdul.melee = true; rabdul.accuracy = 200; rabdul.mp = 0; /* no Enchant first */
+  park(); fresh(rabdul); rabdul.spells = [...rabdul.spells, 'lunge']; rabdul.lineReach = true; rabdul.range = 2; rabdul.melee = true; rabdul.accuracy = 200; rabdul.mp = 0; /* no Enchant first */ Object.assign(rabdul.status.cooldowns, { spearWard: 3, holdLine: 3, haftSweep: 3 }); /* (his Batch 7 skills wait: this checks the Lunge) */
   put(rabdul, L(0).col, L(0).row); put(gaha, L(4).col, L(4).row); gaha.evade = -500;
   b.activeUnit = rabdul; b.seen = null; b.busy = false;
   b.enemyAttack(rabdul); await idle(); await sleep(400); await idle();

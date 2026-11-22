@@ -568,3 +568,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - src/data/bios.json: one entry per character id. "line" is the short line on the card (leave it empty and the card lists the skills). "bio" is Suleiman's longer text, waiting to be filled in. Plain text, no em dashes.
 - Each character stays on its side from units.json ("side": "hero" or "enemy"), up to 4 a side.
 - The tester's last line-up is remembered on the device; "Reset to default" goes back to the map's own line-up. Settings in battle has "Test mode": On lets the enemies be picked too; Off locks them to the map's.
+
+## Batch 7: the new kits (Archer, Sudeen, Rabdul, Bull Commander; 21 to 22 Nov)
+- Every new skill's numbers are in src/data/spells.json, one entry each: pinningShot, primeBow, poisonWeapon (the archer), wardSwitch and interceptAlly (Sudeen), spearWard, holdLine, haftSweep, rapidWard, anchoredWard, kindleHaft (Rabdul), hornCharge, ricochetToss, wrathToss, quakeToss (the Bull). Shield Toss has a new line "stunIfOffBalance": true (the Stun only on a foe already Off-Balance).
+- The quiet rules (passives) sit in src/data/jobs.json under "passives": the archer's "patientHunter" (+5 to hit), Sudeen's "ward" (defense, the share and its cap) and "shieldBash" (the Disorient chance, its bonus, the extra damage, the wait), Rabdul's "noBlindSide" (+5) and "switchEnds" (the second blow's extra).
+- Clash signatures are in src/data/engagement.json under "signatures": Sudeen's Bulwark now has "winHitBase" (a Guard beat he wins hits for that plus his level), Rabdul's "switchEnds" has "winHit".
+- Pinned (the archer's Pinning Shot) is in src/data/conditions.json ("pinned", how many of its turns).
+- The short lines on the skill panel for the new skills are in src/data/skillPanel.json.

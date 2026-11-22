@@ -54,7 +54,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // ---------- Herbs ----------
   park(); put(sudeen, 2, 6); put(gaha, 2, 5); gaha.hp = 10; turnOf(sudeen);
   b.onSpellButton();
-  check('Sudeen\'s Skills: Herbs and Intercept', labels() === 'Herbs x3 | Intercept | - | -', labels());
+  check('Sudeen\'s Skills: Herbs and Intercept', b.spellMenu(b.activeUnit).map((e) => e.label).join(' | ') === 'Ward: on | Herbs x3 | Intercept | Intercept Ally', b.spellMenu(b.activeUnit).map((e) => e.label).join(' | ')); // (Ward switch and Intercept Ally since Batch 7)
   b.chooseSpell('herbs');
   check('Herbs offers only hurt allies next to him', b.targetsInRange.length === 1 && b.targetsInRange[0] === gaha, b.targetsInRange.map((u) => u.label).join());
   b.handleTap(2, 5); b.handleTap(2, 5); await idle();

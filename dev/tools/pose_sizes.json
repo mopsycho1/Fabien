@@ -312,6 +312,21 @@
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
     "h": 0.897
+   },
+   "bull_charge_plain": {
+    "size": 1.0,
+    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+    "h": 0.837
+   },
+   "bull_charge_bloodied": {
+    "size": 1.0,
+    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+    "h": 0.844
+   },
+   "bull_charge_enchanted": {
+    "size": 1.0,
+    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+    "h": 0.857
    }
   },
   "e3": {

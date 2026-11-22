@@ -13,6 +13,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const idle = async () => { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 8000) await sleep(30); await sleep(50); };
   const turnOf = (u) => { b.activeUnit = u; u.hasActed = false; u.hasMoved = false; u.stepsUsed = 0; b.cancelMode(); };
   const sage = U('H3'), guard = U('H1'), scout = U('H2'), eg = U('E1'), ew = U('E2'), er = U('E3');
+  guard.wardOff = true; // (Sudeen's Ward off: these checks measure the Verses alone, Batch 7)
   const park = () => { put(guard, 0, 7); put(scout, 1, 7); put(sage, 3, 7); put(eg, 7, 0); put(ew, 6, 0); put(er, 5, 0); };
   const combat = require('./combat-bundle.cjs');
 

@@ -57,7 +57,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   layra.mp = layra.maxMp;
   await cast(layra, sudeen, 'stone'); await sleep(900);
   check('3.13 a Verse of Stone lends Sudeen its 3 MP', S.mpShown(sudeen) && S.mpShown(sudeen).mp === 3 && S.mpShown(sudeen).lent && layra.mp === layra.maxMp - 3, JSON.stringify(S.mpShown(sudeen)));
-  check('3.2 while it lasts, Intercept is Shield Ram (3 MP)', /Shield Ram  3 MP/.test(menu(sudeen)) && !/Intercept/.test(menu(sudeen)), menu(sudeen));
+  check('3.2 while it lasts, Intercept is Shield Ram (3 MP)', /Shield Ram  3 MP/.test(menu(sudeen)) && !/Intercept(?! Ally)/.test(menu(sudeen)), menu(sudeen));
   b.activeUnit = sudeen; b.refreshCard(sudeen);
   check('3.13 his card shows the MP', /MP 3\/3/.test(cardText()), cardText());
   check('3.13 Layra always has hers', S.mpShown(layra) && !S.mpShown(layra).lent && S.mpShown(layra).max === 12);

@@ -377,10 +377,12 @@ var spells_default = {
     color: "#c9d6e8",
     range: 3,
     damageShare: 0.5,
+    stunIfOffBalance: true,
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    text: "Hurl the shield at an enemy up to 3 tiles away (a higher block in the way stops it): half damage, and it is stunned for a turn. A stunned unit loses its next turn, can't dodge, and takes flank hits (+3 damage). Ready again after 3 turns."
+    note: "19.5 (Bull Commander rebalanced, v2): the Stun comes only on a target that was already Off-Balance before the toss (Horn Charge on a Guarding foe sets that up); otherwise damage only. It never makes Off-Balance itself. Before Batch 7 it stunned every target.",
+    text: "Hurl the shield at an enemy up to 3 tiles away (a higher block in the way stops it): half damage. A target that was already Off-Balance is also Stunned for a turn (it loses its next turn, can't dodge, takes flank hits +3). Ready again after 3 turns."
   },
   doubleHit: {
     name: "Double Hit",
@@ -604,6 +606,248 @@ var spells_default = {
     needsElement: true,
     note: "Roadmap 13.4 (Suleiman's 6 Nov art, 13.17): only while an element is on him. Enchanted = fire (sets Burn, burn and turns as Wildfire), Drenched = water (leaves the target Drenched, puts out a burn). Spends the element. A straight line, range 3, full damage, a block in the way stops it like an arrow.",
     text: "Tayo gathers the element on him into one fist and fires it down a straight line, up to 3 tiles (a higher block in the way stops it). Full damage. Enchanted: a fire blast that sets the target Burning. Drenched: a water blast that leaves the target Drenched. It spends the element (the Enchant ends, or he dries off), so it only works while one is on him. Ready again after 3 turns."
+  },
+  pinningShot: {
+    name: "Pinning Shot",
+    button: "Pinning Shot",
+    short: "PIN",
+    kind: "pin",
+    color: "#d9b77a",
+    range: 5,
+    damageShare: 0.5,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "19.6 (Archer kit sheet, 19 Nov): bow only, 2 to 5 tiles, normal sight and hit rules. Half a bow blow; on a hit the target is Pinned through its next turn (conditions.json pinned).",
+    text: "Bow only, 2 to 5 tiles. Half damage, and a hit Pins the target through its next turn: it cannot walk or use a skill that moves it (it can still attack, cast and fight in a clash; a push still moves it). Ready again after 3 turns."
+  },
+  primeBow: {
+    name: "Prime Bow",
+    button: "Prime Bow",
+    short: "PRIMED",
+    kind: "prime",
+    color: "#ffd27a",
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    attackBonus: 4,
+    rangeBonus: 2,
+    note: "1.82 (Suleiman 21 Nov: takes a turn to charge, hits harder, longer range). Numbers picked 21 Nov: +4 attack (about double her blow on most foes) and +2 reach on her next Attack with the bow.",
+    text: "Draw the bow and hold it: this uses your turn. On your next turn your Attack with the bow has +4 attack and reaches 2 to 7 tiles. The draw is lost if you do not shoot that turn, or if you are caught in a clash. Tap again to draw. Ready again after 3 turns."
+  },
+  poisonWeapon: {
+    name: "Poison Weapon",
+    button: "Poison Weapon",
+    short: "COATED",
+    kind: "coat",
+    color: "#9fdc6a",
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    freeAction: true,
+    note: "1.82 (Suleiman 21 Nov: apply poison to her weapon at any point in time). A free action in her turn (even after acting, or in a clash); the next hit that lands poisons like Poison Arrow.",
+    text: "Free, at any time in your turn: coat your arrows and dagger. Your next hit that lands Poisons the target (3 damage at the start of each of its next 3 turns, never the last point). Ready again after 3 turns."
+  },
+  wardSwitch: {
+    name: "Ward",
+    button: "Ward",
+    short: "WARD",
+    kind: "wardSwitch",
+    color: "#9fd4ff",
+    cooldown: 0,
+    mp: 0,
+    use: "self",
+    freeAction: true,
+    note: "13.68 (Suleiman 19 Nov: his ability to shield and take damage for others should be something you can turn on and off). The switch for Sudeen's Ward passive (jobs.json guardian passives.ward). Free, any time in his turn.",
+    text: "Ward (passive): allies next to you get +1 defense (+2 under Stone) and you take a third of each hit on them (half under Stone), at most 4 (5), never below 1 health. Off in a clash, when Stunned or at 1 health. Tap to switch it on or off; it costs nothing."
+  },
+  interceptAlly: {
+    name: "Intercept Ally",
+    button: "Intercept Ally",
+    short: "SWAP",
+    kind: "allySwap",
+    color: "#9fd4ff",
+    range: 4,
+    cooldown: 2,
+    mp: 0,
+    use: "ally",
+    climb: 1,
+    note: "19.3 (Sudeen's kit sheet): Intercept's ally mode. Swap tiles with an ally within 4 walking steps (a clear path; its tile at most 1 level from his). If the ally is in a clash he takes it over and the ally is free. No damage.",
+    text: "Swap places with an ally up to 4 steps away (a clear path, and its tile at most 1 level above or below yours). If the ally is in a clash, you take it over and they are free. No damage. Ready again after 2 turns."
+  },
+  spearWard: {
+    name: "Spear Ward",
+    button: "Spear Ward",
+    short: "SPEAR WARD",
+    kind: "zoneWard",
+    mode: "spear",
+    color: "#9fc4e8",
+    charges: 2,
+    damageShare: 0.75,
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    note: "19.4 (Rabdul's revised kit): overwatch until the start of his next turn. The 8 tiles round him are threatened; a foe that ENTERS one is struck (75 percent of a blow, normal roll); a hit stops its walk there (it may still act), a miss uses a charge too. 2 charges, one strike per foe per walk. He cannot move while it holds. Replaces Whirl (never built).",
+    text: "Hold the spear out until your next turn: the 8 tiles round you are guarded. A foe that steps into one is struck for 75% of a blow; a hit stops it there. 2 strikes in all. You cannot move while it holds; using it replaces Hold the Line. Tap again to set it. Ready again after 3 turns."
+  },
+  holdLine: {
+    name: "Hold the Line",
+    button: "Hold the Line",
+    short: "HOLD",
+    kind: "zoneWard",
+    mode: "hold",
+    color: "#d9b77a",
+    charges: 1,
+    guardBonus: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "self",
+    note: "19.4: brace until his next turn: +2 Guard in a clash (the sheet's value TBD, picked 21 Nov), no push or pull moves him, and once he contests a foe that walks onto a tile next to him (his hit chance against it; a win stops it there, no damage). He cannot move. Replaces Plant and Vault (never built). One stance at a time with Spear Ward.",
+    text: "Brace until your next turn: +2 Guard in a clash, pushes and pulls do not move you, and the first foe that walks next to you is stopped there if you win the contest (your hit chance). You cannot move; using it replaces Spear Ward. Tap again to brace. Ready again after 3 turns."
+  },
+  haftSweep: {
+    name: "Haft Sweep",
+    button: "Haft Sweep",
+    short: "SWEEP",
+    kind: "sweep",
+    color: "#c9b48a",
+    range: 1,
+    damageShare: 0.5,
+    push: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "19.4: half a blow, Off-Balance and a push of 1 tile (a drop makes it further, as every push). Sets up an ally's Relay Strike.",
+    text: "Sweep the haft through a foe next to you: half damage, it is knocked Off-Balance and pushed 1 tile (down a drop it falls). Allies next to where it lands may Relay Strike. Ready again after 3 turns."
+  },
+  rapidWard: {
+    name: "Rapid Ward",
+    button: "Rapid Ward",
+    short: "SPEAR WARD",
+    kind: "zoneWard",
+    mode: "spear",
+    verse: { of: "spearWard", with: "swiftness" },
+    color: "#bfe9ff",
+    charges: 2,
+    damageShare: 0.75,
+    steps: 2,
+    cooldown: 3,
+    mp: 3,
+    use: "self",
+    text: "Swiftness turns Spear Ward into this: set the ward and still walk up to 2 tiles this turn (the ward goes with you). 2 strikes, 75% of a blow, a hit stops the foe. 3 Verse MP."
+  },
+  anchoredWard: {
+    name: "Anchored Ward",
+    button: "Anchored Ward",
+    short: "SPEAR WARD",
+    kind: "zoneWard",
+    mode: "spear",
+    verse: { of: "spearWard", with: "stone" },
+    color: "#d9b77a",
+    charges: 2,
+    damageShare: 0.75,
+    pushOnHit: 1,
+    rooted: true,
+    cooldown: 3,
+    mp: 3,
+    use: "self",
+    text: "Stone turns Spear Ward into this: a strike that hits also pushes the foe 1 tile back. You are Rooted until your next turn (hits on you are softened, you cannot move). 3 Verse MP."
+  },
+  kindleHaft: {
+    name: "Kindle the Haft",
+    button: "Kindle the Haft",
+    short: "KINDLED",
+    kind: "enchant",
+    self: true,
+    verse: { of: "enchant", with: "fury" },
+    color: "#ff7a2e",
+    icon: "enchanted",
+    range: 0,
+    turns: 3,
+    damage: 2,
+    burn: 2,
+    igniteTurns: 3,
+    cooldown: 3,
+    mp: 3,
+    use: "self",
+    text: "Fury turns Enchant into this, on your own spear only: for 3 turns it burns (+2 damage a hit), and your first hit each turn sets the foe alight: 2 damage at the start of each of its next 3 turns. A Drenched foe does not catch fire (+1 instead). 3 MP."
+  },
+  kindleBurn: {
+    name: "Kindled",
+    short: "BURN",
+    kind: "burnOnly",
+    color: "#ff7a2e",
+    turns: 3,
+    burn: 2,
+    mp: 0,
+    use: "enemy",
+    hidden: true,
+    text: "Set alight by Rabdul's Kindle the Haft: 2 damage at the start of each of its next 3 turns."
+  },
+  hornCharge: {
+    name: "Horn Charge",
+    button: "Horn Charge",
+    short: "CHARGE",
+    kind: "hornCharge",
+    color: "#e8c08a",
+    range: 3,
+    minRange: 2,
+    climb: 1,
+    share2: 0.75,
+    share3: 1,
+    push: 1,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "19.5 and 6.73: charge in a straight, clear line 2 to 3 tiles at the first foe in it (no passing through anyone, no step up of more than 1 level), no clash. 2 tiles: 75 percent of a blow; 3 tiles: a full blow. A hit pushes a foe 1 tile (further down a drop; into a wall: the slam, 2 damage and Disoriented), or leaves a Guarding foe (Guard in a clash, Rooted, Hold the Line) Off-Balance instead, never both. A miss does nothing. Pictures: art.json e2 poses.charge (plain, Bloodied, Enchant looks), fx horn_dust and horn_fire.",
+    text: "Charge 2 or 3 tiles in a straight, clear line into the first foe (no clash): 75% of a blow from 2 tiles, a full blow from 3. A hit pushes it 1 tile (into a wall it slams: 2 damage and Disoriented), or knocks a foe who is Guarding Off-Balance instead. Ready again after 3 turns."
+  },
+  ricochetToss: {
+    name: "Ricochet Toss",
+    button: "Ricochet Toss",
+    short: "TOSS",
+    kind: "toss",
+    verse: { of: "shieldToss", with: "swiftness" },
+    color: "#bfe9ff",
+    range: 3,
+    damageShare: 0.5,
+    stunIfOffBalance: true,
+    ricochet: 2,
+    cooldown: 3,
+    mp: 3,
+    use: "enemy",
+    text: "Swiftness turns Shield Toss into this: half damage to the target, then the shield bounces to another foe within 2 tiles of it for half damage too (each rolled on its own). Only the first can be Stunned, and only if it was already Off-Balance. 3 Verse MP."
+  },
+  wrathToss: {
+    name: "Wrath Toss",
+    button: "Wrath Toss",
+    short: "TOSS",
+    kind: "toss",
+    verse: { of: "shieldToss", with: "fury" },
+    color: "#ff7a5a",
+    range: 3,
+    damageShare: 1,
+    offBalanceOnHit: true,
+    cooldown: 3,
+    mp: 3,
+    use: "enemy",
+    text: "Fury turns Shield Toss into this: a full blow, and a hit knocks the target Off-Balance (no Stun). 3 Verse MP."
+  },
+  quakeToss: {
+    name: "Quake Toss",
+    button: "Quake Toss",
+    short: "TOSS",
+    kind: "toss",
+    verse: { of: "shieldToss", with: "stone" },
+    color: "#d9b77a",
+    range: 3,
+    damageShare: 0.5,
+    stunIfOffBalance: true,
+    quake: 1,
+    cooldown: 3,
+    mp: 3,
+    use: "enemy",
+    text: "Stone turns Shield Toss into this: half damage, Stun if the target was already Off-Balance, and on a hit the other foes next to it are thrown 1 tile away (no Stun for them). 3 Verse MP."
   },
   smokeBomb: {
     name: "Smoke Bomb",
@@ -929,10 +1173,16 @@ var engagement_default = {
       maxStacks: 2,
       winHitBase: 1
     },
+    switchEnds: {
+      note: "Switch Ends (Rabdul, 19.4, Batch 7): a beat he wins with Press brings the rear blade round for winHit damage (the sheet's baseline 2). One per beat, so no endless chain.",
+      winHit: 2
+    },
     bulwark: {
       note: "Bulwark (Warden): each beat in a row held in Guard adds a level. Each level pushes him 1 tile less. An even beat in Guard gives back standoffPoise Poise and standoffHeal health.",
       max: 3,
       pushResistPerLevel: 1,
+      winHitBase: 2,
+      winHitNote: "Batch 7 (21 Nov, Suleiman and Baiyee: Sudeen's strength shows in clashes): a beat he wins with Guard lands a Shield Bash of winHitBase + his Bulwark level (the level counts this beat): 3, then 4, then 5.",
       standoffHeal: 2,
       standoffPoise: 1
     }
@@ -958,6 +1208,10 @@ var conditions_default = {
     defense: 2,
     evade: 10,
     magicDamage: 3
+  },
+  pinned: {
+    note: "Pinned (the archer's Pinning Shot, 19.6): through its next turn it cannot walk or use a skill that moves it (a charge, a lunge, a dive, Husk, Smoke Bomb). It can still attack, cast and fight in a clash; pushes and pulls still move it.",
+    turns: 1
   },
   blinded: {
     note: "Blinded (the archer's Smoke Bomb, roadmap 13.26): a unit next to the cloud cannot see. Until the end of its next turn every attack it makes has missPenalty less chance to hit (never below 5), and it cannot start a clash or take aim (Poison Arrow).",
@@ -1031,6 +1285,24 @@ function attuneTimes(unit, value) {
 
 // src/status.js
 var underDominion = () => false;
+var wardUnits = () => [];
+function wardActive(warder) {
+  return !!(warder && warder.alive && warder.passives && warder.passives.ward && !warder.wardOff && !warder.engagedWith && !isStunned(warder) && warder.hp > 1);
+}
+function wardOf(unit) {
+  if (!unit || unit.isDecoy) return null;
+  return wardUnits().find((w) => w !== unit && w.side === unit.side && wardActive(w) && Math.abs(w.col - unit.col) + Math.abs(w.row - unit.row) === 1) || null;
+}
+function wardStone(warder) {
+  const b = warder.status && warder.status.buff;
+  return !!(b && b.id === "stone");
+}
+function wardDefense(unit) {
+  const w = wardOf(unit);
+  if (!w) return 0;
+  const k = w.passives.ward;
+  return wardStone(w) ? k.stoneDefense : k.defense;
+}
 function statusOf(unit) {
   if (!unit.status) unit.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
   return unit.status;
@@ -1049,6 +1321,7 @@ function statMod(unit, stat) {
   const exposed = statusOf(unit).exposed;
   if (exposed && exposed[stat]) mod -= exposed[stat];
   if (isDisoriented(unit) && ["attack", "defense", "evade"].includes(stat)) mod -= conditions_default.disoriented[stat];
+  if (stat === "defense") mod += wardDefense(unit);
   return mod;
 }
 function hasOwnMp(unit) {
@@ -1110,6 +1383,15 @@ function isStunned(unit) {
 function isBlinded(unit) {
   return !!(unit && unit.status && unit.status.blinded);
 }
+function primeBonus(attacker, defender, holdsCloseWeapon) {
+  if (!attacker || !attacker.primed || !attacker.primed.ready || holdsCloseWeapon) return 0;
+  return spells_default.primeBow.attackBonus;
+}
+function patientBonus(attacker, holdsCloseWeapon) {
+  const p = attacker && attacker.passives && attacker.passives.patientHunter;
+  if (!p || holdsCloseWeapon || attacker.noPatient) return 0;
+  return (attacker.stepsUsed || 0) === 0 && !attacker.hasMoved ? p : 0;
+}
 function isDisoriented(unit) {
   return !!(unit && unit.status && unit.status.disoriented);
 }
@@ -1167,10 +1449,11 @@ function shootsProjectiles(unit) {
 function getHitChance(attacker, defender) {
   const evade = isStunned(defender) && !conditions_default.stun.canDodge ? 0 : defender.evade + statMod(defender, "evade");
   let chance = attacker.accuracy - evade;
-  if (isDistracted(defender, attacker)) chance += engagement_default.distractedHitBonus;
+  if (isDistracted(defender, attacker)) chance += defender.passives && defender.passives.noBlindSide !== void 0 ? defender.passives.noBlindSide : engagement_default.distractedHitBonus;
   if (attacker.closePenalty && distance(attacker, defender) <= 1) chance -= attacker.closePenalty;
   chance += heightAccuracy(attacker, defender);
   if (isBlinded(attacker)) chance -= conditions_default.blinded.missPenalty;
+  chance += patientBonus(attacker, usesCloseWeapon(attacker, defender));
   return Math.min(95, Math.max(5, chance));
 }
 function isDistracted(defender, attacker) {
@@ -1184,7 +1467,8 @@ function getDamage(attacker, defender) {
     return soaked(attacker, defender, Math.max(1, power - (defender.magicDefense + statMod(defender, "magicDefense"))) + flank + dazed);
   }
   const attack = attacker.attack + statMod(attacker, "attack") + (usesCloseWeapon(attacker, defender) ? attacker.closeWeapon.attack : 0);
-  return soaked(attacker, defender, Math.max(1, attack - (defender.defense + statMod(defender, "defense"))) + flank) + enchantBonus(attacker, defender);
+  const primed = primeBonus(attacker, defender, usesCloseWeapon(attacker, defender));
+  return soaked(attacker, defender, Math.max(1, attack + primed - (defender.defense + statMod(defender, "defense"))) + flank) + enchantBonus(attacker, defender);
 }
 function soaked(attacker, defender, damage) {
   if (!isDrenched(defender)) return damage;

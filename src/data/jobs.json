@@ -31,7 +31,7 @@
     "contest": { "style": "overpower", "power": 8, "guard": 4, "agility": 3 },
     "stances": { "press": "strong", "guard": "weak", "slip": "weak", "break": "weak" },
     "signature": { "id": "bloodied", "stance": "press", "name": "Bloodied Press" },
-    "spells": ["shieldToss"]
+    "spells": ["hornCharge", "shieldToss"]
   },
   "striker": {
     "name": "Striker",

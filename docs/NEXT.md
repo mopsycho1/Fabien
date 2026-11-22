@@ -60,7 +60,7 @@ Model: **Sonnet** for clear jobs, **Opus** for design, new systems or "find the 
 - **6.38 / 6.49** Call Spirit: summon, swap places, the earth spirit tanks and clashes. Art: yes, the spirits' own attack animations and the earth spirit's clash pictures. **Opus**.
 - **18.43** Wire the Summon row to Call Spirit. Art: none. **Sonnet**.
 
-## Batch 7: new kits for the heroes and enemies we already have
+## Batch 7: new kits for the heroes and enemies we already have - DONE 22 Nov (with 10.51 and 1.82; tests n106 to n110; see the roadmap's 22 Nov note)
 - **19.3 + 13.68** Sudeen: Ward (shares damage), Shield Bash, ally Intercept; Ward off in a clash and switchable. Art: none. **Opus**.
 - **19.4** Rabdul: Spear Ward (overwatch), Hold the Line, new passives, Verse variants. Art: none. **Opus** (new reaction system).
 - **19.5** Bull Commander: Horn Charge, conditional Shield Toss stun, three toss variants. Art: no, charge sheets and impacts arrived (6.73). **Sonnet**.

@@ -2619,6 +2619,16 @@
           "file": "bull_n6b_throw2_f1.png",
           "originX": 0.144
         }
+      },
+      "charge": {
+        "upLeft": {
+          "file": "bull_charge_plain_upLeft.png",
+          "originX": 0.444
+        },
+        "downLeft": {
+          "file": "bull_charge_plain_downLeft.png",
+          "originX": 0.399
+        }
       }
     },
     "portrait": "bull_face.png",
@@ -2696,6 +2706,16 @@
           "downLeft": {
             "file": "bull_flame_strike_downLeft.png",
             "originX": 0.229
+          }
+        },
+        "charge": {
+          "upLeft": {
+            "file": "bull_charge_enchanted_upLeft.png",
+            "originX": 0.685
+          },
+          "downLeft": {
+            "file": "bull_charge_enchanted_downLeft.png",
+            "originX": 0.357
           }
         }
       },
@@ -2832,11 +2852,22 @@
             "file": "bull_n6b_bl6_f1.png",
             "originX": 0.719
           }
+        },
+        "charge": {
+          "upLeft": {
+            "file": "bull_charge_bloodied_upLeft.png",
+            "originX": 0.68
+          },
+          "downLeft": {
+            "file": "bull_charge_bloodied_downLeft.png",
+            "originX": 0.348
+          }
         }
       }
     },
     "note_nov6b": "Nov set (roadmap 6.33): victory, weakened, defeated, shield throw and shield in flight, and the Bloodied Press look (stance, wind-up, strike, throw) that shows while he has Bloodied stacks.",
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his hurt pictures. The game leans the picture back itself.",
+    "note_charge": "Horn Charge (6.73, 19.5; Batch 7): dev/tools/make_bull_charge.py cut his 19 Nov charge sheets, NW and SW (the rest mirrored): poses.charge (plain), enchanted.poses.charge (flame ring), buffPoses.bloodied.charge. The big north-east view is not used. The impact GIFs are fx sfx_horn_dust and sfx_horn_fire.",
     "ruler": {
       "bull_iso_stand_upLeft.png": {
         "footX": 0.322
@@ -2884,6 +2915,12 @@
         "scale": 1.12,
         "footX": 0.35
       },
+      "bull_charge_plain_upLeft.png": {
+        "footX": 0.501
+      },
+      "bull_charge_plain_downLeft.png": {
+        "footX": 0.529
+      },
       "bull_n6b_weak_f1.png": {
         "scale": 0.9,
         "footX": 0.45
@@ -2915,6 +2952,12 @@
       "bull_flame_strike_downLeft.png": {
         "scale": 1.12,
         "footX": 0.529
+      },
+      "bull_charge_enchanted_upLeft.png": {
+        "footX": 0.608
+      },
+      "bull_charge_enchanted_downLeft.png": {
+        "footX": 0.526
       },
       "bull_flame_stand_upLeft.png": {
         "scale": 0.92,
@@ -2959,6 +3002,12 @@
       },
       "bull_n6b_bl6_f1.png": {
         "footX": 0.532
+      },
+      "bull_charge_bloodied_upLeft.png": {
+        "footX": 0.568
+      },
+      "bull_charge_bloodied_downLeft.png": {
+        "footX": 0.516
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
@@ -5926,12 +5975,15 @@
         96
       ]
     },
+    "portraitHurt": "gadara_face_hurt.png",
+    "shout": "gadara_face_angry.png",
+    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (gadara_face_smiling.png, gadara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36.",
     "ruler": {
-      "gadara_stand_f4.png": {
-        "footX": 0.503
-      },
       "gadara_stand_f1.png": {
         "footX": 0.51
+      },
+      "gadara_stand_f4.png": {
+        "footX": 0.503
       },
       "gadara_stand_f2.png": {
         "footX": 0.375
@@ -6030,10 +6082,7 @@
         "footX": 0.524
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "portraitHurt": "gadara_face_hurt.png",
-    "shout": "gadara_face_angry.png",
-    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (gadara_face_smiling.png, gadara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "h5": {
     "note": "King Alagara, the Vessel (Phase 10, roadmap 6.74, 6.83 and 10.17 to 10.22). Cut by dev/tools/make_kings.py from his 21 Nov sheets (neutral with the gold fastenings, the saber battle stance), his 20 Nov sheets (dodge; Fury and Swift forms: neutral, battle stance, wind-up, attack, guard, dodge; Stone wears the Swift design), his 13 and 19 Nov sheets (guard, recoil, fallen, injured, Claim, Mantle, Gale Cut in three looks) and the 31 Oct drawn lunge (his plain attack: no attack sheet in the new look yet). His look follows his ACTIVE Verse (\"buffed\", \"buffPoses\").",
@@ -6669,6 +6718,9 @@
       }
     },
     "portrait": "alagara_face_neutral.png",
+    "portraitHurt": "alagara_face_hurt.png",
+    "shout": "alagara_face_angry.png",
+    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (alagara_face_smiling.png, alagara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36.",
     "ruler": {
       "alagara_stand_f3.png": {
         "footX": 0.484
@@ -6878,9 +6930,6 @@
         "footX": 0.415
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "portraitHurt": "alagara_face_hurt.png",
-    "shout": "alagara_face_angry.png",
-    "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (alagara_face_smiling.png, alagara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }
