@@ -3893,6 +3893,8 @@ export default class BattleScene extends Phaser.Scene {
     const unit = this.activeUnit;
     const { target, tile } = this.approach;
     const strike = () => {
+      // stopped on the way by a Spear Ward (19.4): no blow from out of reach, the turn goes on from here
+      if (!target.alive || !inReach(unit, target)) { this.busy = false; this.refreshStatus(); return; }
       this.busy = true;
       const done = () => {
         this.busy = false;

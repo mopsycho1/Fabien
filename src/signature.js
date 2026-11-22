@@ -110,6 +110,14 @@ export function afterBeat(beat) {
   if (signatureOf(winner) === 'bloodied' && winStance === 'press') {
     effects.push({ kind: 'hit', from: winner, to: loser, damage: S.bloodied.winHitBase + (winner.fury || 0), word: 'Bloodied Press' });
   }
+  // Bulwark (Sudeen, Batch 7): a beat won with Guard lands a Shield Bash of winHitBase + his level (this beat counted)
+  if (signatureOf(winner) === 'bulwark' && winStance === 'guard' && S.bulwark.winHitBase) {
+    effects.push({ kind: 'hit', from: winner, to: loser, damage: S.bulwark.winHitBase + (winner.bulwark || 0), word: 'Shield Bash' });
+  }
+  // Switch Ends (Rabdul, 19.4): a beat won with Press brings the rear blade round
+  if (signatureOf(winner) === 'switchEnds' && winStance === 'press') {
+    effects.push({ kind: 'hit', from: winner, to: loser, damage: S.switchEnds.winHit, word: 'Switch Ends' });
+  }
   // Riposte: a Slip beat won lands a hit of winHitBase + the stacks held before this beat, then adds a stack.
   // Losing any beat clears the stacks (an even beat leaves them alone).
   if (signatureOf(winner) === 'riposte' && winStance === 'slip') {
