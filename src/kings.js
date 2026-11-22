@@ -136,7 +136,7 @@ export function swapVerses(unit) {
   return unit.status.buff.id;
 }
 
-// The Verse skills that belong to a Verse (Rending Draw to Fury; Unmoved and the Bulwark Shield to Stone).
+// The Verse skills that belong to a Verse (Unmoved and Aegis to Stone; Rending Draw is in every form since 1.99).
 // kings.json may give one id or a list. Returns a list.
 export function verseSkillOf(verseId) {
   const s = (kings.alagara.verseSkills || {})[verseId];
@@ -155,7 +155,7 @@ export function verseSkillsNow(unit) {
   return out;
 }
 
-// ---------- Alagara: the Bulwark Shield (10.46, Suleiman 21 Nov) ----------
+// ---------- Alagara: Aegis (10.46, Suleiman 21 Nov) ----------
 // Under Earth's Bulwark he raises a shield on himself and every ally within 2 tiles. Each shield soaks damage up
 // to a share of that fighter's own max health (20 percent; 15 from the Echo), for 2 of their turns.
 //   unit.shield = { hp: points left to soak, max, turnsLeft }

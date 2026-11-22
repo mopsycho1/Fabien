@@ -195,7 +195,7 @@ module.exports = function makeBrain(w, tally) {
       if (!E.isMelee(u) && u.spells.length) {
         // King Alagara (Phase 10) is weak bare and strong blessed: fill his two Verse slots. Balance pass (10.31): a good
         // player walks over to him when he is out of reach (3 tiles), blesses him before anyone else, and gives Stone
-        // first when friends stand within 2 tiles of him (his Bulwark Shield then covers them), Fury otherwise; the
+        // first when friends stand within 2 tiles of him (his Aegis then covers them), Fury otherwise; the
         // second slot is the other of the two (Swiftness when he is on his own)
         const kingAll = friends.find((f) => f.attune && !(f.status.buff && f.attune.echo) && dist(u, f) <= 3 + St.moveOf(u));
         if (kingAll && u.mp >= 3 && !u.hasActed) {

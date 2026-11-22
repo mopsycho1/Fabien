@@ -914,7 +914,6 @@
     "button": "Rending Draw",
     "short": "REND",
     "kind": "rending",
-    "verseSkill": "fury",
     "color": "#ff7a4a",
     "range": 1,
     "damageShare": 1,
@@ -923,11 +922,12 @@
     "cooldown": 3,
     "mp": 0,
     "use": "enemy",
-    "text": "Fury. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
+    "note": "1.99 (Suleiman 22 Nov 02:09: \"Rend should become a fully active skill for Alagara in all his forms\"): no longer tied to Fury (it was full strength under an Active Fury and 75 percent from the Echo); full strength in every form and with no Verse.",
+    "text": "In any form. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). Ready again after 3 turns."
   },
   "bulwarkShield": {
-    "name": "Bulwark Shield",
-    "button": "Bulwark Shield",
+    "name": "Aegis",
+    "button": "Aegis",
     "short": "SHIELD",
     "kind": "shield",
     "verseSkill": "stone",

@@ -177,7 +177,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 8. Rending Draw (Fury): ignores 2 defense, throws 2 back; from the Echo 75 percent and one more turn of cooldown
   park();
-  check('Rending Draw needs Fury', b.kingBlock(a, 'rendingDraw') === 'needs Fury');
+  check('1.99 Rending Draw works with no Verse (all forms)', !b.kingBlock(a, 'rendingDraw'), b.kingBlock(a, 'rendingDraw'));
   St.applyBuff(a, 'fury');
   b.placeUnit(a, 3, 9); b.placeUnit(tayo, 4, 9); tayo.hp = tayo.maxHp = 200; // flat ground (a push downhill goes further)
   const rend = Math.max(1, Math.round(C.getDamage(a, { ...tayo, defense: tayo.defense - 2 })));
@@ -191,12 +191,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   St.applyBuff(a, 'fury'); St.applyBuff(a, 'stone'); // Fury in the Echo
   b.placeUnit(a, 3, 9); b.placeUnit(tayo, 4, 9); tayo.hp = tayo.maxHp = 200; // flat ground
   check('from the Echo it still works', !b.kingBlock(a, 'rendingDraw'));
-  const rendEcho = Math.max(1, Math.round(C.getDamage(a, { ...tayo, defense: tayo.defense - 2 }) * 0.75));
+  const rendEcho = Math.max(1, Math.round(C.getDamage(a, { ...tayo, defense: tayo.defense - 2 }))); /* 1.99: full strength in every form */
   hp0 = tayo.hp;
   St.startCooldown(a, 'rendingDraw'); a.hasActed = true;
   await waitDone((d) => sure(() => b.castKingSkill(a, tayo, 'rendingDraw', d)));
-  check('...at 75 percent', hp0 - tayo.hp === rendEcho, (hp0 - tayo.hp) + ' vs ' + rendEcho);
-  check('...with one more turn of cooldown (4)', St.cooldownOf(a, 'rendingDraw') === 4, St.cooldownOf(a, 'rendingDraw'));
+  check('1.99 ...at full strength in Stone too', hp0 - tayo.hp === rendEcho, (hp0 - tayo.hp) + ' vs ' + rendEcho);
+  check('1.99 ...with its usual cooldown (3)', St.cooldownOf(a, 'rendingDraw') === 3, St.cooldownOf(a, 'rendingDraw'));
   tayo.maxHp = 53;
 
   // 9. Unmoved (Stone): a push cancelled, answered with a half-strength counter
@@ -222,13 +222,14 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     const s = A.standingFrame('h5', 'downLeft', true, 'swiftness');
     check('under Swiftness in his Swift picture', s && /alagara_swift/.test(s.key), s && s.key);
     // 1.72: standing is his calm Verse stance (1 Nov sheets), never the attack picture; the attack keeps its own
-    check('1.72: standing under Fury is his calm Fury stance, not the attack', /alagara_fury_stand/.test(f.key), f.key);
-    check('1.72: standing under Swiftness is his calm Swift stance, not the attack', /alagara_swift_stand/.test(s.key), s.key);
+    // 1.92 (22 Nov): with a foe near (alert) he stands in the form's BATTLE stance (its "ready"), still never the attack
+    check('1.72/1.92: a foe near under Fury: his Fury battle stance, not the attack', /alagara_fury_ready/.test(f.key), f.key);
+    check('1.72/1.92: a foe near under Swiftness: his Swift battle stance, not the attack', /alagara_swift_ready/.test(s.key), s.key);
     for (const facing of ['downLeft', 'downRight', 'upLeft', 'upRight']) for (const v of ['fury', 'swiftness']) {
       const k = A.standingFrame('h5', facing, false, v).key;
       if (!/_stand_/.test(k)) check('1.72: ' + v + ' ' + facing + ' stands calm', false, k);
     }
-    St.applyBuff(a, 'swiftness'); b.showStanding(a);
+    St.applyBuff(a, 'swiftness'); const wasAlert = b.isAlert; b.isAlert = () => false; b.showStanding(a); b.isAlert = wasAlert;
     check('1.72: in the battle he stands in it (Swiftness)', /alagara_swift_stand/.test(a.sprite.texture.key), a.sprite.texture.key);
     const atk = A.poseFrame('h5', 'attack', 'left', 'downLeft');
     check('...and his Swift attack is still the attack picture', atk && /alagara_swift_f/.test(atk.key), atk && atk.key);
@@ -262,6 +263,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   await sleep(1700);
   park(); casts.length = 0;
   b.placeUnit(tayo, 5, 6);
+  St.startCooldown(a, 'rendingDraw'); /* 1.99: Rend is ready in every form and comes first; this checks the Drawn Blade after it */
   b.kingAiAct(a, () => {});
   check('AI: Drawn Blade on a foe beside him', casts.includes('drawnBlade'), casts.join(','));
   b.castKingSkill = orig;

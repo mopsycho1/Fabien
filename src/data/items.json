@@ -6,7 +6,11 @@
     "spiritWater": { "name": "Spirit water", "mp": 6, "color": "#7fb8ff", "text": "Gives back 6 MP (units with magic only)." },
     "bitterLeaf": { "name": "Bitter leaf", "cure": true, "color": "#9fdc6a", "text": "Cures poison and puts out a burn." }
   },
+  "startNote": "Each class's starting bag. A class not listed gets \"default\" (src/items.js startBag), so a fighter added later is never empty-handed (22 Nov, Baiyee: Alagara and Gadara had none). Alagara: shea balm and a kola nut (he clashes). Gadara: the same (he has no MP of his own).",
   "start": {
+    "default": { "sheaBalm": 1 },
+    "vessel": { "sheaBalm": 1, "kolaNut": 1 },
+    "sovereign": { "sheaBalm": 1, "kolaNut": 1 },
     "guardian": { "sheaBalm": 1, "kolaNut": 1 },
     "spearman": { "sheaBalm": 1, "bitterLeaf": 1 },
     "sage": { "spiritWater": 1, "bitterLeaf": 1 },

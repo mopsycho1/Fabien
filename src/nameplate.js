@@ -108,7 +108,7 @@ export function spreadTagRows(units) {
   const placed = [];
   const list = units.filter((u) => u.alive && u.tagRow && u.tagRow.active && u.view && u.view.active).sort((a, b) => b.view.y - a.view.y);
   for (const u of list) {
-    u.tagRow.y = -u.topY - 19;
+    u.tagRow.y = -u.topY - 19 - (u.mantleCrown ? u.crownLift || 0 : 0); // above Mantle's crown too (1.94)
     for (let i = 0; i < 2; i++) {
       const box = tagBox(u);
       if (!box || !placed.some((o) => Phaser.Geom.Rectangle.Overlaps(o, box))) break;

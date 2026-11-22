@@ -65,54 +65,54 @@
    "sudeen_n_slash": {
     "size": 1.0,
     "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 1.009
+    "h": 0.957
    },
    "sudeen_n_herb": {
     "size": 1.0,
     "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.96
+    "h": 0.83
    },
    "sudeen_n_bash": {
     "size": 1.0,
     "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.828
+    "h": 0.759
    }
   },
   "h2": {
    "gaha_wind": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.856
+    "h": 0.989
    },
    "gaha_fall_land": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.575
+    "h": 0.664
    },
    "gaha_fall_rise": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.813
+    "h": 0.94
    },
    "gaha_n6_victory": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.254
+    "h": 1.448
    },
    "gaha_n6_sonicPrep": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.904
+    "h": 1.044
    },
    "gaha_n6_sonicClose": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.812
+    "h": 0.938
    },
    "gaha_n6_sonicThrow": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.816
+    "h": 0.943
    },
    "gaha_n6_weak": {
     "size": 0.95,
@@ -122,22 +122,22 @@
    "gaha_sj_sweep": {
     "size": 0.92,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.534
+    "h": 0.616
    },
    "gaha_n6_furyDive": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.814
+    "h": 0.94
    },
    "gaha_n6_swiftGuard": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.907
+    "h": 1.048
    },
    "gaha_n_leap": {
     "size": 1.0,
     "why": "21 Nov (6.72): the head finder cannot read the airborne leap; judged next to his lunge (0.92) and standing sheet, head and feet",
-    "h": 1.032
+    "h": 1.193
    }
   },
   "h3": {
@@ -149,7 +149,7 @@
    "layra_n6_victory": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.962
+    "h": 1.114
    },
    "layra_dodge": {
     "size": 0.95,
@@ -159,67 +159,67 @@
    "layra_bless_float": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 0.972
+    "h": 1.161
    },
    "layra_bless_chant": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 0.972
+    "h": 1.161
    },
    "layra_bless_cast": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 0.99
+    "h": 1.182
    },
    "layra_n_stand": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.995
+    "h": 0.986
    },
    "layra_n_battle": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.909
+    "h": 0.919
    },
    "layra_n_block": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 1.002
+    "h": 0.981
    },
    "layra_n_dodge": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.96
+    "h": 0.994
    },
    "layra_n_chant": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.993
+    "h": 1.025
    },
    "layra_n_cast": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.993
+    "h": 1.008
    },
    "layra_n_hurt": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 1.06
+    "h": 0.978
    },
    "layra_n_weak": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 1.056
+    "h": 0.983
    },
    "layra_n_fallen": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.907
+    "h": 0.947
    },
    "layra_n_down": {
     "size": 1.0,
     "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.779
+    "h": 0.808
    }
   },
   "e2": {
@@ -251,12 +251,12 @@
    "bull_n6b_down": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.636
+    "h": 0.598
    },
    "bull_n6b_victory": {
     "size": 0.95,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.096
+    "h": 1.011
    },
    "bull_n6b_throw1": {
     "size": 1.0,
@@ -271,7 +271,7 @@
    "bull_n6b_weak": {
     "size": 0.95,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.85
+    "h": 0.773
    },
    "bull_flame_battle": {
     "size": 1.0,
@@ -286,7 +286,7 @@
    "bull_flame_strike": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.985
+    "h": 0.92
    },
    "bull_flame_stand": {
     "size": 1.0,
@@ -469,7 +469,7 @@
    "kofi_water_chant": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.983
+    "h": 0.97
    },
    "kofi_fire_chant": {
     "size": 1.05,
@@ -494,7 +494,7 @@
    "kofi_earth_cast": {
     "size": 1.05,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.955
+    "h": 0.948
    }
   },
   "e5": {
@@ -653,7 +653,7 @@
    "alagara_fury_guard": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.878
+    "h": 0.791
    },
    "alagara_fury_dodge": {
     "size": 1.0,
@@ -663,12 +663,12 @@
    "alagara_swift_stand": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.088
+    "h": 0.998
    },
    "alagara_swift_ready": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.811
+    "h": 0.73
    },
    "alagara_swift": {
     "size": 1.05,
@@ -678,7 +678,7 @@
    "alagara_swift_guard": {
     "size": 1.0,
     "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.78
+    "h": 0.716
    },
    "alagara_swift_dodge": {
     "size": 1.0,
@@ -711,7 +711,22 @@
    "gadara_unleash": "the staff is raised over his head (Singularity); his body is standing size (by eye 21 Nov)"
   },
   "h2": {
-   "gaha_n6_victory": "the spear is raised over his head; his body is standing size (by eye 21 Nov)"
+   "gaha_n6_victory": "the spear is raised over his head; his body is standing size (by eye 21 Nov)",
+   "gaha_n6_stoneGuard": "the spear stands upright over his head; crouched, his body is no bigger than standing (by eye 22 Nov, after 1.89 trimmed his standing pictures)",
+   "gaha_fall_rise": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_iso_hurt": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_iso_walk0": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_iso_walk1": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_iso_walk2": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_n_leap": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_sj_throw": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+   "gaha_sj_whirl": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size"
+  },
+  "h3": {
+   "layra_bless_float": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+   "layra_bless_chant": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+   "layra_bless_cast": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+   "layra_n6_victory": "22 Nov (1.89): arms and staff raised over her head; the head check (B) says the body is standing size"
   }
  }
 }

@@ -90,7 +90,7 @@ import { healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuf
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
-import { queueBattleArt, fighterIds, showLoadBar } from '../battleLoad.js';
+import { queueBattleArt, fighterIds, showLoadBar, retryFailedArt } from '../battleLoad.js';
 import { pauseBackgroundDownload } from '../prefetch.js';
 import { artUrl } from '../artUrl.js';
 import cavernMap from '../data/maps/cavern.json'; // Suleiman's Hidden Cavern (Phase 11)
@@ -187,6 +187,7 @@ export default class BattleScene extends Phaser.Scene {
     const asked = this.mapName;
     queueBattleArt(this, fighterIds(MAPS[asked], this.chosenLineUp));
     showLoadBar(this);
+    retryFailedArt(this); // a picture that failed to download is asked for again (22 Nov, video 1818)
   }
 
   // Phaser calls create() once, when the scene starts.
@@ -2243,7 +2244,7 @@ export default class BattleScene extends Phaser.Scene {
     if (this.activeUnit.primed && this.activeUnit.primed.ready) this.dropPrime(this.activeUnit, 'Draw lost'); // a primed bow not shot this turn (1.82)
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
-    tickShield(this.activeUnit); // the Bulwark Shield lasts 2 of the fighter's turns (10.46)
+    tickShield(this.activeUnit); // Aegis lasts 2 of the fighter's turns (10.46)
     if (this.activeUnit.storedSwitch) { // Alagara's Active Verse ran out: his stored one takes over (10.47)
       const id = this.activeUnit.storedSwitch;
       this.activeUnit.storedSwitch = null;
@@ -4214,7 +4215,7 @@ export default class BattleScene extends Phaser.Scene {
   landHit(target, damage) {
     if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
-    // Alagara's Bulwark Shield (10.46) soaks what is left, up to its points
+    // Alagara's Aegis (10.46) soaks what is left, up to its points
     const shield = soakShield(target, landed.damage);
     if (shield.soaked) {
       landed.damage = shield.damage;
@@ -5880,7 +5881,7 @@ export default class BattleScene extends Phaser.Scene {
       applyDisoriented(loser, this.activeUnit === loser);
     }
     if (fall) {
-      this.soakFall(loser, fall); // the Bulwark Shield takes a slam or a fall too (10.46)
+      this.soakFall(loser, fall); // Aegis takes a slam or a fall too (10.46)
       loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
       else {
@@ -9167,7 +9168,8 @@ export default class BattleScene extends Phaser.Scene {
     // Mantle's crown goes when the Verse it shared ends (6.84)
     for (const u of this.units) {
       if (u.mantleCrown && !(u.alive && u.status && u.status.buff && u.status.buff.id === u.mantleVerse)) { u.mantleCrown.destroy(); u.mantleCrown = null; }
-      this.syncShieldDome(u); // the Bulwark Shield's dome comes and goes with the shield (10.46)
+      if (u.plate) u.plate.y = u.mantleCrown ? -(u.crownLift || 0) : 0; // the plate over the head clears the crown (1.94)
+      this.syncShieldDome(u); // Aegis's dome comes and goes with the shield (10.46)
     }
     for (const unit of this.units) {
       if (!unit.tagRow || !unit.tagRow.active) continue;

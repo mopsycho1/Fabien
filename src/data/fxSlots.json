@@ -762,6 +762,86 @@
     "H": 233,
     "tiles": 1.0
    }
+  },
+  "aegis": {
+   "frames": 9,
+   "frameMs": 140,
+   "originX": 0.506,
+   "originY": 0.83,
+   "size": [
+    239,
+    179
+   ],
+   "fit": {
+    "h": 129,
+    "w": 219,
+    "mx": 121,
+    "my": 84,
+    "by": 149,
+    "W": 239,
+    "H": 179,
+    "tiles": 1.0
+   }
+  },
+  "rift": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.5,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 100,
+    "w": 290,
+    "mx": 170,
+    "my": 62,
+    "by": 109,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.0
+   }
+  },
+  "arcane_charge": {
+   "frames": 9,
+   "frameMs": 140,
+   "originX": 0.502,
+   "originY": 0.92,
+   "size": [
+    211,
+    203
+   ],
+   "fit": {
+    "h": 158,
+    "w": 162,
+    "mx": 106,
+    "my": 109,
+    "by": 187,
+    "W": 211,
+    "H": 203,
+    "tiles": 1.0
+   }
+  },
+  "orb_burst": {
+   "frames": 9,
+   "frameMs": 140,
+   "originX": 0.5,
+   "originY": 0.92,
+   "size": [
+    360,
+    118
+   ],
+   "fit": {
+    "h": 109,
+    "w": 204,
+    "mx": 180,
+    "my": 58,
+    "by": 109,
+    "W": 360,
+    "H": 118,
+    "tiles": 1.0
+   }
   }
  },
  "wrap": {

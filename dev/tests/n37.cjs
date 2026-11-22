@@ -41,8 +41,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   for (const [u, h] of [[sudeen, 88], [gaha, 100], [layra, 100], [rabdul, 112], [bull, 112]]) { u.facing = 'downLeft'; b.showStanding(u); }
   // (map.json's figureScale shrinks everyone alike)
   /* 6.72: Gaha's four standing pictures are not one height any more (his new neutral, true views), so the factor comes from Layra */
-  const fs = shown(layra) / 100;
-  const same = [[sudeen, 88], [rabdul, 112], [bull, 112]].every(([u, h]) => Math.abs(shown(u) - h * fs) <= 3) && Math.abs(shown(gaha) - 100 * fs) <= 8;
+  const ART = require('../../src/data/art.json'); /* 1.89 (22 Nov): Layra's and Gaha's standing pictures lost the empty rows under the feet; their "height" went with them */
+  const fs = shown(rabdul) / 112; /* his pictures are untouched: the yardstick */
+  const fits = (u, h) => shown(u) <= h * fs + 3 && shown(u) >= h * fs * 0.85; /* a facing's picture can be shorter than the tallest one, no taller */
+  const same = [[sudeen, 88], [rabdul, 112], [bull, 112]].every(([u, h]) => Math.abs(shown(u) - h * fs) <= 3) && fits(gaha, ART.h2.height) && fits(layra, ART.h3.height);
   check('9.11 each character is drawn the same size as before', same && fs > 0.8 && fs <= 1, [shown(sudeen), shown(gaha), shown(layra), shown(rabdul), shown(bull)].join(',') + ' x' + fs.toFixed(2));
   // an old picture a character keeps (the bull's victory) is still drawn at its old size
   b.showPose(bull, 'victory', -1);

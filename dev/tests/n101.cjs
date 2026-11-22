@@ -1,4 +1,4 @@
-// Roadmap 10.46 (Suleiman 21 Nov): the Bulwark Shield. Under Earth's Bulwark, Alagara raises a shield on himself and
+// Roadmap 10.46 (Suleiman 21 Nov): Aegis. Under Earth's Bulwark, Alagara raises a shield on himself and
 // every ally within 2 tiles that soaks damage up to 20 percent of each one's max health, for 2 of their turns. It is
 // the answer to Gadara's Singularity, so the pull's slam and its sure blow must land on the shield first.
 // Run:  FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 node n101.cjs

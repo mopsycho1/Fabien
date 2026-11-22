@@ -23,6 +23,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
   if (opts.noKings) await page.addInitScript(() => { window.__sitOut = ['h5', 'e5']; }); // a check written for the line-up before the kings (Phase 10)
   // the character select (18.30) goes straight on with the remembered line-up, unless a check is about it (opts.select)
   if (!opts.select) await page.addInitScript(() => { window.__skipSelect = true; });
+  if (opts.lineUp) await page.addInitScript((l) => { try { if (!sessionStorage.getItem('lu')) { localStorage.setItem('fabien.lineup', JSON.stringify(l)); sessionStorage.setItem('lu', '1'); } } catch (e) {} }, opts.lineUp === true ? { hero: ['h1', 'h2', 'h3', 'e3'], enemy: ['h5', 'e4', 'e2', 'e5'], known: ['h1','h2','h3','h4','h5','e1','e2','e3','e4','e5'] } : opts.lineUp); // a remembered line-up
   if (opts.sides) await page.addInitScript((sd) => { window.__sides = sd; }, opts.sides); // put a character on the other side: { e5: 'hero' } (10.38)
   if (opts.ringSet) await page.addInitScript((r) => { window.__ringSet = r; }, opts.ringSet); // team ring colours to try (boardRead.js)
   if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)

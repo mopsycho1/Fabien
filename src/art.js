@@ -243,6 +243,9 @@ export function standingFrame(id, facing, alert = false, buff = null, weak = fal
   let standing = alert && entry.battle ? entry.battle : entry.standing;
   if (weak && entry.weak) standing = isFacingSet(entry.weak) ? entry.weak : { downRight: entry.weak };
   if (buff && entry.buffed && entry.buffed[buff]) standing = entry.buffed[buff];
+  // a foe close by: the form's own battle stance, when it has one (1.92, 22 Nov: Alagara in Fury stayed in his neutral)
+  const formReady = buff && entry.buffPoses && entry.buffPoses[buff] && entry.buffPoses[buff].ready;
+  if (alert && formReady && isFacingSet(formReady) && !(weak && entry.weak)) standing = formReady;
   const look = lookEntry(id);
   const lookSet = look && ((!alert && look.standing) || look.battle); // enchanted: the flaming weapon (neutral or battle)
   // enchanted: the flame look, unless he is badly hurt and has a weak pose: the hurt look wins and the flame
@@ -285,7 +288,11 @@ export function poseFrame(id, pose, side, facing = null) {
   if (!entry) return null;
   const look = lookEntry(id);
   const bid = buffIdOf(id);
-  const buffPose = bid && entry.buffPoses && entry.buffPoses[bid] && entry.buffPoses[bid][pose];
+  const form = bid && entry.buffPoses && entry.buffPoses[bid];
+  // a pose the form was not drawn in uses the form's nearest one, so the fighter keeps his form's look through the move
+  // (1.93, 22 Nov: Alagara in Fury turned back into his base self for Claim, Mantle's chant or a hit, then struck in Fury)
+  const near = form && !form[pose] && entry.buffed && entry.buffed[bid] ? (FORM_NEAREST[pose] || []).find((p) => form[p]) : null;
+  const buffPose = form && (form[pose] || (near && form[near]));
   const el = entry.elementPoses ? elementOf(id) : null;
   const elPose = el && entry.elementPoses[el] && entry.elementPoses[el][pose];
   const value = (look && look.poses && look.poses[pose]) || buffPose || elPose || (entry.poses && entry.poses[pose]) || (pose === 'attack' && entry.attack && entry.attack.right);
@@ -293,6 +300,15 @@ export function poseFrame(id, pose, side, facing = null) {
   if (isFacingSet(value)) return pickFacing(id, value, facing || (side === 'left' ? 'downLeft' : 'downRight'));
   return makeFrame(id, value, side === 'left');
 }
+
+// A pose a Verse form has no picture for -> the form's poses to use instead, first found wins (1.93).
+const FORM_NEAREST = {
+  windup: ['ready', 'guard'], ready: ['windup', 'guard'], drawn: ['ready', 'windup', 'guard'],
+  chant: ['ready', 'windup', 'guard'], cast: ['attack', 'ready', 'guard'],
+  claimReach: ['windup', 'ready', 'guard'], claimSnatch: ['attack', 'ready'], claimStore: ['ready', 'guard'],
+  strikeWindup: ['windup', 'ready', 'guard'], hurt: ['guard', 'ready'], knocked: ['guard', 'ready'],
+  rend: ['attack'], rendWindup: ['windup', 'ready'], rift: ['attack'], riftWindup: ['windup', 'ready'],
+};
 
 // Kept for older code: the attack pose.
 export function attackFrame(id, side) {

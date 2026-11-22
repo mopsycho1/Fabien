@@ -10,7 +10,7 @@ import { preloadSpellArt } from './spellArt.js';
 import { preloadUiArt } from './hud.js';
 import { classPlateFiles } from './nameplate.js';
 import { fieldedEntries } from './lineup.js';
-import { artUrl } from './artUrl.js';
+import { artUrl, held } from './artUrl.js';
 import art from './data/art.json';
 import { allCharacters } from './lineup.js';
 
@@ -55,4 +55,25 @@ export function showLoadBar(scene) {
     if (pct.active) pct.setText('Loading  ' + Math.round(v * 100) + '%');
   });
   scene.load.once('complete', () => { for (const o of scene.loadBarObjects) o.destroy(); scene.loadBarObjects = null; });
+}
+
+// A picture that fails to download is asked for again, up to RETRIES times (22 Nov, video 1818: on a weak connection
+// one fighter's standing picture failed and he fought the whole battle as a plain circle with his label, "H5").
+// A failed blob from the background downloader is dropped and the server address is used instead.
+export const RETRIES = 2;
+export function retryFailedArt(scene) {
+  scene.retryTries = new Map(); // fresh for every battle
+  if (scene.retryOn) return;   // the scene keeps its loader between battles: one listener is enough
+  scene.retryOn = true;
+  scene.load.on('loaderror', (file) => {
+    const tries = scene.retryTries;
+    if (!file || (file.type !== 'image' && file.type !== 'spritesheet')) return;
+    const n = (tries.get(file.key) || 0) + 1;
+    if (n > RETRIES) return;
+    tries.set(file.key, n);
+    let url = file.url;
+    for (const [raw, blob] of held) if (blob === url) { held.delete(raw); url = raw; break; }
+    if (file.type === 'image') scene.load.image(file.key, url);
+    else scene.load.spritesheet(file.key, url, file.config);
+  });
 }

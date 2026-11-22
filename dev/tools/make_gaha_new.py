@@ -38,10 +38,10 @@ OUT = os.path.join(ROOT, 'public', 'art') + '/'
 ART = os.path.join(ROOT, 'src', 'data', 'art.json')
 # (figure number 1 to 4 = top left, top right, bottom left, bottom right) -> facing
 VIEWS = {
-    'gaha_n_stand': {1: 'upRight', 2: 'downRight', 3: 'upLeft', 4: 'downLeft'},
+    'gaha_n_stand': {1: 'upLeft', 2: 'downLeft', 3: 'upRight', 4: 'downRight'},   # 22 Nov (1.87): looked at large, figure 1 turns his head to the left, so it is up-left (the old table had each pair the wrong way round)
     'gaha_n_weakA': {1: 'downLeft', 2: 'upRight'},
     'gaha_n_weakB': {1: 'upLeft', 2: 'downRight'},
-    'gaha_n_leap':  {1: 'upLeft', 2: 'upRight', 3: 'downLeft', 4: 'downRight'},
+    'gaha_n_leap':  {1: 'downLeft', 2: 'upRight', 3: 'upLeft', 4: 'downRight'},   # 22 Nov (1.95 sweep): figure 1 shows his face, figure 3 his back (facing_sheet.py)
     'gaha_n_lunge': {1: 'upLeft', 2: 'upRight', 3: 'downLeft', 4: 'downRight'},
 }
 BASE = 0.445    # picture pixels per sheet pixel (0.5 times 0.89: so that the new standing is the ruler itself, scale 1); the ruler sets the drawn size (ruler_marks.json, pose_sizes.json)
@@ -65,6 +65,10 @@ def cut(sheet):
         mk.final_cut(cl, box, OUT + name, BASE, keep=0.02)
         L.wipe_floor(OUT + name, tiles=TILES if sheet != 'gaha_n_leap' else LEAP_TILES, tol=24.0, warm_gate=gate if sheet != 'gaha_n_leap' else gate_leap)
         if sheet == 'gaha_n_leap': L.floor_tidy(OUT + name, LEAP_TILES, gate_leap)   # airborne: the marker tile and its shadow lie below the feet (his boots are not tile coloured); on the other sheets the boots stand on the tile and the tidy step would cut the legs
+        if sheet in ('gaha_n_stand', 'gaha_n_weakA', 'gaha_n_weakB'):   # what the wiper leaves under his feet goes too (1.86)
+            import feet_clean
+            feet_clean.ORANGE_SAT = 92 if sheet == 'gaha_n_stand' else 110
+            a = np.array(Image.open(OUT + name).convert('RGBA')); Image.fromarray(feet_clean.clean(a)[0]).save(OUT + name, optimize=True)
         out[facing] = {'file': name, 'originX': mk.feet_x(OUT + name)}
         print(sheet, facing, Image.open(OUT + name).size, file=sys.stderr)
     return out

@@ -64,19 +64,19 @@
       "attack": {
         "upRight": {
           "file": "sudeen_n_slash_upRight.png",
-          "originX": 0.528
+          "originX": 0.5
         },
         "upLeft": {
           "file": "sudeen_n_slash_upLeft.png",
-          "originX": 0.5
+          "originX": 0.528
         },
         "downRight": {
           "file": "sudeen_n_slash_downRight.png",
-          "originX": 0.465
+          "originX": 0.629
         },
         "downLeft": {
           "file": "sudeen_n_slash_downLeft.png",
-          "originX": 0.629
+          "originX": 0.465
         }
       },
       "cast": {
@@ -163,10 +163,6 @@
         }
       },
       "slipStrike": {
-        "upRight": {
-          "file": "sudeen_n_bash_upRight.png",
-          "originX": 0.532
-        },
         "upLeft": {
           "file": "sudeen_n_bash_upLeft.png",
           "originX": 0.497
@@ -181,10 +177,6 @@
         }
       },
       "push": {
-        "upRight": {
-          "file": "sudeen_n_bash_upRight.png",
-          "originX": 0.532
-        },
         "upLeft": {
           "file": "sudeen_n_bash_upLeft.png",
           "originX": 0.497
@@ -476,19 +468,19 @@
         "footX": 0.405
       },
       "sudeen_n_slash_upRight.png": {
-        "footX": 0.469
-      },
-      "sudeen_n_slash_upLeft.png": {
         "footX": 0.668
       },
-      "sudeen_n_slash_downLeft.png": {
+      "sudeen_n_slash_upLeft.png": {
+        "footX": 0.487
+      },
+      "sudeen_n_slash_downRight.png": {
         "footX": 0.524
       },
       "sudeen_n_herb_upRight.png": {
         "footX": 0.285
       },
       "sudeen_n_herb_upLeft.png": {
-        "footX": 0.613
+        "footX": 0.614
       },
       "sudeen_n_herb_downRight.png": {
         "footX": 0.505
@@ -522,9 +514,6 @@
       },
       "sudeen_n6_victory_single.png": {
         "footX": 0.468
-      },
-      "sudeen_n_bash_upRight.png": {
-        "footX": 0.346
       },
       "sudeen_n_bash_upLeft.png": {
         "footX": 0.649
@@ -658,23 +647,23 @@
   },
   "h2": {
     "note": "Gaha, the spearman. Cut from Suleiman's Gaha sheets (Oct 26). The red swordsman who stood here before is Alagara the Lesser, kept for later.",
-    "height": 101,
+    "height": 87.5,
     "standing": {
       "upRight": {
         "file": "gaha_n_stand_upRight.png",
-        "originX": 0.415
+        "originX": 0.539
       },
       "downRight": {
         "file": "gaha_n_stand_downRight.png",
-        "originX": 0.434
+        "originX": 0.55
       },
       "upLeft": {
         "file": "gaha_n_stand_upLeft.png",
-        "originX": 0.539
+        "originX": 0.415
       },
       "downLeft": {
         "file": "gaha_n_stand_downLeft.png",
-        "originX": 0.55
+        "originX": 0.434
       }
     },
     "battle": {
@@ -1011,7 +1000,7 @@
       "lungeLeap": {
         "upLeft": {
           "file": "gaha_n_leap_upLeft.png",
-          "originX": 0.495
+          "originX": 0.466
         },
         "upRight": {
           "file": "gaha_n_leap_upRight.png",
@@ -1019,7 +1008,7 @@
         },
         "downLeft": {
           "file": "gaha_n_leap_downLeft.png",
-          "originX": 0.466
+          "originX": 0.495
         },
         "downRight": {
           "file": "gaha_n_leap_downRight.png",
@@ -1229,18 +1218,8 @@
         ]
       }
     },
-    "rooted": {
-      "downRight": {
-        "file": "gaha_rooted_downRight.png",
-        "originX": 0.501
-      },
-      "upRight": {
-        "file": "gaha_rooted_upRight.png",
-        "originX": 0.495
-      }
-    },
     "note_fury": "Gaha under Fury (roadmap 6.14), from his 30 Oct turnaround: front and back views; down-right and up-left are their mirror images.",
-    "note_rooted": "Gaha standing his ground under Earth's Bulwark (roadmap 6.17), from his 30 Oct sheet: a low guard in a dome of crystals. Both drawn facing right; the left facings are their mirror images.",
+    "note_rooted": "22 Nov (1.91): standing his ground under Earth's Bulwark he keeps his Stone look and the concentrated Earth's Bulwark loop plays on him (fxSlots.json buffs.stone.rooted). His old 30 Oct rooted pictures (the crystal dome painted on him, gaha_rooted_*.png) are no longer used.",
     "auraPainted": [
       "fury"
     ],
@@ -1398,16 +1377,13 @@
     "note_n18": "18 Nov sheets, wired 21 Nov (6.72, dev/tools/make_gaha_new.py): the new neutral (spear on the shoulder) is his standing in four facings, the battle damaged sheets his weak look in four facings, the Lunge leap and Lunge attack sheets the poses lungeLeap and lungeAttack (BattleScene.castLunge).",
     "ruler": {
       "gaha_n_stand_upRight.png": {
-        "footX": 0.384
+        "footX": 0.61
       },
       "gaha_n_stand_downRight.png": {
-        "footX": 0.471
-      },
-      "gaha_n_stand_upLeft.png": {
-        "footX": 0.598
+        "footX": 0.516
       },
       "gaha_n_stand_downLeft.png": {
-        "footX": 0.513
+        "footX": 0.481
       },
       "gaha_iso_battle_upRight.png": {
         "scale": 0.92,
@@ -1582,44 +1558,44 @@
         "footX": 0.502
       },
       "gaha_n_leap_upLeft.png": {
-        "footX": 0.607
+        "footX": 0.512
       },
       "gaha_n_leap_upRight.png": {
         "footX": 0.312
       },
       "gaha_n_leap_downLeft.png": {
-        "footX": 0.532
+        "footX": 0.555
       },
       "gaha_n_leap_downRight.png": {
         "footX": 0.421
       },
       "gaha_n_lunge_upLeft.png": {
         "scale": 0.92,
-        "footX": 0.754
+        "footX": 0.718
       },
       "gaha_n_lunge_upRight.png": {
         "scale": 0.92,
-        "footX": 0.193
+        "footX": 0.266
       },
       "gaha_n_lunge_downLeft.png": {
         "scale": 0.92,
-        "footX": 0.6
+        "footX": 0.601
       },
       "gaha_n_lunge_downRight.png": {
         "scale": 0.92,
         "footX": 0.398
       },
       "gaha_n_weakA_downLeft.png": {
-        "footX": 0.636
+        "footX": 0.638
       },
       "gaha_n_weakA_upRight.png": {
-        "footX": 0.528
+        "footX": 0.408
       },
       "gaha_n_weakB_upLeft.png": {
-        "footX": 0.472
+        "footX": 0.592
       },
       "gaha_n_weakB_downRight.png": {
-        "footX": 0.364
+        "footX": 0.362
       },
       "gaha_sj_whirl_0.png": {
         "scale": 0.82,
@@ -1727,16 +1703,6 @@
       "gaha_thrustUp_5.png": {
         "footX": 0.62
       },
-      "gaha_rooted_downRight.png": {
-        "scale": 1.29,
-        "feet": 0.94,
-        "footX": 0.49
-      },
-      "gaha_rooted_upRight.png": {
-        "scale": 1.29,
-        "feet": 0.94,
-        "footX": 0.488
-      },
       "gaha_n6_stoneAttack_upLeft.png": {
         "scale": 1.09,
         "footX": 0.331
@@ -1820,7 +1786,7 @@
     "walkStyle": "sand",
     "note_walkStyle": "13.41: Layra cannot walk unaided. Sand and earth bound to her legs carry her, so she has no footfalls: sand gathers, circles her shins and falls away (src/codeWalk.js). Take this line out when she gets real walk pictures.",
     "note": "Layra, the staff-bearer (enchantress). From Suleiman's Layra sheets. Her first sheet's standing views all have her chin raised, so her standing-firm pose (level gaze) is used for both front facings until a new turnaround arrives.",
-    "height": 100,
+    "height": 87,
     "standing": {
       "downRight": {
         "file": "layra_n_stand_downRight.png",
@@ -1895,21 +1861,13 @@
         }
       },
       "meditate": {
-        "downRight": {
-          "file": "layra_n_chant_downRight.png",
-          "originX": 0.493
-        },
-        "downLeft": {
-          "file": "layra_n_chant_downLeft.png",
-          "originX": 0.483
-        },
         "upRight": {
-          "file": "layra_n_chant_upRight.png",
-          "originX": 0.5
+          "file": "layra_iso_meditate_upRight.png",
+          "originX": 0.474
         },
-        "upLeft": {
-          "file": "layra_n_chant_upLeft.png",
-          "originX": 0.464
+        "downRight": {
+          "file": "layra_iso_meditate_downRight.png",
+          "originX": 0.523
         }
       },
       "hurt": {
@@ -2323,54 +2281,49 @@
     },
     "note_bless": "21 Nov (6.86, dev/tools/make_layra_bless.py): under any Verse she floats (his 21 Nov floating neutral), and concentrates and releases her spells floating (buffPoses chant and cast). Replaces the 31 Oct blessing stance.",
     "note_n16": "16 Nov sheets, wired 21 Nov (6.69, dev/tools/make_layra_new.py): standing, battle stance (also ready and her staff strike), blocking (guard), dodge, preparing (chant and meditate), releasing (cast), taking damage (hurt, knocked), near defeat (weak), fallen on hands and knees (kneel, the landing of a fall) and defeated (down), all in four true views. Her victory is still the 2 Nov picture, her blessing looks the 21 Nov floating sheets (6.86).",
+    "note_meditate": "22 Nov (1.88): her 21 Nov set has no meditation sheet, so the recut had pointed \"meditate\" at her spell-chant picture and she stood chanting through Meditate. Her seated meditation (31 Oct isometric, same outfit) is back, drawn at its old size (ruler scale pinned in dev/tools/ruler_marks.json).",
     "ruler": {
       "layra_n_stand_downRight.png": {
-        "footX": 0.482
+        "footX": 0.486
       },
       "layra_n_stand_downLeft.png": {
-        "footX": 0.524
+        "footX": 0.523
       },
       "layra_n_stand_upLeft.png": {
-        "footX": 0.416
+        "footX": 0.522
       },
       "layra_n_battle_downLeft.png": {
-        "footX": 0.512
+        "footX": 0.513
       },
-      "layra_n_battle_upLeft.png": {
-        "footX": 0.519
+      "layra_n_battle_upRight.png": {
+        "footX": 0.405
       },
       "layra_n_cast_downRight.png": {
-        "footX": 0.415
+        "footX": 0.413
       },
       "layra_n_cast_upRight.png": {
-        "footX": 0.61
+        "footX": 0.452
       },
       "layra_n_cast_upLeft.png": {
-        "footX": 0.454
+        "footX": 0.518
       },
       "layra_n_chant_downRight.png": {
-        "footX": 0.454
+        "footX": 0.458
       },
       "layra_n_chant_downLeft.png": {
-        "footX": 0.532
-      },
-      "layra_n_chant_upRight.png": {
-        "footX": 0.47
+        "footX": 0.535
       },
       "layra_n_chant_upLeft.png": {
-        "footX": 0.434
+        "footX": 0.522
       },
       "layra_n_hurt_downRight.png": {
         "footX": 0.445
       },
       "layra_n_hurt_downLeft.png": {
-        "footX": 0.554
+        "footX": 0.563
       },
       "layra_n_hurt_upLeft.png": {
-        "footX": 0.493
-      },
-      "layra_n_hurt_upRight.png": {
-        "footX": 0.37
+        "footX": 0.425
       },
       "layra_n_down_downRight.png": {
         "footX": 0.532
@@ -2385,13 +2338,13 @@
         "footX": 0.475
       },
       "layra_n_block_downRight.png": {
-        "footX": 0.497
+        "footX": 0.505
       },
       "layra_n_block_upLeft.png": {
-        "footX": 0.494
+        "footX": 0.49
       },
       "layra_n_block_upRight.png": {
-        "footX": 0.442
+        "footX": 0.469
       },
       "layra_n6_victory_single.png": {
         "scale": 1.05
@@ -2406,7 +2359,7 @@
         "footX": 0.599
       },
       "layra_n_dodge_upRight.png": {
-        "footX": 0.277
+        "footX": 0.406
       },
       "layra_n_fallen_downRight.png": {
         "footX": 0.498
@@ -2414,20 +2367,17 @@
       "layra_n_fallen_downLeft.png": {
         "footX": 0.478
       },
-      "layra_n_fallen_upLeft.png": {
-        "footX": 0.473
-      },
       "layra_n_fallen_upRight.png": {
-        "footX": 0.42
+        "footX": 0.443
       },
       "layra_n_weak_downLeft.png": {
-        "footX": 0.411
+        "footX": 0.409
       },
       "layra_n_weak_upRight.png": {
-        "footX": 0.349
+        "footX": 0.409
       },
       "layra_n_weak_upLeft.png": {
-        "footX": 0.477
+        "footX": 0.403
       },
       "layra_bless_float_f1.png": {
         "scale": 1.08,
@@ -4120,7 +4070,7 @@
       },
       "tayo_dodge_upRight.png": {
         "scale": 0.78,
-        "footX": 0.705
+        "footX": 0.638
       },
       "tayo_dodge_upLeft.png": {
         "scale": 0.78,
@@ -4284,7 +4234,7 @@
       },
       "tayo_dodge_fire_upRight.png": {
         "scale": 0.74,
-        "footX": 0.666
+        "footX": 0.592
       },
       "tayo_dodge_fire_upLeft.png": {
         "scale": 0.74,
@@ -5215,7 +5165,7 @@
         "footX": 0.347
       },
       "kofi_water_cast_f4.png": {
-        "footX": 0.499
+        "footX": 0.508
       },
       "kofi_hurt_f1.png": {
         "footX": 0.49
@@ -5236,7 +5186,7 @@
         "footX": 0.528
       },
       "kofi_water_chant_f1.png": {
-        "footX": 0.466
+        "footX": 0.463
       },
       "kofi_water_chant_f2.png": {
         "footX": 0.505
@@ -5248,7 +5198,7 @@
         "footX": 0.455
       },
       "kofi_dodge_upLeft.png": {
-        "footX": 0.23
+        "footX": 0.244
       },
       "kofi_dodge_upRight.png": {
         "footX": 0.576
@@ -5293,7 +5243,7 @@
         "footX": 0.449
       },
       "kofi_storm_cast_f2.png": {
-        "footX": 0.562
+        "footX": 0.533
       },
       "kofi_storm_cast_f3.png": {
         "footX": 0.422
@@ -5311,7 +5261,7 @@
         "footX": 0.507
       },
       "kofi_earth_cast_f1.png": {
-        "footX": 0.386
+        "footX": 0.401
       },
       "kofi_earth_cast_f2.png": {
         "footX": 0.479
@@ -6852,10 +6802,10 @@
         "footX": 0.524
       },
       "alagara_fury_guard_f1.png": {
-        "footX": 0.402
+        "footX": 0.406
       },
       "alagara_fury_guard_f2.png": {
-        "footX": 0.478
+        "footX": 0.477
       },
       "alagara_fury_guard_f3.png": {
         "footX": 0.372
@@ -6894,7 +6844,7 @@
         "footX": 0.434
       },
       "alagara_swift_ready_f3.png": {
-        "footX": 0.428
+        "footX": 0.432
       },
       "alagara_swift_guard_f1.png": {
         "footX": 0.374

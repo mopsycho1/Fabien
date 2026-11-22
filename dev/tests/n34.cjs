@@ -68,7 +68,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.activeUnit = gaha; gaha.hasMoved = false; gaha.stepsUsed = 0;
   const realEnd = b.endTurn; let started = null; const realStart = b.startTurn; b.startTurn = () => {};
   b.endTurn();
-  check('6.17 Gaha stands his ground: ROOTED and his rooted guard', S.isRooted(gaha) && /gaha_rooted_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
+  // 1.91 (22 Nov): rooted he keeps his Stone look (the concentrated Earth's Bulwark loop plays on him), no old painted picture
+  check('6.17 Gaha stands his ground: ROOTED, in his Stone look', S.isRooted(gaha) && /gaha_n6_stoneGuard_/.test(gaha.sprite.texture.key), gaha.sprite.texture.key);
   b.startTurn = realStart;
   // his next turn: the guard comes down
   b.activeUnit = gaha; S.clearRooted && null;
@@ -77,7 +78,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.time.timeScale = 1;
   const before = gaha.sprite.texture.key;
   w.__status.clearRooted(gaha); b.showStanding(gaha);
-  check('6.17 out of the guard once he is no longer rooted', !/gaha_rooted_/.test(gaha.sprite.texture.key) && /gaha_rooted_/.test(before), before + ' -> ' + gaha.sprite.texture.key);
+  check('6.17 no longer rooted, still his Stone look', !S.isRooted(gaha) && /gaha_n6_stoneGuard_/.test(gaha.sprite.texture.key), before + ' -> ' + gaha.sprite.texture.key);
 
   // ---------- 6.11 the Sigil Dissolve ----------
   reset([[gaha, 3, 4], [bull, 4, 4]]);

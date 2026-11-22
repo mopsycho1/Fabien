@@ -14,7 +14,7 @@ import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMo
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
 import { TURN_COST } from './turnOrder.js';
 import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
-import { sfxHas, sfxAt, sfxLoop, crownOver } from './spellArt.js';
+import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome } from './spellArt.js';
 import { play } from './audio.js';
 import { floorLight, lightNearby } from './fxLayers.js';
 import { screenShake } from './effects.js';
@@ -256,7 +256,7 @@ export const kingMethods = {
       applyDisoriented(loser, this.activeUnit === loser);
     }
     if (fall) {
-      this.soakFall(loser, fall); // the Bulwark Shield takes Singularity's slam too (10.46)
+      this.soakFall(loser, fall); // Aegis takes Singularity's slam too (10.46)
       loser.hp = Math.max(0, loser.hp - fall.damage - (fall.slam || 0));
       if (loser.hp === 0) this.defeat(loser);
       else {
@@ -562,7 +562,7 @@ export const kingMethods = {
     this.kingFinish(onDone, 1500);
   },
 
-  // ---------- Alagara: the Bulwark Shield (10.46, Suleiman 21 Nov) ----------
+  // ---------- Alagara: Aegis (10.46, Suleiman 21 Nov) ----------
   // Under Earth's Bulwark (Stone Active, or in the Echo at 75 percent) he raises a shield on himself and every ally
   // within 2 tiles: it soaks damage up to 20 percent of each one's own max health, for 2 of their turns. It is the
   // answer to an area attack like Gadara's Singularity: the pull's slam and its sure blow both land on the shield
@@ -612,6 +612,9 @@ export const kingMethods = {
       return;
     }
     if (unit.shieldDome && unit.shieldDome.active) return;
+    // Suleiman's Aegis GIF when it is loaded (1.98); the drawn dome below otherwise
+    const gif = aegisDome(this, unit);
+    if (gif) { unit.shieldDome = gif; return; }
     const h = (unit.topY || 60) + 10, w = Math.max(30, h * 0.62);
     const g = this.add.graphics();
     const gold = 0xe8c87a;
@@ -843,7 +846,7 @@ export const kingMethods = {
       const want = charging ? 'stone' : near.length ? 'fury' : 'swiftness';
       if (echo === want && active !== want) this.useFreeKingAction(unit, 'verseSwap');
     }
-    // Bulwark Shield (10.46): always when a foe charges Singularity and someone of his is in its reach; otherwise
+    // Aegis (10.46): always when a foe charges Singularity and someone of his is in its reach; otherwise
     // when he and an ally would both get it with a foe within 3 tiles of him
     if (this.aiReady(unit, 'bulwarkShield')) {
       const mine = this.shieldAllies(unit).filter((u) => !u.shield);

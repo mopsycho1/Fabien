@@ -34,10 +34,14 @@ OUT = os.path.join(ROOT, 'public', 'art') + '/'
 ART = os.path.join(ROOT, 'src', 'data', 'art.json')
 # figure 1 to 4 (top left, top right, bottom left, bottom right) -> the game's facing
 VIEWS = {
-    'sudeen_n_slash': {1: 'upRight', 2: 'upLeft', 3: 'downRight', 4: 'downLeft'},   # plates NE, NW, SE, SW (the way he faces)
+    # 22 Nov (1.95): the slash sheet's compass plates are mirrored (the figure on the "Northeast" plate lunges to the screen's
+    # up-left), so the figures are read by the way the lunge and the blade point, never by the plates
+    'sudeen_n_slash': {1: 'upLeft', 2: 'upRight', 3: 'downLeft', 4: 'downRight'},
     'sudeen_n_herb':  {1: 'upRight', 2: 'upLeft', 3: 'downRight', 4: 'downLeft'},   # plates NE, NW, SE, SW
     'sudeen_n_battle': {1: 'downRight', 2: 'downLeft', 3: 'upLeft', 4: 'upRight'},   # no plates: top row his face, bottom row his back (looked at)
-    'sudeen_n_bash':  {1: 'upRight', 2: 'upLeft', 3: 'downRight', 4: 'downLeft'},    # no plates: the bottom row shows his face; each back is the 180 degree partner of the front (shield side flips)
+    # 22 Nov (1.95): figure 1 shows his FACE (a second down-right drawing), it was cut as up-right; only figure 2 is a back view,
+    # so the game mirrors it for up-right
+    'sudeen_n_bash':  {2: 'upLeft', 3: 'downRight', 4: 'downLeft'},
 }
 BASE = 0.5
 # picture pixels per sheet pixel, per sheet: his sheets are drawn at different sizes (the ruler measured the heads first, then the sheets were cut at that size so the ruler scale is about 1)

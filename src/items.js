@@ -8,7 +8,7 @@ export const ITEMS = data.items;
 
 // A fresh bag for a unit: its own "bag" in units.json, else its class's start.
 export function startBag(entry) {
-  return { ...(entry.bag || data.start[entry.job] || {}) };
+  return { ...(entry.bag || data.start[entry.job] || data.start.default || {}) }; // a class with no start of its own gets the default bag (22 Nov)
 }
 
 // The item ids a unit holds (count above 0), in items.json order.

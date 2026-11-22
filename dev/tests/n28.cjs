@@ -30,7 +30,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); layra.facing = 'downLeft'; b.showStanding(layra);
   check('Layra facing down-left: her level-gaze pose, mirrored', /layra_n_stand_downLeft/.test(key(layra)) && !layra.sprite.flipX, key(layra));
   turnOf(layra); b.onSpellButton(); b.chooseSpell('meditate'); b.chooseSpell('meditate'); await sleep(1200); await idle();
-  check('Meditate shows her kneeling pose', /layra_n_chant_/.test(key(layra)), key(layra));
+  check('Meditate shows her seated meditation (1.88)', /layra_iso_meditate_/.test(key(layra)), key(layra));
   layra.meditating = null;
 
   // Husk: hidden, she glows see-through gold (the look from his cave screenshot)

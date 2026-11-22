@@ -100,6 +100,11 @@ FILES = {
     # the fiery one for the enchanted charge.
     'sfx_horn_dust': ('Bull commander updated sheets/Bull commander updated sheets/Impact effects for normal charge and enchanted charge/Dust Charge Impact Animation.gif', 'keep', 0.5, 0.75),
     'sfx_horn_fire': ('Bull commander updated sheets/Bull commander updated sheets/Impact effects for normal charge and enchanted charge/Fiery Sweeping Impact Frames.gif', 'keep', 0.5, 0.75),
+    # 22 Nov (6.90, 6.91): folder INBOX/2026-11-22/email, ONLY=sfx_aegis,sfx_rift,sfx_arcane_charge,sfx_orb_burst
+    'sfx_aegis': ('Alagara update/Alagara update/Effects/Aegis.gif', 'keep', 0.506, 0.83),                 # Aegis's golden dome rising (1.98); frames 0 to 5 rise, 6 to 8 hold
+    'sfx_rift': ('Alagara update/Alagara update/Effects/Nine-Frame Prismatic Energy Slash Animation.gif', 'keep', 0.5, 0.5),   # Radiant Rift's slash (10.52)
+    'sfx_arcane_charge': ('Alagara update/Alagara update/Effects/Magical Arcane Charging Spiral.gif', 'keep', 0.502, 0.92),       # Radiant Rift's charge; tinted, Layra's channel (1.97)
+    'sfx_orb_burst': ('Dark Magic Orb Explosion Animation/Dark Magic Orb Explosion Animation.gif', 'keep', 0.5, 0.92),         # Gadara's orb bursting (6.91)
 }
 
 # GIFs whose ground is a flat dark colour, not pure black: that colour is taken off first (6.88: the empower GIF is 12, 9, 6)

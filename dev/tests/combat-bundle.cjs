@@ -1001,7 +1001,6 @@ var spells_default = {
     button: "Rending Draw",
     short: "REND",
     kind: "rending",
-    verseSkill: "fury",
     color: "#ff7a4a",
     range: 1,
     damageShare: 1,
@@ -1010,11 +1009,12 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    text: "Fury. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). From the Echo: 75 percent, one more turn of cooldown. Ready again after 3 turns."
+    note: '1.99 (Suleiman 22 Nov 02:09: "Rend should become a fully active skill for Alagara in all his forms"): no longer tied to Fury (it was full strength under an Active Fury and 75 percent from the Echo); full strength in every form and with no Verse.',
+    text: "In any form. A Drawn Blade that ignores 2 of the foe's defense and throws it 2 tiles back (into a wall or a unit: a slam). Ready again after 3 turns."
   },
   bulwarkShield: {
-    name: "Bulwark Shield",
-    button: "Bulwark Shield",
+    name: "Aegis",
+    button: "Aegis",
     short: "SHIELD",
     kind: "shield",
     verseSkill: "stone",
@@ -1266,7 +1266,7 @@ var kings_default = {
     activeBonus: 1.5,
     echoPower: 0.75,
     echoCooldownExtra: 1,
-    verseSkills: { fury: "rendingDraw", stone: ["unmoved", "bulwarkShield"] },
+    verseSkills: { stone: ["unmoved", "bulwarkShield"] },
     verseSkillsNote: "Gale Cut is his own skill in every form since 20 Nov (Suleiman, 10.34); it was the Swiftness Verse skill.",
     surge: {
       swiftness: { steps: 1, text: "Surge: a free step" },

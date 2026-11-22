@@ -1047,7 +1047,13 @@ export function crownOver(scene, unit) {
   const f = SFX_FIT('mantle');
   const wide = bodyHeight(unit) * 0.5;   // about a head and a half across
   const scale = f ? wide / f.w : 0.25;
-  const img = scene.add.sprite(0, -unit.topY - 4, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setBlendMode(Phaser.BlendModes.ADD);
+  // 1.94 (22 Nov: the crown sat on the plate over the head): its drawn bottom rests just above the head, and the plate and
+  // icon row over the head are lifted clear of its top while it is on (unit.crownLift, BattleScene.refreshStatusTags)
+  const H = f ? f.H : 118, oy = info.originY * H;
+  const y = -bodyHeight(unit) - 2 - ((f ? f.by : 100) - oy) * scale;
+  const top = y - (oy - ((f ? f.my - f.h / 2 : 18))) * scale;
+  unit.crownLift = Math.max(0, Math.round(-unit.topY + 12 - top));
+  const img = scene.add.sprite(0, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setBlendMode(Phaser.BlendModes.ADD);
   unit.view.add(img);
   const anim = 'sfxloop-crown-hover';
   if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: CROWN_HOVER.map((i) => ({ key: 'fx:' + keys[i] })), frameRate: 1000 / info.frameMs, repeat: -1, yoyo: true });
@@ -1055,6 +1061,22 @@ export function crownOver(scene, unit) {
   scene.time.delayedCall(CROWN_HOVER[0] * info.frameMs, () => img.active && img.play(anim));
   // a slow bob, so it floats
   scene.tweens.add({ targets: img, y: img.y - 3, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  return img;
+}
+
+// Aegis's dome (1.98, 22 Nov "Aegis.gif"): a golden dome rises round the fighter (frames 0 to 5), then holds (6 to 8, looped)
+// while the shield lasts. Lives in the unit's container; the caller destroys it when the shield ends. Returns the sprite or null.
+const AEGIS_HOLD = [6, 7, 8];
+export function aegisDome(scene, unit) {
+  if (!sfxHas(scene, 'aegis') || !unit.view) return null;
+  const info = SFX.aegis, keys = sfxKeys('aegis'), f = SFX_FIT('aegis');
+  const scale = f ? (bodyHeight(unit) * 1.15) / f.w : 0.4;   // a little wider than he is tall: it covers him
+  const img = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.9);
+  unit.view.add(img);
+  const anim = 'sfxloop-aegis-hold';
+  if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: AEGIS_HOLD.map((i) => ({ key: 'fx:' + keys[i] })), frameRate: 1000 / info.frameMs, repeat: -1, yoyo: true });
+  keys.slice(0, AEGIS_HOLD[0]).forEach((k, i) => scene.time.delayedCall(i * info.frameMs, () => img.active && img.setTexture('fx:' + k)));
+  scene.time.delayedCall(AEGIS_HOLD[0] * info.frameMs, () => img.active && img.play(anim));
   return img;
 }
 

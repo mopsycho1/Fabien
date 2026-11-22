@@ -51,7 +51,7 @@ for (const [id, entry] of Object.entries(art)) {
     if (k > 1.10 && !why && !skip) tall.push(id + ' ' + p.file + ' ' + k.toFixed(2));
   }
 }
-check('no picture is drawn more than 10 percent taller than standing (' + pics + ' pictures)', tall.length === 0, tall.slice(0, 4).join(' | '));
+check('no picture is drawn more than 10 percent taller than standing (' + pics + ' pictures)', tall.length === 0, tall.slice(0, 40).join(' | '));
 check('every "tall" family in pose_sizes.json says why', Object.values(sizes.tall).every((fams) => Object.values(fams).every((why) => typeof why === 'string' && why.length > 10)));
 
 // ---------- C: the cause of 1.85 ----------

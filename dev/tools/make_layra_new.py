@@ -198,6 +198,11 @@ def cut(sheet):
         mk.final_cut(cl, box, OUT + name, SIZE.get(sheet, BASE), keep=0.15)
         names.append(name)
     for n in names: wipe_floor(OUT + n)
+    # what the wiper leaves under her feet (shadow, tile edges, outline) goes too (1.86); not on the lying-down sheets
+    if sheet not in ('layra_n_fallen', 'layra_n_down', 'layra_n_dodge'):
+        import feet_clean
+        for n in names:
+            a = np.array(Image.open(OUT + n).convert('RGBA')); Image.fromarray(feet_clean.clean(a)[0]).save(OUT + n, optimize=True)
     for i, plate in enumerate(ORDER[sheet]):
         name = names[i]
         out[facing(sheet, plate)] = {'file': name, 'originX': mk.feet_x(OUT + name)}
