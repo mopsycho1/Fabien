@@ -575,3 +575,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Clash signatures are in src/data/engagement.json under "signatures": Sudeen's Bulwark now has "winHitBase" (a Guard beat he wins hits for that plus his level), Rabdul's "switchEnds" has "winHit".
 - Pinned (the archer's Pinning Shot) is in src/data/conditions.json ("pinned", how many of its turns).
 - The short lines on the skill panel for the new skills are in src/data/skillPanel.json.
+
+## Balance pass: battle length, Rabdul, the kings (22 Nov, roadmap 10.31, 18.32, 18.53, 18.54)
+- Battle length has two dials in src/data/engagement.json. "healthScale" (0.75): every fighter's health in battle is the health written in units.json or jobs.json times this, rounded (Sudeen 48 shows 36). Suleiman's numbers stay as he wrote them. "weaponDamageBonus" (2): every weapon hit does this much more after defense. Set either back (1 and 0) to get the old rule.
+- Par for a fast win is in src/data/ending.json ("par", "swiftUnder"): 75 turns for 4 against 4 on the cavern, Swift at 15 under.
+- Rabdul's "stay with the line" rule is code (src/enemyAi.js, keepWithLine), not a number.
+- The two kings' numbers are in src/data/jobs.json: "sovereign" (Gadara) and "vessel" (Alagara), under "stats".
+- To measure balance: `bash dev/tests/bot_many.sh 4 3` (12 bot battles) prints wins, rounds, who fell first and what turns were spent on.
