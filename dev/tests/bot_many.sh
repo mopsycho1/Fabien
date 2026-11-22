@@ -9,18 +9,22 @@ wait
 cat "$OUT"/*.txt > last_bot.txt
 python3 - "$OUT" << 'PY'
 import sys,glob,re,json
-wins=losses=0; turns=[]; tall={}; bad=[]
+wins=losses=0; turns=[]; tall={}; bad=[]; dmg={}
 for f in glob.glob(sys.argv[1]+'/*.txt'):
     for line in open(f):
         m=re.match(r'battle \d+: (\w+) after (\d+) turns',line)
         if m:
             wins+=m.group(1)=='Victory'; losses+=m.group(1)=='Defeat'; turns.append(int(m.group(2)))
+            d=re.search(r'damage dealt (\{.*?\})',line)
+            if d:
+                for k,v in json.loads(d.group(1)).items(): dmg.setdefault(k,[]).append(v)
         elif line.startswith('{'):
             for k,v in json.loads(line).items(): tall[k]=tall.get(k,0)+v
         elif re.match(r'STUCK|OFF TILE|NO BUTTONS|CRASH|errors: (?!none)',line): bad.append(line.strip()[:200])
 turns.sort()
 print('heroes won %d of %d'%(wins,wins+losses), '| turns median %s (%s to %s)'%(turns[len(turns)//2],turns[0],turns[-1]) if turns else '')
 print(json.dumps(tall))
+print('average damage per battle:', ', '.join('%s %.1f'%(k,sum(v)/max(1,wins+losses)) for k,v in sorted(dmg.items())))
 for b in bad[:8]: print('PROBLEM', b)
 PY
 rm -rf "$OUT"

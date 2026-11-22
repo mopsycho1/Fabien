@@ -14,11 +14,15 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const brain = require('./bot_brain.cjs')(w, tally);
   for (let n = 1; n <= N; n++) {
     b.setSpeed('base', 8);
+    if (process.env.NO_WARD) for (const u of b.units) u.wardOff = true; // measuring others' damage: Sudeen's Ward off (19.3)
     if (process.env.NO_ENCHANT) for (const u of b.units) u.spells = u.spells.filter((s) => s !== 'enchant'); // balance runs: Enchant off
     const dmg = {}; const acts = {};
     const origAtk = b.performAttack.bind(b);
     b.performAttack = (a, t, d) => { const before = t.hp; const r = origAtk(a, t, d); dmg[a.label] = (dmg[a.label] || 0) + (before - t.hp); acts[a.label] = (acts[a.label] || 0) + 1; return r; };
     b.__dmg = dmg; b.__acts = acts;
+    // poison ticks (shown as 'Poison -N' over the poisoned unit) are counted per side that took them, so the
+    // archer's real damage can be read (Batch 7): "poison on heroes" is hers in the default teams
+    if (!b.__poisonWatch) { b.__poisonWatch = true; const ft = b.floatText.bind(b); b.floatText = (u, text, ...rest) => { const m = /^Poison -(\d+)/.exec(text || ''); if (m && u && b.__dmg) { const k = 'poison on ' + (u.side === 'hero' ? 'heroes' : 'enemies'); b.__dmg[k] = (b.__dmg[k] || 0) + Number(m[1]); } return ft(u, text, ...rest); }; }
     // a short trail of what last moved bodies about, printed with any OFF TILE line
     b.__trail = [];
     // every skill and item each fighter uses, counted per battle (checklist G3: the enemies use every
@@ -34,6 +38,8 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
       };
     }
     for (const fn of ['knockBack', 'knockback', 'sidestep', 'playDefeat', 'moveUnit', 'castSpell', 'performEngage']) { if (typeof b[fn] !== 'function' || b['__trailed_' + fn]) continue; b['__trailed_' + fn] = true; /* wrap once: the scene lives on across battles */ const orig = b[fn].bind(b); b[fn] = (...args) => { const x = args[0]; b.__trail.push(fn + '(' + (x && x.label ? x.label : typeof x === 'string' ? x : '') + (args[1] && args[1].label ? ',' + args[1].label : '') + ')@' + Math.round(b.time.now)); return orig(...args); }; }
+    // 10.51: a turn that throws half-way leaves the next fighter with no menu; print the error and where it came from
+    if (!b.__turnCatch) { b.__turnCatch = true; for (const fn of ['startTurn', 'endTurn']) { const o = b[fn].bind(b); b[fn] = (...a) => { const st = (new Error().stack || '').split('\n').slice(2, 5).map((l) => l.trim().replace(/^at /, '').replace(/ \(.*$/, '')).join('<'); b.__trail && b.__trail.push(fn + '[t' + b.turnCount + ' ' + (b.activeUnit && b.activeUnit.label) + ' busy ' + b.busy + ' from ' + st + ']@' + Math.round(b.time.now)); try { return o(...a); } catch (e) { tally.turnCrash = (tally.turnCrash || 0) + 1; console.log('TURN CRASH in ' + fn + ':', (e && e.stack || String(e)).split('\n').slice(0, 6).join(' | ')); throw e; } }; } }
     // 13.55: every frame, a hero's calm turn must have at least one live button. Notes who the buttons were last drawn
     // for (and from where), so a stale menu can be traced. Printed as NO BUTTONS (frame).
     if (!b.__btnWatch) {
@@ -90,18 +96,23 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         }
         lastSig = sig; lastChange = Date.now();
       }
-      if (Date.now() - lastChange > 7000) { stuck = true; console.log('STUCK', u.label, 'busy', b.busy, 'mode', b.mode, 'cine', b.inCinematic); break; }
+      if (Date.now() - lastChange > 7000) { stuck = true; console.log('STUCK', u.label, 'busy', b.busy, 'mode', b.mode, 'cine', b.inCinematic, 'acted', u.hasActed, 'steps', b.stepsLeft(u), 'pinned', St.isPinned(u), 'endWait', b.endTurnWaiting, 'knock', Math.round((b.knockUntil || 0) - b.time.now), 'zone', !!u.zone, 'reach', b.reachableKeys && b.reachableKeys.size, '| last:', (b.__trail || []).slice(-10).join(' > ')); break; }
       if (u.side === 'hero' && !b.busy && !b.inCinematic) {
         // every figure must be standing on the middle of its tile (roadmap 13.47): checked twice,
         // a moment apart, so a body still settling is not counted
         const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
-        if (off().length) { await sleep(700); for (const o of off()) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); console.log('  moves of ' + o.x.label + ': ' + (o.x.__moves || []).join(' | ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
+        // 10.51: each check below waits a moment and looks again; the turn may have passed meanwhile (a fighter walking or
+        // being pushed in the NEXT turn is not off its tile, and the next fighter's menu is not this one's), so each
+        // second look happens only if it is still this hero's calm turn
+        const same = () => b.activeUnit === u && !b.busy && !b.inCinematic && !b.battleOver && !b.endTurnWaiting;
+        if (off().length) { await sleep(700); for (const o of (same() ? off() : [])) { tally.offTile = (tally.offTile || 0) + 1; console.log('OFF TILE', o.x.label, 'by', o.d.toFixed(1), 'px at', o.x.col + ',' + o.x.row, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); console.log('  moves of ' + o.x.label + ': ' + (o.x.__moves || []).join(' | ')); const p = w.__grid.tileToScreen(o.x.col, o.x.row); o.x.view.setPosition(p.x, p.y); } }
         // every figure must be drawn at its picture's size (roadmap 1.54): the sideways scale of the sprite is what the
         // unit says it is. A figure that is bigger or smaller than that has lost track of its picture's scale.
         const sizeOff = () => b.units.filter((x) => x.alive && x.sprite && x.sprite.active && !x.knock && !x.squash && !b.inCinematic).map((x) => ({ x, r: x.sprite.scaleX / x.artScale })).filter((o) => Math.abs(o.r - 1) > 0.04);
-        if (sizeOff().length) { await sleep(500); for (const o of sizeOff()) { tally.sizeOff = (tally.sizeOff || 0) + 1; console.log('SIZE OFF', o.x.label, 'x' + o.r.toFixed(2), 'showing', o.x.sprite.texture.key, 'frameScale', o.x.frameScale, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); } }
+        if (sizeOff().length) { await sleep(500); for (const o of (same() ? sizeOff() : [])) { tally.sizeOff = (tally.sizeOff || 0) + 1; console.log('SIZE OFF', o.x.label, 'x' + o.r.toFixed(2), 'showing', o.x.sprite.texture.key, 'frameScale', o.x.frameScale, 'turn', b.turnCount, '| last:', (b.__trail || []).slice(-6).join(' > ')); } }
         // a hero's turn with every button greyed out is a stuck screen for a real player
-        if ([...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; const at = { mode: b.mode, spell: b.selectedSpell, item: b.selectedItem, last: b.__lastSet }; await new Promise((r) => setTimeout(r, 50)); const liveNext = [...b.slots, ...b.halves, ...b.lowHalves].some((sl) => sl.enabled); console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed, JSON.stringify(at), 'live a frame later:', liveNext, 'menu visible', b.menu && b.menu.visible); }
+        if (same() && [...b.slots, ...b.halves, ...b.lowHalves].every((sl) => !sl.enabled)) /* End turn sits in the low half row */ { tally.noButtons = (tally.noButtons || 0) + 1; const at = { mode: b.mode, spell: b.selectedSpell, item: b.selectedItem, last: b.__lastSet }; await new Promise((r) => setTimeout(r, 50)); const liveNext = [...b.slots, ...b.halves, ...b.lowHalves].some((sl) => sl.enabled); console.log('NO BUTTONS on', u.label, 'engaged', !!u.engagedWith, 'acted', u.hasActed, JSON.stringify(at), 'live a frame later:', liveNext, 'menu visible', b.menu && b.menu.visible, 'turn', b.turnCount, 'channel', !!u.channel, 'stunned', !!(u.status && u.status.stun), '| last:', (b.__trail || []).slice(-12).join(' > ')); }
+        if (!same()) { await sleep(10); continue; } // (10.51: the turn passed while a check waited: start again with whoever acts now; the sleep lets the game run)
         const foes = alive('enemy');
         if (u.engagedWith) {
           const foe = u.engagedWith;

@@ -42,6 +42,9 @@ settings_for() {
     n95) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 FABIEN_SIDES={"e5":"hero"}' ;; # Gadara on the heroes' side (10.38); no quotes round the JSON: the word splitting would keep them
     n98) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_SIDES={"h4":"enemy"}' ;; # Kofi on the enemy side (1.78)
     n62) echo "FABIEN_MAP=cavern" ;; # the map's own line-up: 4 against 4
+    n106) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_SIDES={"e3":"hero"}' ;; # the archer's kit, on the heroes' side (Batch 7)
+    n107) echo 'FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1 FABIEN_SIDES={"e5":"hero","h5":"enemy"}' ;; # Gadara's menu as a player (10.51)
+    n108|n109|n110) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;; # Sudeen, Rabdul, the Bull (Batch 7)
   esac
 }
 
