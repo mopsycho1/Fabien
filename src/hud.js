@@ -33,7 +33,7 @@ export function preloadUiArt(scene) {
   // his action emblems (roadmap 6.53, cut by dev/tools/make_ui_emblems.py without their words)
   for (const f of UI_EMBLEMS) scene.load.image('ui:emblem_' + f, artUrl('./art/ui/emblem_' + f + '.png'));
 }
-export const UI_EMBLEMS = ['meditate', 'husk', 'hexes', 'blessings', 'skills', 'digup', 'summon', 'haunt', 'infuse', 'press', 'empower'];
+export const UI_EMBLEMS = ['meditate', 'husk', 'hexes', 'blessings', 'skills', 'digup', 'summon', 'haunt', 'infuse', 'press', 'empower', 'ward', 'ward_off']; // (ward: Sudeen's Ward, his Golden Shield Triad, 6.93)
 
 // True once his frames are loaded (so the battle screen can use them).
 export function hasUiArt(scene) {

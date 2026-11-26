@@ -691,7 +691,7 @@ export function statusTags(unit) {
   if (unit.charge) tags.push({ text: 'CHARGE ' + unit.charge, color: '#ffd27a', icon: 'charge', count: unit.charge });
   if (unit.riposte) tags.push({ text: 'RIPOSTE ' + unit.riposte, color: '#9fd4ff', icon: 'bloodied', count: unit.riposte }); // Gaha's stacks (no icon of its own yet)
   if (unit.shield && unit.shield.hp > 0) tags.push({ text: 'SHIELD ' + unit.shield.hp, color: '#e8c87a', icon: 'bulwark', count: unit.shield.hp }); // Alagara's Aegis (10.46)
-  if (unit.passives && unit.passives.ward && unit.alive && (wardActive(unit) || unit.wardOff)) tags.push(unit.wardOff ? { text: 'WARD OFF', color: '#8a8f99' } : { text: 'WARD', color: '#9fd4ff' }); // Sudeen's Ward (19.3)
+  if (unit.passives && unit.passives.ward && unit.alive && (wardActive(unit) || unit.wardOff)) tags.push(unit.wardOff ? { text: 'WARD OFF', color: '#8a8f99', icon: 'ward_off' } : { text: 'WARD', color: '#e8c87a', icon: 'ward' }); // Sudeen's Ward (19.3; his Golden Shield Triad icon, 6.93)
   if (unit.zone && unit.zone.charges > 0) tags.push(unit.zone.mode === 'spear' ? { text: 'SPEAR WARD ' + unit.zone.charges, color: '#9fc4e8', count: unit.zone.charges } : { text: 'HOLD THE LINE', color: '#d9b77a' }); // Rabdul's stances (19.4)
   if (unit.bulwark) tags.push({ text: 'BULWARK ' + unit.bulwark, color: '#d9b77a', icon: 'bulwark', count: unit.bulwark });
   if (unit.hidden) tags.push({ text: 'HIDDEN', color: '#8fd18a', icon: 'hidden' }); // Husk: enemies chase the decoy

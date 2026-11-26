@@ -3159,8 +3159,8 @@ export default class BattleScene extends Phaser.Scene {
         selected: this.selectedSpell === id,
         accent: Phaser.Display.Color.HexStringToColor(spell.color).color,
         tip: spellTip(id), // long press: what the skill does (13.49)
-        emblem: emblemFor(id), // his emblem, on a ring in the skill's colour (UI rework 16 Nov)
-        el: skillElement(id), // a small icon by element in the HTML list (20 Nov polish)
+        emblem: spell.kind === 'wardSwitch' ? (unit.wardOff ? 'ward_off' : 'ward') : emblemFor(id), // his emblem, on a ring in the skill's colour (UI rework 16 Nov); Sudeen's Ward shows his shield, lit or dark (6.93)
+        el: spell.kind === 'wardSwitch' ? null : skillElement(id), // a small icon by element in the HTML list (20 Nov polish); Sudeen's Ward shows his painted shield instead (6.93)
         ring: Phaser.Display.Color.HexStringToColor(spell.color).color,
       };
     };

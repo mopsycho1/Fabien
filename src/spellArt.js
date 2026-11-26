@@ -67,7 +67,7 @@ const PAINTED = (key) => /^(sj_|swift_swirl|swift_trail|death_|fury_cast|fury_gr
 // Earth's Bulwark cards. Enchanted waits for Rabdul's Enchant (roadmap 4.1).
 const ICONS = ['drenched', 'slow', 'poison', 'stunned', 'offbalance', 'exposed', 'hidden', 'echo', 'meditating',
   'aiming', 'marked', 'burn', 'disoriented', 'enchanted', 'bloodied', 'charge', 'bulwark',
-  'swiftness', 'fury', 'stone', 'blinded'];
+  'swiftness', 'fury', 'stone', 'blinded', 'ward', 'ward_off']; // (ward: Sudeen's Ward, 6.93)
 
 // His status cards (public/art/cards, roadmap 6.9): a small one pops up on the
 // character when the status lands, then shrinks into its icon.

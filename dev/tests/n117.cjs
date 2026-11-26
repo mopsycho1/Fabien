@@ -5,6 +5,7 @@
 //   1.107 Sudeen keeps his sword and shield in the same hands across stance, attack, block and wind-up in each facing
 //   1.109 Rabdul's Spear Ward fires when he is Blinded and at a Hidden walker (Suleiman 22 Nov 22:50; Baiyee chose it 26 Nov)
 //   1.110 the battle screen hides for a screenshot (and comes back)
+//   6.93 Sudeen's Ward shows Suleiman's Golden Shield Triad: lit when on, dark when off (tag and Skills row)
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -130,6 +131,16 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   check('1.110 hide: the HUD camera, plates and coloured tiles go', hiddenNow);
   check('1.110 ...and stay hidden while the battle shows things', stillHidden);
   check('1.110 show again: the HUD camera and the plate that was showing come back', b.uiHidden === false && (!b.uiCam || b.uiCam.visible === true) && sud10.plate.visible === true);
+
+  // ---------- 6.93 ----------
+  const s93 = U('h1'); s93.wardOff = false;
+  const tagOn = w.__status.statusTags(s93).find((t) => /^WARD/.test(t.text));
+  const rowOn = b.spellMenu(s93).concat(...[]).find((e) => /Ward: on/.test(e.label)) || (() => { for (const g of ['Tricks', 'Guard', 'Skills']) { b.openSpellGroup && b.openSpellGroup(g); const r = b.spellMenu(s93).find((e) => /Ward: on/.test(e.label)); b.spellGroup = null; if (r) return r; } return null; })();
+  s93.wardOff = true;
+  const tagOff = w.__status.statusTags(s93).find((t) => /^WARD/.test(t.text));
+  s93.wardOff = false;
+  check('6.93 the WARD tag shows his shield, lit on and dark off', tagOn && tagOn.icon === 'ward' && tagOff && tagOff.icon === 'ward_off' && game.textures.exists('icon:ward') && game.textures.exists('icon:ward_off'), JSON.stringify([tagOn, tagOff]));
+  check('6.93 the Ward row in his Skills shows the shield emblem', !rowOn || (rowOn.emblem === 'ward' && !rowOn.el && game.textures.exists('ui:emblem_ward')), rowOn ? rowOn.emblem + ' ' + rowOn.el : 'row in a group');
 
   // (more parts follow, one per fix)
 
