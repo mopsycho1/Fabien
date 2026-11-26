@@ -294,21 +294,28 @@ function startSynthMusic() {
 // Switching tracks fades one out and the other in.
 const TRACKS = {
   theme: { file: './music/theme.mp3', volume: 0.5 }, // title and story screens (his 4-minute track)
-  battle: { file: './music/battle.mp3', volume: 0.42 }, // battles, until his battle track arrives (his 3-minute track)
+  battle: { file: './music/battle.mp3', volume: 0.42 }, // battles (his 3-minute track)
+  battle2: { file: './music/battle2.mp3', volume: 0.42 }, // his second battle track (16 Nov "New battle music", 1 minute; A.3)
 };
+// A.3 (Suleiman 16 Nov 17:32 and 22 Nov 17:46: "let's have the soundtracks on rotation, the battle one's starting to get to me"):
+// the battle tracks take turns. Each plays once through (it does not loop) and crossfades into the next CROSSFADE seconds before
+// its end; each new battle starts on the next one. Add a track here (and to TRACKS) to put it in the rotation.
+const ROTATION = ['battle', 'battle2'];
+const CROSSFADE = 3;
+let rotationAt = 0; // which battle track plays next
 const players = {}; // name -> { el, gain, failed }
 let current = null; // the name of the track playing now
 
 function player(name) {
   if (players[name]) return players[name];
   const el = new Audio(TRACKS[name].file);
-  el.loop = true;
+  el.loop = !ROTATION.includes(name); // (battle tracks take turns, A.3; the theme loops)
   el.preload = 'auto';
   el.crossOrigin = 'anonymous';
   const p = { el, gain: null, failed: false };
   el.addEventListener('error', () => {
     p.failed = true;
-    if (current === name && name === 'battle') startSynthMusic(); // no file: the old drums instead
+    if (current === name && ROTATION.includes(name)) startSynthMusic(); // no file: the old drums instead
   });
   try {
     p.gain = ctx.createGain();
@@ -318,8 +325,20 @@ function player(name) {
     p.gain = null; // this browser can't route it: the element plays on its own volume
     el.volume = 0;
   }
+  // A.3: near its end a battle track hands over to the next one in the rotation (a crossfade, not a gap)
+  if (ROTATION.includes(name)) {
+    const next = () => { if (current === name && ROTATION.includes(current)) playTrack(nextBattleTrack(), true); };
+    el.addEventListener('timeupdate', () => { if (el.duration && el.duration - el.currentTime < CROSSFADE && !el.paused) next(); });
+    el.addEventListener('ended', next);
+  }
   players[name] = p;
   return p;
+}
+
+function nextBattleTrack() {
+  const name = ROTATION[rotationAt % ROTATION.length];
+  rotationAt += 1;
+  return name;
 }
 
 // Phones only let a page start sound inside a tap, so on the first tap every
@@ -347,30 +366,32 @@ function fadeTo(p, target, seconds) {
 
 // Plays one of his tracks ('theme' or 'battle'). If it is already playing,
 // nothing changes, so the music carries on from one story screen to the next.
-export function playTrack(name) {
+export function playTrack(name, crossfade = false) {
   if (!ready() || !TRACKS[name]) return;
-  if (current === name && !players[name].el.paused) return;
+  if (current === name && !players[name].el.paused && !crossfade) return;
+  if (current === name && crossfade) return; // (a rotation of one track: it just plays on)
   stopSynthMusic();
   for (const [other, p] of Object.entries(players)) {
     if (other === name) continue;
-    fadeTo(p, 0, 0.8);
-    setTimeout(() => current !== other && p.el.pause(), 900);
+    fadeTo(p, 0, crossfade ? CROSSFADE : 0.8);
+    setTimeout(() => current !== other && p.el.pause(), (crossfade ? CROSSFADE : 0.8) * 1000 + 100);
   }
   current = name;
   const p = player(name);
   if (p.failed) {
-    if (name === 'battle') startSynthMusic();
+    if (ROTATION.includes(name)) startSynthMusic();
     return;
   }
-  if (name === 'battle') p.el.currentTime = 0; // every battle starts its music from the top
+  if (ROTATION.includes(name)) p.el.currentTime = 0; // a battle track always starts from the top
   const go = p.el.play();
-  if (go && go.catch) go.catch(() => name === 'battle' && startSynthMusic());
-  fadeTo(p, TRACKS[name].volume, 0.8);
+  if (go && go.catch) go.catch(() => ROTATION.includes(name) && startSynthMusic());
+  fadeTo(p, TRACKS[name].volume, crossfade ? CROSSFADE : 0.8);
 }
 
 // Battle music: his battle track, or the drums made in code if it can't play.
 export function startBattleMusic() {
-  playTrack('battle');
+  if (current && ROTATION.includes(current) && players[current] && !players[current].el.paused) return; // (already playing: carry on)
+  playTrack(nextBattleTrack()); // each battle starts on the next track in the rotation (A.3)
 }
 
 // Fades out whatever music is playing (his tracks and the old drums).
@@ -396,9 +417,16 @@ function stopSynthMusic() {
   music = null;
 }
 
+// For the test scripts (A.3): jumps the track playing now to a few seconds before its end, to see the rotation hand over.
+export function musicSeekEnd(seconds = 4) {
+  const p = current && players[current];
+  if (p && p.el.duration) p.el.currentTime = Math.max(0, p.el.duration - seconds);
+  return current;
+}
+
 // For the test scripts: which track is playing and how far in it is.
 export function musicState() {
-  const out = { current };
-  for (const [name, p] of Object.entries(players)) out[name] = { time: Math.round(p.el.currentTime * 10) / 10, paused: p.el.paused, failed: p.failed };
+  const out = { current, rotation: ROTATION.slice(), next: ROTATION[rotationAt % ROTATION.length] };
+  for (const [name, p] of Object.entries(players)) out[name] = { time: Math.round(p.el.currentTime * 10) / 10, paused: p.el.paused, failed: p.failed, loop: p.el.loop };
   return out;
 }
