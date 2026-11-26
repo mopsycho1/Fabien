@@ -7031,97 +7031,94 @@
     },
     "note_props": "\"props\": pictures he puts on the board, not his body: the Barricade (19.1, cut by make_newclass.py from \"Isometric Wooden Spike Barricade Tile Set\"), two of its four views, one per direction of the wall.",
     "ruler": {
-      "leol_stand_3.png": {
-        "footX": 0.541
-      },
       "leol_stand_4.png": {
-        "footX": 0.453
+        "footX": 0.477
       },
       "leol_stand_1.png": {
-        "footX": 0.6
+        "footX": 0.615
       },
       "leol_stand_2.png": {
-        "footX": 0.476
+        "footX": 0.472
       },
       "leol_battle_3.png": {
         "scale": 0.85,
-        "footX": 0.569
+        "footX": 0.626
       },
       "leol_battle_4.png": {
         "scale": 0.85,
-        "footX": 0.292
+        "footX": 0.383
       },
       "leol_battle_1.png": {
         "scale": 0.85,
-        "footX": 0.565
+        "footX": 0.54
       },
       "leol_battle_2.png": {
         "scale": 0.85,
-        "footX": 0.387
+        "footX": 0.278
       },
       "leol_weak_3.png": {
         "scale": 0.87,
-        "footX": 0.347
+        "footX": 0.284
       },
       "leol_weak_4.png": {
         "scale": 0.87,
-        "footX": 0.405
+        "footX": 0.421
       },
       "leol_weak_1.png": {
         "scale": 0.87,
-        "footX": 0.325
+        "footX": 0.539
       },
       "leol_weak_2.png": {
         "scale": 0.87,
-        "footX": 0.535
+        "footX": 0.527
       },
       "leol_shot_3.png": {
         "scale": 0.9,
-        "footX": 0.612
+        "footX": 0.735
       },
       "leol_shot_4.png": {
         "scale": 0.9,
-        "footX": 0.328
+        "footX": 0.282
       },
       "leol_shot_1.png": {
         "scale": 0.9,
-        "footX": 0.641
+        "footX": 0.635
       },
       "leol_shot_2.png": {
         "scale": 0.9,
-        "footX": 0.356
+        "footX": 0.289
       },
       "leol_hguard_2.png": {
         "scale": 0.9,
-        "footX": 0.429
+        "footX": 0.369
       },
       "leol_hguard_3.png": {
         "scale": 0.9,
-        "footX": 0.622
+        "footX": 0.696
       },
       "leol_hguard_1.png": {
         "scale": 0.9,
-        "footX": 0.483
+        "footX": 0.324
       },
       "leol_hguard_4.png": {
         "scale": 0.9,
-        "footX": 0.587
+        "footX": 0.693
       },
       "leol_dodge_2.png": {
         "scale": 0.87,
-        "footX": 0.561
+        "footX": 0.553
       },
       "leol_dodge_3.png": {
         "scale": 0.87,
-        "footX": 0.527
+        "footX": 0.55
       },
       "leol_dodge_1.png": {
         "scale": 0.87,
-        "footX": 0.577
+        "footX": 0.42
       },
       "leol_dodge_4.png": {
         "scale": 0.87,
-        "footX": 0.242
+        "footX": 0.13
       },
       "leol_hstrike_2.png": {
         "footX": 0.599
@@ -7143,19 +7140,19 @@
       },
       "leol_hurt_3.png": {
         "scale": 0.95,
-        "footX": 0.307
+        "footX": 0.479
       },
       "leol_hurt_4.png": {
         "scale": 0.95,
-        "footX": 0.405
+        "footX": 0.406
       },
       "leol_hurt_1.png": {
         "scale": 0.95,
-        "footX": 0.631
+        "footX": 0.622
       },
       "leol_hurt_2.png": {
         "scale": 0.95,
-        "footX": 0.264
+        "footX": 0.279
       },
       "leol_down_1.png": {
         "scale": 0.87,
@@ -7163,19 +7160,19 @@
       },
       "leol_victory_3.png": {
         "scale": 0.95,
-        "footX": 0.573
+        "footX": 0.447
       },
       "leol_victory_4.png": {
         "scale": 0.95,
-        "footX": 0.656
+        "footX": 0.436
       },
       "leol_victory_1.png": {
         "scale": 0.95,
-        "footX": 0.552
+        "footX": 0.728
       },
       "leol_victory_2.png": {
         "scale": 0.95,
-        "footX": 0.568
+        "footX": 0.542
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
@@ -7432,10 +7429,10 @@
         "footX": 0.151
       },
       "thief_dodge_2.png": {
-        "footX": 0.56
+        "footX": 0.435
       },
       "thief_dodge_1.png": {
-        "footX": 0.101
+        "footX": 0.583
       },
       "thief_hurt_4.png": {
         "footX": 0.586

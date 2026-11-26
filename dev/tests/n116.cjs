@@ -29,6 +29,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // --- Leol ---
   park();
   check('Leol starts with the sling', leol.weapon === 'bow' && leol.closeWeapon && leol.closeWeapon.farName === 'Sling');
+  check('1.113 Barricade is out of his kit until Suleiman\'s sheet comes (its code stays tested below)', !leol.spells.includes('barricade') && leol.spells.includes('hammerStrike'), leol.spells.join(','));
   b.placeUnit(leol, 5, 5); b.placeUnit(gaha, 5, 8); gaha.side === leol.side && b.placeUnit(bull, 5, 8);
   const foeFar = bull; b.placeUnit(gaha, 10, 10); b.placeUnit(foeFar, 5, 8);
   // Concussive Shot breaks a prepared action

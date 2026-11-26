@@ -195,7 +195,7 @@ def slab_geometry(a):
     return xl, lt, xr, rt, xf, yft, yt, th
 
 
-def deslab(a, rim=0.05, bins=16, common=400, dark=0.45, hue=False, geom=None, colour=True):
+def deslab(a, rim=0.05, bins=16, common=400, dark=0.45, hue=False, geom=None, colour=True, raw=None, back=0.0, near=38):
     """Takes the whole slab out from under a figure (used for Leol and the Thief, 26 Nov):
     1. everything under the slab's top face (its side faces, the plate) goes;
     2. a rim band along the top face's four edges goes where it is thinner than a leg (the lit edges);
@@ -221,6 +221,25 @@ def deslab(a, rim=0.05, bins=16, common=400, dark=0.45, hue=False, geom=None, co
     k = max(4, int(half * 0.035))   # (a leg crossing the back edge is thicker; 0.07 cut knees through, 26 Nov)
     thick = ndimage.binary_dilation(ndimage.binary_opening(sol, structure=np.ones((k, k))), iterations=1)
     a[band & sol & ~thick, 3] = 0
+    # 2b. (1.113, 26 Nov: Leol's lit back edges stayed as pale bars by his feet) with raw (the untouched cell) and back > 0: in a band
+    # back * half wide along the back edges, pixels within "near" (RGB distance) of the edge's own colour go. The edge colour is
+    # sampled in the uncleaned cell right at the two side corners, where no figure stands.
+    if raw is not None and back > 0:
+        rr = raw[..., :3].astype(int); samp = []
+        for cx, cy in ((xl + 3, ylt), (xr - 3, yrt)):
+            y0, y1 = int(max(0, cy - 3)), int(min(h, cy + 3)); x0, x1 = int(max(0, cx - 3)), int(min(w, cx + 3))
+            blk = raw[y0:y1, x0:x1]; m = blk[..., 3] > 200
+            if m.any(): samp.append(blk[..., :3][m].reshape(-1, 3))
+        if samp:
+            ref = np.concatenate(samp).astype(int)
+            bk = Image.new('L', (w, h), 0); dr = ImageDraw.Draw(bk)
+            dr.line([tuple(map(float, p)) for p in (top[0], top[1], top[2])], fill=1, width=int(max(4, half * back)))
+            bk = np.array(bk).astype(bool) & (a[..., 3] > 0)
+            ys, xs = np.nonzero(bk)
+            px = rgb[ys, xs][:, None, :]
+            dmin = np.sqrt(((px - ref[None, :, :]) ** 2).sum(-1)).min(-1)
+            kill = dmin < near
+            a[ys[kill], xs[kill], 3] = 0
     # 3. the top face's own colours, sampled near its left, right and front corners
     inside = _poly_mask(h, w, top) & (a[..., 3] > 0)
     samp = np.zeros((h, w), bool); s = max(4, int(half * 0.12))

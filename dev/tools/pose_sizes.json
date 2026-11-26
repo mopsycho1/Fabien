@@ -700,57 +700,57 @@
       "leol_stand": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.993
+        "h": 0.989
       },
       "leol_battle": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.877
+        "h": 0.835
       },
       "leol_weak": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.916
+        "h": 0.838
       },
       "leol_shot": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.91
+        "h": 0.841
       },
       "leol_hguard": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.881
+        "h": 0.9
       },
       "leol_dodge": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.787
+        "h": 0.791
       },
       "leol_hstrike": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.812
+        "h": 0.83
       },
       "leol_hraise": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.943
+        "h": 0.964
       },
       "leol_hurt": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.937
+        "h": 0.905
       },
       "leol_down": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 0.666
+        "h": 0.681
       },
       "leol_victory": {
         "size": 1.0,
         "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-        "h": 1.091
+        "h": 0.936
       }
     },
     "e6": {
@@ -849,6 +849,9 @@
       "thief_battle": "a dagger arm raised; his body is standing size (by eye 26 Nov)",
       "thief_parry": "the dagger is raised to parry; his body is standing size (by eye 26 Nov)",
       "thief_hurt": "thrown back upright by the hit; his body is standing size (by eye 26 Nov)"
+    },
+    "h6": {
+      "leol_victory": "both arms and the sling raised over his head; his body is standing size (by eye 26 Nov, after the floor bars under his standing picture were cleaned)"
     }
   },
   "bigHead": {

@@ -36,6 +36,16 @@ const MOVES = {
   bull_melee: { who: 'e2', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },
   archer_shot_away: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [4, 4], attack: true },
+  // Leol and the Thief (1.113, 26 Nov review): every move and effect
+  leol_sling: { who: 'h6', at: [3, 7], foe: 'e2', foeAt: [6, 7], attack: true },
+  leol_concussive: { who: 'h6', at: [3, 7], foe: 'e2', foeAt: [6, 7], cast: 'concussiveShot' },
+  leol_smoke: { who: 'h6', at: [3, 7], foe: 'h1', foeAt: [5, 7], cast: 'smokePellet' },
+  leol_hammer: { who: 'h6', at: [4, 7], foe: 'e2', foeAt: [5, 7], cast: 'hammerStrike' },
+  leol_suppress: { who: 'h6', at: [4, 4], foe: 'e2', foeAt: [4, 9], js: "b.castSpell(who, who, 'suppressiveFire', () => { b.busy = true; setTimeout(() => b.moveUnit(foe, 4, 7, () => setTimeout(done, 900)), 500); });" },
+  thief_slash: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [5, 7], attack: true },
+  thief_ambush: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [5, 7], js: "b.hideThief(who); setTimeout(() => b.castSpell(who, foe, 'ambush', done), 600);" },
+  thief_trap: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [4, 10], js: "b.hideThief(who); setTimeout(() => b.castSpell(who, { col: 4, row: 8 }, 'trap', () => { b.placeUnit(who, 1, 7); setTimeout(() => b.moveUnit(foe, 4, 7, () => setTimeout(done, 900)), 400); }), 500);" },
+  thief_hide: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [7, 7], js: "setTimeout(() => { b.hideThief(who); setTimeout(done, 1200); }, 300);" },
   archer_poison_weapon: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 4], cast: 'poisonWeapon' }, // 1.108: she dips her arrow (it uses her action)
 };
 // Every skill and status effect, for the effects pass (roadmap 18.23, checklist C5):

@@ -88,6 +88,37 @@ def set_heights():
     for k, h in HEIGHT.items(): art[ART_ID[k]]['height'] = h
     json.dump(art, open(art_path, 'w'), indent=2, ensure_ascii=False); open(art_path, 'a').write('\n')
 COMMON = {'leol': 120, 'thief': 400}
+# deslab rim: how far above the slab's front edges everything is cleared (share of the half width). 1.113 (26 Nov): Leol's tiles
+# kept their lit front rim as long pale bars by his feet at 0.05
+RIM = {'leol': 0.09, 'thief': 0.05}
+BACK = {'leol': 0.10, 'thief': 0.0}   # deslab back: the band along the slab's back edges cleared by the edge's own colour (1.113)
+# (not on the Hammer Strike: its steel head lies on the tile and is the same grey as the tile's lit edge; restoring it by colour
+# picked his trousers instead, 26 Nov. That sheet keeps its edges until a cleaner cut: logged in 1.113)
+NO_BACK = ('leol_hstrike', 'leol_hraise', 'leol_down')   # (hammer raise and down: the band took his legs in one view, 26 Nov)
+
+def restore_steel(raw, a, min_px=30):
+    """1.113 (26 Nov): the hammer's steel head lying on the tile (Hammer Strike) was taken with the tile (it is grey, like the tile's
+    shadow and lit edges). Put back from the untouched cell the biggest patch of cool grey (steel: low saturation, blue about as
+    strong as red; the tile is warm terracotta) in the lower half, with what is inside its box that is not tile-coloured (its
+    copper rivets), when it is near what is kept of him."""
+    from scipy import ndimage as nd
+    rgb = raw[..., :3].astype(int); h = raw.shape[0]
+    sat = rgb.max(-1) - rgb.min(-1); mean = rgb.mean(-1)
+    steel = (raw[..., 3] > 128) & (sat < 34) & (mean > 45) & (mean < 235) & (rgb[..., 2] >= rgb[..., 0] - 14)
+    steel[: h // 2] = False
+    lab, n = nd.label(nd.binary_closing(steel, iterations=2) & (raw[..., 3] > 128))
+    if not n: return a
+    sz = nd.sum(np.ones_like(lab), lab, range(1, n + 1)); k = 1 + int(np.argmax(sz))
+    if sz[k - 1] < min_px: return a
+    ys, xs = np.nonzero(lab == k)
+    y0, y1, x0, x1 = max(0, ys.min() - 2), ys.max() + 3, max(0, xs.min() - 2), xs.max() + 3
+    box = np.zeros(steel.shape, bool); box[y0:y1, x0:x1] = True
+    tile = (rgb[..., 0] - rgb[..., 2] > 30) & (sat > 30) & (sat < 95) & (mean > 85) & (mean < 205)   # warm terracotta
+    patch = box & (raw[..., 3] > 128) & ~(tile & ~nd.binary_dilation(lab == k, iterations=1))
+    if not (nd.binary_dilation(patch, iterations=6) & (a[..., 3] > 128)).any(): return a
+    a = a.copy(); a[patch] = raw[patch]
+    return a
+
 # detile front: how far above the tile's front edges everything is cleared (share of the half width). Lying poses lie ON the slab top,
 # a little higher; the barricade is not a figure (its own frame stands on the tile edges): no clearing.
 FRONT = {'barricade': None}   # detile: how common a colour must be in the tile samples (see detile.py)
@@ -102,12 +133,14 @@ def cut_all(prefix):
             # keep=0.02: a sling's cord or a dagger can be apart from the body
             mk.final_cut(cl, box, L.OUT + name, BASE, keep=0.02)
             a = np.array(Image.open(L.OUT + name).convert('RGBA'))
+            raw = a.copy()
             if sheet.endswith('barricade'): a = detile(a, common=COMMON[prefix])
             else:
                 # 26 Nov: detile takes the top face; deslab then takes the slab's sides, rims and plate, read from the untouched cut
                 from detile import slab_geometry
                 g = slab_geometry(a)
-                a = deslab(detile(a, common=COMMON[prefix]), geom=g, colour=False) if g and not sheet.endswith('ambush') else detile(a, common=COMMON[prefix])
+                if os.environ.get('DEBUG'): print('DEBUG', name, a.shape[:2], 'slab' if g else 'NO SLAB', file=sys.stderr); Image.fromarray(raw).save(WORK + 'dbg_' + name)
+                a = deslab(detile(a, common=COMMON[prefix]), geom=g, colour=False, rim=0.05 if sheet in NO_BACK else RIM[prefix], raw=raw, back=0 if sheet in NO_BACK else BACK[prefix]) if g and not sheet.endswith('ambush') else detile(a, common=COMMON[prefix])
                 # (the ambush is a leap above the tile: its outline is not the slab's)
                 # loose pieces low down (a shadow or blood under the victory pose)
                 from scipy import ndimage as nd

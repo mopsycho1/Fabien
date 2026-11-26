@@ -247,7 +247,8 @@
     "contest": { "style": "defence", "power": 5, "guard": 6, "agility": 4 },
     "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
     "closeWeapon": { "name": "Hammer", "farName": "Sling", "attack": 1, "pose": "hammer", "strike": "hammerStrike" },
-    "spells": ["smokePellet", "suppressiveFire", "concussiveShot", "hammerStrike", "barricade"],
+    "spells": ["smokePellet", "suppressiveFire", "concussiveShot", "hammerStrike"],
+    "laterSpells": { "barricade": "1.113 (26 Nov, Baiyee): taken out of his kit until Suleiman sends a proper barricade sheet (4 views drawn standing on a tile, plus a few rising frames); the code and its numbers stay (spells.json barricade, src/newClasses.js castBarricade)" },
     "passives": { "preparedDefender": 15 },
     "stats": { "hp": 32, "attack": 6, "defense": 3, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 12, "speed": 9, "move": 3, "range": 4 }
   },
