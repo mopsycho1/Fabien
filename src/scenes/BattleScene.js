@@ -1349,6 +1349,10 @@ export default class BattleScene extends Phaser.Scene {
       if (on) this.activeMarker.setPosition(u.view.x, u.view.y - u.topY - 34 - this.markerBob.v * 7);
     }
     if (this.uiHidden) this.applyUiHidden(); // (after everything that shows HUD parts this frame, the turn arrow too, 1.110)
+    if (this.resultClean) { // (the result screen: the board stays a clean picture, 18.55)
+      for (const v of this.units) for (const k of ['plate', 'tagRow', 'tileMark', 'miniBar']) if (v[k] && v[k].visible) v[k].setVisible(false);
+      if (this.activeMarker) this.activeMarker.setVisible(false);
+    }
     if (this.autoMove && this.mode === 'idle' && !this.busy && !this.battleOver && !this.inCinematic && !this.rotating) {
       if (u && u.side === 'hero' && u.alive && !u.engagedWith && this.stepsLeft(u) > 0) this.startMove(true);
     }
@@ -5318,10 +5322,22 @@ export default class BattleScene extends Phaser.Scene {
     this.finaleTimer = setTimeout(() => { this.finaleTimer = null; if (this.sys.isActive()) this.setSpeed('finale', 1); }, endingRules.slowMs);
     this.events.once('shutdown', () => { if (this.finaleTimer) clearTimeout(this.finaleTimer); this.speed.finale = 1; });
     this.resetCamera(300);
-    // 2. the board dims behind the fighters still standing
+    // the board is a picture now: no move tiles, plates, tags or turn arrow over it (18.55)
+    this.mode = 'idle'; this.clearHighlights();
+    for (const u of this.units) for (const k of ['plate', 'tagRow', 'tileMark', 'miniBar']) if (u[k] && u[k].setVisible) u[k].setVisible(false);
+    this.resultClean = true;
+    // 2. the board dims behind the fighters still standing (on a wide screen only a little: the result sits beside the board,
+    // and the camera moves so the winners stand on the left, 18.55)
+    const wideEnd = this.scale.width >= this.scale.height * 1.25;
     const v = this.cameras.main.worldView;
     this.resultDim = this.add.rectangle(v.centerX, v.centerY, v.width * 3, v.height * 3, 0x000000, 0).setDepth(78.5);
-    this.tweens.add({ targets: this.resultDim, fillAlpha: endingRules.dim, duration: 500 });
+    this.tweens.add({ targets: this.resultDim, fillAlpha: wideEnd ? endingRules.dimWide : endingRules.dim, duration: 500 });
+    const standing = this.units.filter((u) => u.alive && u.side === (won ? 'hero' : 'enemy') && u.view);
+    if (wideEnd && standing.length) {
+      const mx = standing.reduce((a, u) => a + u.view.x, 0) / standing.length, my = standing.reduce((a, u) => a + u.view.y, 0) / standing.length;
+      const cam = this.cameras.main;
+      this.time.delayedCall(320, () => { this.manualView = true; cam.pan(mx + (this.scale.width * 0.2) / cam.zoom, my - 30, 600, 'Sine.easeInOut'); });
+    }
 
     const survivors = this.units.filter((u) => u.alive && u.side === (won ? 'hero' : 'enemy'));
     survivors.forEach((u, i) => {
@@ -5337,20 +5353,19 @@ export default class BattleScene extends Phaser.Scene {
     this.time.delayedCall(700, () => this.showResultPanel(won));
   }
 
+  // The result screen in Suleiman's design (18.55, photo 1889, 22 Nov): on a wide screen the board stays in view on the left with
+  // the winners in their victory poses, and a dark band on the right holds the result; on a tall phone screen the same content
+  // sits in a framed panel in the middle (the board is too narrow to share), with the champion above it (6.85).
+  //   VICTORY (spaced capitals between two ornaments) / ALL ENEMIES DEFEATED. / Turns Played / Par, rating, stars /
+  //   under or over par / Best / a divider / Damage Dealt, Damage Taken (icons, numbers on the right) / No Hero Fell. /
+  //   the heroes' faces / Continue and Play Again side by side.
   showResultPanel(won) {
     this.resultShown = true; // (the HTML HUD steps aside for the result, 18.44)
     play(won ? 'victory' : 'defeat'); // the sting, as the word arrives
-    // laid out around the middle of the screen, whatever its shape
     const W = this.scale.width;
     const H = this.scale.height;
     const least = this.lay ? this.lay.minText : 11;
-    // On a wide screen (720 game pixels tall) the whole panel is drawn smaller so it fits: k (M8, E2)
-    const linesTall = 170 + 45 + 36 + (won ? 58 + 36 + 60 : 30) + 30 + 36 + 33 + 102 + (won && this.stepIndex !== null ? 2 : 1) * 92 + 24;
-    const k = Math.min(1, (H - 28) / linesTall);
-    const K = (n) => Math.round(n * k);
-    const F = (n) => Math.max(K(n), least); // letters never under 11 real pixels
-    const cover = this.ui(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(300));
-    this.tweens.add({ targets: cover, fillAlpha: 0.55, duration: 300 });
+    const wide = this.resultWide = W >= H * 1.25;
 
     // what happened
     const team = this.units.filter((u) => u.side === 'hero').length;
@@ -5359,93 +5374,157 @@ export default class BattleScene extends Phaser.Scene {
     const rating = won ? rateWin(this.turnCount, par) : null;
     const best = won ? recordBest(this.mapName, team, this.turnCount) : null;
     this.result = { won, turns: this.turnCount, par, rating, best, tally };
-
-    // the panel is as tall as what it holds: more lines after a win, one or two buttons
     const buttons = won && this.stepIndex !== null ? 2 : 1;
-    const lh = (n) => Math.round(F(n) * 1.5);
-    const pw = Math.min(620, W - 60);
-    const ph = Math.min(H - 16, K(170) + lh(30) + lh(24) + (rating ? (rating.banner ? K(58) : 0) + lh(24) + 2 * lh(20) : lh(20)) + K(30) + lh(24) + lh(22) + K(102) + buttons * K(92) + K(24));
-    const px = W / 2 - pw / 2, py = Math.round(H / 2 - ph / 2);
+
+    // the column the result is laid out in, and its scale k (everything fits the screen's height)
+    const linesTall = 64 + 92 + 40 + 44 + (rating && rating.banner ? 52 : 0) + 40 + (rating ? 40 + 2 * 30 : 30) + 34 + 3 * 44 + 96 + 86 + 20;
+    const k = Math.min(wide ? 1.15 : 1, (H - (wide ? 40 : 24)) / linesTall);
+    const K = (n) => Math.round(n * k);
+    const F = (n) => Math.max(K(n), least); // letters never under 11 real pixels
+    const colW = wide ? Math.min(560, Math.round(W * 0.36)) : Math.min(560, W - 56);
+    const colX = wide ? Math.round(W - colW - Math.max(36, W * 0.045)) : Math.round(W / 2 - colW / 2);
+    const cx = colX + colW / 2;
+    const ph = K(linesTall), py = wide ? Math.round(H / 2 - ph / 2) : Math.round(H / 2 - ph / 2 + (H > ph + 260 ? 60 : 0));
     const parts = [];
     const add = (o) => { this.ui(o); parts.push(o); return o; };
-    // the FFT frame of the UI rework (16 Nov), like every other panel of the battle screen
-    const resultFrame = add(this.add.graphics().setDepth(301));
-    framePanel(resultFrame, px, py, pw, ph, this.lay.px, { alpha: 0.85 });
-    // the word sweeps in from the side, over a streak of light
-    const streak = add(this.add.rectangle(-W, py + K(96), W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
-    // the champion strikes his victory pose on the result screen itself (6.85: the kings' triumph sheets; the board
-    // pose behind the panel is hidden by it). A king standing on the winning side first, else the first survivor
-    // with a victory picture. On a tall screen he stands on the panel's top edge, on a wide one beside the panel.
+    const SERIF = '"Cormorant Garamond", Georgia, serif', CAPS = 'Cinzel, "Trajan Pro", Georgia, serif';
+    const st = (size, color, extra = {}) => textStyle(F(size), color, { fontFamily: SERIF, ...extra });
+
+    // the ground behind the result: a dark band on the right that fades in from the board (wide), or his framed panel (tall)
+    if (wide) {
+      const band = add(this.add.graphics().setDepth(300).setAlpha(0));
+      const bx = colX - Math.max(60, W * 0.06);
+      band.fillGradientStyle(0x0c0806, 0x0c0806, 0x0c0806, 0x0c0806, 0, 0.88, 0, 0.88);
+      band.fillRect(bx - W * 0.08, 0, W * 0.08, H);
+      band.fillStyle(0x0c0806, 0.88).fillRect(bx, 0, W - bx, H);
+      this.tweens.add({ targets: band, alpha: 1, duration: 360 });
+    } else {
+      const cover = add(this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0).setDepth(300));
+      this.tweens.add({ targets: cover, fillAlpha: 0.55, duration: 300 });
+      this.resultFrame = add(this.add.graphics().setDepth(301)); // (drawn at the end, as tall as what it holds)
+    }
+
+    // the champion on a tall screen stands on the panel's top edge (6.85); on a wide one the winners are in view on the board
     this.resultChampion = null;
     const champs = this.units.filter((u) => u.alive && u.side === (won ? 'hero' : 'enemy') && poseFrame(u.id, 'victory', 'right'));
     const champ = champs.find((u) => u.id === 'h5' || u.id === 'e5') || champs[0];
-    if (champ) {
+    if (champ && wide) this.resultChampion = { unit: champ, image: champ.sprite, key: champ.sprite && champ.sprite.texture.key, place: 'board' };
+    else if (champ && py >= 130) {
       const fr = poseFrame(champ.id, 'victory', 'right', 'downRight');
       const tex = this.textures.exists(fr.key) ? this.textures.get(fr.key).getSourceImage() : null;
       if (tex) {
-        const above = py >= 130, beside = !above && (W - pw) / 2 >= 170;
-        const tall = above ? Math.min(py - 14, 230) : Math.min(ph * 0.55, 300);
-        if (above || beside) {
-          const fx = above ? W / 2 : px - Math.min(110, (W - pw) / 4), fy = above ? py + 8 : py + ph * 0.62;
-          const fig = add(this.add.image(fx, fy, fr.key).setOrigin(fr.originX, fr.originY || 1).setFlipX(!!fr.flip).setDepth(302.5).setAlpha(0));
-          fig.setScale(tall / tex.height);
-          fig.y += 14;
-          this.tweens.add({ targets: fig, alpha: 1, y: fy, duration: 380, delay: 200, ease: 'Back.easeOut' });
-          this.resultChampion = { unit: champ, image: fig, key: fr.key, place: above ? 'above' : 'beside' };
-        }
+        const tall = Math.min(py - 14, 230);
+        const fig = add(this.add.image(W / 2, py + 2, fr.key).setOrigin(fr.originX, fr.originY || 1).setFlipX(!!fr.flip).setDepth(302.5).setAlpha(0));
+        fig.setScale(tall / tex.height);
+        fig.y += 14;
+        this.tweens.add({ targets: fig, alpha: 1, y: py + 2, duration: 380, delay: 200, ease: 'Back.easeOut' });
+        this.resultChampion = { unit: champ, image: fig, key: fr.key, place: 'above' };
       }
     }
-    const title = add(this.add.text(-W / 2, py + K(96), won ? 'Victory' : 'Defeat', textStyle(K(96), won ? '#ffe08a' : '#ff6b5a', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303));
-    this.tweens.add({ targets: title, x: W / 2, duration: 320, ease: 'Cubic.easeOut' });
+
+    const GOLD_HEX = won ? 0xd9b46a : 0xc8604e, CREAM = '#f3e6c4', MUTED = '#b8a888', GREEN = '#9fdc6a', RED = '#ff8a7a';
+    const rows = [];
+    const fadeIn = (o) => { o.setAlpha(0); rows.push(o); return o; };
+    // an ornament: two thin gold lines with a small sun (top) or a diamond (dividers) in the middle
+    const ornament = (y, wHalf, kind) => {
+      const g = add(this.add.graphics().setDepth(302));
+      g.lineStyle(Math.max(1, K(1.5)), GOLD_HEX, 0.9);
+      const gap = kind === 'sun' ? K(26) : K(12);
+      g.lineBetween(cx - wHalf, y, cx - gap, y); g.lineBetween(cx + gap, y, cx + wHalf, y);
+      if (kind === 'sun') {
+        g.fillStyle(GOLD_HEX, 1).fillCircle(cx, y, K(6));
+        for (let a = -150; a <= -30; a += 20) { const r1 = K(9), r2 = K(a === -90 ? 22 : 16), t = (a * Math.PI) / 180; g.lineBetween(cx + Math.cos(t) * r1, y + Math.sin(t) * r1, cx + Math.cos(t) * r2, y + Math.sin(t) * r2); }
+      } else {
+        g.lineStyle(Math.max(1, K(1.5)), GOLD_HEX, 1).strokePoints([{ x: cx, y: y - K(6) }, { x: cx + K(6), y }, { x: cx, y: y + K(6) }, { x: cx - K(6), y }], true);
+        g.fillStyle(GOLD_HEX, 1).fillCircle(cx, y, K(2));
+      }
+      return fadeIn(g);
+    };
+
+    let y = py + K(30);
+    ornament(y, colW * 0.32, 'sun'); y += K(16);
+    // the word sweeps in from the side, over a streak of light
+    const streak = add(this.add.rectangle(-W, y + K(46), W * 1.2, 6, won ? 0xffe08a : 0xff6b5a, 0.9).setDepth(302));
+    const title = add(this.add.text(-W / 2, y + K(46), won ? 'VICTORY' : 'DEFEAT', textStyle(K(84), won ? CREAM : '#ffb4a4', { fontFamily: CAPS, fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setLetterSpacing(K(4)));
+    title.word = won ? 'Victory' : 'Defeat';
+    this.tweens.add({ targets: title, x: cx, duration: 320, ease: 'Cubic.easeOut' });
     this.tweens.add({ targets: streak, x: W * 1.6, duration: 520, ease: 'Cubic.easeOut', onComplete: () => streak.setVisible(false) });
     screenShake(this, 0.004, 140);
-    let y = py + K(170);
-    const line = (text, size, color = '#f1e6c8', extra = {}) => { const t = add(this.add.text(W / 2, y, text, textStyle(F(size), color, extra)).setOrigin(0.5).setDepth(302).setAlpha(0)); y += Math.round(F(size) * 1.5); return t; };
-    const rows = [];
-    rows.push(line(won ? 'All enemies defeated.' : 'All heroes have fallen.', 30));
+    y += K(96);
+    const woven = fadeIn(add(this.add.tileSprite(cx, y, colW * 0.92, K(10), 'ui-woven').setDepth(302)));
+    woven.tileScaleY = K(10) / 18;
+    y += K(30);
+    fadeIn(add(this.add.text(cx, y, won ? 'ALL ENEMIES DEFEATED.' : 'ALL HEROES HAVE FALLEN.', st(20, '#e8d5a8', { fontFamily: CAPS })).setOrigin(0.5).setDepth(302).setLetterSpacing(K(5))));
+    y += K(44);
     // a Swift win: the gold banner (the bonus for beating par, 13.45)
     if (rating && rating.banner) {
-      const band = add(this.add.rectangle(W / 2, y + K(16), pw - 80, K(44), 0xb8860b, 0.95).setStrokeStyle(2, 0xffe08a).setDepth(302).setAlpha(0));
-      const word = add(this.add.text(W / 2, y + K(16), rating.banner, textStyle(F(24), '#fff4d6', { fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setAlpha(0).setLetterSpacing(3));
-      rows.push(band, word); y += K(58);
+      fadeIn(add(this.add.rectangle(cx, y, colW, K(40), 0xb8860b, 0.95).setStrokeStyle(2, 0xffe08a).setDepth(302)));
+      fadeIn(add(this.add.text(cx, y, rating.banner, st(22, '#fff4d6', { fontFamily: CAPS, fontStyle: 'bold' })).setOrigin(0.5).setDepth(303).setLetterSpacing(3)));
+      y += K(52);
     }
-    rows.push(line('Turns played: ' + this.turnCount, 24, '#e8d5a8'));
+    // left-aligned lines, as in his design
+    const left = (text, size, color, extra = {}) => { const t = fadeIn(add(this.add.text(colX, y, text, st(size, color, extra)).setOrigin(0, 0.5).setDepth(302))); return t; };
+    left('Turns Played: ' + this.turnCount, 24, CREAM); y += K(40);
     if (rating) {
-      rows.push(line('Par ' + par + '   ·   ' + rating.name + '  ' + '★'.repeat(rating.stars) + '☆'.repeat(3 - rating.stars), 24, rating.id === 'swift' ? '#ffe08a' : rating.id === 'steady' ? '#9fdc8a' : '#d8c8a4', { fontStyle: 'bold' }));
-      rows.push(line(rating.under >= 0 ? rating.under + ' under par. ' + rating.text : -rating.under + ' over par. ' + rating.text, 20, '#a89a78'));
-      rows.push(line(best.isNew ? 'New best: ' + best.best + ' turns' : 'Best: ' + best.best + ' turns', 20, best.isNew ? '#ffe08a' : '#a89a78'));
+      const a = left('Par ' + par + '   ·   ', 30, CREAM, { fontStyle: 'bold' });
+      const nameColor = rating.id === 'swift' ? '#ffe08a' : rating.id === 'steady' ? GREEN : '#d8c8a4';
+      const n = fadeIn(add(this.add.text(a.x + a.width, y, rating.name, st(30, nameColor, { fontStyle: 'bold' })).setOrigin(0, 0.5).setDepth(302)));
+      fadeIn(add(this.add.text(n.x + n.width + K(14), y, '★'.repeat(rating.stars) + '☆'.repeat(3 - rating.stars), st(30, '#f2c14e')).setOrigin(0, 0.5).setDepth(302)));
+      this.resultRating = a.text + rating.name + '  ' + '★'.repeat(rating.stars) + '☆'.repeat(3 - rating.stars); // (the whole line as one text, for the tests)
+      y += K(40);
+      left(rating.under >= 0 ? rating.under + ' under par. ' + rating.text : -rating.under + ' over par. ' + rating.text, 20, MUTED); y += K(30);
+      left(best.isNew ? 'New best: ' + best.best + ' turns' : 'Best: ' + best.best + ' turns', 20, best.isNew ? '#ffe08a' : MUTED); y += K(30);
     } else {
-      rows.push(line('Par for a win here: ' + par + ' turns', 20, '#a89a78'));
+      left('Par for a win here: ' + par + ' turns', 20, MUTED); y += K(30);
     }
-    rows.push(add(this.add.tileSprite(W / 2, y + 4, 420, 18, 'ui-woven').setDepth(302).setAlpha(0))); y += K(30);
-    rows.push(line('Damage dealt ' + tally.dealt + '   ·   taken ' + tally.taken, 24));
-    rows.push(line(tally.fallenHeroes.length ? 'Fell: ' + tally.fallenHeroes.join(', ') : 'No hero fell.', 22, tally.fallenHeroes.length ? '#ff9a8a' : '#9fdc8a'));
+    ornament(y + K(4), colW / 2, 'diamond'); y += K(34);
+    // the numbers: an icon, the word on the left, the number on the right, a hairline under each
+    const statRow = (icon, word, value, color) => {
+      const ic = icon === 'plus' ? null : iconImage(this, colX + K(12), y, icon, K(26));
+      if (ic) fadeIn(add(ic.setDepth(302)));
+      else if (icon === 'plus') {
+        const g = fadeIn(add(this.add.graphics().setDepth(302)));
+        g.fillStyle(0x7fcf5a, 1).fillRect(colX + K(12) - K(4), y - K(12), K(8), K(24)).fillRect(colX, y - K(4), K(24), K(8));
+      }
+      fadeIn(add(this.add.text(colX + K(40), y, word, st(24, color)).setOrigin(0, 0.5).setDepth(302)));
+      if (value !== null) fadeIn(add(this.add.text(colX + colW, y, String(value), st(24, CREAM, { fontStyle: 'bold' })).setOrigin(1, 0.5).setDepth(302)));
+      const hl = fadeIn(add(this.add.graphics().setDepth(302)));
+      hl.lineStyle(1, GOLD_HEX, 0.28).lineBetween(colX, y + K(21), colX + colW, y + K(21));
+      y += K(44);
+    };
+    statRow('crossed', 'Damage Dealt', tally.dealt, CREAM);
+    statRow('shield', 'Damage Taken', tally.taken, CREAM);
+    statRow(tally.fallenHeroes.length ? 'crossed' : 'plus', tally.fallenHeroes.length ? 'Fell: ' + tally.fallenHeroes.join(', ') : 'No Hero Fell.', null, tally.fallenHeroes.length ? RED : GREEN);
+    this.resultLines = { tally: 'Damage dealt ' + tally.dealt + '   ·   taken ' + tally.taken, fell: tally.fallenHeroes.length ? 'Fell: ' + tally.fallenHeroes.join(', ') : 'No hero fell.' }; // (for the tests)
     // the heroes' faces: bright if standing, dark if fallen
-    const r = K(30), gap = K(78), x0 = W / 2 - ((tally.heroes.length - 1) * gap) / 2;
-    y += r + K(6);
+    const r = K(36), n = tally.heroes.length, gapF = Math.min(K(104), (colW - 2 * r) / Math.max(1, n - 1));
+    const x0 = cx - ((n - 1) * gapF) / 2;
+    y += r + K(4);
     tally.heroes.forEach((u, i) => {
-      const face = add(portraitMedallion(this, x0 + i * gap, y, r, u, portraitKey(u.id, u), { active: u.alive }).setDepth(302).setAlpha(0));
+      const face = add(portraitMedallion(this, x0 + i * gapF, y, r, u, portraitKey(u.id, u), { active: u.alive }).setDepth(302).setAlpha(0));
       face.fallen = !u.alive;
       rows.push(face);
     });
-    y += r + K(30);
+    y += r + K(24);
     // one after another, like a roll being read out
-    rows.forEach((o, i) => this.tweens.add({ targets: o, alpha: o.fallen ? 0.35 : 1, delay: 260 + i * 90, duration: 200 }));
+    rows.forEach((o, i) => this.tweens.add({ targets: o, alpha: o.fallen ? 0.35 : 1, delay: 260 + i * 60, duration: 200 }));
     this.resultRows = rows;
 
-    const addButton = (label, icon, onTap) => {
-      const button = new CommandButton(this, W / 2, y + K(30), K(420), K(76));
-      button.set(label, icon, true, onTap);
+    // the buttons, side by side (one alone in the middle)
+    const bh = K(64), bgap = K(18), bw = buttons === 2 ? Math.round((colW - bgap) / 2) : Math.min(colW, K(300));
+    const bx0 = buttons === 2 ? colX + bw / 2 : cx;
+    const addButton = (label, icon, onTap, accent) => {
+      const button = new CommandButton(this, bx0 + this.resultButtons.length * (bw + bgap), y + bh / 2, bw, bh);
+      button.set(label, icon, true, onTap, accent ? { accent } : undefined);
       button.view.setDepth(303);
       this.ui(button.view);
       this.resultButtons.push(button);
-      y += K(92);
     };
-
     // After a win, "Continue" moves the story on to the next step
-    if (won && this.stepIndex !== null) addButton('Continue', 'press', () => startStep(this, this.stepIndex + 1));
+    if (won && this.stepIndex !== null) addButton('Continue', 'press', () => startStep(this, this.stepIndex + 1), 0xe8c87a);
     // Restarting the scene builds a brand new battle from units.json
     addButton(won ? 'Play again' : 'Try again', 'back', () => this.scene.restart({ stepIndex: this.stepIndex, map: this.mapName, lineUp: this.chosenLineUp })); // the same line-up again (18.30)
+    if (!wide && this.resultFrame) framePanel(this.resultFrame, colX - 22, py - 10, colW + 44, y + bh - py + K(30), this.lay.px, { alpha: 0.9 });
   }
 
   // ---------- Enemy turns ----------

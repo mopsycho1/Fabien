@@ -33,9 +33,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('then the speed is normal again', b.speed.finale === 1);
   const t0 = Date.now(); while (!b.resultButtons.length && Date.now() - t0 < 4000) await sleep(30); await sleep(1500);
   const T = texts();
-  check('F3 the word: Victory', T.includes('Victory'));
-  check('F3 the turns, against par, with the rating: 55 turns is Swift', T.includes('Turns played: 55') && T.some((t) => /^Par 75 .*Swift  ★★★$/.test(t)) && T.includes('SWIFT VICTORY'), T.filter((t) => /Par|Turns|SWIFT/.test(t)).join(' | '));
-  check('F3 the numbers are right: damage dealt and taken', b.result.tally.dealt === dealt && b.result.tally.taken === taken && T.some((t) => t.startsWith('Damage dealt ' + dealt) && t.endsWith('taken ' + taken)), b.result.tally.dealt + ' / ' + b.result.tally.taken);
+  check('F3 the word: Victory', T.includes('VICTORY')); /* 18.55: his design, in capitals */
+  check('F3 the turns, against par, with the rating: 55 turns is Swift', T.includes('Turns Played: 55') && /^Par 75 .*Swift  ★★★$/.test(b.resultRating) && T.includes('SWIFT VICTORY'), T.filter((t) => /Par|Turns|SWIFT/.test(t)).join(' | '));
+  check('F3 the numbers are right: damage dealt and taken', b.result.tally.dealt === dealt && b.result.tally.taken === taken && b.resultLines.tally === 'Damage dealt ' + dealt + '   ·   taken ' + taken && T.includes('Damage Dealt') && T.includes(String(dealt)) && T.includes(String(taken)), b.result.tally.dealt + ' / ' + b.result.tally.taken);
   check('F3 who fell', T.includes('Fell: ' + heroes[2].name));
   check('F3 a face for every hero, the fallen one dark', b.resultRows.filter((o) => o.fallen !== undefined).length === heroes.length && b.resultRows.filter((o) => o.fallen).length === 1 && b.resultRows.find((o) => o.fallen).alpha < 0.5);
   check('the best is kept: 55 turns', T.some((t) => /^(New best|Best): 55 turns$/.test(t)), T.filter((t) => /est:/.test(t)).join());
@@ -51,7 +51,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.turnCount = 131; b.battleOver = true; b.showResult('victory');
   const t1 = Date.now(); while (!b.resultButtons.length && Date.now() - t1 < 4000) await sleep(30); await sleep(1200);
   const T2 = texts();
-  check('131 turns: Long, 1 star, no gold banner, "No hero fell.", and the best is still 55', T2.some((t) => /Long  ★☆☆$/.test(t)) && !T2.includes('SWIFT VICTORY') && T2.includes('No hero fell.') && T2.includes('Best: 55 turns'), T2.filter((t) => /Par|Best|fell/.test(t)).join(' | '));
+  check('131 turns: Long, 1 star, no gold banner, "No hero fell.", and the best is still 55', /Long  ★☆☆$/.test(b.resultRating) && !T2.includes('SWIFT VICTORY') && T2.includes('No Hero Fell.') && T2.includes('Best: 55 turns'), T2.filter((t) => /Par|Best|fell/.test(t)).join(' | '));
 
   // ---------- a loss ----------
   b.resultButtons[b.resultButtons.length - 1].hit.emit('pointerdown');
@@ -61,7 +61,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.turnCount = 90; b.battleOver = true; b.showResult('defeat');
   const t2 = Date.now(); while (!b.resultButtons.length && Date.now() - t2 < 4000) await sleep(30); await sleep(1200);
   const T3 = texts();
-  check('a loss: Defeat, no rating, the par is told, Try again', T3.includes('Defeat') && !T3.some((t) => /★/.test(t)) && T3.includes('Par for a win here: 75 turns') && b.resultButtons[b.resultButtons.length - 1].label.text === 'Try again' && b.result.rating === null);
+  check('a loss: Defeat, no rating, the par is told, Try again', T3.includes('DEFEAT') && !T3.some((t) => /★/.test(t)) && T3.includes('Par for a win here: 75 turns') && b.resultButtons[b.resultButtons.length - 1].label.text === 'Try again' && b.result.rating === null);
 
   const real = errors.filter((e) => !e.includes('focus()'));
   check('no page errors', real.length === 0, real.slice(0, 3).join(' | '));

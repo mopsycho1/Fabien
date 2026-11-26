@@ -1,14 +1,40 @@
 {
   "note": "The end of a battle (roadmap 18.12, M12; 17.10 and 13.45). 'par' is the number of turns a good win takes on each map, by how many fighters a side has (every fighter's turn counts as one turn). 'swiftUnder': win this many turns under par or better and the rating is Swift (3 stars, the gold banner); up to par is Steady (2 stars); over par is Long (1 star). MEASURED 14 Nov: 40 test battles at 4 against 4 ran 86 to 162 turns, middle 125, so par for 4 was 100 (the 13 Nov guess of 40 could never be met); 3 against 3 ran about 62, so par 55. MEASURED AGAIN 22 Nov after the balance pass (18.32: healthScale, weaponDamageBonus): hero wins at 4 against 4 took 55 to 107 turns, middle 72, so par for 4 is 75 (Swift at 60 or fewer, about the fastest quarter of wins); the others went down by the same share (55 to 40, 80 to 60, 45 to 35). Suleiman and Baiyee can change every number here. 'slowMs': how long the last blow plays slowly (real milliseconds), at 'slowTo' speed. 'dim': how dark the board goes behind the word.",
-  "par": { "cavern": { "3": 40, "4": 75 }, "default": { "3": 35, "4": 60 } },
+  "par": {
+    "cavern": {
+      "3": 40,
+      "4": 75
+    },
+    "default": {
+      "3": 35,
+      "4": 60
+    }
+  },
   "swiftUnder": 15,
   "ratings": {
-    "swift": { "name": "Swift", "stars": 3, "banner": "SWIFT VICTORY", "text": "Well under par: a clean, fast win." },
-    "steady": { "name": "Steady", "stars": 2, "banner": "", "text": "Inside par." },
-    "long": { "name": "Long", "stars": 1, "banner": "", "text": "Over par: look for a faster way next time." }
+    "swift": {
+      "name": "Swift",
+      "stars": 3,
+      "banner": "SWIFT VICTORY",
+      "text": "Well under par: a clean, fast win."
+    },
+    "steady": {
+      "name": "Steady",
+      "stars": 2,
+      "banner": "",
+      "text": "Inside par."
+    },
+    "long": {
+      "name": "Long",
+      "stars": 1,
+      "banner": "",
+      "text": "Over par: look for a faster way next time."
+    }
   },
   "bonusNote": "The bonus for a Swift win is the gold banner and a place in 'Best' for now; once the camp exists (Phase 15) it becomes an extra item for the next battle.",
   "slowMs": 650,
   "slowTo": 0.3,
-  "dim": 0.6
+  "dim": 0.6,
+  "dimWide": 0.3,
+  "note_dimWide": "'dimWide' (18.55, his result screen design): on a wide screen the result sits beside the board, so the board only dims this much."
 }

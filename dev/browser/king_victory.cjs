@@ -25,7 +25,8 @@ const { openBattle } = require('./lib/play.cjs');
     console.log((ok ? 'PASS ' : 'FAIL ') + king + ' strikes his victory pose at the end (' + kind + ')  [' + key + ']'); if (!ok) fails++;
     await page.waitForTimeout(1800); // the panel and the champion on it
     const champ = await page.evaluate(() => { const c = window.__game.scene.getScene('BattleScene').resultChampion; return c ? { id: c.unit.id, key: c.key, place: c.place, alpha: c.image.alpha, h: Math.round(c.image.displayHeight) } : null; });
-    const ok2 = champ && champ.id === king && /_victory_f\d/.test(champ.key) && champ.alpha > 0.9 && champ.h > 100;
+    // (18.55, his result design: on a wide screen the winners stay in view on the board, so the champion is his own figure there)
+    const ok2 = champ && champ.id === king && /_victory_f\d/.test(champ.key) && champ.alpha > 0.9 && (champ.place === 'board' || champ.h > 100);
     console.log((ok2 ? 'PASS ' : 'FAIL ') + king + ' is the champion on the result screen, in his victory pose  [' + JSON.stringify(champ) + ']'); if (!ok2) fails++;
     await page.screenshot({ path: out + '/king_' + kind + '_' + view + '.png' });
     errs = errs.concat(errors); await browser.close();

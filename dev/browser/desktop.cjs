@@ -66,7 +66,7 @@ const { chromium } = require('playwright');
   await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); for (const u of b.units.filter((x) => x.side === 'enemy')) { b.landHit(u, u.hp); b.defeat(u); b.playDefeat(u, 1); } b.turnCount = 84; b.battleOver = true; b.showResult('victory'); });
   await page.waitForTimeout(3600);
   await page.screenshot({ path: out + '/desktop_result.png' });
-  const res = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const real = b.scale.displaySize.width / b.scale.width; let t = null; const walk = (o) => { if (o.type === 'Text' && o.text === 'Victory') t = o; if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk); return t ? t.height * real : 0; });
+  const res = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const real = b.scale.displaySize.width / b.scale.width; let t = null; const walk = (o) => { if (o.type === 'Text' && (o.text === 'Victory' || o.text === 'VICTORY')) t = o; if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk); return t ? t.height * real : 0; });
   check('E2 the result word is big (over 100 real pixels tall)', res >= 100, Math.round(res) + ' px');
   check('no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
   await browser.close();
