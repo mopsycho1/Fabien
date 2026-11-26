@@ -71,7 +71,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); b.placeUnit(leol, 5, 3); b.placeUnit(foeFar, 5, 9);
   await cast(leol, leol, 'suppressiveFire'); await sleep(400);
   check('Suppressive Fire set', leol.zone && leol.zone.mode === 'sling');
-  const hp1 = foeFar.hp; let walked = false;
+  const hp1 = foeFar.hp; let walked = false; leol.accuracy = 400; foeFar.evade = -500; // (the ward's roll comes after the walk, outside sure(): make it a sure hit)
   sure(() => b.moveUnit(foeFar, 5, 6, () => { walked = true; }));
   const t1 = Date.now(); while (!walked && Date.now() - t1 < 6000) await sleep(50);
   check('Suppressive Fire shoots the foe that walks in', foeFar.hp < hp1, hp1 + ' -> ' + foeFar.hp + ' at ' + foeFar.col + ',' + foeFar.row);
@@ -127,6 +127,19 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('the Thief shows himself when he attacks', !thief.thiefHidden && !thief.hidden);
 
   const real = errors.filter((e) => !/Not implemented/.test(e)); // (jsdom has no focus())
+  // ---------- 6.96 (26 Nov): Leol's hammer looks and the Thief's fallen pose ----------
+  park(); b.placeUnit(leol, 5, 5); b.placeUnit(foeFar, 5, 6);
+  leol.weapon = 'dagger';
+  b.showPose(leol, 'hurt', 1);
+  check('6.96 holding the hammer, Leol is hurt in his hammer look', /leol_hhurt_/.test(leol.sprite.texture.key), leol.sprite.texture.key);
+  b.showPose(leol, 'dodge', 1);
+  check('6.96 ...and dodges in it', /leol_hdodge_/.test(leol.sprite.texture.key), leol.sprite.texture.key);
+  leol.hp = 3; leol.maxHp = 32; b.showStanding(leol);
+  check('6.96 ...and badly hurt, stands battle-worn with it', /leol_hweak_/.test(leol.sprite.texture.key), leol.sprite.texture.key);
+  leol.weapon = 'bow'; b.showPose(leol, 'hurt', 1);
+  check('6.96 with the sling, his sling hurt look', /leol_hurt_/.test(leol.sprite.texture.key), leol.sprite.texture.key);
+  leol.hp = leol.maxHp = 300;
+  check('6.96 the Thief has a fallen (kneel) pose for his fall; steal waits for its skill', b.hasPose(thief, 'kneel') && !b.hasPose(thief, 'steal'));
   check('no page errors', real.length === 0, real.slice(0, 3).join(' | '));
   console.log('RESULT ' + (fails ? 'FAILED' : 'ALL PASSED'));
   process.exit(fails ? 1 : 0);

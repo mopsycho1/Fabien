@@ -7020,6 +7020,50 @@
         "downRight": {
           "file": "leol_victory_2.png"
         }
+      },
+      "hammerDodge": {
+        "upLeft": {
+          "file": "leol_hdodge_3.png"
+        },
+        "upRight": {
+          "file": "leol_hdodge_2.png"
+        },
+        "downLeft": {
+          "file": "leol_hdodge_1.png"
+        },
+        "downRight": {
+          "file": "leol_hdodge_4.png"
+        }
+      },
+      "hammerHurt": {
+        "upLeft": {
+          "file": "leol_hhurt_3.png",
+          "flip": true
+        },
+        "upRight": {
+          "file": "leol_hhurt_3.png"
+        },
+        "downLeft": {
+          "file": "leol_hhurt_1.png"
+        },
+        "downRight": {
+          "file": "leol_hhurt_2.png"
+        }
+      },
+      "hammerWeak": {
+        "upLeft": {
+          "file": "leol_hweak_3.png",
+          "flip": true
+        },
+        "upRight": {
+          "file": "leol_hweak_3.png"
+        },
+        "downLeft": {
+          "file": "leol_hweak_2.png"
+        },
+        "downRight": {
+          "file": "leol_hweak_1.png"
+        }
       }
     },
     "portrait": "leol_face_neutral.png",
@@ -7030,6 +7074,7 @@
       "barricade2": "leol_barricade_2.png"
     },
     "note_props": "\"props\": pictures he puts on the board, not his body: the Barricade (19.1, cut by make_newclass.py from \"Isometric Wooden Spike Barricade Tile Set\"), two of its four views, one per direction of the wall.",
+    "note_hammer_looks": "26 Nov (6.96): his hammer dodge, hurt and battle-worn sheets, used while he holds the hammer (jobs.json slinger closeWeapon \"poses\" and \"weak\"). Facings read by the figure: each sheet has two true front views; one back view, the other back view its mirror.",
     "ruler": {
       "leol_stand_4.png": {
         "footX": 0.477
@@ -7173,6 +7218,46 @@
       "leol_victory_2.png": {
         "scale": 0.95,
         "footX": 0.542
+      },
+      "leol_hdodge_3.png": {
+        "scale": 0.87,
+        "footX": 0.676
+      },
+      "leol_hdodge_2.png": {
+        "scale": 0.87,
+        "footX": 0.481
+      },
+      "leol_hdodge_1.png": {
+        "scale": 0.87,
+        "footX": 0.302
+      },
+      "leol_hdodge_4.png": {
+        "scale": 0.87,
+        "footX": 0.632
+      },
+      "leol_hhurt_3.png": {
+        "scale": 0.95,
+        "footX": 0.458
+      },
+      "leol_hhurt_1.png": {
+        "scale": 0.95,
+        "footX": 0.537
+      },
+      "leol_hhurt_2.png": {
+        "scale": 0.95,
+        "footX": 0.342
+      },
+      "leol_hweak_3.png": {
+        "scale": 0.87,
+        "footX": 0.469
+      },
+      "leol_hweak_2.png": {
+        "scale": 0.87,
+        "footX": 0.593
+      },
+      "leol_hweak_1.png": {
+        "scale": 0.87,
+        "footX": 0.467
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
@@ -7380,11 +7465,26 @@
           "file": "thief_trap_1.png",
           "flip": true
         }
+      },
+      "kneel": {
+        "upLeft": {
+          "file": "thief_fallen_2.png"
+        },
+        "upRight": {
+          "file": "thief_fallen_4.png"
+        },
+        "downLeft": {
+          "file": "thief_fallen_3.png"
+        },
+        "downRight": {
+          "file": "thief_fallen_1.png"
+        }
       }
     },
     "portrait": "thief_face_neutral.png",
     "portraitHurt": "thief_face_hurt.png",
     "shout": "thief_face_angry.png",
+    "note_steal": "thief_steal_1 to 4 (performing a steal) are cut but wait for a Steal skill (6.96, 26 Nov: no move goes with it yet)",
     "ruler": {
       "thief_stand_2.png": {
         "footX": 0.524
@@ -7466,6 +7566,18 @@
       },
       "thief_trap_1.png": {
         "footX": 0.571
+      },
+      "thief_fallen_2.png": {
+        "footX": 0.595
+      },
+      "thief_fallen_4.png": {
+        "footX": 0.443
+      },
+      "thief_fallen_3.png": {
+        "footX": 0.449
+      },
+      "thief_fallen_1.png": {
+        "footX": 0.482
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."

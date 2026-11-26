@@ -241,7 +241,10 @@
       "leol_shot": 0.9,
       "leol_stand": 1.0,
       "leol_victory": 0.95,
-      "leol_weak": 0.87
+      "leol_weak": 0.87,
+      "leol_hdodge": 0.87,
+      "leol_hhurt": 0.95,
+      "leol_hweak": 0.87
     },
     "note": "26 Nov: every sheet was cut at one scale (make_newclass.py BASE 0.40), so every family is pinned at 1.0 and judged by eye. Sized by eye next to standing (head and mane): battle 0.85, battle-worn 0.87, sling shot 0.9, hammer guard 0.9, dodge 0.87, down 0.87, hurt 0.95, victory 0.95 (his standing sheet draws him smaller)."
   },
@@ -257,7 +260,8 @@
       "thief_stand": 1.0,
       "thief_trap": 1.0,
       "thief_victory": 1.0,
-      "thief_weak": 1.0
+      "thief_weak": 1.0,
+      "thief_fallen": 1.0
     },
     "note": "26 Nov: every sheet was cut at one scale (make_newclass.py BASE 0.40), so every family is pinned at 1.0 and judged by eye.",
     "footX": {

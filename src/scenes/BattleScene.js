@@ -4504,7 +4504,9 @@ export default class BattleScene extends Phaser.Scene {
   daggerStance(unit, foe) {
     const right = foe ? foe.view.x >= unit.view.x : unit.facing && unit.facing.endsWith('Right');
     const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');
-    return poseFrame(unit.id, unit.closeWeapon.pose, right ? 'right' : 'left', facing);
+    // badly hurt, his close weapon's battle-worn look if he has one (Leol's hammer, 6.96)
+    const weak = unit.hp > 0 && unit.hp / unit.maxHp <= HURT_FACE_AT && unit.closeWeapon.weak && this.hasPose(unit, unit.closeWeapon.weak);
+    return poseFrame(unit.id, weak ? unit.closeWeapon.weak : unit.closeWeapon.pose, right ? 'right' : 'left', facing);
   }
 
   // True when an enemy (as this unit sees it) is close enough to fight:
@@ -4521,6 +4523,8 @@ export default class BattleScene extends Phaser.Scene {
   // A pose drawn in four facings uses the unit's up or down (set by faceToward)
   // with dx's left or right, so it looks at its target.
   showPose(unit, pose, dx) {
+    // a fighter holding his close weapon has its own look for some poses (Leol's hammer dodge and hurt, 6.96; jobs.json closeWeapon "poses")
+    if (unit.closeWeapon && unit.closeWeapon.poses && holdsDagger(unit)) { const alt = unit.closeWeapon.poses[pose]; if (alt && this.hasPose(unit, alt)) pose = alt; }
     // a target straight above or below on the screen: keep the side it already faces (1.45)
     const right = Math.abs(dx) < 2 && unit.facing ? unit.facing.endsWith('Right') : dx >= 0;
     const facing = (unit.facing && unit.facing.startsWith('up') ? 'up' : 'down') + (right ? 'Right' : 'Left');

@@ -246,7 +246,7 @@
     "note": "Leol, the Slinger (roadmap 19.1, 22 Nov; class framework v1.0, chat file 1639). A dual-weapon defensive controller: the sling controls distance (2 to 4 tiles), the hammer recovers it (the next tile). Numbers picked by Claude (the sheet gives none): health 32, attack 6, defense 3, the archer's free weapon switch (once a turn, never a second attack). Passive Prepared Defender (the sheet's recommendation): after a hammer push his next sling shot gets +15 accuracy.",
     "contest": { "style": "defence", "power": 5, "guard": 6, "agility": 4 },
     "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
-    "closeWeapon": { "name": "Hammer", "farName": "Sling", "attack": 1, "pose": "hammer", "strike": "hammerStrike" },
+    "closeWeapon": { "name": "Hammer", "farName": "Sling", "attack": 1, "pose": "hammer", "strike": "hammerStrike", "weak": "hammerWeak", "poses": { "dodge": "hammerDodge", "hurt": "hammerHurt", "guard": "hammer" } },
     "spells": ["smokePellet", "suppressiveFire", "concussiveShot", "hammerStrike"],
     "laterSpells": { "barricade": "1.113 (26 Nov, Baiyee): taken out of his kit until Suleiman sends a proper barricade sheet (4 views drawn standing on a tile, plus a few rising frames); the code and its numbers stay (spells.json barricade, src/newClasses.js castBarricade)" },
     "passives": { "preparedDefender": 15 },
