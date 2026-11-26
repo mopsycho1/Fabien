@@ -52,6 +52,8 @@ import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { installLighting } from '../lighting.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName, groundColors } from '../boardArt.js';
+import { LOOKS, lookOn, setLook } from '../look2.js';
+import { weaponStreak } from '../weaponStreak.js';
 import { slashArc, hitSpark, dustPuff, dustRing, splash, arrowShot, screenShake, lightning, buffAura, clashFlash, heavySlash, impactBurst, groundRing, emberBurst, lightColumn, shockRing } from '../effects.js';
 import {
   isMelee,
@@ -861,7 +863,7 @@ export default class BattleScene extends Phaser.Scene {
     const rowH2 = Math.max(S(48), this.lay.minTap + S(6));
     const sheetW = Math.min(W - 2 * m, Math.max(S(380), T(15) * 20));
     const sheetRows = [];
-    const sheetH = S(56) + 7 * rowH2 + S(14);
+    const sheetH = S(56) + (7 + LOOKS.length) * rowH2 + S(14);
     const sx0 = Math.round((W - sheetW) / 2), sy0 = Math.round((H - sheetH) / 2);
     const veil = this.add.rectangle(0, 0, W, H, 0x000000, 0.55).setOrigin(0, 0).setInteractive(); // taps outside close it
     const panel = this.add.graphics();
@@ -910,7 +912,13 @@ export default class BattleScene extends Phaser.Scene {
     const filmLabel = sheetRow(5, () => { setClashFilms(!clashFilmsOn()); showFilms(); if (clashFilmsOn() && loadClashGifs(this, this.units)) this.load.start(); play('click'); });
     const showFilms = () => filmLabel.setText('Clash films: ' + (clashFilmsOn() ? 'On' : 'Off'));
     showFilms();
-    sheetRow(6, () => openSheet(false)).setText('Close');
+    // Graphics 2.0 (18.56): one row per new look, Off until Baiyee approves it
+    LOOKS.forEach((l, i) => {
+      const row = sheetRow(6 + i, () => { setLook(l.id, !lookOn(l.id)); show(); play('click'); });
+      const show = () => row.setText(l.name + ': ' + (lookOn(l.id) ? 'On' : 'Off'));
+      show();
+    });
+    sheetRow(6 + LOOKS.length, () => openSheet(false)).setText('Close');
     this.settingsRows = sheetRows; // (the HTML sheet shows these words and taps these rows, 18.44)
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
@@ -4572,6 +4580,12 @@ export default class BattleScene extends Phaser.Scene {
     sfxAt(this, name, unit.view.x + Math.sign(dx || 1) * 10, unit.view.y - (unit.centerY || 40) * 0.8, { flip: dx < 0, size: 1.2, depth: unit.view.depth + 0.6 });
   }
 
+  // The colour a weapon streak takes (18.57): the fighter's Verse or enchantment, as the hit does.
+  swingElement(unit) {
+    const kinds = verseKinds(unit);
+    return isEnchanted(unit) || kinds.includes('fury') ? 'fire' : kinds.includes('stone') ? 'earth' : kinds.includes('swiftness') ? 'wind' : 'steel';
+  }
+
   // A fighter whose action is over goes back to his stance (standing, battle stance or weakened, as showStanding
   // picks), unless something is still drawing him: a push, a fall, his defeat.
   backToStance(unit) {
@@ -4895,6 +4909,8 @@ export default class BattleScene extends Phaser.Scene {
         if (thrust) this.playMove(attacker, thrust, dx, { from: 3, to: 4 });
         else this.showPose(attacker, strikePose, dx);
         this.swingArc(attacker, dx); // his slash arc on the frame the strike shows (22 Nov, photo 1768)
+        // Weapon streaks (18.57, Settings switch): the streak runs from his weapon through the swing and lands with the blow
+        if (lookOn('streaks') && !swingFxOf(attacker.id)) weaponStreak(this, attacker, { ms: 90, element: this.swingElement(attacker), dx });
         this.time.addEvent({ delay: 22, repeat: 3, callback: () => this.afterimage(attacker) });
         this.tweens.add({
           targets: reach,
@@ -5067,7 +5083,10 @@ export default class BattleScene extends Phaser.Scene {
     play(style === 'bash' ? 'bash' : 'impact');
     impactLayers(this, { x: spot.x, y: spot.y, gx: target.view.x, gy: target.view.y, element, level, dir, depth: 80 });
 
-    if (style === 'slash') heavySlash(this, spot.x, spot.y, dir, color);
+    // the old arc round the target (heavySlash) is the generic slash; with Weapon streaks on (18.57) the blow's streak comes
+    // from the weapon instead: a skill that did not swing through the attack path gets a short one on landing
+    if (style === 'slash' && !lookOn('streaks')) heavySlash(this, spot.x, spot.y, dir, color);
+    else if (style === 'slash' && !swingFxOf(attacker.id) && !(attacker.lastStreakAt && this.time.now - attacker.lastStreakAt < 400)) weaponStreak(this, attacker, { ms: 70, element, dx });
     if (style === 'bash') {
       dustPuff(this, target.view.x, target.view.y);
       screenShake(this, 0.004, 120);

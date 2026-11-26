@@ -1,0 +1,379 @@
+{
+ "note": "Weapon tip per strike picture (roadmap 18.57): [x, y] as a share of the picture, in the file as stored. Made by dev/tools/weapon_tips.py; pins by hand are in its PINS.",
+ "tips": {
+  "h1": {
+   "sudeen_n_slash_upLeft.png": [
+    0.021,
+    0.705
+   ],
+   "sudeen_n_slash_downLeft.png": [
+    0.032,
+    0.804
+   ],
+   "sudeen_n_slash_downRight.png": [
+    0.871,
+    0.818
+   ],
+   "sudeen_n9_furyAttack_upLeft.png": [
+    0.006,
+    0.092
+   ],
+   "sudeen_n9_furyAttack_upRight.png": [
+    0.988,
+    0.092
+   ],
+   "sudeen_n9_furyAttack_downLeft.png": [
+    0.006,
+    0.543
+   ],
+   "sudeen_n9_furyAttack_downRight.png": [
+    0.988,
+    0.543
+   ]
+  },
+  "h2": {
+   "gaha_n_lunge_upLeft.png": [
+    0.008,
+    0.274
+   ],
+   "gaha_n_lunge_upRight.png": [
+    0.992,
+    0.132
+   ],
+   "gaha_n_lunge_downLeft.png": [
+    0.011,
+    0.687
+   ],
+   "gaha_n_lunge_downRight.png": [
+    0.993,
+    0.768
+   ],
+   "gaha_n6_stoneAttack_upLeft.png": [
+    0.007,
+    0.007
+   ],
+   "gaha_n6_stoneAttack_upRight.png": [
+    0.985,
+    0.007
+   ],
+   "gaha_n6_stoneAttack_downLeft.png": [
+    0.014,
+    0.265
+   ],
+   "gaha_n6_stoneAttack_downRight.png": [
+    0.986,
+    0.265
+   ],
+   "gaha_n6_furyAttack_upLeft.png": [
+    0.007,
+    0.065
+   ],
+   "gaha_n6_furyAttack_upRight.png": [
+    0.987,
+    0.089
+   ],
+   "gaha_n6_furyAttack_downLeft.png": [
+    0.007,
+    0.418
+   ],
+   "gaha_n6_furyAttack_downRight.png": [
+    0.987,
+    0.408
+   ],
+   "gaha_n6_swiftAttack_upLeft.png": [
+    0.007,
+    0.135
+   ],
+   "gaha_n6_swiftAttack_upRight.png": [
+    0.986,
+    0.133
+   ],
+   "gaha_n6_swiftAttack_downLeft.png": [
+    0.013,
+    0.44
+   ],
+   "gaha_n6_swiftAttack_downRight.png": [
+    0.98,
+    0.467
+   ]
+  },
+  "h3": {
+   "layra_n_battle_upLeft.png": [
+    0.006,
+    0.03
+   ],
+   "layra_n_battle_upRight.png": [
+    0.988,
+    0.062
+   ],
+   "layra_n_battle_downLeft.png": [
+    0.006,
+    0.189
+   ],
+   "layra_n_battle_downRight.png": [
+    0.988,
+    0.2
+   ]
+  },
+  "e2": {
+   "bull_iso_attack_upLeft.png": [
+    0.57,
+    0.06
+   ],
+   "bull_iso_attack_downLeft.png": [
+    0.1,
+    0.07
+   ],
+   "bull_flame_strike_upLeft.png": [
+    0.23,
+    0.181
+   ],
+   "bull_flame_strike_downLeft.png": [
+    0.005,
+    0.206
+   ],
+   "bull_n6b_bl5_f3.png": [
+    0.005,
+    0.807
+   ],
+   "bull_n6b_bl5_f1.png": [
+    0.041,
+    0.841
+   ]
+  },
+  "e3": {
+   "archer_hq_fire_f1.png": [
+    0.053,
+    0.199
+   ],
+   "archer_hq_fire_f2.png": [
+    0.942,
+    0.188
+   ],
+   "archer_hq_fire_f3.png": [
+    0.99,
+    0.657
+   ],
+   "archer_hq_fire_f4.png": [
+    0.99,
+    0.667
+   ],
+   "archer_n6b_dagger_f1.png": [
+    0.179,
+    0.102
+   ],
+   "archer_n6b_dagger_f2.png": [
+    0.97,
+    0.26
+   ],
+   "archer_n6b_dagger_f3.png": [
+    0.102,
+    0.842
+   ],
+   "archer_n6b_dagger_f4.png": [
+    0.887,
+    0.84
+   ],
+   "archer_ench_upLeft.png": [
+    0.017,
+    0.312
+   ],
+   "archer_ench_upRight.png": [
+    0.911,
+    0.136
+   ],
+   "archer_ench_downLeft.png": [
+    0.063,
+    0.429
+   ],
+   "archer_ench_downRight.png": [
+    0.881,
+    0.8
+   ]
+  },
+  "e1": {
+   "tayo_n6b_punch_f1.png": [
+    0.006,
+    0.228
+   ],
+   "tayo_n6b_punch_f2.png": [
+    0.988,
+    0.156
+   ],
+   "tayo_n6b_punch_f3.png": [
+    0.04,
+    0.27
+   ],
+   "tayo_n6b_punch_f4.png": [
+    0.7,
+    0.3
+   ],
+   "tayo_n6b_punchFire_f1.png": [
+    0.006,
+    0.228
+   ],
+   "tayo_n6b_punchFire_f2.png": [
+    0.976,
+    0.102
+   ],
+   "tayo_n6b_punchFire_f3.png": [
+    0.059,
+    0.718
+   ],
+   "tayo_n6b_punchFire_f4.png": [
+    0.98,
+    0.733
+   ]
+  },
+  "e4": {
+   "rabdul_iso_attack_upLeft.png": [
+    0.005,
+    0.006
+   ],
+   "rabdul_iso_attack_downLeft.png": [
+    0.01,
+    0.28
+   ],
+   "rabdul_iso_fire_upLeft.png": [
+    0.005,
+    0.049
+   ],
+   "rabdul_iso_fire_downLeft.png": [
+    0.009,
+    0.282
+   ]
+  },
+  "h4": {
+   "kofi_water_cast_f4.png": [
+    0.006,
+    0.165
+   ],
+   "kofi_water_cast_f2.png": [
+    0.988,
+    0.16
+   ],
+   "kofi_water_cast_f3.png": [
+    0.973,
+    0.261
+   ],
+   "kofi_water_cast_f1.png": [
+    0.808,
+    0.722
+   ],
+   "kofi_fire_cast_f4.png": [
+    0.005,
+    0.146
+   ],
+   "kofi_fire_cast_f2.png": [
+    0.981,
+    0.135
+   ],
+   "kofi_fire_cast_f3.png": [
+    0.991,
+    0.244
+   ],
+   "kofi_fire_cast_f1.png": [
+    0.82,
+    0.785
+   ],
+   "kofi_storm_cast_f4.png": [
+    0.024,
+    0.135
+   ],
+   "kofi_storm_cast_f2.png": [
+    0.99,
+    0.139
+   ],
+   "kofi_storm_cast_f3.png": [
+    0.895,
+    0.594
+   ],
+   "kofi_storm_cast_f1.png": [
+    0.842,
+    0.723
+   ],
+   "kofi_earth_cast_f4.png": [
+    0.061,
+    0.14
+   ],
+   "kofi_earth_cast_f2.png": [
+    0.99,
+    0.113
+   ],
+   "kofi_earth_cast_f3.png": [
+    0.991,
+    0.233
+   ],
+   "kofi_earth_cast_f1.png": [
+    0.99,
+    0.216
+   ]
+  },
+  "e5": {
+   "gadara_strike_f3.png": [
+    0.992,
+    0.258
+   ],
+   "gadara_strike_f1.png": [
+    0.004,
+    0.708
+   ],
+   "gadara_cleave_land_f3.png": [
+    0.003,
+    0.738
+   ],
+   "gadara_cleave_land_f1.png": [
+    0.011,
+    0.848
+   ]
+  },
+  "h6": {
+   "leol_shot_3.png": [
+    0.004,
+    0.008
+   ],
+   "leol_shot_4.png": [
+    0.992,
+    0.063
+   ],
+   "leol_shot_1.png": [
+    0.004,
+    0.591
+   ],
+   "leol_shot_2.png": [
+    0.992,
+    0.571
+   ],
+   "leol_hstrike_2.png": [
+    0.067,
+    0.75
+   ],
+   "leol_hstrike_3.png": [
+    0.993,
+    0.817
+   ],
+   "leol_hstrike_1.png": [
+    0.013,
+    0.76
+   ],
+   "leol_hstrike_4.png": [
+    0.981,
+    0.699
+   ]
+  },
+  "e6": {
+   "thief_slash_2.png": [
+    0.991,
+    0.344
+   ],
+   "thief_slash_3.png": [
+    0.07,
+    0.798
+   ],
+   "thief_slash_1.png": [
+    0.879,
+    0.846
+   ]
+  }
+ }
+}
