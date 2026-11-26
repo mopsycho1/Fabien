@@ -47,6 +47,7 @@ settings_for() {
     n108|n109|n110) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;; # Sudeen, Rabdul, the Bull (Batch 7)
     n111|n112|n113|n114|n115) echo "FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1" ;; # item bags for everyone, part 1 bugs of 22 Nov (the kings on the board)
     n116) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=h4,e1" ;; # Leol and the Thief (19.1, 19.2)
+    n117) echo "FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1" ;; # 26 Nov batch (1.103 to 1.110, 6.93, 6.94, 6.96, 18.55, A.3)
   esac
 }
 

@@ -2285,101 +2285,117 @@
     "channelFx": true,
     "note_channel": "22 Nov (1.97): \"channelFx\": while she casts (a Verse, a Hex, Healing Wind, her Lightning or Wildfire) a channel spiral rises round her feet in the spell's colour (spellArt.channelSpiral). It is the white copy of Alagara's Arcane Charging Spiral until Suleiman's own channel effect comes.",
     "ruler": {
-      "layra_n_stand_downRight.png": {
-        "footX": 0.486
-      },
       "layra_n_stand_downLeft.png": {
-        "footX": 0.523
+        "footX": 0.524
+      },
+      "layra_n_stand_upRight.png": {
+        "footX": 0.52
       },
       "layra_n_stand_upLeft.png": {
-        "footX": 0.522
+        "footX": 0.523
       },
       "layra_n_battle_downLeft.png": {
         "footX": 0.513
       },
       "layra_n_battle_upRight.png": {
-        "footX": 0.405
+        "footX": 0.411
+      },
+      "layra_n_battle_upLeft.png": {
+        "footX": 0.498
       },
       "layra_n_cast_downRight.png": {
-        "footX": 0.413
+        "footX": 0.414
       },
       "layra_n_cast_upRight.png": {
-        "footX": 0.452
+        "footX": 0.476
       },
       "layra_n_cast_upLeft.png": {
-        "footX": 0.518
+        "footX": 0.512
       },
       "layra_n_chant_downRight.png": {
-        "footX": 0.458
+        "footX": 0.462
       },
       "layra_n_chant_downLeft.png": {
-        "footX": 0.535
+        "footX": 0.536
+      },
+      "layra_n_chant_upRight.png": {
+        "footX": 0.537
       },
       "layra_n_chant_upLeft.png": {
-        "footX": 0.522
-      },
-      "layra_n_hurt_downRight.png": {
-        "footX": 0.445
-      },
-      "layra_n_hurt_downLeft.png": {
-        "footX": 0.563
-      },
-      "layra_n_hurt_upLeft.png": {
-        "footX": 0.425
-      },
-      "layra_n_down_downRight.png": {
-        "footX": 0.532
-      },
-      "layra_n_down_downLeft.png": {
-        "footX": 0.466
-      },
-      "layra_n_down_upLeft.png": {
-        "footX": 0.516
-      },
-      "layra_n_down_upRight.png": {
-        "footX": 0.475
-      },
-      "layra_n_block_downRight.png": {
         "footX": 0.505
       },
+      "layra_n_hurt_downRight.png": {
+        "footX": 0.441
+      },
+      "layra_n_hurt_downLeft.png": {
+        "footX": 0.566
+      },
+      "layra_n_hurt_upLeft.png": {
+        "footX": 0.405
+      },
+      "layra_n_hurt_upRight.png": {
+        "footX": 0.478
+      },
+      "layra_n_down_downRight.png": {
+        "footX": 0.531
+      },
+      "layra_n_down_downLeft.png": {
+        "footX": 0.468
+      },
+      "layra_n_down_upLeft.png": {
+        "footX": 0.521
+      },
+      "layra_n_down_upRight.png": {
+        "footX": 0.47
+      },
+      "layra_n_block_downRight.png": {
+        "footX": 0.507
+      },
       "layra_n_block_upLeft.png": {
-        "footX": 0.49
+        "footX": 0.477
       },
       "layra_n_block_upRight.png": {
-        "footX": 0.469
+        "footX": 0.466
       },
       "layra_n6_victory_single.png": {
-        "scale": 1.05
+        "scale": 1.05,
+        "footX": 0.506
       },
       "layra_n_dodge_downRight.png": {
-        "footX": 0.442
+        "footX": 0.433
       },
       "layra_n_dodge_downLeft.png": {
-        "footX": 0.569
+        "footX": 0.579
       },
       "layra_n_dodge_upLeft.png": {
-        "footX": 0.599
+        "footX": 0.618
       },
       "layra_n_dodge_upRight.png": {
-        "footX": 0.406
+        "footX": 0.39
       },
       "layra_n_fallen_downRight.png": {
-        "footX": 0.498
+        "footX": 0.497
       },
       "layra_n_fallen_downLeft.png": {
         "footX": 0.478
       },
+      "layra_n_fallen_upLeft.png": {
+        "footX": 0.515
+      },
       "layra_n_fallen_upRight.png": {
-        "footX": 0.443
+        "footX": 0.417
       },
       "layra_n_weak_downLeft.png": {
-        "footX": 0.409
+        "footX": 0.404
       },
       "layra_n_weak_upRight.png": {
-        "footX": 0.409
+        "footX": 0.367
+      },
+      "layra_n_weak_downRight.png": {
+        "footX": 0.493
       },
       "layra_n_weak_upLeft.png": {
-        "footX": 0.403
+        "footX": 0.349
       },
       "layra_bless_float_f1.png": {
         "scale": 1.08,
@@ -2434,7 +2450,7 @@
       "layra_bless_cast_f3.png": {
         "scale": 1.08,
         "feet": 1.08,
-        "footX": 0.413
+        "footX": 0.414
       },
       "layra_bless_cast_f4.png": {
         "scale": 1.08,
