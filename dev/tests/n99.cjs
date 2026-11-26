@@ -7,6 +7,10 @@
 //      by eye where the finder cannot read a family, and fails a family sized by eye whose picture changed since.
 //      Run here when the tools Python is on this machine.
 //   C: Alagara's hurt and weak (low health) pictures, the cause of 1.85, are no taller than his standing one.
+//   D: (1.112, 26 Nov: "the Thief is drawn bigger than everyone else") no fighter's head is drawn more than 1.2 times the cast's
+//      middle head: the head boxes in dev/tools/ruler_heads.json (read by eye on the standing pictures) times the size the game
+//      draws the standing picture at (art.json "height" over the tallest standing picture). A fighter meant to be bigger is listed
+//      in dev/tools/pose_sizes.json "bigHead" with the reason. Checked always.
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -71,6 +75,24 @@ if (fs.existsSync(py)) {
   const bad = out.split('\n').filter((l) => /^\s+FAIL/.test(l)).map((l) => l.trim());
   check('every family of every fighter has its body within 10 percent of standing (pose_size.py audit)', /ALL PASSED/.test(out) && bad.length === 0, bad.slice(0, 3).join(' | '));
 } else console.log('SKIP body size audit (the tools Python is not on this machine)');
+
+// ---------- D: nobody's head drawn far bigger than the cast's (1.112) ----------
+{
+  const heads = JSON.parse(fs.readFileSync(path.join(ROOT, 'dev/tools/ruler_heads.json'), 'utf8'));
+  const drawnHead = {};
+  for (const [id, boxes] of Object.entries(heads)) {
+    if (id.startsWith('note') || !art[id] || !art[id].standing) continue;
+    const tallest = Math.max(...Object.values(art[id].standing).map((v) => heightOf(typeof v === 'string' ? v : v.file)));
+    const k = (art[id].height || 100) / tallest;
+    const hs = Object.values(boxes).map((b) => (b[3] - b[1]) * k);
+    drawnHead[id] = hs.reduce((a, b) => a + b, 0) / hs.length;
+  }
+  const vals = Object.values(drawnHead).sort((a, b) => a - b);
+  const mid = vals[Math.floor(vals.length / 2)];
+  const big = Object.entries(drawnHead).filter(([id, h]) => h > mid * 1.2 && !(sizes.bigHead && sizes.bigHead[id]));
+  check('D 1.112 no fighter\'s head is drawn more than 1.2 times the cast\'s middle head (' + mid.toFixed(1) + ' px)', big.length === 0,
+    big.map(([id, h]) => id + ' ' + (art[id].name || '') + ' ' + h.toFixed(1) + ' px (' + (h / mid).toFixed(2) + 'x)').join(', ') || Object.entries(drawnHead).map(([id, h]) => id + ' ' + h.toFixed(1)).join(' '));
+}
 
 console.log(fails ? 'FAILED: ' + fails : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

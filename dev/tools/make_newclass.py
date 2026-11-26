@@ -75,6 +75,18 @@ if __name__ == '__main__' and os.environ.get('MODE') == 'raw':
 # picture pixels per sheet pixel: his figures stand about 470 sheet pixels tall on these 1448 by 1086 sheets; 0.40 makes a standing
 # picture about 190 tall (the size ruler then sizes every pose by its head, and art.json "height" sets the drawn size)
 BASE = 0.40
+# How tall each one's tallest standing picture is drawn on the board (art.json "height"; the size ruler sizes every other pose by
+# the head from it). 1.112 (26 Nov, Baiyee: "the Thief is drawn bigger than everyone else"): his standing sheet is a deep crouch,
+# so the 100 a standing fighter gets drew his crouch as tall as a standing man and his head about 1.25 times the Bull's. Sized by eye
+# beside Sudeen, Gaha and Leol at game size (dev/browser/size_row.cjs): 70 puts his head with the humans' (n99 checks it).
+HEIGHT = {'leol': 92, 'thief': 70}   # Leol 92: at 100 he was as broad as the Bull Commander; 92 keeps him a big lion warrior, a little over the humans
+ART_ID = {'leol': 'h6', 'thief': 'e6'}
+
+def set_heights():
+    art_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'data', 'art.json')
+    art = json.load(open(art_path))
+    for k, h in HEIGHT.items(): art[ART_ID[k]]['height'] = h
+    json.dump(art, open(art_path, 'w'), indent=2, ensure_ascii=False); open(art_path, 'a').write('\n')
 COMMON = {'leol': 120, 'thief': 400}
 # detile front: how far above the tile's front edges everything is cleared (share of the half width). Lying poses lie ON the slab top,
 # a little higher; the barricade is not a figure (its own frame stands on the tile edges): no clearing.
@@ -114,7 +126,11 @@ def cut_all(prefix):
         print(sheet, [Image.open(L.OUT + n).size for n in names], file=sys.stderr)
     return out
 
+if __name__ == '__main__' and os.environ.get('MODE') == 'heights':
+    set_heights(); print('heights written', HEIGHT, file=sys.stderr)
+
 if __name__ == '__main__' and os.environ.get('MODE') == 'cut':
+    set_heights()
     for p in sys.argv[2:] or ['leol', 'thief']:
         cut_all(p)
     # thin tile-edge lines left under the feet (strip_lines.py)

@@ -6819,7 +6819,7 @@
   "h6": {
     "note": "Leol the Slinger (roadmap 19.1, art 6.76; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure (the plates are not trusted): his sling sheets run front-left, front-right, back-left, back-right; the hammer sheets front-left, back-left, back-right, front-right. \"hammer\" is his hammer stance (the archer's dagger look), \"hammerStrike\" and \"hammerRaise\" the Hammer Strike and Barricade. No walk pictures: the walk is made in code.",
     "name": "Leol",
-    "height": 100,
+    "height": 92,
     "standing": {
       "upLeft": {
         "file": "leol_stand_3.png"
@@ -7183,7 +7183,7 @@
   "e6": {
     "note": "The Thief (roadmap 19.2, art 6.77; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure per sheet (his sheets are in no fixed order; a missing side is the other one mirrored). \"ambush\" is the Dagger Ambush leap, \"trap\" laying a trap. No walk pictures: the walk is made in code. Faces from the 21 Nov expression sheet (15 cut; neutral, hurt and angry wired).",
     "name": "Thief",
-    "height": 100,
+    "height": 70,
     "standing": {
       "upLeft": {
         "file": "thief_stand_2.png"
@@ -7440,17 +7440,11 @@
       "thief_hurt_4.png": {
         "footX": 0.586
       },
-      "thief_hurt_3.png": {
-        "footX": 0.514
-      },
       "thief_down_1.png": {
         "footX": 0.471
       },
       "thief_victory_2.png": {
         "footX": 0.463
-      },
-      "thief_victory_3.png": {
-        "footX": 0.516
       },
       "thief_victory_1.png": {
         "footX": 0.54
