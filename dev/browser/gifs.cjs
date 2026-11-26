@@ -36,6 +36,7 @@ const MOVES = {
   bull_melee: { who: 'e2', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },
   archer_shot_away: { who: 'e3', at: [4, 7], foe: 'h2', foeAt: [4, 4], attack: true },
+  archer_poison_weapon: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 4], cast: 'poisonWeapon' }, // 1.108: she dips her arrow (it uses her action)
 };
 // Every skill and status effect, for the effects pass (roadmap 18.23, checklist C5):
 //   node dev/browser/gifs.cjs <out dir> phone effects

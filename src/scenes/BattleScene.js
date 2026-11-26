@@ -3281,14 +3281,13 @@ export default class BattleScene extends Phaser.Scene {
       this.cancelMode();
       return;
     }
-    // Poison Weapon (1.82): free, at once, at any time in her turn
-    if (spell.kind === 'coat') {
-      if (unit.coated) this.showMessage('Your weapon is already poisoned');
-      else this.castPoisonWeapon(unit);
+    // Poison Weapon (1.82, 1.108): it uses her action now; tap it again to use it (below, with Prime Bow)
+    if (spell.kind === 'coat' && unit.coated) {
+      this.showMessage('Your weapon is already poisoned');
       return;
     }
     // Prime Bow (1.82), Spear Ward and Hold the Line (19.4): tap it again to use it
-    if ((spell.kind === 'prime' || spell.kind === 'zoneWard') && this.selectedSpell === id && this.mode === 'spellTarget') {
+    if ((spell.kind === 'prime' || spell.kind === 'zoneWard' || spell.kind === 'coat') && this.selectedSpell === id && this.mode === 'spellTarget') {
       this.pendingTarget = unit;
       this.confirmSpell();
       return;
@@ -3368,7 +3367,7 @@ export default class BattleScene extends Phaser.Scene {
     this.mode = 'spellTarget';
     const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast', 'concussive', 'hammerStrike', 'ambush'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap' || spell.kind === 'smokePellet';
-    this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
+    this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || spell.kind === 'coat' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
         u.alive && this.canSee(unit, u) && (spell.kind === 'hornCharge' ? !!this.hornLine(unit, u, spell) : spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
@@ -6724,6 +6723,7 @@ export default class BattleScene extends Phaser.Scene {
     if (spell.kind === 'hornCharge') return this.castHornCharge(caster, target, spell, onDone);
     if (spell.kind === 'sweep') return this.castHaftSweep(caster, target, spell, onDone);
     if (spell.kind === 'prime') return this.castPrimeBow(caster, spell, onDone);
+    if (spell.kind === 'coat') return this.castPoisonWeapon(caster, onDone);
     if (spell.kind === 'toss') return this.castShieldToss(caster, target, spell, onDone);
     if (spell.kind === 'elementBlast') return this.castElementBlast(caster, target, spell, onDone);
     if (spell.kind === 'charge') return this.castIntercept(caster, target, spell, onDone);
@@ -8222,16 +8222,23 @@ export default class BattleScene extends Phaser.Scene {
     return !unit.engagedWith && (unit.spells || []).some((id) => spells[id].freeAction && canAfford(unit, id) && !(spells[id].kind === 'coat' && unit.coated));
   }
 
-  // Poison Weapon: free and at once. Her next hit that lands poisons (see coatLands).
-  castPoisonWeapon(unit) {
+  // Poison Weapon (1.82, 1.108): it uses her action (castSpell has spent it and started the cooldown). She dips her arrow in the
+  // poison: her drawn "poison" pose (archer_poison_f1 to f4, the one Poison Arrow shows), the green charge rising round the
+  // arrowhead and the poison's colour washing over her, then she stands again. Her next hit that lands poisons (see coatLands).
+  castPoisonWeapon(unit, onDone = () => {}) {
     const spell = spells.poisonWeapon;
-    startCooldown(unit, 'poisonWeapon');
     unit.coated = true;
+    const foe = this.nearestFoe ? this.nearestFoe(unit) : null;
+    const dx = foe && foe.view ? foe.view.x - unit.view.x || 1 : 1;
+    if (foe && foe.view) this.faceToward(unit, dx, foe.view.y - unit.view.y);
+    this.showPose(unit, 'poison', dx); // dipping the arrow
     play('select');
-    chargeUp(this, unit.view.x, unit.view.y - unit.topY * 0.55, 'poison', { ms: 360, size: 0.7, depth: unit.view.depth + 2 });
-    this.floatText(unit, 'Poisoned weapon', spell.color);
+    chargeUp(this, unit.view.x + Math.sign(dx) * 14, unit.view.y - unit.topY * 0.45, 'poison', { ms: 520, size: 0.9, depth: unit.view.depth + 2 });
+    buffAura(this, unit.view.x, unit.view.y, 0x9fdc6a);
+    this.time.delayedCall(260, () => { play('spell'); this.floatText(unit, 'Poisoned weapon', spell.color, { pop: true }); });
     this.refreshStatusTags();
-    this.cancelMode(); // back to the main menu: her turn goes on
+    this.refreshButtons();
+    this.time.delayedCall(900, () => { if (unit.alive && !unit.engagedWith) this.showStanding(unit); onDone(); });
   }
 
   // After one of her hits lands on a living foe: the coat poisons it (1.82). Returns true if it did.
@@ -8270,8 +8277,11 @@ export default class BattleScene extends Phaser.Scene {
     const foes = seen.filter((t) => t.alive && !t.isDecoy && t.side !== unit.side);
     if (!foes.length) return null;
     const near = Math.min(...foes.map((t) => distance(unit, t)));
-    if (unit.spells.includes('poisonWeapon') && canAfford(unit, 'poisonWeapon') && !unit.coated && near <= unit.range + 3) this.castPoisonWeapon(unit);
     if (isBlinded(unit) || holdsDagger(unit) || unit.engagedWith) return null;
+    // Poison Weapon (1.108: it uses her action now): when no foe is in reach of her bow this turn but one is coming (within
+    // her reach plus 3), she coats her arrows instead of standing idle; her next hit poisons
+    const inShot = foes.some((t) => distance(unit, t) <= unit.range && hasClearShot(unit, t));
+    if (unit.spells.includes('poisonWeapon') && canAfford(unit, 'poisonWeapon') && !unit.coated && !inShot && near <= unit.range + 3) return { id: 'poisonWeapon', target: unit };
     if (unit.spells.includes('pinningShot') && canAfford(unit, 'pinningShot')) {
       const threats = foes.filter((t) => isMelee(t) && !t.engagedWith && !isPinned(t) && distance(unit, t) >= 2 && distance(unit, t) <= spells.pinningShot.range &&
         distance(unit, t) <= moveOf(t) + (t.range || 1) + 1 && hasClearShot(unit, t)).sort((a, b) => distance(unit, a) - distance(unit, b));

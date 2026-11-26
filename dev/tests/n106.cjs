@@ -43,20 +43,20 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   archer.stepsUsed = 0;
   check('Patient Hunter: 5 more to hit standing still', still - moved === 5, still + ' vs ' + moved);
 
-  // 2. Poison Weapon: free, at once; usable after acting; the next hit that lands poisons
+  // 2. Poison Weapon (1.108, 26 Nov: no longer free): tap it, tap it again; it uses her action (no foe needed) and plays her
+  // dipping pose; the next hit that lands poisons
   b.onSpellButton(); b.chooseSpell('poisonWeapon');
+  check('Poison Weapon: one tap only picks it (a stray tap spends nothing)', archer.coated !== true && archer.hasActed === false);
+  const poses = new Set(); const iv = setInterval(() => { try { poses.add(archer.sprite.texture.key); } catch (e) {} }, 10);
+  b.chooseSpell('poisonWeapon'); await sleep(1200); clearInterval(iv);
   check('Poison Weapon coats her weapon', archer.coated === true);
-  check('...and costs no action', archer.hasActed === false && ended === 0);
+  check('...and uses her action (1.108)', archer.hasActed === true);
+  check('...with her dipping pose (archer_poison)', [...poses].some((k) => /archer_poison_f/.test(k)), [...poses].join(','));
   check('...ready again after 3 turns', St.cooldownOf(archer, 'poisonWeapon') === 3);
   archer.status.cooldowns = {}; archer.coated = false; archer.hasActed = true; b.refreshButtons();
-  check('after acting the Skills button stays live while Poison Weapon is ready', skillsBtn().enabled === true);
-  const entries = b.spellMenu(archer);
-  // 1.100 (22 Nov): her list shows by category (Shots, Tricks); the one live row is the category that holds Poison Weapon
-  let live = entries.filter((e) => e.enabled);
-  if (live.length === 1 && />$/.test(live[0].label.trim())) { b.openSpellGroup(live[0].label.replace('>', '').trim()); live = b.spellMenu(archer).filter((e) => e.enabled); b.spellGroup = null; }
-  check('...and only free skills are live in the list then', live.length === 1 && /Poison Weapon/.test(live[0].label), live.map((e) => e.label).join(','));
-  archer.hasActed = false; b.cancelMode();
-  b.chooseSpell('poisonWeapon');
+  check('after acting, Poison Weapon cannot be used (it is not free any more)', !b.freeSkillReady(archer));
+  archer.hasActed = false; b.cancelMode(); b.busy = false;
+  b.onSpellButton(); b.chooseSpell('poisonWeapon'); b.chooseSpell('poisonWeapon'); await sleep(1200); archer.hasActed = false; b.busy = false;
   let tries = 0;
   while (tries++ < 30) {
     bull.hp = bull.maxHp; bull.status = fresh();
@@ -126,7 +126,16 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const seen = b.units.filter((u) => u.alive);
   const pick = b.archerChoice(archer, seen);
   check('AI: Pinning Shot at the bull coming for her', pick && pick.id === 'pinningShot' && pick.target === bull, pick && pick.id);
-  check('AI: she coats her weapon first (free)', archer.coated === true);
+  check('AI: with a foe in reach she shoots; she does not spend her action coating (1.108)', archer.coated !== true);
+  // a foe coming but not yet in her bow's reach: she coats her arrows (it uses her action)
+  archer.coated = false; archer.status.cooldowns = {};
+  // (a free tile beyond her reach, at most 3 tiles past it)
+  let spotC = null;
+  for (let c = 0; c < 11 && !spotC; c++) for (let r = 0; r < 11 && !spotC; r++) { const d = C.distance(archer, { col: c, row: r }); if (d > archer.range && d <= archer.range + 3 && !b.isBlocked(c, r)) spotC = [c, r]; }
+  if (spotC) b.placeUnit(bull, spotC[0], spotC[1]);
+  const pickCoat = b.archerChoice(archer, b.units.filter((u) => u.alive));
+  check('AI: a foe coming, none in reach: she coats her weapon (1.108)', pickCoat && pickCoat.id === 'poisonWeapon', pickCoat && pickCoat.id + ' at ' + C.distance(archer, bull));
+  b.placeUnit(bull, 5, 4);
   archer.status.cooldowns.pinningShot = 2;
   for (const u of b.units) if (u.side === 'hero') b.placeUnit(u, u === bull ? 5 : u.col, u === bull ? 0 : 0);
   b.placeUnit(archer, 5, 10); b.placeUnit(bull, 6, 1);

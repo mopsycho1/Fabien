@@ -182,11 +182,9 @@ module.exports = function makeBrain(w, tally) {
       // ----- the archer on the heroes' side (1.82, 19.6): Poison Weapon through its button (free), then the scene's
       // own choice of Pinning Shot or Prime Bow, played through the menu like a player would
       if (u.closeWeapon && u.job === 'ranger' && !u.engagedWith) {
-        if (u.spells.includes('poisonWeapon') && St.canAfford(u, 'poisonWeapon') && !u.coated && nearFoe(u) <= u.range + 3) {
-          b.onSpellButton(); b.chooseSpell('poisonWeapon'); used('poisonWeapon'); b.cancelMode();
-        }
+        // (1.108: Poison Weapon uses her action now; archerChoice picks it like her other skills, tapped twice like Prime Bow)
         const pick = b.archerChoice(u, foes);
-        if (pick && (pick.id === 'primeBow' ? await cast('primeBow', u, true) : await cast(pick.id, pick.target))) return;
+        if (pick && (pick.id === 'primeBow' || pick.id === 'poisonWeapon' ? await cast(pick.id, u, true) : await cast(pick.id, pick.target))) return;
       }
       // ----- 2. the caster's own tricks -----
       if (u.spells.includes('husk')) {
