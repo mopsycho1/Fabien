@@ -2033,6 +2033,7 @@ export default class BattleScene extends Phaser.Scene {
     clearOffBalance(this.activeUnit); // it has found its footing again
     clearExposed(this.activeUnit);    // and it is on guard again after Meditating
     restoreMp(this.activeUnit, 1);     // magic points come back slowly, 1 a turn
+    this.activeUnit.tickSoaked = 0;
     const bleeding = isBleeding(this.activeUnit); // (the Thief's Ambush: Bleeding, 19.2)
     const poisoned = tickPoison(this.activeUnit); // poison bites at the start of the turn (never the last point)
     if (poisoned > 0) {
@@ -2040,6 +2041,11 @@ export default class BattleScene extends Phaser.Scene {
       this.floatText(this.activeUnit, (bleeding ? 'Bleeding -' : 'Poison -') + poisoned, bleeding ? '#ff7a7a' : '#9fdc6a', { pop: true });
     }
     const burned = tickBurn(this.activeUnit); // so does a burn (Layra's Wildfire)
+    if (this.activeUnit.tickSoaked > 0) { // Aegis took the tick (1.104)
+      const u = this.activeUnit, n = u.tickSoaked; u.tickSoaked = 0;
+      this.shieldFlash(u); this.floatText(u, 'Shield -' + n, '#f2d38a', { pop: true });
+      if (!u.shield) this.syncShieldDome(u);
+    }
     if (burned > 0) {
       this.updateHpBar(this.activeUnit);
       const burnt = this.activeUnit;
@@ -4598,7 +4604,7 @@ export default class BattleScene extends Phaser.Scene {
     let word = null;
     if (lands) {
       applyDisoriented(target, this.activeUnit === target, spell.hexTurns, 'haunt');
-      if (read === 'fire' && !isDrenched(target)) { applyBurn(target, spell.burnAs); word = ['Burning!', '#ff8a3c']; }
+      if (read === 'fire' && !isDrenched(target)) word = applyBurn(target, spell.burnAs) ? ['Burning!', '#ff8a3c'] : ['Blocked', '#f2d38a'];
       if (read === 'water') { applyDrenched(target, spell.drench); word = ['Drenched', '#7fd6c4']; }
       if (read === 'earth') { applySlow(target, 'haunt'); word = ['Bound', '#d9b77a']; }
       if (read === 'storm') { applyOffBalance(target); word = ['Shaken', '#bfd8ff']; }
@@ -7301,8 +7307,8 @@ export default class BattleScene extends Phaser.Scene {
         this.showImpact(user, target, { hit: true, damage: landed.damage, note: landed.note, element: fire ? 'fire' : 'water', level: Math.max(3, hitLevel(landed.damage, target.hp === 0)) }, dx, target.hp === 0);
         if (target.alive) {
           if (fire && !isDrenched(target)) {
-            applyBurn(target, 'elementBlast'); // burns like Wildfire (not a Drenched unit: the fire hisses out)
-            this.time.delayedCall(300, () => { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); });
+            const took = applyBurn(target, 'elementBlast'); // burns like Wildfire (not a Drenched unit: the fire hisses out); Aegis blocks it (1.104)
+            this.time.delayedCall(300, () => { this.floatText(target, took ? 'Burning!' : 'Blocked', took ? '#ff8a3c' : '#f2d38a', { rise: 46 }); this.refreshStatusTags(); });
           } else if (fire) {
             this.time.delayedCall(300, () => this.floatText(target, 'Too wet to burn', '#bfe8ff', { rise: 46 }));
           } else {
@@ -8169,7 +8175,7 @@ export default class BattleScene extends Phaser.Scene {
       note = landed.note;
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) this.defeat(target);
-      else applyPoison(target, 'poisonArrow');
+      else if (!applyPoison(target, 'poisonArrow')) this.time.delayedCall(560, () => target.alive && this.floatText(target, 'Blocked', '#f2d38a', { rise: 46 })); // (Aegis, 1.104)
     }
     const outcome = this.checkBattleEnd();
     if (outcome) this.battleOver = true;
@@ -8223,8 +8229,8 @@ export default class BattleScene extends Phaser.Scene {
   coatLands(attacker, target) {
     if (!attacker.coated || !target || !target.alive || target.isDecoy) return false;
     attacker.coated = false;
-    applyPoison(target, 'poisonArrow');
-    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, 'Poisoned', '#9fdc6a', { rise: 46 }); this.refreshStatusTags(); } });
+    const took = applyPoison(target, 'poisonArrow'); // (false: Aegis blocked it, 1.104)
+    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, took ? 'Poisoned' : 'Blocked', took ? '#9fdc6a' : '#f2d38a', { rise: 46 }); this.refreshStatusTags(); } });
     return true;
   }
 
@@ -8578,8 +8584,8 @@ export default class BattleScene extends Phaser.Scene {
       this.time.delayedCall(560, () => target.alive && this.floatText(target, 'Too wet to burn -1', '#bfe8ff', { rise: 46 }));
       return;
     }
-    applyBurn(target, 'kindleBurn');
-    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, 'Burning!', '#ff8a3c', { rise: 46 }); this.refreshStatusTags(); } });
+    const took = applyBurn(target, 'kindleBurn'); // (Aegis blocks it, 1.104)
+    this.time.delayedCall(560, () => { if (target.alive) { this.floatText(target, took ? 'Burning!' : 'Blocked', took ? '#ff8a3c' : '#f2d38a', { rise: 46 }); this.refreshStatusTags(); } });
   }
 
   // Haft Sweep: half a blow, Off-Balance and a push of 1 tile (allies may Relay the pushed foe)

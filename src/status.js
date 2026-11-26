@@ -442,9 +442,27 @@ export function isDisoriented(unit) {
 
 // Poison: a few points of health lost at the start of each of the unit's
 // next few turns. A new poison replaces an old one.
+// Aegis (Alagara, 10.46) holding on a fighter: poison, Bleeding and burn cannot take hold (1.104, Suleiman 22 Nov: "Had poison
+// hit me despite using aegis to nullify the damage"), and a tick on a fighter already poisoned is soaked by the shield.
+export function shielded(unit) {
+  return !!(unit && unit.shield && unit.shield.hp > 0);
+}
+// A tick of poison or burn against Aegis: the shield takes it (its points go down; at 0 it breaks). Returns what got through.
+function soakTick(unit, amount) {
+  if (!shielded(unit) || amount <= 0) return amount;
+  const soaked = Math.min(unit.shield.hp, amount);
+  unit.shield.hp -= soaked;
+  if (unit.shield.hp <= 0) unit.shield = null;
+  unit.tickSoaked = (unit.tickSoaked || 0) + soaked; // (read once by the battle to show "Shield -n")
+  return amount - soaked;
+}
+
+// Returns false when Aegis blocked it (the caller shows "Blocked" in place of "Poisoned").
 export function applyPoison(unit, spellId) {
+  if (shielded(unit)) return false;
   const spell = spells[spellId];
   statusOf(unit).poison = { id: spellId, turnsLeft: spell.turns, damage: spell.poison };
+  return true;
 }
 
 // Bleeding (the Thief's Ambush, 19.2) is a poison with the Ambush's numbers, shown as BLEEDING; a healing item stops it
@@ -466,7 +484,7 @@ export function curePoison(unit) {
 export function tickPoison(unit) {
   const p = statusOf(unit).poison;
   if (!p) return 0;
-  const lost = Math.min(p.damage, unit.hp - 1);
+  const lost = Math.min(soakTick(unit, p.damage), unit.hp - 1);
   unit.hp -= lost;
   p.turnsLeft -= 1;
   if (p.turnsLeft <= 0) statusOf(unit).poison = null;
@@ -499,8 +517,10 @@ export function tickRenewal(unit, locked = false) {
 // Burn works like poison: damage at the start of each of the unit's next few
 // turns, never the last point of health; Herbs put it out.
 export function applyBurn(unit, spellId) {
+  if (shielded(unit)) return false; // (Aegis blocks it, 1.104)
   const spell = spells[spellId];
   statusOf(unit).burn = { id: spellId, turnsLeft: spell.turns, damage: spell.burn };
+  return true;
 }
 
 export function isBurning(unit) {
@@ -514,7 +534,7 @@ export function cureBurn(unit) {
 export function tickBurn(unit) {
   const b = statusOf(unit).burn;
   if (!b) return 0;
-  const lost = Math.min(b.damage, unit.hp - 1);
+  const lost = Math.min(soakTick(unit, b.damage), unit.hp - 1);
   unit.hp -= lost;
   b.turnsLeft -= 1;
   if (b.turnsLeft <= 0) statusOf(unit).burn = null;

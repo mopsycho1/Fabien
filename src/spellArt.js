@@ -1070,8 +1070,11 @@ const AEGIS_HOLD = [6, 7, 8];
 export function aegisDome(scene, unit) {
   if (!sfxHas(scene, 'aegis') || !unit.view) return null;
   const info = SFX.aegis, keys = sfxKeys('aegis'), f = SFX_FIT('aegis');
-  const scale = f ? (bodyHeight(unit) * 1.15) / f.w : 0.4;   // a little wider than he is tall: it covers him
-  const img = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.9);
+  // 1.104 (Suleiman 22 Nov: "the dome created by aegis should be large enough to cover the character"): it was sized by its
+  // width (1.15 body heights), so its top came to about two thirds of the way up him. Now its drawn dome is 1.25 body heights
+  // tall (fit h) and 1.5 wide (a slightly taller dome than his sheet; it glows, so the stretch does not show)
+  const sx = f ? (bodyHeight(unit) * 1.5) / f.w : 0.4, sy = f ? (bodyHeight(unit) * 1.25) / f.h : 0.4;
+  const img = scene.add.sprite(0, 6, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(sx, sy).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.9);
   unit.view.add(img);
   const anim = 'sfxloop-aegis-hold';
   if (!scene.anims.exists(anim)) scene.anims.create({ key: anim, frames: AEGIS_HOLD.map((i) => ({ key: 'fx:' + keys[i] })), frameRate: 1000 / info.frameMs, repeat: -1, yoyo: true });

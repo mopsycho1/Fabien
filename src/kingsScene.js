@@ -706,7 +706,10 @@ export const kingMethods = {
   shieldFlash(unit) {
     const g = unit.shieldDome;
     if (!g || !g.active) return;
-    this.tweens.add({ targets: g, scaleX: 1.12, scaleY: 1.12, duration: 90, yoyo: true });
+    // (from its own size: Suleiman's GIF dome is drawn at a scale far from 1, 1.104)
+    if (g.baseSX === undefined) { g.baseSX = g.scaleX; g.baseSY = g.scaleY; }
+    if (g.flash) g.flash.stop(); g.setScale(g.baseSX, g.baseSY); // (only the last flash; the drawn dome's slow pulse goes on)
+    g.flash = this.tweens.add({ targets: g, scaleX: g.baseSX * 1.12, scaleY: g.baseSY * 1.12, duration: 90, yoyo: true });
   },
 
   // ---------- Alagara: Gale Cut ----------

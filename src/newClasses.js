@@ -285,7 +285,7 @@ export const newClassMethods = {
       if (target.hp === 0) this.defeat(target);
       else {
         applyExposed(target, { defense: spell.weaken.defense, evade: 0 }); // Armor Weakening
-        applyPoison(target, 'ambush'); // Bleeding (status.poison with the Ambush's numbers; tagged BLEEDING)
+        target.bleedBlocked = !applyPoison(target, 'ambush'); // Bleeding (status.poison with the Ambush's numbers; tagged BLEEDING); Aegis blocks it (1.104)
       }
     }
     const dx = target.view.x - caster.view.x;
@@ -296,7 +296,7 @@ export const newClassMethods = {
     this.time.delayedCall(260, () => {
       this.showPose(caster, 'attack', dx);
       this.showImpact(caster, target, { hit, damage, note }, dx, target.hp === 0);
-      if (hit && target.alive) this.time.delayedCall(300, () => target.alive && this.floatText(target, 'Bleeding, armour weakened', '#ff7a7a', { rise: 52 }));
+      if (hit && target.alive) this.time.delayedCall(300, () => target.alive && this.floatText(target, target.bleedBlocked ? 'Armour weakened' : 'Bleeding, armour weakened', '#ff7a7a', { rise: 52 }));
     });
     this.newFinish(onDone, 1200);
   },
