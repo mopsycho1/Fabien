@@ -214,6 +214,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': 
 const hex = (n) => '#' + (n >>> 0).toString(16).padStart(6, '0').slice(-6);
 // the Settings button: a small gold gear (20 Nov polish; it was the word "Settings" in a box)
 const GEAR = '<svg viewBox="0 0 24 24" aria-label="Settings" role="img"><path d="M12 8.2A3.8 3.8 0 1 0 12 15.8A3.8 3.8 0 1 0 12 8.2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.3 2.5H13.7L14.2 5.1L16.1 6L18.4 4.6L20.4 6.6L19 8.9L19.9 10.8L22.5 11.3V14.7L19.9 15.2L19 17.1L20.4 19.4L18.4 21.4L16.1 20L14.2 20.9L13.7 23.5H10.3L9.8 20.9L7.9 20L5.6 21.4L3.6 19.4L5 17.1L4.1 15.2L1.5 14.7V11.3L4.1 10.8L5 8.9L3.6 6.6L5.6 4.6L7.9 6L9.8 5.1Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+const EYE = '<svg viewBox="0 0 24 24" aria-label="Hide the battle screen" role="img"><path d="M2 12C4.5 7.5 8 5.5 12 5.5S19.5 7.5 22 12C19.5 16.5 16 18.5 12 18.5S4.5 16.5 2 12Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 const CORNERS = '<i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>';
 
 export class DomHud {
@@ -236,6 +237,7 @@ export class DomHud {
     this.list = el('abs');
     this.turnp = el('fp fl turnp');
     this.settingsBtn = el('btn tap gear');
+    this.eyeBtn = el('btn tap gear eye'); // Hide the battle screen for a screenshot (1.110; H on a computer)
     this.hint = el('abs hint');
     this.card = el('fp card tap');
     this.skill = el('fp fl skill');
@@ -407,6 +409,7 @@ export class DomHud {
       if (u && u.alive && !sc.busy) sc.inspect(u);
     });
     this.settingsBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); if (sc.settingsButton) sc.settingsButton.emit('pointerdown', ptr(e)); });
+    this.eyeBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (sc.toggleUi) sc.toggleUi(true); });
     this.sheetBox.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       const opt = e.target.closest('[data-opt]');
@@ -725,9 +728,12 @@ export class DomHud {
     const sc = this.scene;
     const g = sc.settingsGeo;
     this.show(this.settingsBtn, !!g);
+    this.show(this.eyeBtn, !!g);
     if (g) {
       this.box(this.settingsBtn, g.x, g.y, g.w, g.h);
       this.html('setbtn', this.settingsBtn, 'gear', () => GEAR);
+      this.box(this.eyeBtn, g.x - g.w - Math.round(g.w * 0.9), g.y, g.w, g.h); // the eye, left of the gear
+      this.html('eyebtn', this.eyeBtn, 'eye', () => EYE);
     }
     const open = !!(sc.settingsSheet && sc.settingsSheet.visible);
     this.show(this.sheetBox, open);

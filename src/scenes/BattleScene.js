@@ -947,6 +947,7 @@ export default class BattleScene extends Phaser.Scene {
       this.input.keyboard?.on('keydown-E', () => this.rotateCamera(1));
       // M8 (checklist E3): Esc cancels, Enter confirms, Space ends the turn
       this.input.keyboard?.on('keydown-ESC', () => this.keyCancel());
+      this.input.keyboard?.on('keydown-H', () => this.toggleUi()); // hide or show the battle screen for a screenshot (1.110)
       // Roadmap 14.2: the arrow keys look around the board (held down, they keep going)
       this.input.keyboard?.on('keydown-LEFT', () => this.panBy(-1, 0));
       this.input.keyboard?.on('keydown-RIGHT', () => this.panBy(1, 0));
@@ -1347,6 +1348,7 @@ export default class BattleScene extends Phaser.Scene {
       this.activeMarker.setVisible(!!on);
       if (on) this.activeMarker.setPosition(u.view.x, u.view.y - u.topY - 34 - this.markerBob.v * 7);
     }
+    if (this.uiHidden) this.applyUiHidden(); // (after everything that shows HUD parts this frame, the turn arrow too, 1.110)
     if (this.autoMove && this.mode === 'idle' && !this.busy && !this.battleOver && !this.inCinematic && !this.rotating) {
       if (u && u.side === 'hero' && u.alive && !u.engagedWith && this.stepsLeft(u) > 0) this.startMove(true);
     }
@@ -10009,6 +10011,49 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshStatusTags();
     this.resumed = true;
     return true;
+  }
+
+  // ---------- Hide the battle screen for screenshots (1.110, Suleiman 22 Nov 23:04: "I'd like an option to hide the ui so we
+  // can take screenshots") ----------
+  // The eye button (left of the Settings gear) or H on a computer hides everything but the board and the fighters: the HTML HUD,
+  // the canvas HUD camera, the plates, tags, rings and tile marks over the fighters, and the coloured tiles. H, or a tap
+  // anywhere, brings it back (that tap does nothing else). The battle itself is not paused.
+  toggleUi(hide = !this.uiHidden) {
+    this.uiHidden = !!hide;
+    if (this.domHud && this.domHud.root) this.domHud.root.style.display = this.uiHidden ? 'none' : '';
+    if (this.uiCam) this.uiCam.setVisible(!this.uiHidden);
+    if (!this.uiHidden) {
+      for (const u of this.units) for (const k of ['plate', 'tagRow', 'tileMark', 'miniBar']) if (u[k] && u[k].setVisible && u.uiWas && u.uiWas[k] !== undefined) u[k].setVisible(u.uiWas[k]);
+      for (const u of this.units) u.uiWas = null; // (the rims come back by themselves: syncRims sets them every frame)
+      for (const h of this.highlights || []) if (h && h.setVisible) h.setVisible(true);
+      if (this.unhideCatcher) { this.unhideCatcher.remove(); this.unhideCatcher = null; }
+      this.refreshStatusTags && this.refreshStatusTags();
+      return;
+    }
+    for (const u of this.units) {
+      u.uiWas = {};
+      for (const k of ['plate', 'tagRow', 'tileMark', 'miniBar']) if (u[k] && u[k].visible !== undefined) u.uiWas[k] = u[k].visible;
+    }
+    this.applyUiHidden();
+    // a tap anywhere brings it back (on a phone there is no H key); it covers the page so the tap reaches nothing else
+    if (typeof document !== 'undefined' && this.game.canvas && this.game.canvas.parentElement) {
+      const c = document.createElement('div');
+      c.id = 'fabien-unhide';
+      c.style.cssText = 'position:absolute;inset:0;z-index:50;background:transparent;';
+      c.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); this.toggleUi(false); });
+      this.game.canvas.parentElement.appendChild(c);
+      this.unhideCatcher = c;
+    }
+  }
+
+  // Every frame while hidden: other code shows plates and marks again as the battle goes on
+  applyUiHidden() {
+    for (const u of this.units) {
+      for (const k of ['plate', 'tagRow', 'tileMark', 'miniBar']) if (u[k] && u[k].setVisible) u[k].setVisible(false);
+      if (u.rims) for (const r of [].concat(u.rims)) if (r && r.setVisible) r.setVisible(false);
+    }
+    for (const h of this.highlights || []) if (h && h.setVisible) h.setVisible(false);
+    if (this.activeMarker && this.activeMarker.setVisible) this.activeMarker.setVisible(false);
   }
 
   // ---------- Mouse and keyboard on a computer (M8, checklist E3) ----------

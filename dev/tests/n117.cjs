@@ -4,6 +4,7 @@
 //   1.106 Gaha's Attack and Lunge strike with his newest drawn thrust (the 18 Nov lunge attack sheet), never the old skeleton-era frames
 //   1.107 Sudeen keeps his sword and shield in the same hands across stance, attack, block and wind-up in each facing
 //   1.109 Rabdul's Spear Ward fires when he is Blinded and at a Hidden walker (Suleiman 22 Nov 22:50; Baiyee chose it 26 Nov)
+//   1.110 the battle screen hides for a screenshot (and comes back)
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -117,6 +118,18 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   check('1.109 the Spear Ward fires at a Hidden walker', warder.zone === null || warder.zone.charges === 0, JSON.stringify(warder.zone));
   check('1.109 ...and a hit shows the walker again (or it missed and stays hidden)', walker.hp < walker.maxHp ? !walker.hidden : true, 'hp ' + walker.hp + ', hidden ' + walker.hidden);
   warder.zone = null; walker.hidden = false;
+
+  // ---------- 1.110 ----------
+  const sud10 = U('h1');
+  sud10.plate.setVisible(true);
+  b.toggleUi(true); await sleep(200);
+  const hiddenNow = b.uiHidden === true && (!b.uiCam || b.uiCam.visible === false) && b.units.every((u) => !u.plate || !u.plate.visible) && (b.highlights || []).every((h) => !h.visible);
+  b.showHpBar && b.showHpBar(sud10); await sleep(200); // something that shows a plate while hidden
+  const stillHidden = !sud10.plate.visible;
+  b.toggleUi(false); await sleep(200);
+  check('1.110 hide: the HUD camera, plates and coloured tiles go', hiddenNow);
+  check('1.110 ...and stay hidden while the battle shows things', stillHidden);
+  check('1.110 show again: the HUD camera and the plate that was showing come back', b.uiHidden === false && (!b.uiCam || b.uiCam.visible === true) && sud10.plate.visible === true);
 
   // (more parts follow, one per fix)
 
