@@ -49,6 +49,8 @@ export function snapshot(scene) {
     turnCount: scene.turnCount,
     lastEnemyClashTurn: scene.lastEnemyClashTurn === undefined ? null : scene.lastEnemyClashTurn,
     damageTaken: { ...(scene.damageTaken || {}) },
+    // who fights on which side (1.105): Continue must build the same fighters, or the save does not match them
+    lineUp: { hero: units.filter((u) => u.side === 'hero').map((u) => u.id), enemy: units.filter((u) => u.side !== 'hero').map((u) => u.id) },
     units: units.map((u) => {
       const data = {};
       for (const k of Object.keys(u)) {

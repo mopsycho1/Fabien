@@ -90,7 +90,7 @@ import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enem
 import { isBleeding, healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement, applyPinned, isPinned, pinnedFrom, patientBonus, setWardUnits, wardShare, wardActive } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
-import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
+import { testMode, setTestMode, fieldedEntries, startingLineUp } from '../lineup.js';
 import { queueBattleArt, fighterIds, showLoadBar, retryFailedArt } from '../battleLoad.js';
 import { pauseBackgroundDownload } from '../prefetch.js';
 import { artUrl } from '../artUrl.js';
@@ -186,6 +186,14 @@ export default class BattleScene extends Phaser.Scene {
     this.resumeAsked = !!(data && data.resume); // "Continue the battle" on the title screen (M16)
     // the line-up picked on the character select (18.30): { hero: [ids], enemy: [ids] }, or null for the map's own
     this.chosenLineUp = data && data.lineUp ? data.lineUp : null;
+    // Continue after a refresh (1.105, Suleiman 23 Nov: "when you refresh and load a fight it starts you off at the very beginning
+    // playing as the default team"). CAUSE: the save did not record who was fighting, so the battle built the map's default team,
+    // the saved fighters did not match it, and the resume was refused. Now: the save's own line-up; a save made before it
+    // recorded one falls back to the remembered line-up (the character select's)
+    if (this.resumeAsked && !this.chosenLineUp) {
+      const save = readSave();
+      this.chosenLineUp = (save && save.lineUp) || startingLineUp(MAPS[this.mapName]);
+    }
   }
 
   // Phaser calls preload() before create(): the pictures of the fighters picked plus the board,

@@ -1,5 +1,6 @@
 // 26 Nov batch (Suleiman 22 to 26 Nov). Run with FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1.
 //   1.103 no floor or painted shadow left under Layra's standing and battle pictures (dev/tools/shadow_clean.py --check)
+//   1.105 the save records the line-up with its sides, so Continue builds the same fighters (dev/browser/resume_lineup.cjs: the reload)
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -46,6 +47,12 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   b.shieldFlash(sud); await sleep(400);
   check('1.104 a hit on the shield flashes the dome and leaves its size', dome && Math.abs(dome.scaleY * ae.fit.h - domeH) < 1, (dome && dome.scaleY));
   sud.shield = null; b.syncShieldDome(sud);
+
+  // ---------- 1.105 ----------
+  const snap = w.__save ? w.__save.snapshot(b) : null;
+  const sides = b.units.map((u) => u.id + ':' + u.side).sort().join(' ');
+  const saved = snap && snap.lineUp ? [...snap.lineUp.hero.map((i) => i + ':hero'), ...snap.lineUp.enemy.map((i) => i + ':enemy')].sort().join(' ') : 'no lineUp in the save';
+  check('1.105 the save records who fights on which side', saved === sides, saved);
 
   // (more parts follow, one per fix)
 
