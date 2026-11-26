@@ -8541,6 +8541,9 @@ export default class BattleScene extends Phaser.Scene {
     if (z.charges <= 0) this.clearZoneMark(w);
     const dx = walker.view.x - w.view.x;
     this.faceToward(w, dx, walker.view.y - w.view.y);
+    // 1.109 (Suleiman 22 Nov 22:50: "Rabdul's spear ward should react even when blinded or surprised by a hidden target"): it
+    // fires whatever he can see (Blinded still takes its miss penalty off the blow); the callout says why
+    if (isBlinded(w) || walker.hidden) this.time.delayedCall(220, () => w.alive && this.floatText(w, 'Senses it!', '#cfe3ff', { rise: 52 }));
     this.floatText(w, z.mode === 'spear' ? 'Spear Ward!' : z.mode === 'sling' ? 'Suppressive Fire!' : 'Hold the Line!', z.mode === 'spear' ? '#9fc4e8' : z.mode === 'sling' ? '#e8c88a' : '#d9b77a', { rise: 30 });
     if (z.mode === 'sling') { // Leol's stone (19.1)
       this.showPose(w, 'attack', dx);

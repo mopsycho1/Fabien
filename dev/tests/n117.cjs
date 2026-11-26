@@ -3,6 +3,7 @@
 //   1.105 the save records the line-up with its sides, so Continue builds the same fighters (dev/browser/resume_lineup.cjs: the reload)
 //   1.106 Gaha's Attack and Lunge strike with his newest drawn thrust (the 18 Nov lunge attack sheet), never the old skeleton-era frames
 //   1.107 Sudeen keeps his sword and shield in the same hands across stance, attack, block and wind-up in each facing
+//   1.109 Rabdul's Spear Ward fires when he is Blinded and at a Hidden walker (Suleiman 22 Nov 22:50; Baiyee chose it 26 Nov)
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -101,6 +102,21 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   }
   check('1.107 Sudeen: in every facing his stance, attack and block come from the same side of the mirror', bad7.length === 0, bad7.join(' | ') || 'as read');
   check('1.107 Sudeen: the dodge and ready stance follow the battle stance', JSON.stringify(artH1.poses.dodge) === JSON.stringify(artH1.battle) && JSON.stringify(artH1.poses.ready) === JSON.stringify(artH1.battle));
+
+  // ---------- 1.109 ----------
+  // Rabdul (e4) is benched in this line-up; the ward is his skill, so it is set on the Bull here, as castZoneWard sets it
+  const warder = U('e2'), walker = U('h1');
+  const ward = () => { warder.zone = { name: 'Spear Ward', color: '#9fc4e8', mode: 'spear', charges: 1, damageShare: 1, pushOnHit: 0, guardBonus: 0, radius: 1 }; };
+  const walkIn = () => new Promise((r) => { let ok = false; b.activeUnit = walker; walker.stepsUsed = 0; b.moveUnit(walker, 5, 5, () => { ok = true; r(true); }); setTimeout(() => !ok && r(false), 5000); });
+  const park9 = () => b.units.forEach((u, i) => { if (u !== warder && u !== walker) b.placeUnit(u, [[0, 0], [10, 0], [0, 10], [10, 10], [1, 0], [9, 0]][i % 6][0], [[0, 0], [10, 0], [0, 10], [10, 10], [1, 0], [9, 0]][i % 6][1]); u.engagedWith = null; u.hp = u.maxHp = 300; u.status = { cooldowns: {} }; u.hidden = false; u.stepsUsed = 0; });
+  park9(); b.placeUnit(warder, 5, 4); b.placeUnit(walker, 5, 8); ward(); w.__status.applyBlinded(warder);
+  await walkIn(); await sleep(900);
+  check('1.109 a Blinded warder\'s Spear Ward still fires', warder.zone === null || warder.zone.charges === 0, JSON.stringify(warder.zone));
+  park9(); b.placeUnit(warder, 5, 4); b.placeUnit(walker, 5, 8); ward(); walker.hidden = true; walker.smokeHidden = true;
+  await walkIn(); await sleep(900);
+  check('1.109 the Spear Ward fires at a Hidden walker', warder.zone === null || warder.zone.charges === 0, JSON.stringify(warder.zone));
+  check('1.109 ...and a hit shows the walker again (or it missed and stays hidden)', walker.hp < walker.maxHp ? !walker.hidden : true, 'hp ' + walker.hp + ', hidden ' + walker.hidden);
+  warder.zone = null; walker.hidden = false;
 
   // (more parts follow, one per fix)
 
