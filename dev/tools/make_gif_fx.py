@@ -106,6 +106,9 @@ FILES = {
     'sfx_arcane_charge': ('Alagara update/Alagara update/Effects/Magical Arcane Charging Spiral.gif', 'keep', 0.502, 0.92),       # Radiant Rift's charge; tinted, Layra's channel (1.97)
     # 22 Nov (19.2): the Thief's trap, folder INBOX/2026-11-19/email, ONLY=sfx_trap_burst
     'sfx_trap_burst': ('Male Thief character sheets/Male Thief character sheets/skill effects/trap exploding.gif', 'keep', 0.5, 0.85),
+    # 26 Nov (6.94): Rabdul's Kindle the Haft (his Fury Verse of Enchant), folder INBOX/2026-11-26/email, ONLY=buff_kindle_loop.
+    # A flame streak rising from lower left to upper right, sparks round it: it burns on him while his spear is kindled.
+    'buff_kindle_loop': ("Ward Ui and New Enchantment effect for Rabdul's spell/Animated Shango Flame Aura.gif", 'box', 0.5, 0.5),
     'sfx_orb_burst': ('Dark Magic Orb Explosion Animation/Dark Magic Orb Explosion Animation.gif', 'keep', 0.5, 0.92),         # Gadara's orb bursting (6.91)
 }
 
@@ -193,7 +196,7 @@ def main():
             slots['spells'][name[4:]] = {**slots['spells'].get(name[4:], {}), **info}
         else:
             _, verse, part = name.split('_')
-            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt', 'blade': 'blade', 'slow': 'slow'}[verse]
+            vid = {'swiftness': 'swiftness', 'fury': 'fury', 'stone': 'stone', 'renewal': 'renewal', 'haunt': 'haunt', 'blade': 'blade', 'slow': 'slow', 'kindle': 'kindle'}[verse]
             slot = slots['buffs'].setdefault(vid, {'cast': 0, 'loop': 0, 'frameMs': 80, 'scale': 0.5, 'feetY': 0.4})
             slot[part] = len(frs); slot[part + 'Ms'] = ms[0]
         made.append(name)

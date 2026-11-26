@@ -225,6 +225,28 @@
      "layer": "front"
     }
    }
+  },
+  "kindle": {
+   "cast": 0,
+   "loop": 9,
+   "frameMs": 80,
+   "scale": 0.5,
+   "feetY": 0.4,
+   "loopMs": 110,
+   "fit": {
+    "loop": {
+     "h": 151,
+     "w": 194,
+     "mx": 132,
+     "my": 90,
+     "by": 166,
+     "W": 264,
+     "H": 182,
+     "k": 0.95,
+     "anchor": "base",
+     "layer": "behind"
+    }
+   }
   }
  },
  "spells": {

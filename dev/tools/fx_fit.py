@@ -41,6 +41,7 @@ WANT_BUFF = {
     # the Haunt smoke stands on the floor round the feet of the haunted unit
     ('renewal', 'loop'): dict(k=1.0, anchor='centre', layer='split'),
     ('renewal', 'cast'): dict(k=1.3, anchor='base', layer='behind'),
+    ('kindle', 'loop'): dict(k=0.95, anchor='base', layer='behind'),   # Kindle the Haft's flame (6.94): it hugs him, over his Fury aura
     ('haunt', 'loop'): dict(k=1.2, anchor='base', layer='behind'),
     # Gadara's weapon aura (6.75): purple energy round his sword-staff while he holds it blade first, over the figure
     ('blade', 'loop'): dict(k=0.9, anchor='centre', layer='front'),

@@ -9427,7 +9427,10 @@ export default class BattleScene extends Phaser.Scene {
       // Kofi's Haunt: the teal and violet smoke stands round the feet of a haunted unit while the hex lasts (6.63;
       // back on 20 Nov, 1.71: Suleiman wants his original look; 1.57 had made it play once only)
       this.keepAura(unit, 'drawnAura_haunt', unit.alive && !!unit.status && !!unit.status.disoriented && unit.status.disoriented.by === 'haunt' && hasBuffLoop(this, 'haunt'), () => buffLoopFx(this, unit, 'haunt'));
-      this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
+      // Kindle the Haft (his Fury Verse of Enchant, on his own spear): Suleiman's Shango flame aura burns on him (6.94)
+      const kindled = unit.alive && isEnchanted(unit) && unit.status.enchant.id === 'kindleHaft';
+      this.keepAura(unit, 'drawnAura_kindle', kindled && hasBuffLoop(this, 'kindle'), () => buffLoopFx(this, unit, 'kindle'));
+      this.keepAura(unit, 'drawnAura_enchant', unit.alive && isEnchanted(unit) && !(kindled && hasBuffLoop(this, 'kindle')) && hasBuffLoop(this, 'enchant'), () => buffLoopFx(this, unit, 'enchant'));
       // Gadara holding the blade end: his purple weapon aura (6.75)
       this.keepAura(unit, 'drawnAura_blade', unit.alive && unit.grip === 'blade' && hasBuffLoop(this, 'blade'), () => weaponAuraFx(this, unit, 'blade') || buffLoopFx(this, unit, 'blade')); // (laid on his staff in every picture, 10.37)
       const swift = unit.alive && buffOf(unit) && buffOf(unit).id === 'swiftness' && !hasBuffLoop(this, 'swiftness');

@@ -6,6 +6,7 @@
 //   1.109 Rabdul's Spear Ward fires when he is Blinded and at a Hidden walker (Suleiman 22 Nov 22:50; Baiyee chose it 26 Nov)
 //   1.110 the battle screen hides for a screenshot (and comes back)
 //   6.93 Sudeen's Ward shows Suleiman's Golden Shield Triad: lit when on, dark when off (tag and Skills row)
+//   6.94 Rabdul's Kindle the Haft burns with Suleiman's Shango flame aura; plain Enchant does not
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -141,6 +142,17 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   s93.wardOff = false;
   check('6.93 the WARD tag shows his shield, lit on and dark off', tagOn && tagOn.icon === 'ward' && tagOff && tagOff.icon === 'ward_off' && game.textures.exists('icon:ward') && game.textures.exists('icon:ward_off'), JSON.stringify([tagOn, tagOff]));
   check('6.93 the Ward row in his Skills shows the shield emblem', !rowOn || (rowOn.emblem === 'ward' && !rowOn.el && game.textures.exists('ui:emblem_ward')), rowOn ? rowOn.emblem + ' ' + rowOn.el : 'row in a group');
+
+  // ---------- 6.94 ----------
+  // Rabdul (e4) is benched here: the aura follows the Kindle the Haft enchant, so it is tried on the Bull
+  const r94 = U('e2'); const St94 = w.__status;
+  St94.applyEnchant(r94, 'kindleHaft'); b.refreshStatusTags(); await sleep(300);
+  const onK = !!r94.drawnAura_kindle && game.textures.exists('fx:buff_kindle_loop_0');
+  St94.applyEnchant(r94, 'enchant'); b.refreshStatusTags(); await sleep(300);
+  const offK = !r94.drawnAura_kindle;
+  r94.status.enchant = null; b.refreshStatusTags();
+  check('6.94 Kindle the Haft shows the flame aura (9 frames)', onK, Object.keys(r94).filter((k) => /Aura/.test(k)).join(','));
+  check('6.94 ...and a plain Enchant does not', offK);
 
   // (more parts follow, one per fix)
 

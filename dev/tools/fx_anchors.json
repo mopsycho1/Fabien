@@ -362,6 +362,12 @@
       "anchor": "keep",
       "originX": 0.5,
       "originY": 0.85
+    },
+    "buff_kindle_loop": {
+      "frames": 9,
+      "anchor": "box",
+      "originX": 0.5,
+      "originY": 0.5
     }
   }
 }
