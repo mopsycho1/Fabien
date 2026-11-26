@@ -164,9 +164,24 @@ module.exports = function makeBrain(w, tally) {
         const t = b.hornChoice(u);
         if (t && await cast('hornCharge', t)) return;
       }
+      // ----- Leol and the Thief (19.1, 19.2) on the heroes' side: the scene's own choice (newClassChoice), played through
+      // the menu like a player would (a tile skill taps its tile twice; Suppressive Fire is tapped twice on himself)
+      if ((u.job === 'slinger' || u.job === 'infiltrator') && !u.engagedWith) {
+        const pick = b.newClassChoice(u, foes);
+        if (pick && pick.wait && !u.hasMoved) { note('bot hide'); return; } // the Thief ends his turn unseen: he hides
+        if (pick && pick.id) {
+          const sp = w.__spells ? w.__spells[pick.id] : require("../../src/data/spells.json")[pick.id];
+          if (sp.kind === 'barricade' || sp.kind === 'trap') {
+            b.onSpellButton(); b.chooseSpell(pick.id);
+            if (b.mode === 'huskTile') { b.handleTap(pick.target.col, pick.target.row); b.handleTap(pick.target.col, pick.target.row); await waitIdle(); }
+            if (u.hasActed) { used(pick.id); return; }
+            b.cancelMode();
+          } else if (await cast(pick.id, pick.target, pick.target === u)) return;
+        }
+      }
       // ----- the archer on the heroes' side (1.82, 19.6): Poison Weapon through its button (free), then the scene's
       // own choice of Pinning Shot or Prime Bow, played through the menu like a player would
-      if (u.closeWeapon && !u.engagedWith) {
+      if (u.closeWeapon && u.job === 'ranger' && !u.engagedWith) {
         if (u.spells.includes('poisonWeapon') && St.canAfford(u, 'poisonWeapon') && !u.coated && nearFoe(u) <= u.range + 3) {
           b.onSpellButton(); b.chooseSpell('poisonWeapon'); used('poisonWeapon'); b.cancelMode();
         }

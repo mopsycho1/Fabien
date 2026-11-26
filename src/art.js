@@ -125,6 +125,7 @@ function allFiles(entry) {
     }
     for (const value of Object.values(group)) if (!isFacingSet(value)) files.add(fileOf(value));
   }
+  for (const f of Object.values(entry.props || {})) files.add(fileOf(f)); // things a fighter puts on the board (Leol's barricade, 19.1)
   if (entry.portrait) files.add(entry.portrait);
   if (entry.shout) files.add(entry.shout);
   if (entry.portraitHurt) files.add(entry.portraitHurt);

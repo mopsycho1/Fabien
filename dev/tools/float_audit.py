@@ -21,7 +21,7 @@ def pictures(entry, path=''):
         if 'file' in entry and isinstance(entry['file'], str) and entry['file'].endswith('.png'):
             yield path, entry['file']; return
         for k, v in entry.items():
-            if k in ('portrait', 'portraitHurt', 'shout', 'clash', 'ruler', 'hurtFaces') or k.startswith('note'): continue
+            if k in ('portrait', 'portraitHurt', 'shout', 'clash', 'ruler', 'hurtFaces', 'props') or k.startswith('note'): continue   # (props: Leol's barricade, not a figure)
             yield from pictures(v, path + '.' + k)
 def run(fix=False):
     bad = []; seen = set()

@@ -863,6 +863,26 @@
     "tiles": 1.0
    },
    "note": "1.97: a white copy of arcane_charge (dev/tools/make_channel_fx.py), tinted by the spell Layra casts. Replace with his own channel effect when it comes."
+  },
+  "trap_burst": {
+   "frames": 9,
+   "frameMs": 110,
+   "originX": 0.5,
+   "originY": 0.85,
+   "size": [
+    207,
+    207
+   ],
+   "fit": {
+    "h": 158,
+    "w": 163,
+    "mx": 102,
+    "my": 94,
+    "by": 173,
+    "W": 207,
+    "H": 207,
+    "tiles": 1.0
+   }
   }
  },
  "wrap": {

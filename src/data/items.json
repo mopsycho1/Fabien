@@ -11,6 +11,8 @@
     "default": { "sheaBalm": 1 },
     "vessel": { "sheaBalm": 1, "kolaNut": 1 },
     "sovereign": { "sheaBalm": 1, "kolaNut": 1 },
+    "slinger": { "sheaBalm": 1, "kolaNut": 1 },
+    "infiltrator": { "sheaBalm": 1, "bitterLeaf": 1 },
     "guardian": { "sheaBalm": 1, "kolaNut": 1 },
     "spearman": { "sheaBalm": 1, "bitterLeaf": 1 },
     "sage": { "spiritWater": 1, "bitterLeaf": 1 },

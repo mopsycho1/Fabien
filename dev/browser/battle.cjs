@@ -4,6 +4,7 @@
 //   node dev/browser/battle.cjs            phone (390 x 844) then desktop (1440 x 900)
 //   node dev/browser/battle.cjs phone      one of them only
 //   node dev/browser/battle.cjs both 5     5 battles on each screen (checklist H3), two at a time
+//   LINEUP='{"hero":[...],"enemy":[...]}' plays that line-up (a character may stand on either side; 26 Nov, Leol and the Thief)
 // Prints one PASS or FAIL line per screen and ends with "ALL PASSED" when no page
 // error happened and every battle reached its end. A battle takes 3 to 10 minutes.
 const { openBattle, startPlayer, waitForEnd } = require('./lib/play.cjs');
@@ -14,7 +15,7 @@ const { openBattle, startPlayer, waitForEnd } = require('./lib/play.cjs');
   let bad = 0;
   // the screens play side by side to save time; rounds follow one another
   for (let round = 1; round <= rounds; round++) await Promise.all(views.map(async (view) => {
-    const { browser, page, errors } = await openBattle(view);
+    const { browser, page, errors } = await openBattle(view, process.env.LINEUP ? { lineUp: JSON.parse(process.env.LINEUP) } : {});
     await startPlayer(page);
     const end = await waitForEnd(page);
     await browser.close();

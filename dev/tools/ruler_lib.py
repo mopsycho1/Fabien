@@ -27,7 +27,7 @@ def pic(v):
     return {'file': v['file'], 'originX': v.get('originX', 0.5), 'flip': bool(v.get('flip')), 'placed': 'originX' in v}
 
 # parts of an art.json entry that are faces, banners or notes, not body pictures
-SKIP = ('name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'weapon', 'swingFx', 'channelFx')
+SKIP = ('props', 'name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'weapon', 'swingFx', 'channelFx')
 
 def inventory(entry):
     """Every body picture of one character, in art.json order.

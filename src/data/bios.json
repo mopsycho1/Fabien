@@ -40,6 +40,16 @@
       "name": "Archer",
       "line": "",
       "bio": ""
+    },
+    "h6": {
+      "name": "Leol",
+      "line": "Slinger: sling at range, hammer up close, smoke and barricades to shield his allies.",
+      "bio": ""
+    },
+    "e6": {
+      "name": "Thief",
+      "line": "Infiltrator: hides, sets traps, and ambushes from hiding to make foes bleed.",
+      "bio": ""
     }
   }
 }

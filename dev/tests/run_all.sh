@@ -46,6 +46,7 @@ settings_for() {
     n107) echo 'FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1 FABIEN_SIDES={"e5":"hero","h5":"enemy"}' ;; # Gadara's menu as a player (10.51)
     n108|n109|n110) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;; # Sudeen, Rabdul, the Bull (Batch 7)
     n111|n112|n113|n114|n115) echo "FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1" ;; # item bags for everyone, part 1 bugs of 22 Nov (the kings on the board)
+    n116) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=h4,e1" ;; # Leol and the Thief (19.1, 19.2)
   esac
 }
 

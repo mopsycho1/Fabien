@@ -8,5 +8,7 @@
   { "id": "e2", "name": "Bull Commander", "label": "E2", "side": "enemy", "job": "warlord",  "col": 4, "row": 1, "hp": 48 },
   { "id": "e3", "name": "Archer", "label": "E3", "side": "enemy", "job": "ranger",   "col": 3, "row": 0, "attack": 5, "hp": 29 },
   { "id": "h5", "name": "Alagara", "label": "H5", "side": "hero",  "job": "vessel",    "col": 1, "row": 7, "bench": true },
-  { "id": "e5", "name": "Gadara",  "label": "E5", "side": "enemy", "job": "sovereign", "col": 4, "row": 0, "bench": true }
+  { "id": "e5", "name": "Gadara",  "label": "E5", "side": "enemy", "job": "sovereign", "col": 4, "row": 0, "bench": true },
+  { "id": "h6", "name": "Leol",    "label": "H6", "side": "hero",  "job": "slinger",   "col": 6, "row": 7, "bench": true },
+  { "id": "e6", "name": "Thief",   "label": "E6", "side": "enemy", "job": "infiltrator", "col": 1, "row": 0, "bench": true }
 ]

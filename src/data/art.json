@@ -2282,6 +2282,8 @@
     "note_bless": "21 Nov (6.86, dev/tools/make_layra_bless.py): under any Verse she floats (his 21 Nov floating neutral), and concentrates and releases her spells floating (buffPoses chant and cast). Replaces the 31 Oct blessing stance.",
     "note_n16": "16 Nov sheets, wired 21 Nov (6.69, dev/tools/make_layra_new.py): standing, battle stance (also ready and her staff strike), blocking (guard), dodge, preparing (chant and meditate), releasing (cast), taking damage (hurt, knocked), near defeat (weak), fallen on hands and knees (kneel, the landing of a fall) and defeated (down), all in four true views. Her victory is still the 2 Nov picture, her blessing looks the 21 Nov floating sheets (6.86).",
     "note_meditate": "22 Nov (1.88): her 21 Nov set has no meditation sheet, so the recut had pointed \"meditate\" at her spell-chant picture and she stood chanting through Meditate. Her seated meditation (31 Oct isometric, same outfit) is back, drawn at its old size (ruler scale pinned in dev/tools/ruler_marks.json).",
+    "channelFx": true,
+    "note_channel": "22 Nov (1.97): \"channelFx\": while she casts (a Verse, a Hex, Healing Wind, her Lightning or Wildfire) a channel spiral rises round her feet in the spell's colour (spellArt.channelSpiral). It is the white copy of Alagara's Arcane Charging Spiral until Suleiman's own channel effect comes.",
     "ruler": {
       "layra_n_stand_downRight.png": {
         "footX": 0.486
@@ -2440,9 +2442,7 @@
         "footX": 0.597
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "channelFx": true,
-    "note_channel": "22 Nov (1.97): \"channelFx\": while she casts (a Verse, a Hex, Healing Wind, her Lightning or Wildfire) a channel spiral rises round her feet in the spell's colour (spellArt.channelSpiral). It is the white copy of Alagara's Arcane Charging Spiral until Suleiman's own channel effect comes."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   },
   "e2": {
     "note": "The bull commander (reworked, mace and shield). Cut from Suleiman's sheets (Oct 26); every sheet resized so he is the same size in each.",
@@ -6678,6 +6678,8 @@
     "shout": "alagara_face_angry.png",
     "note_expressions": "21 Nov expression sheet (6.87, dev/tools/make_expressions.py): Neutral is the portrait, Hurt the hurt face, Angry the battle cry (shout). Smiling and Weakened are cut too (alagara_face_smiling.png, alagara_face_weakened.png) for mood faces later. They replace the stand-ins of 10.36.",
     "note_n22": "22 Nov (6.90, 1.96, dev/tools/make_kings.py): his true battle stance (\"Alagara battle stance.jpeg\", the saber sheathed) is his battle and ready look; the 21 Nov saber-drawn sheet, which stood in for it, is his wind-up; the new \"Isometric Saber Action Sheet\" is his attack (four true views; it replaces the 31 Oct lunge).",
+    "swingFx": "gale",
+    "note_swing": "22 Nov (photo 1768): \"swingFx\" is the slash arc drawn round his blade on the frame the strike picture shows (his form's Gale Cut arc: gold, Fury flame, Swift wind), so the effect lands with the swing.",
     "ruler": {
       "alagara_stand_f3.png": {
         "footX": 0.484
@@ -6710,15 +6712,15 @@
         "footX": 0.469
       },
       "alagara_windup_f2.png": {
-        "scale": 1.12,
+        "scale": 1.11,
         "footX": 0.635
       },
       "alagara_windup_f3.png": {
-        "scale": 1.12,
+        "scale": 1.11,
         "footX": 0.127
       },
       "alagara_windup_f4.png": {
-        "scale": 1.12,
+        "scale": 1.11,
         "footX": 0.269
       },
       "alagara_strike_f1.png": {
@@ -6902,8 +6904,669 @@
         "footX": 0.415
       }
     },
-    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here.",
-    "swingFx": "gale",
-    "note_swing": "22 Nov (photo 1768): \"swingFx\" is the slash arc drawn round his blade on the frame the strike picture shows (his form's Gale Cut arc: gold, Fury flame, Swift wind), so the effect lands with the swing."
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+  },
+  "h6": {
+    "note": "Leol the Slinger (roadmap 19.1, art 6.76; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure (the plates are not trusted): his sling sheets run front-left, front-right, back-left, back-right; the hammer sheets front-left, back-left, back-right, front-right. \"hammer\" is his hammer stance (the archer's dagger look), \"hammerStrike\" and \"hammerRaise\" the Hammer Strike and Barricade. No walk pictures: the walk is made in code.",
+    "name": "Leol",
+    "height": 100,
+    "standing": {
+      "upLeft": {
+        "file": "leol_stand_3.png"
+      },
+      "upRight": {
+        "file": "leol_stand_4.png"
+      },
+      "downLeft": {
+        "file": "leol_stand_1.png"
+      },
+      "downRight": {
+        "file": "leol_stand_2.png"
+      }
+    },
+    "battle": {
+      "upLeft": {
+        "file": "leol_battle_3.png"
+      },
+      "upRight": {
+        "file": "leol_battle_4.png"
+      },
+      "downLeft": {
+        "file": "leol_battle_1.png"
+      },
+      "downRight": {
+        "file": "leol_battle_2.png"
+      }
+    },
+    "weak": {
+      "upLeft": {
+        "file": "leol_weak_3.png"
+      },
+      "upRight": {
+        "file": "leol_weak_4.png"
+      },
+      "downLeft": {
+        "file": "leol_weak_1.png"
+      },
+      "downRight": {
+        "file": "leol_weak_2.png"
+      }
+    },
+    "poses": {
+      "attack": {
+        "upLeft": {
+          "file": "leol_shot_3.png"
+        },
+        "upRight": {
+          "file": "leol_shot_4.png"
+        },
+        "downLeft": {
+          "file": "leol_shot_1.png"
+        },
+        "downRight": {
+          "file": "leol_shot_2.png"
+        }
+      },
+      "windup": {
+        "upLeft": {
+          "file": "leol_battle_3.png"
+        },
+        "upRight": {
+          "file": "leol_battle_4.png"
+        },
+        "downLeft": {
+          "file": "leol_battle_1.png"
+        },
+        "downRight": {
+          "file": "leol_battle_2.png"
+        }
+      },
+      "ready": {
+        "upLeft": {
+          "file": "leol_battle_3.png"
+        },
+        "upRight": {
+          "file": "leol_battle_4.png"
+        },
+        "downLeft": {
+          "file": "leol_battle_1.png"
+        },
+        "downRight": {
+          "file": "leol_battle_2.png"
+        }
+      },
+      "guard": {
+        "upLeft": {
+          "file": "leol_hguard_2.png"
+        },
+        "upRight": {
+          "file": "leol_hguard_3.png"
+        },
+        "downLeft": {
+          "file": "leol_hguard_1.png"
+        },
+        "downRight": {
+          "file": "leol_hguard_4.png"
+        }
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "leol_dodge_2.png"
+        },
+        "upRight": {
+          "file": "leol_dodge_3.png"
+        },
+        "downLeft": {
+          "file": "leol_dodge_1.png"
+        },
+        "downRight": {
+          "file": "leol_dodge_4.png"
+        }
+      },
+      "hammer": {
+        "upLeft": {
+          "file": "leol_hguard_2.png"
+        },
+        "upRight": {
+          "file": "leol_hguard_3.png"
+        },
+        "downLeft": {
+          "file": "leol_hguard_1.png"
+        },
+        "downRight": {
+          "file": "leol_hguard_4.png"
+        }
+      },
+      "hammerStrike": {
+        "upLeft": {
+          "file": "leol_hstrike_2.png"
+        },
+        "upRight": {
+          "file": "leol_hstrike_3.png"
+        },
+        "downLeft": {
+          "file": "leol_hstrike_1.png"
+        },
+        "downRight": {
+          "file": "leol_hstrike_4.png"
+        }
+      },
+      "hammerRaise": {
+        "upLeft": {
+          "file": "leol_hraise_2.png"
+        },
+        "upRight": {
+          "file": "leol_hraise_2.png",
+          "flip": true
+        },
+        "downLeft": {
+          "file": "leol_hraise_1.png"
+        },
+        "downRight": {
+          "file": "leol_hraise_1.png",
+          "flip": true
+        }
+      },
+      "hurt": {
+        "upLeft": {
+          "file": "leol_hurt_3.png"
+        },
+        "upRight": {
+          "file": "leol_hurt_4.png"
+        },
+        "downLeft": {
+          "file": "leol_hurt_1.png"
+        },
+        "downRight": {
+          "file": "leol_hurt_2.png"
+        }
+      },
+      "down": {
+        "upLeft": {
+          "file": "leol_down_1.png"
+        },
+        "upRight": {
+          "file": "leol_down_1.png",
+          "flip": true
+        },
+        "downLeft": {
+          "file": "leol_down_1.png"
+        },
+        "downRight": {
+          "file": "leol_down_1.png",
+          "flip": true
+        }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "leol_victory_3.png"
+        },
+        "upRight": {
+          "file": "leol_victory_4.png"
+        },
+        "downLeft": {
+          "file": "leol_victory_1.png"
+        },
+        "downRight": {
+          "file": "leol_victory_2.png"
+        }
+      }
+    },
+    "portrait": "leol_face_neutral.png",
+    "portraitHurt": "leol_face_hurt.png",
+    "shout": "leol_face_angry.png",
+    "props": {
+      "barricade1": "leol_barricade_1.png",
+      "barricade2": "leol_barricade_2.png"
+    },
+    "note_props": "\"props\": pictures he puts on the board, not his body: the Barricade (19.1, cut by make_newclass.py from \"Isometric Wooden Spike Barricade Tile Set\"), two of its four views, one per direction of the wall.",
+    "ruler": {
+      "leol_stand_3.png": {
+        "footX": 0.541
+      },
+      "leol_stand_4.png": {
+        "footX": 0.453
+      },
+      "leol_stand_1.png": {
+        "footX": 0.6
+      },
+      "leol_stand_2.png": {
+        "footX": 0.476
+      },
+      "leol_battle_3.png": {
+        "scale": 0.85,
+        "footX": 0.569
+      },
+      "leol_battle_4.png": {
+        "scale": 0.85,
+        "footX": 0.292
+      },
+      "leol_battle_1.png": {
+        "scale": 0.85,
+        "footX": 0.565
+      },
+      "leol_battle_2.png": {
+        "scale": 0.85,
+        "footX": 0.387
+      },
+      "leol_weak_3.png": {
+        "scale": 0.87,
+        "footX": 0.347
+      },
+      "leol_weak_4.png": {
+        "scale": 0.87,
+        "footX": 0.405
+      },
+      "leol_weak_1.png": {
+        "scale": 0.87,
+        "footX": 0.325
+      },
+      "leol_weak_2.png": {
+        "scale": 0.87,
+        "footX": 0.535
+      },
+      "leol_shot_3.png": {
+        "scale": 0.9,
+        "footX": 0.612
+      },
+      "leol_shot_4.png": {
+        "scale": 0.9,
+        "footX": 0.328
+      },
+      "leol_shot_1.png": {
+        "scale": 0.9,
+        "footX": 0.641
+      },
+      "leol_shot_2.png": {
+        "scale": 0.9,
+        "footX": 0.356
+      },
+      "leol_hguard_2.png": {
+        "scale": 0.9,
+        "footX": 0.429
+      },
+      "leol_hguard_3.png": {
+        "scale": 0.9,
+        "footX": 0.622
+      },
+      "leol_hguard_1.png": {
+        "scale": 0.9,
+        "footX": 0.483
+      },
+      "leol_hguard_4.png": {
+        "scale": 0.9,
+        "footX": 0.587
+      },
+      "leol_dodge_2.png": {
+        "scale": 0.87,
+        "footX": 0.561
+      },
+      "leol_dodge_3.png": {
+        "scale": 0.87,
+        "footX": 0.527
+      },
+      "leol_dodge_1.png": {
+        "scale": 0.87,
+        "footX": 0.577
+      },
+      "leol_dodge_4.png": {
+        "scale": 0.87,
+        "footX": 0.242
+      },
+      "leol_hstrike_2.png": {
+        "footX": 0.599
+      },
+      "leol_hstrike_3.png": {
+        "footX": 0.402
+      },
+      "leol_hstrike_1.png": {
+        "footX": 0.404
+      },
+      "leol_hstrike_4.png": {
+        "footX": 0.397
+      },
+      "leol_hraise_2.png": {
+        "footX": 0.74
+      },
+      "leol_hraise_1.png": {
+        "footX": 0.385
+      },
+      "leol_hurt_3.png": {
+        "scale": 0.95,
+        "footX": 0.307
+      },
+      "leol_hurt_4.png": {
+        "scale": 0.95,
+        "footX": 0.405
+      },
+      "leol_hurt_1.png": {
+        "scale": 0.95,
+        "footX": 0.631
+      },
+      "leol_hurt_2.png": {
+        "scale": 0.95,
+        "footX": 0.264
+      },
+      "leol_down_1.png": {
+        "scale": 0.87,
+        "footX": 0.594
+      },
+      "leol_victory_3.png": {
+        "scale": 0.95,
+        "footX": 0.573
+      },
+      "leol_victory_4.png": {
+        "scale": 0.95,
+        "footX": 0.656
+      },
+      "leol_victory_1.png": {
+        "scale": 0.95,
+        "footX": 0.552
+      },
+      "leol_victory_2.png": {
+        "scale": 0.95,
+        "footX": 0.568
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
+  },
+  "e6": {
+    "note": "The Thief (roadmap 19.2, art 6.77; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure per sheet (his sheets are in no fixed order; a missing side is the other one mirrored). \"ambush\" is the Dagger Ambush leap, \"trap\" laying a trap. No walk pictures: the walk is made in code. Faces from the 21 Nov expression sheet (15 cut; neutral, hurt and angry wired).",
+    "name": "Thief",
+    "height": 100,
+    "standing": {
+      "upLeft": {
+        "file": "thief_stand_2.png"
+      },
+      "upRight": {
+        "file": "thief_stand_4.png"
+      },
+      "downLeft": {
+        "file": "thief_stand_1.png"
+      },
+      "downRight": {
+        "file": "thief_stand_3.png"
+      }
+    },
+    "battle": {
+      "upLeft": {
+        "file": "thief_battle_2.png",
+        "flip": true
+      },
+      "upRight": {
+        "file": "thief_battle_2.png"
+      },
+      "downLeft": {
+        "file": "thief_battle_1.png"
+      },
+      "downRight": {
+        "file": "thief_battle_1.png",
+        "flip": true
+      }
+    },
+    "weak": {
+      "upLeft": {
+        "file": "thief_weak_2.png",
+        "flip": true
+      },
+      "upRight": {
+        "file": "thief_weak_2.png"
+      },
+      "downLeft": {
+        "file": "thief_weak_1.png"
+      },
+      "downRight": {
+        "file": "thief_weak_1.png",
+        "flip": true
+      }
+    },
+    "poses": {
+      "attack": {
+        "upLeft": {
+          "file": "thief_slash_2.png",
+          "flip": true
+        },
+        "upRight": {
+          "file": "thief_slash_2.png"
+        },
+        "downLeft": {
+          "file": "thief_slash_3.png"
+        },
+        "downRight": {
+          "file": "thief_slash_1.png"
+        }
+      },
+      "windup": {
+        "upLeft": {
+          "file": "thief_battle_2.png",
+          "flip": true
+        },
+        "upRight": {
+          "file": "thief_battle_2.png"
+        },
+        "downLeft": {
+          "file": "thief_battle_1.png"
+        },
+        "downRight": {
+          "file": "thief_battle_1.png",
+          "flip": true
+        }
+      },
+      "ready": {
+        "upLeft": {
+          "file": "thief_battle_2.png",
+          "flip": true
+        },
+        "upRight": {
+          "file": "thief_battle_2.png"
+        },
+        "downLeft": {
+          "file": "thief_battle_1.png"
+        },
+        "downRight": {
+          "file": "thief_battle_1.png",
+          "flip": true
+        }
+      },
+      "guard": {
+        "upLeft": {
+          "file": "thief_parry_2.png"
+        },
+        "upRight": {
+          "file": "thief_parry_4.png"
+        },
+        "downLeft": {
+          "file": "thief_parry_3.png"
+        },
+        "downRight": {
+          "file": "thief_parry_3.png",
+          "flip": true
+        }
+      },
+      "dodge": {
+        "upLeft": {
+          "file": "thief_dodge_2.png"
+        },
+        "upRight": {
+          "file": "thief_dodge_2.png",
+          "flip": true
+        },
+        "downLeft": {
+          "file": "thief_dodge_1.png"
+        },
+        "downRight": {
+          "file": "thief_dodge_1.png",
+          "flip": true
+        }
+      },
+      "hurt": {
+        "upLeft": {
+          "file": "thief_hurt_2.png"
+        },
+        "upRight": {
+          "file": "thief_hurt_4.png"
+        },
+        "downLeft": {
+          "file": "thief_hurt_3.png"
+        },
+        "downRight": {
+          "file": "thief_hurt_3.png",
+          "flip": true
+        }
+      },
+      "down": {
+        "upLeft": {
+          "file": "thief_down_1.png"
+        },
+        "upRight": {
+          "file": "thief_down_1.png",
+          "flip": true
+        },
+        "downLeft": {
+          "file": "thief_down_1.png"
+        },
+        "downRight": {
+          "file": "thief_down_1.png",
+          "flip": true
+        }
+      },
+      "victory": {
+        "upLeft": {
+          "file": "thief_victory_2.png"
+        },
+        "upRight": {
+          "file": "thief_victory_3.png"
+        },
+        "downLeft": {
+          "file": "thief_victory_1.png"
+        },
+        "downRight": {
+          "file": "thief_victory_1.png",
+          "flip": true
+        }
+      },
+      "ambush": {
+        "upLeft": {
+          "file": "thief_ambush_2.png"
+        },
+        "upRight": {
+          "file": "thief_ambush_4.png"
+        },
+        "downLeft": {
+          "file": "thief_ambush_3.png"
+        },
+        "downRight": {
+          "file": "thief_ambush_1.png"
+        }
+      },
+      "trap": {
+        "upLeft": {
+          "file": "thief_trap_2.png"
+        },
+        "upRight": {
+          "file": "thief_trap_4.png"
+        },
+        "downLeft": {
+          "file": "thief_trap_1.png"
+        },
+        "downRight": {
+          "file": "thief_trap_1.png",
+          "flip": true
+        }
+      }
+    },
+    "portrait": "thief_face_neutral.png",
+    "portraitHurt": "thief_face_hurt.png",
+    "shout": "thief_face_angry.png",
+    "ruler": {
+      "thief_stand_2.png": {
+        "footX": 0.524
+      },
+      "thief_stand_4.png": {
+        "footX": 0.371
+      },
+      "thief_stand_1.png": {
+        "footX": 0.483
+      },
+      "thief_stand_3.png": {
+        "footX": 0.547
+      },
+      "thief_battle_2.png": {
+        "footX": 0.433
+      },
+      "thief_battle_1.png": {
+        "footX": 0.28
+      },
+      "thief_weak_2.png": {
+        "footX": 0.598
+      },
+      "thief_weak_1.png": {
+        "footX": 0.162
+      },
+      "thief_slash_2.png": {
+        "footX": 0.38
+      },
+      "thief_slash_3.png": {
+        "footX": 0.112
+      },
+      "thief_slash_1.png": {
+        "footX": 0.572
+      },
+      "thief_parry_2.png": {
+        "footX": 0.641
+      },
+      "thief_parry_4.png": {
+        "footX": 0.591
+      },
+      "thief_parry_3.png": {
+        "footX": 0.151
+      },
+      "thief_dodge_2.png": {
+        "footX": 0.56
+      },
+      "thief_dodge_1.png": {
+        "footX": 0.101
+      },
+      "thief_hurt_4.png": {
+        "footX": 0.586
+      },
+      "thief_hurt_3.png": {
+        "footX": 0.514
+      },
+      "thief_down_1.png": {
+        "footX": 0.471
+      },
+      "thief_victory_2.png": {
+        "footX": 0.463
+      },
+      "thief_victory_3.png": {
+        "footX": 0.516
+      },
+      "thief_victory_1.png": {
+        "footX": 0.54
+      },
+      "thief_ambush_2.png": {
+        "footX": 0.577
+      },
+      "thief_ambush_4.png": {
+        "footX": 0.295
+      },
+      "thief_ambush_3.png": {
+        "footX": 0.663
+      },
+      "thief_ambush_1.png": {
+        "footX": 0.259
+      },
+      "thief_trap_2.png": {
+        "footX": 0.578
+      },
+      "thief_trap_4.png": {
+        "footX": 0.404
+      },
+      "thief_trap_1.png": {
+        "footX": 0.571
+      }
+    },
+    "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
   }
 }

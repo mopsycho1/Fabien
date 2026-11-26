@@ -37,7 +37,8 @@ import { hasClashGif, loadClashGifs, pickClashGif, playClashGif, clashFilmsOn, s
 import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, riposteStep, tickBorrowed } from '../signature.js';
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
-import { kingMethods, KING_KINDS, KING_SELF_KINDS, galeFx } from '../kingsScene.js'; // the two kings' moves and AI (Phase 10)
+import { kingMethods, KING_KINDS, KING_SELF_KINDS, galeFx } from '../kingsScene.js';
+import { newClassMethods, NEW_KINDS, NEW_TILE_KINDS, slingStone } from '../newClasses.js'; // Leol and the Thief (19.1, 19.2) // the two kings' moves and AI (Phase 10)
 import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak, swingFxOf, hasChannelFx } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
@@ -86,7 +87,7 @@ import {
   openingHeightBonus,
 } from '../engagement.js';
 import { ITEMS, heldItems, giveItem, itemHelps, applyItem, enemyItemChoice, enemyAllyItemChoice } from '../items.js';
-import { healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement, applyPinned, isPinned, pinnedFrom, patientBonus, setWardUnits, wardShare, wardActive } from '../status.js';
+import { isBleeding, healInPlaceOf, applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, hexOf, tickBuff, statusTags, statMod, moveOf, applySlow, applyExposed, clearExposed, canAfford, usesLeft, spendMp, restoreMp, affinityTimes, startCooldown, cooldownOf, applyPoison, isPoisoned, curePoison, tickPoison, applyStun, isStunned, clearStun, applyDisoriented, isDisoriented, hexChance, setDominionLookup, applyBlinded, isBlinded, activeMove, mpShown, moveRules, settleRooted, isRooted, clearRooted, rootedShare, applyBurn, cureBurn, tickBurn, tickRenewal, isBurning, hasOwnMp, verseMovesOf, applyDrenched, isDrenched, dryOff, applyEnchant, isEnchanted, spendElement, applyPinned, isPinned, pinnedFrom, patientBonus, setWardUnits, wardShare, wardActive } from '../status.js';
 import unitData from '../data/units.json'; // the list of units lives in its own file
 import jobs from '../data/jobs.json';       // the numbers for each job
 import { testMode, setTestMode, fieldedEntries } from '../lineup.js';
@@ -2032,10 +2033,11 @@ export default class BattleScene extends Phaser.Scene {
     clearOffBalance(this.activeUnit); // it has found its footing again
     clearExposed(this.activeUnit);    // and it is on guard again after Meditating
     restoreMp(this.activeUnit, 1);     // magic points come back slowly, 1 a turn
+    const bleeding = isBleeding(this.activeUnit); // (the Thief's Ambush: Bleeding, 19.2)
     const poisoned = tickPoison(this.activeUnit); // poison bites at the start of the turn (never the last point)
     if (poisoned > 0) {
       this.updateHpBar(this.activeUnit);
-      this.floatText(this.activeUnit, 'Poison -' + poisoned, '#9fdc6a', { pop: true });
+      this.floatText(this.activeUnit, (bleeding ? 'Bleeding -' : 'Poison -') + poisoned, bleeding ? '#ff7a7a' : '#9fdc6a', { pop: true });
     }
     const burned = tickBurn(this.activeUnit); // so does a burn (Layra's Wildfire)
     if (burned > 0) {
@@ -2047,6 +2049,7 @@ export default class BattleScene extends Phaser.Scene {
     this.refreshWater(); // anyone standing in the water is Drenched (roadmap 11.4)
     // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
     this.tickSpikes(this.activeUnit);
+    this.tickNewClasses(this.activeUnit); // Leol's barricade rises; a foe on the highest ground spots a Hidden Thief (19.1, 19.2)
     this.manualView = false;
     // Fast enemy turns (roadmap 18.11): everything an enemy does on its own turn runs at double
     // speed when the player has asked for it. A hero's turn is always at normal speed.
@@ -2247,6 +2250,7 @@ export default class BattleScene extends Phaser.Scene {
     spreadTagRows(this.units);
     // Gaha under a Verse of Stone who didn't move this turn stands his ground
     if (this.activeUnit.alive && settleRooted(this.activeUnit)) this.floatText(this.activeUnit, 'Rooted', '#d9b77a');
+    this.thiefEndsTurn(this.activeUnit); // the Thief hides when he ends a turn without acting (19.2)
     // still in the water: still soaked; out of it: a turn drier (roadmap 11.4)
     if (this.activeUnit.alive) {
       if (this.inWater(this.activeUnit)) applyDrenched(this.activeUnit, terrain.water.drenchedTurns);
@@ -2431,7 +2435,7 @@ export default class BattleScene extends Phaser.Scene {
     let plan = null;
     if (this.mode === 'spellTarget' && this.pendingTarget) plan = planSkill(this, unit, this.pendingTarget, this.selectedSpell);
     else if (this.mode === 'attack' && this.pendingTarget) plan = planAttack(this, unit, this.pendingTarget);
-    else if (this.mode === 'huskTile' && this.pendingTile) plan = planHusk(this, unit, this.pendingTile);
+    else if (this.mode === 'huskTile' && this.pendingTile && !(spells[this.selectedSpell] && NEW_TILE_KINDS.includes(spells[this.selectedSpell].kind))) plan = planHusk(this, unit, this.pendingTile);
     if (!plan) return;
     this.previewPlan = plan; // (tests and the browser check read this)
     this.previewItems = drawPlan(this, unit, plan);
@@ -2802,7 +2806,7 @@ export default class BattleScene extends Phaser.Scene {
         // an archer: Skills and Switch weapon share the row (roadmap 13.29)
         c.set(null);
         this.halves[0].set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (Poison Weapon is free at any time, 1.82)
-        this.halves[1].set(holdsDagger(unit) ? 'To bow' : 'To dagger', 'sword', isHero && !this.busy && !unit.engagedWith && !unit.weaponSwitched, () => this.onSwitchWeaponButton(), { accent: 0xd9b77a });
+        this.halves[1].set('To ' + (holdsDagger(unit) ? unit.closeWeapon.farName || 'bow' : unit.closeWeapon.name || 'dagger').toLowerCase(), 'sword', isHero && !this.busy && !unit.engagedWith && !unit.weaponSwitched, () => this.onSwitchWeaponButton(), { accent: 0xd9b77a });
       } else {
         c.set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (a free skill stays usable after acting: Ward, 13.68) no MP pool: skills, not spells
       }
@@ -3126,7 +3130,7 @@ export default class BattleScene extends Phaser.Scene {
       const wait = spell.verse ? 0 : cooldownOf(unit, id);
       const left = usesLeft(unit, id); // pouches left this battle (Herbs), or null
       // the kings (Phase 10): why a skill cannot be used now (Fork end, Mask 3/6, once a turn...)
-      const block = this.kingBlock(unit, id);
+      const block = this.kingBlock(unit, id) || this.newBlock(unit, id); // (Leol and the Thief: 'needs Hidden', 'no room')
       const free = spell.kind === 'grip' ? '  to ' + (unit.grip === 'blade' ? 'Fork' : 'Blade') : '';
       return {
         label: (spell.kind === 'wardSwitch' ? (unit.wardOff ? 'Ward: off' : 'Ward: on') : spell.button) + free + (left !== null && spell.kind !== 'singularity' ? ' x' + left : '') + (wait ? '  (' + wait + ')' : block ? '  ' + block : spell.mp ? '  ' + spell.mp + ' MP' : ''),
@@ -3325,10 +3329,12 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.selectedSpell = id;
-    if (spell.kind === 'escape' || spell.kind === 'smoke') {
+    if (spell.kind === 'escape' || spell.kind === 'smoke' || NEW_TILE_KINDS.includes(spell.kind)) {
       this.mode = 'huskTile';
       let tiles = [];
-      if (spell.kind === 'smoke') {
+      if (NEW_TILE_KINDS.includes(spell.kind)) {
+        tiles = this.freeTilesNear(unit); // Barricade and Trap: an empty tile next to him (19.1, 19.2)
+      } else if (spell.kind === 'smoke') {
         // Smoke Bomb: she slips out of the cloud on foot, up to 2 tiles (or stays in it)
         tiles = [{ col: unit.col, row: unit.row }, ...getReachableTiles(unit.col, unit.row, spell.range, (c, r) => this.isBlocked(c, r), moveRules(unit))];
       } else {
@@ -3346,14 +3352,16 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast'].includes(spell.kind);
-    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap';
+    const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast', 'concussive', 'hammerStrike', 'ambush'].includes(spell.kind);
+    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap' || spell.kind === 'smokePellet';
     this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
         u.alive && this.canSee(unit, u) && (spell.kind === 'hornCharge' ? !!this.hornLine(unit, u, spell) : spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
         (spell.kind !== 'dive' || !!this.sweepSpot(unit, u)) && // the dive needs a free tile next to the foe to land on
         (spell.kind !== 'allySwap' || (u !== unit && this.swapReach(unit, u, spell))) && // Intercept Ally: a clear path to the ally (19.3)
         (spell.kind !== 'pin' || distance(unit, u) >= 2) && // Pinning Shot is a bow shot: no room to draw it next to a foe (19.6)
+        (spell.kind !== 'concussive' || distance(unit, u) >= 2) && // a sling shot too (19.1)
+        (spell.kind !== 'smokePellet' || !u.engagedWith) &&
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
@@ -3388,7 +3396,7 @@ export default class BattleScene extends Phaser.Scene {
   // clear line to the target: a higher block in the way stops them, unless the
   // skill pierces ("pierce": true in spells.json). Magic is never stopped.
   clearShot(user, target, spell) {
-    const missile = ['throw', 'toss', 'poison', 'pin'].includes(spell.kind) && !spell.pierce;
+    const missile = ['throw', 'toss', 'poison', 'pin', 'concussive', 'smokePellet'].includes(spell.kind) && !spell.pierce;
     return !missile || hasClearShot(user, target);
   }
 
@@ -3706,6 +3714,12 @@ export default class BattleScene extends Phaser.Scene {
     const path = getPath(unit.col, unit.row, col, row, this.stepsLeft(unit), (c, r) => this.isBlocked(c, r), moveRules(unit));
     const trig = path.length ? this.wardTrigger(unit, path, seen) : null;
     if (!trig) return this.walkUnit(unit, col, row, onDone);
+    if (trig.trap) { // the Thief's trap (19.2): the walk ends on it
+      return this.walkUnit(unit, trig.tile.col, trig.tile.row, () => {
+        this.busy = true;
+        this.trapReaction(trig.trap, unit, trig.prev, () => { this.busy = false; if (!this.battleOver && onDone) onDone(); });
+      });
+    }
     seen.add(trig.warder);
     this.walkUnit(unit, trig.tile.col, trig.tile.row, () => {
       this.busy = true;
@@ -4053,6 +4067,7 @@ export default class BattleScene extends Phaser.Scene {
   // "onDone" runs after a short pause, once the player has seen the result.
   // A blow that defeats its target gets a cut-in and slow motion.
   performAttack(attacker, target, onDone) {
+    if (attacker.thiefHidden) this.revealThief(attacker); // the Thief shows himself when he strikes (19.2)
     attacker.hasActed = true;
     const result = rollAttack(attacker, target);
     if (result.hit && !target.isDecoy) result.damage += gripBonus(attacker); // Gadara's Blade Strike: +2 (Phase 10)
@@ -4678,7 +4693,7 @@ export default class BattleScene extends Phaser.Scene {
     // an archer right next to its target fights with its dagger instead of the bow
     const close = !target.isDecoy && usesCloseWeapon(attacker, target);
     const style = close ? 'slash' : attacker.attackEffect;
-    const strikePose = close ? attacker.closeWeapon.pose : attacker.lungeStrike && this.hasPose(attacker, 'lungeAttack') ? 'lungeAttack' : 'attack';   // Gaha's Lunge ends in his own thrust (6.72)
+    const strikePose = close ? (attacker.closeWeapon.strike && this.hasPose(attacker, attacker.closeWeapon.strike) ? attacker.closeWeapon.strike : attacker.closeWeapon.pose) : attacker.lungeStrike && this.hasPose(attacker, 'lungeAttack') ? 'lungeAttack' : 'attack';   // Gaha's Lunge ends in his own thrust (6.72)
     const readyPose = close ? 'ready' : 'windup';
 
     this.faceToward(attacker, dx, dy);
@@ -4766,13 +4781,14 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    if (style === 'arrow') {
+    if (style === 'arrow' || style === 'sling') {
       const start = this.centerOf(attacker);
       const end = this.centerOf(target);
       this.time.delayedCall(aimFirst ? 200 : 140, () => {
         if (aimFirst && attacker.alive) this.showPose(attacker, strikePose, dx);
         play('arrow');
-        arrowShot(this, start.x, start.y, end.x, end.y, impact);
+        if (style === 'sling') slingStone(this, start.x, start.y, end.x, end.y, impact); // Leol's stone (19.1)
+        else arrowShot(this, start.x, start.y, end.x, end.y, impact);
       });
       this.time.delayedCall(aimFirst ? 520 : 420, () => this.showStanding(attacker));
       return;
@@ -5741,8 +5757,19 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // Leol and the Thief (19.1, 19.2): their kits, either side
+    const nc = this.newClassChoice(unit, seen);
+    if (nc && nc.wait) { this.time.delayedCall(300, () => this.endTurn()); return; } // the Thief stays out of sight and hides
+    if (nc) {
+      this.busy = true;
+      this.castSpell(unit, nc.target, nc.id, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
     // the archer's kit (1.82, 19.6): Poison Weapon, Pinning Shot, Prime Bow
-    const archer = unit.closeWeapon ? this.archerChoice(unit, seen) : null;
+    const archer = unit.closeWeapon && unit.job === 'ranger' ? this.archerChoice(unit, seen) : null;
     if (archer) {
       this.busy = true;
       this.castSpell(unit, archer.target, archer.id, () => {
@@ -5755,6 +5782,8 @@ export default class BattleScene extends Phaser.Scene {
     const targets = getTargetsInRange(unit, seen);
 
     if (targets.length === 0) {
+      // nobody to strike: a foe's barricade next to it is broken down instead (19.1)
+      if (this.hitBarricade(unit, () => this.enemyWrapUp(unit))) { unit.hasActed = true; return; }
       this.time.delayedCall(400, () => this.endTurn());
       return;
     }
@@ -6665,6 +6694,7 @@ export default class BattleScene extends Phaser.Scene {
       startCooldown(caster, id);
       caster.hasActed = true;
     }
+    if (NEW_KINDS.includes(spell.kind)) return this.castNewSkill(caster, target, id, onDone); // Leol and the Thief (19.1, 19.2)
     if (spell.kind === 'haunt') return this.castHaunt(caster, target, spell, onDone);
     if (spell.kind === 'infuse') {
       // the blessing for what he reads, always a spirit's Verse that lasts (1.49): Stone, Swiftness, Fury or
@@ -8407,7 +8437,8 @@ export default class BattleScene extends Phaser.Scene {
 
   // ---------- Rabdul: Spear Ward, Hold the Line, Haft Sweep (19.4) ----------
   castZoneWard(unit, spell, onDone) {
-    unit.zone = { name: spell.button, color: spell.color, mode: spell.mode, charges: spell.charges, damageShare: spell.damageShare || 0, pushOnHit: spell.pushOnHit || 0, guardBonus: spell.guardBonus || 0 };
+    unit.zone = { name: spell.button, color: spell.color, mode: spell.mode, charges: spell.charges, damageShare: spell.damageShare || 0, pushOnHit: spell.pushOnHit || 0, guardBonus: spell.guardBonus || 0, radius: spell.radius || 1 };
+    if (spell.mode === 'sling' && unit.closeWeapon) unit.weapon = 'bow'; // Suppressive Fire is a sling shot (19.1)
     unit.hasMoved = true;
     // he cannot move while it holds; Rapid Ward lets him take a few more steps first (the ward goes with him)
     unit.stepsUsed = spell.steps ? Math.max(unit.stepsUsed || 0, moveOf(unit) - spell.steps) : Infinity;
@@ -8427,9 +8458,11 @@ export default class BattleScene extends Phaser.Scene {
     this.clearZoneMark(unit);
     const g = this.add.graphics().setDepth(2);
     const c = Phaser.Display.Color.HexStringToColor(color).color;
-    for (let dc = -1; dc <= 1; dc++) for (let dr = -1; dr <= 1; dr++) {
+    const R = unit.zone && unit.zone.mode === 'sling' ? unit.zone.radius : 1;
+    for (let dc = -R; dc <= R; dc++) for (let dr = -R; dr <= R; dr++) {
       if (!dc && !dr) continue;
       const col = unit.col + dc, row = unit.row + dr;
+      if (R > 1 && (distance(unit, { col, row }) < 2 || distance(unit, { col, row }) > R || !hasClearShot(unit, { col, row }))) continue; // Suppressive Fire's reach
       if (!isInsideGrid(col, row)) continue;
       const p = tileToScreen(col, row);
       const hw = TILE_WIDTH / 2 * 0.86, hh = TILE_HEIGHT / 2 * 0.86;
@@ -8446,9 +8479,13 @@ export default class BattleScene extends Phaser.Scene {
   // The first step of this path that walks into a foe's guarded tiles, or null
   wardTrigger(unit, path, seen) {
     if (unit.isDecoy) return null;
-    const near = (p, w) => Math.max(Math.abs(p.col - w.col), Math.abs(p.row - w.row)) === 1;
+    const near = (p, w) => (w.zone && w.zone.mode === 'sling'
+      ? distance(p, w) >= 2 && distance(p, w) <= w.zone.radius && hasClearShot(w, p) // Suppressive Fire: in sling reach and in sight (19.1)
+      : Math.max(Math.abs(p.col - w.col), Math.abs(p.row - w.row)) === 1);
     let prev = { col: unit.col, row: unit.row };
     for (const tile of path) {
+      const trap = this.trapAt && this.trapAt(tile.col, tile.row); // the Thief's traps (19.2)
+      if (trap && trap.owner && trap.owner.side !== unit.side) return { tile, trap, prev };
       for (const w of this.units) {
         if (!w.alive || !w.zone || w.zone.charges <= 0 || w.side === unit.side || w.engagedWith || isStunned(w) || seen.has(w)) continue;
         if (near(tile, w) && !near(prev, w)) return { tile, warder: w };
@@ -8466,7 +8503,7 @@ export default class BattleScene extends Phaser.Scene {
     const chance = getHitChance(w, walker);
     const won = Math.random() * 100 < chance;
     let damage = 0, note = null, pushed = null;
-    if (z.mode === 'spear' && won) {
+    if ((z.mode === 'spear' || z.mode === 'sling') && won) {
       const landed = this.landHit(walker, Math.max(1, Math.round(getDamage(w, walker) * z.damageShare)));
       damage = landed.damage;
       note = landed.note;
@@ -8479,8 +8516,13 @@ export default class BattleScene extends Phaser.Scene {
     if (z.charges <= 0) this.clearZoneMark(w);
     const dx = walker.view.x - w.view.x;
     this.faceToward(w, dx, walker.view.y - w.view.y);
-    this.floatText(w, z.mode === 'spear' ? 'Spear Ward!' : 'Hold the Line!', z.mode === 'spear' ? '#9fc4e8' : '#d9b77a', { rise: 30 });
-    if (z.mode === 'spear') {
+    this.floatText(w, z.mode === 'spear' ? 'Spear Ward!' : z.mode === 'sling' ? 'Suppressive Fire!' : 'Hold the Line!', z.mode === 'spear' ? '#9fc4e8' : z.mode === 'sling' ? '#e8c88a' : '#d9b77a', { rise: 30 });
+    if (z.mode === 'sling') { // Leol's stone (19.1)
+      this.showPose(w, 'attack', dx);
+      play('whoosh');
+      const a = this.centerOf(w), b2 = this.centerOf(walker);
+      slingStone(this, a.x, a.y, b2.x, b2.y, () => this.showImpact(w, walker, { hit: won, damage, note }, dx, walker.hp === 0));
+    } else if (z.mode === 'spear') {
       this.showPose(w, 'attack', dx);
       play('slash');
       this.time.delayedCall(160, () => this.showImpact(w, walker, { hit: won, damage, note }, dx, walker.hp === 0));
@@ -8492,7 +8534,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     if (won && walker.alive) { walker.stepsUsed = Infinity; this.time.delayedCall(300, () => this.floatText(walker, 'Stopped!', '#ffe08a', { rise: 46 })); } // (stopped for the rest of its walk; it may still act)
     this.refreshStatusTags();
-    this.time.delayedCall(z.mode === 'spear' ? 800 : 600, () => {
+    this.time.delayedCall(z.mode === 'spear' || z.mode === 'sling' ? 800 : 600, () => {
       if (w.alive && !w.engagedWith) this.showStanding(w);
       if (outcome) { this.busy = false; this.showResult(outcome); return; }
       done(won);
@@ -8713,7 +8755,7 @@ export default class BattleScene extends Phaser.Scene {
     unit.weapon = want;
     unit.weaponSwitched = true;
     play('select');
-    this.floatText(unit, want === 'dagger' ? 'Dagger' : 'Bow', '#e8d5a8');
+    this.floatText(unit, want === 'dagger' ? unit.closeWeapon.name || 'Dagger' : unit.closeWeapon.farName || 'Bow', '#e8d5a8');
     this.showStanding(unit);
     this.refreshButtons();
     return true;
@@ -8737,7 +8779,7 @@ export default class BattleScene extends Phaser.Scene {
       const want = this.adjacentFoe(unit) ? 'dagger' : 'bow';
       if (unit.weapon === want) continue;
       unit.weapon = want;
-      if (want === 'dagger') this.floatText(unit, 'Dagger', '#e8d5a8');
+      if (want === 'dagger') this.floatText(unit, unit.closeWeapon.name || 'Dagger', '#e8d5a8');
       this.showStanding(unit);
     }
   }
@@ -8963,6 +9005,7 @@ export default class BattleScene extends Phaser.Scene {
   // shows herself (her cloud stays until her turn). Husk: the trick is over, the decoy goes.
   revealHidden(unit) {
     if (!unit.hidden) return;
+    unit.thiefHidden = false; // (the Thief's Hide too, 19.2)
     if (this.decoys.some((d) => d.owner === unit)) this.removeDecoys(unit);
     unit.smokeHidden = false;
     unit.hidden = false;
@@ -10131,3 +10174,4 @@ export default class BattleScene extends Phaser.Scene {
 
 // The two kings' moves, Singularity and their AI (Phase 10) live in src/kingsScene.js
 Object.assign(BattleScene.prototype, kingMethods);
+Object.assign(BattleScene.prototype, newClassMethods);

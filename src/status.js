@@ -184,7 +184,8 @@ export function restoreMp(unit, amount) {
 // How far a unit can walk this turn (a Verse of Swiftness adds a step).
 export function moveOf(unit) {
   if (isPinned(unit)) return 0; // pinned to the ground by an arrow (19.6): no walking this turn
-  return Math.max(0, unit.move + statMod(unit, 'move'));
+  const sneak = unit.thiefHidden && unit.passives && unit.passives.hiddenMove ? unit.passives.hiddenMove : 0; // Hidden Movement (the Thief, 19.2): +2 while Hidden
+  return Math.max(0, unit.move + statMod(unit, 'move') + sneak);
 }
 
 // How the unit walks (movement.js): how many levels it can step up from one
@@ -446,6 +447,12 @@ export function applyPoison(unit, spellId) {
   statusOf(unit).poison = { id: spellId, turnsLeft: spell.turns, damage: spell.poison };
 }
 
+// Bleeding (the Thief's Ambush, 19.2) is a poison with the Ambush's numbers, shown as BLEEDING; a healing item stops it
+export function isBleeding(unit) {
+  const p = statusOf(unit).poison;
+  return !!(p && spells[p.id] && spells[p.id].bleed);
+}
+
 export function isPoisoned(unit) {
   return !!statusOf(unit).poison;
 }
@@ -671,7 +678,7 @@ export function statusTags(unit) {
   if (unit.meditating) tags.push({ text: 'MEDITATING', color: '#7fd6c4', icon: 'meditating' }); // her next turn is spent in the trance
   if (unit.aiming) tags.push({ text: 'AIMING', color: '#9fdc6a', icon: 'aiming' }); // a Poison Arrow, released next turn
   if (unit.markedBy && unit.markedBy.alive) tags.push({ text: 'MARKED', color: '#9fdc6a', icon: 'marked' }); // an archer's Poison Arrow is aimed at it
-  if (statusOf(unit).poison) tags.push({ text: 'POISON', color: '#9fdc6a', icon: 'poison' });
+  if (statusOf(unit).poison) tags.push(isBleeding(unit) ? { text: 'BLEEDING', color: '#ff7a7a', icon: 'poison' } : { text: 'POISON', color: '#9fdc6a', icon: 'poison' });
   if (statusOf(unit).burn) tags.push({ text: 'BURN', color: '#ff8a3c', icon: 'burn' }); // Layra's Wildfire
   if (statusOf(unit).enchant) tags.push({ text: 'ENCHANTED', color: '#ff8a3c', icon: 'enchanted' }); // Rabdul's Enchant: a burning weapon
   if (statusOf(unit).rooted) tags.push({ text: 'ROOTED', color: '#d9b77a' }); // Gaha standing his ground under Earth's Bulwark (no icon yet)

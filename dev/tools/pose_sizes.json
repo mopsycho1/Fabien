@@ -1,732 +1,854 @@
 {
- "note": "Pose sizes (roadmap 18.52, dev/tools/pose_size.py and dev/tests/n99.cjs). eye: families the head finder cannot read (its readings disagree, or it lands on hair, flames, orbs or trousers), sized by eye next to the standing picture at the size drawn (1.0 = the same body size; judged by the head and the feet). Every one must stay within 0.90 to 1.10. skip: pictures that are not a body (a thrown shield). tall: families drawn more than 10 percent TALLER than standing, and why.",
- "eye": {
-  "h1": {
-   "sudeen_n8_guard": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.775
-   },
-   "sudeen_n6_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.971
-   },
-   "sudeen_fall_air": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.583
-   },
-   "sudeen_fall_land": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.497
-   },
-   "sudeen_fall_rise": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.672
-   },
-   "sudeen_n6_stone": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.733
-   },
-   "sudeen_n6_swift": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.761
-   },
-   "sudeen_n9_fc": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.689
-   },
-   "sudeen_ram": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.694
-   },
-   "sudeen_n9_furyAttack": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.77
-   },
-   "sudeen_iso_heal": {
-    "size": 1.0,
-    "why": "21 Nov: drawn 1.25 of standing at the measured 1.29 (the finder misread his upturned head); pinned at 1.03",
-    "h": 0.953
-   },
-   "sudeen_n_battle": {
-    "size": 1.0,
-    "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.914
-   },
-   "sudeen_n_slash": {
-    "size": 1.0,
-    "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.957
-   },
-   "sudeen_n_herb": {
-    "size": 1.0,
-    "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.83
-   },
-   "sudeen_n_bash": {
-    "size": 1.0,
-    "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
-    "h": 0.759
-   }
+  "note": "Pose sizes (roadmap 18.52, dev/tools/pose_size.py and dev/tests/n99.cjs). eye: families the head finder cannot read (its readings disagree, or it lands on hair, flames, orbs or trousers), sized by eye next to the standing picture at the size drawn (1.0 = the same body size; judged by the head and the feet). Every one must stay within 0.90 to 1.10. skip: pictures that are not a body (a thrown shield). tall: families drawn more than 10 percent TALLER than standing, and why.",
+  "eye": {
+    "h1": {
+      "sudeen_n8_guard": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.775
+      },
+      "sudeen_n6_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.971
+      },
+      "sudeen_fall_air": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.583
+      },
+      "sudeen_fall_land": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.497
+      },
+      "sudeen_fall_rise": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.672
+      },
+      "sudeen_n6_stone": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.733
+      },
+      "sudeen_n6_swift": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.761
+      },
+      "sudeen_n9_fc": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.689
+      },
+      "sudeen_ram": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.694
+      },
+      "sudeen_n9_furyAttack": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.77
+      },
+      "sudeen_iso_heal": {
+        "size": 1.0,
+        "why": "21 Nov: drawn 1.25 of standing at the measured 1.29 (the finder misread his upturned head); pinned at 1.03",
+        "h": 0.953
+      },
+      "sudeen_n_battle": {
+        "size": 1.0,
+        "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
+        "h": 0.914
+      },
+      "sudeen_n_slash": {
+        "size": 1.0,
+        "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
+        "h": 0.957
+      },
+      "sudeen_n_herb": {
+        "size": 1.0,
+        "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
+        "h": 0.83
+      },
+      "sudeen_n_bash": {
+        "size": 1.0,
+        "why": "21 Nov (6.81): cut so the head matches his standing head at k=1 (the finder reads these sheets within 15 percent, no better), checked on a contact sheet next to his standing picture",
+        "h": 0.759
+      }
+    },
+    "h2": {
+      "gaha_wind": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.989
+      },
+      "gaha_fall_land": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.664
+      },
+      "gaha_fall_rise": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.94
+      },
+      "gaha_n6_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.448
+      },
+      "gaha_n6_sonicPrep": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.044
+      },
+      "gaha_n6_sonicClose": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.938
+      },
+      "gaha_n6_sonicThrow": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.943
+      },
+      "gaha_n6_weak": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.801
+      },
+      "gaha_sj_sweep": {
+        "size": 0.92,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.616
+      },
+      "gaha_n6_furyDive": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.94
+      },
+      "gaha_n6_swiftGuard": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.048
+      },
+      "gaha_n_leap": {
+        "size": 1.0,
+        "why": "21 Nov (6.72): the head finder cannot read the airborne leap; judged next to his lunge (0.92) and standing sheet, head and feet",
+        "h": 1.193
+      }
+    },
+    "h3": {
+      "layra_n6_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.539
+      },
+      "layra_n6_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.114
+      },
+      "layra_dodge": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.837
+      },
+      "layra_bless_float": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+        "h": 1.161
+      },
+      "layra_bless_chant": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+        "h": 1.161
+      },
+      "layra_bless_cast": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
+        "h": 1.182
+      },
+      "layra_n_stand": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.986
+      },
+      "layra_n_battle": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.919
+      },
+      "layra_n_block": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.981
+      },
+      "layra_n_dodge": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.994
+      },
+      "layra_n_chant": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 1.025
+      },
+      "layra_n_cast": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 1.008
+      },
+      "layra_n_hurt": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.978
+      },
+      "layra_n_weak": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.983
+      },
+      "layra_n_fallen": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.947
+      },
+      "layra_n_down": {
+        "size": 1.0,
+        "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
+        "h": 0.808
+      }
+    },
+    "e2": {
+      "bull_iso_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.998
+      },
+      "bull_iso_battle": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.958
+      },
+      "bull_iso_attack": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.009
+      },
+      "bull_dodge": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.857
+      },
+      "bull_iso_hurt": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.942
+      },
+      "bull_n6b_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.598
+      },
+      "bull_n6b_victory": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.011
+      },
+      "bull_n6b_throw1": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.88
+      },
+      "bull_n6b_throw2": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.898
+      },
+      "bull_n6b_weak": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.773
+      },
+      "bull_flame_battle": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.872
+      },
+      "bull_flame_windup": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.94
+      },
+      "bull_flame_strike": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.92
+      },
+      "bull_flame_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.99
+      },
+      "bull_n6b_bl3": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.953
+      },
+      "bull_n6b_bl4": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.027
+      },
+      "bull_n6b_bl1": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.893
+      },
+      "bull_n6b_bl6": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.897
+      },
+      "bull_charge_plain": {
+        "size": 1.0,
+        "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+        "h": 0.837
+      },
+      "bull_charge_bloodied": {
+        "size": 1.0,
+        "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+        "h": 0.844
+      },
+      "bull_charge_enchanted": {
+        "size": 1.0,
+        "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
+        "h": 0.857
+      }
+    },
+    "e3": {
+      "archer_hq_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.992
+      },
+      "archer_hq_battle": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.938
+      },
+      "archer_hq_fire": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.003
+      },
+      "archer_hq_primed": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.013
+      },
+      "archer_n6b_dagger": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.893
+      },
+      "archer_dodge": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.883
+      },
+      "archer_hq_hit": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.958
+      },
+      "archer_hq_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.567
+      },
+      "archer_poison": {
+        "size": 0.95,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.71
+      },
+      "archer_poisonShot": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.833
+      },
+      "archer_hq_wound2": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.753
+      },
+      "archer_hq_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.043
+      },
+      "archer_hq_wound1": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.75
+      },
+      "archer_ench": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.063
+      },
+      "archer_smoke_throw": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.947
+      }
+    },
+    "e1": {
+      "tayo_n6b_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.46
+      },
+      "tayo_n6b_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.995
+      },
+      "tayo_n6b_weak": {
+        "size": 0.92,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.689
+      },
+      "tayo_n6b_battleFire": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.813
+      }
+    },
+    "e4": {
+      "rabdul_iso_attack": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.679
+      },
+      "rabdul_hurt": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.778
+      },
+      "rabdul_iso_fire": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.694
+      },
+      "rabdul_fall": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.761
+      },
+      "rabdul_n6b_weak": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.841
+      }
+    },
+    "h4": {
+      "kofi_water_cast": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.938
+      },
+      "kofi_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.721
+      },
+      "kofi_water_chant": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.97
+      },
+      "kofi_fire_chant": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.965
+      },
+      "kofi_fire_cast": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.965
+      },
+      "kofi_storm_cast": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.985
+      },
+      "kofi_earth_chant": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.95
+      },
+      "kofi_earth_cast": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.948
+      }
+    },
+    "e5": {
+      "gadara_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.992
+      },
+      "gadara_battle": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.727
+      },
+      "gadara_weak": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.88
+      },
+      "gadara_cleave_rear": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.742
+      },
+      "gadara_cleave_land": {
+        "size": 1.08,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.754
+      },
+      "gadara_hook_reach": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.661
+      },
+      "gadara_hook_pull": {
+        "size": 1.08,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.834
+      },
+      "gadara_sunder_slash": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.712
+      },
+      "gadara_hurt": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.896
+      },
+      "gadara_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.607
+      },
+      "gadara_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.896
+      }
+    },
+    "h5": {
+      "alagara_battle": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.845
+      },
+      "alagara_ready": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.743
+      },
+      "alagara_guard": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.742
+      },
+      "alagara_dodge": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.794
+      },
+      "alagara_hurt": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.897
+      },
+      "alagara_down": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.601
+      },
+      "alagara_strike": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.811
+      },
+      "alagara_claim_reach": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.811
+      },
+      "alagara_claim_snatch": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.78
+      },
+      "alagara_claim_store": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.753
+      },
+      "alagara_mantle_prep": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.868
+      },
+      "alagara_mantle_cast": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.85
+      },
+      "alagara_gale": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.721
+      },
+      "alagara_gale_fury": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.738
+      },
+      "alagara_gale_swift": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.823
+      },
+      "alagara_fury_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 1.003
+      },
+      "alagara_fury_ready": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.821
+      },
+      "alagara_fury_windup": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.848
+      },
+      "alagara_fury": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.826
+      },
+      "alagara_fury_guard": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.791
+      },
+      "alagara_fury_dodge": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.868
+      },
+      "alagara_swift_stand": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.998
+      },
+      "alagara_swift_ready": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.73
+      },
+      "alagara_swift": {
+        "size": 1.05,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.895
+      },
+      "alagara_swift_guard": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.716
+      },
+      "alagara_swift_dodge": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.757
+      },
+      "alagara_mantle_swift": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.834
+      },
+      "alagara_victory": {
+        "size": 1.0,
+        "why": "21 Nov, next to standing at the size drawn: head and feet",
+        "h": 0.976
+      }
+    },
+    "h6": {
+      "leol_stand": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.993
+      },
+      "leol_battle": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.877
+      },
+      "leol_weak": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.916
+      },
+      "leol_shot": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.91
+      },
+      "leol_hguard": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.881
+      },
+      "leol_dodge": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.787
+      },
+      "leol_hstrike": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.812
+      },
+      "leol_hraise": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.943
+      },
+      "leol_hurt": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.937
+      },
+      "leol_down": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.666
+      },
+      "leol_victory": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 1.091
+      }
+    },
+    "e6": {
+      "thief_stand": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 1.0
+      },
+      "thief_weak": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.997
+      },
+      "thief_slash": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.874
+      },
+      "thief_parry": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.965
+      },
+      "thief_dodge": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 1.01
+      },
+      "thief_hurt": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 1.028
+      },
+      "thief_down": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.622
+      },
+      "thief_victory": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.948
+      },
+      "thief_ambush": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.958
+      },
+      "thief_battle": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 1.035
+      },
+      "thief_trap": {
+        "size": 1.0,
+        "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
+        "h": 0.969
+      }
+    }
   },
-  "h2": {
-   "gaha_wind": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.989
-   },
-   "gaha_fall_land": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.664
-   },
-   "gaha_fall_rise": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.94
-   },
-   "gaha_n6_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.448
-   },
-   "gaha_n6_sonicPrep": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.044
-   },
-   "gaha_n6_sonicClose": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.938
-   },
-   "gaha_n6_sonicThrow": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.943
-   },
-   "gaha_n6_weak": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.801
-   },
-   "gaha_sj_sweep": {
-    "size": 0.92,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.616
-   },
-   "gaha_n6_furyDive": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.94
-   },
-   "gaha_n6_swiftGuard": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.048
-   },
-   "gaha_n_leap": {
-    "size": 1.0,
-    "why": "21 Nov (6.72): the head finder cannot read the airborne leap; judged next to his lunge (0.92) and standing sheet, head and feet",
-    "h": 1.193
-   }
+  "skip": {
+    "e2": {
+      "bull_flame_shield": "the thrown shield in flight, not a body",
+      "bull_n6b_shield": "the thrown shield in flight, not a body"
+    },
+    "h6": {
+      "leol_barricade": "the Barricade (a wall on the board), not a body"
+    }
   },
-  "h3": {
-   "layra_n6_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.539
-   },
-   "layra_n6_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.114
-   },
-   "layra_dodge": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.837
-   },
-   "layra_bless_float": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.161
-   },
-   "layra_bless_chant": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.161
-   },
-   "layra_bless_cast": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet (pinned 1.08)",
-    "h": 1.182
-   },
-   "layra_n_stand": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.986
-   },
-   "layra_n_battle": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.919
-   },
-   "layra_n_block": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.981
-   },
-   "layra_n_dodge": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.994
-   },
-   "layra_n_chant": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 1.025
-   },
-   "layra_n_cast": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 1.008
-   },
-   "layra_n_hurt": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.978
-   },
-   "layra_n_weak": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.983
-   },
-   "layra_n_fallen": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.947
-   },
-   "layra_n_down": {
-    "size": 1.0,
-    "why": "21 Nov (6.69), her new sheets cut at one size (BASE in make_layra_new.py); contact sheet next to standing, head and feet",
-    "h": 0.808
-   }
-  },
-  "e2": {
-   "bull_iso_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.998
-   },
-   "bull_iso_battle": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.958
-   },
-   "bull_iso_attack": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.009
-   },
-   "bull_dodge": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.857
-   },
-   "bull_iso_hurt": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.942
-   },
-   "bull_n6b_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.598
-   },
-   "bull_n6b_victory": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.011
-   },
-   "bull_n6b_throw1": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.88
-   },
-   "bull_n6b_throw2": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.898
-   },
-   "bull_n6b_weak": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.773
-   },
-   "bull_flame_battle": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.872
-   },
-   "bull_flame_windup": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.94
-   },
-   "bull_flame_strike": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.92
-   },
-   "bull_flame_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.99
-   },
-   "bull_n6b_bl3": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.953
-   },
-   "bull_n6b_bl4": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.027
-   },
-   "bull_n6b_bl1": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.893
-   },
-   "bull_n6b_bl6": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.897
-   },
-   "bull_charge_plain": {
-    "size": 1.0,
-    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
-    "h": 0.837
-   },
-   "bull_charge_bloodied": {
-    "size": 1.0,
-    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
-    "h": 0.844
-   },
-   "bull_charge_enchanted": {
-    "size": 1.0,
-    "why": "21 Nov, the charge (crouched, a dust trail) next to his battle stance at the size drawn: horns, shield and mace the same size (6.73)",
-    "h": 0.857
-   }
-  },
-  "e3": {
-   "archer_hq_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.992
-   },
-   "archer_hq_battle": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.938
-   },
-   "archer_hq_fire": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.003
-   },
-   "archer_hq_primed": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.013
-   },
-   "archer_n6b_dagger": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.893
-   },
-   "archer_dodge": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.883
-   },
-   "archer_hq_hit": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.958
-   },
-   "archer_hq_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.567
-   },
-   "archer_poison": {
-    "size": 0.95,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.71
-   },
-   "archer_poisonShot": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.833
-   },
-   "archer_hq_wound2": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.753
-   },
-   "archer_hq_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.043
-   },
-   "archer_hq_wound1": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.75
-   },
-   "archer_ench": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.063
-   },
-   "archer_smoke_throw": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.947
-   }
-  },
-  "e1": {
-   "tayo_n6b_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.46
-   },
-   "tayo_n6b_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.995
-   },
-   "tayo_n6b_weak": {
-    "size": 0.92,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.689
-   },
-   "tayo_n6b_battleFire": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.813
-   }
-  },
-  "e4": {
-   "rabdul_iso_attack": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.679
-   },
-   "rabdul_hurt": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.778
-   },
-   "rabdul_iso_fire": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.694
-   },
-   "rabdul_fall": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.761
-   },
-   "rabdul_n6b_weak": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.841
-   }
-  },
-  "h4": {
-   "kofi_water_cast": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.938
-   },
-   "kofi_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.721
-   },
-   "kofi_water_chant": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.97
-   },
-   "kofi_fire_chant": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.965
-   },
-   "kofi_fire_cast": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.965
-   },
-   "kofi_storm_cast": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.985
-   },
-   "kofi_earth_chant": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.95
-   },
-   "kofi_earth_cast": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.948
-   }
-  },
-  "e5": {
-   "gadara_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.992
-   },
-   "gadara_battle": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.727
-   },
-   "gadara_weak": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.88
-   },
-   "gadara_cleave_rear": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.742
-   },
-   "gadara_cleave_land": {
-    "size": 1.08,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.754
-   },
-   "gadara_hook_reach": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.661
-   },
-   "gadara_hook_pull": {
-    "size": 1.08,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.834
-   },
-   "gadara_sunder_slash": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.712
-   },
-   "gadara_hurt": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.896
-   },
-   "gadara_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.607
-   },
-   "gadara_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.896
-   }
-  },
-  "h5": {
-   "alagara_battle": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.845
-   },
-   "alagara_ready": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.743
-   },
-   "alagara_guard": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.742
-   },
-   "alagara_dodge": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.794
-   },
-   "alagara_hurt": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.897
-   },
-   "alagara_down": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.601
-   },
-   "alagara_strike": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.811
-   },
-   "alagara_claim_reach": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.811
-   },
-   "alagara_claim_snatch": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.78
-   },
-   "alagara_claim_store": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.753
-   },
-   "alagara_mantle_prep": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.868
-   },
-   "alagara_mantle_cast": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.85
-   },
-   "alagara_gale": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.721
-   },
-   "alagara_gale_fury": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.738
-   },
-   "alagara_gale_swift": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.823
-   },
-   "alagara_fury_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 1.003
-   },
-   "alagara_fury_ready": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.821
-   },
-   "alagara_fury_windup": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.848
-   },
-   "alagara_fury": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.826
-   },
-   "alagara_fury_guard": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.791
-   },
-   "alagara_fury_dodge": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.868
-   },
-   "alagara_swift_stand": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.998
-   },
-   "alagara_swift_ready": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.73
-   },
-   "alagara_swift": {
-    "size": 1.05,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.895
-   },
-   "alagara_swift_guard": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.716
-   },
-   "alagara_swift_dodge": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.757
-   },
-   "alagara_mantle_swift": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.834
-   },
-   "alagara_victory": {
-    "size": 1.0,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.976
-   }
+  "tall": {
+    "e3": {
+      "archer_ench": "the flaming bow is held up over her head; her body is standing size (by eye 21 Nov)"
+    },
+    "e5": {
+      "gadara_unleash": "the staff is raised over his head (Singularity); his body is standing size (by eye 21 Nov)"
+    },
+    "h2": {
+      "gaha_n6_victory": "the spear is raised over his head; his body is standing size (by eye 21 Nov)",
+      "gaha_n6_stoneGuard": "the spear stands upright over his head; crouched, his body is no bigger than standing (by eye 22 Nov, after 1.89 trimmed his standing pictures)",
+      "gaha_fall_rise": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_iso_hurt": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_iso_walk0": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_iso_walk1": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_iso_walk2": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_n_leap": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_sj_throw": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
+      "gaha_sj_whirl": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size"
+    },
+    "h3": {
+      "layra_bless_float": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+      "layra_bless_chant": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+      "layra_bless_cast": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
+      "layra_n6_victory": "22 Nov (1.89): arms and staff raised over her head; the head check (B) says the body is standing size"
+    },
+    "e6": {
+      "thief_battle": "a dagger arm raised; his body is standing size (by eye 26 Nov)",
+      "thief_parry": "the dagger is raised to parry; his body is standing size (by eye 26 Nov)",
+      "thief_hurt": "thrown back upright by the hit; his body is standing size (by eye 26 Nov)"
+    }
   }
- },
- "skip": {
-  "e2": {
-   "bull_flame_shield": "the thrown shield in flight, not a body",
-   "bull_n6b_shield": "the thrown shield in flight, not a body"
-  }
- },
- "tall": {
-  "e3": {
-   "archer_ench": "the flaming bow is held up over her head; her body is standing size (by eye 21 Nov)"
-  },
-  "e5": {
-   "gadara_unleash": "the staff is raised over his head (Singularity); his body is standing size (by eye 21 Nov)"
-  },
-  "h2": {
-   "gaha_n6_victory": "the spear is raised over his head; his body is standing size (by eye 21 Nov)",
-   "gaha_n6_stoneGuard": "the spear stands upright over his head; crouched, his body is no bigger than standing (by eye 22 Nov, after 1.89 trimmed his standing pictures)",
-   "gaha_fall_rise": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_iso_hurt": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_iso_walk0": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_iso_walk1": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_iso_walk2": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_n_leap": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_sj_throw": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size",
-   "gaha_sj_whirl": "22 Nov (1.89): his new standing carries the spear on the shoulder and lost the empty rows under the feet, so poses with the spear upright or in the air read taller; the head check (B) says the body is standing size"
-  },
-  "h3": {
-   "layra_bless_float": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
-   "layra_bless_chant": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
-   "layra_bless_cast": "22 Nov (1.89): she floats under a Verse, so the air under her is part of the picture; her standing lost its empty rows; the head check (B) says the body is standing size",
-   "layra_n6_victory": "22 Nov (1.89): arms and staff raised over her head; the head check (B) says the body is standing size"
-  }
- }
 }

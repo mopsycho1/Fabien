@@ -237,5 +237,30 @@
       "radiantRift",
       "bulwarkShield"
     ]
+  },
+  "slinger": {
+    "name": "Slinger",
+    "badge": "L",
+    "attackEffect": "sling",
+    "attackName": "Sling Shot",
+    "note": "Leol, the Slinger (roadmap 19.1, 22 Nov; class framework v1.0, chat file 1639). A dual-weapon defensive controller: the sling controls distance (2 to 4 tiles), the hammer recovers it (the next tile). Numbers picked by Claude (the sheet gives none): health 32, attack 6, defense 3, the archer's free weapon switch (once a turn, never a second attack). Passive Prepared Defender (the sheet's recommendation): after a hammer push his next sling shot gets +15 accuracy.",
+    "contest": { "style": "defence", "power": 5, "guard": 6, "agility": 4 },
+    "stances": { "press": "average", "guard": "strong", "slip": "weak", "break": "average" },
+    "closeWeapon": { "name": "Hammer", "farName": "Sling", "attack": 1, "pose": "hammer", "strike": "hammerStrike" },
+    "spells": ["smokePellet", "suppressiveFire", "concussiveShot", "hammerStrike", "barricade"],
+    "passives": { "preparedDefender": 15 },
+    "stats": { "hp": 32, "attack": 6, "defense": 3, "magicAttack": 1, "magicDefense": 2, "accuracy": 88, "evade": 12, "speed": 9, "move": 3, "range": 4 }
+  },
+  "infiltrator": {
+    "name": "Infiltrator",
+    "badge": "T",
+    "attackEffect": "slash",
+    "attackName": "Twin Daggers",
+    "note": "The Thief, the Infiltrator (roadmap 19.2, 22 Nov; class framework v1.0, chat file 1640). Hide, reposition, exploit, expose, hide again. Numbers picked by Claude: health 26, attack 7, evade 20, speed 12, move 4. Hide: ending a turn without acting makes him Hidden (foes cannot target him) until he attacks, uses Ambush, is hit, or a foe on the highest ground within 5 tiles spots him (Detection). Hidden Movement: +2 move while Hidden, and walking does not reveal him.",
+    "contest": { "style": "evasion", "power": 5, "guard": 3, "agility": 8 },
+    "stances": { "press": "weak", "guard": "weak", "slip": "strong", "break": "strong" },
+    "spells": ["ambush", "trap"],
+    "passives": { "hide": true, "hiddenMove": 2, "detection": 5 },
+    "stats": { "hp": 26, "attack": 7, "defense": 2, "magicAttack": 1, "magicDefense": 2, "accuracy": 92, "evade": 20, "speed": 12, "move": 4, "range": 1 }
   }
 }

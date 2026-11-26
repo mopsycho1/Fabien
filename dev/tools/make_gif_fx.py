@@ -104,6 +104,8 @@ FILES = {
     'sfx_aegis': ('Alagara update/Alagara update/Effects/Aegis.gif', 'keep', 0.506, 0.83),                 # Aegis's golden dome rising (1.98); frames 0 to 5 rise, 6 to 8 hold
     'sfx_rift': ('Alagara update/Alagara update/Effects/Nine-Frame Prismatic Energy Slash Animation.gif', 'keep', 0.5, 0.5),   # Radiant Rift's slash (10.52)
     'sfx_arcane_charge': ('Alagara update/Alagara update/Effects/Magical Arcane Charging Spiral.gif', 'keep', 0.502, 0.92),       # Radiant Rift's charge; tinted, Layra's channel (1.97)
+    # 22 Nov (19.2): the Thief's trap, folder INBOX/2026-11-19/email, ONLY=sfx_trap_burst
+    'sfx_trap_burst': ('Male Thief character sheets/Male Thief character sheets/skill effects/trap exploding.gif', 'keep', 0.5, 0.85),
     'sfx_orb_burst': ('Dark Magic Orb Explosion Animation/Dark Magic Orb Explosion Animation.gif', 'keep', 0.5, 0.92),         # Gadara's orb bursting (6.91)
 }
 

@@ -2,7 +2,7 @@
 // This file holds the plain rules; BattleScene does the menu and the pictures.
 import data from './data/items.json';
 import rules from './data/engagement.json';
-import { isPoisoned, isBurning, curePoison, cureBurn } from './status.js';
+import { isPoisoned, isBurning, curePoison, cureBurn, isBleeding } from './status.js';
 
 export const ITEMS = data.items;
 
@@ -26,7 +26,7 @@ export function giveItem(unit, id, n = 1) {
 export function itemHelps(unit, id) {
   const it = ITEMS[id];
   if (!it) return false;
-  if (it.heal) return unit.hp < unit.maxHp;
+  if (it.heal) return unit.hp < unit.maxHp || isBleeding(unit); // (a healing item stops Bleeding, 19.2)
   if (it.mp) return unit.maxMp > 0 && unit.mp < unit.maxMp;
   if (it.poise) return !!unit.contest && (unit.poise === undefined ? rules.poise.start : unit.poise) < rules.poise.max;
   if (it.cure) return isPoisoned(unit) || isBurning(unit);
@@ -42,6 +42,7 @@ export function applyItem(unit, id, user = unit) {
   if (it.heal) {
     out.heal = Math.min(it.heal, unit.maxHp - unit.hp);
     unit.hp += out.heal;
+    if (isBleeding(unit)) { curePoison(unit); out.cured = true; } // it binds the wound: Bleeding stops (19.2)
   }
   if (it.mp) {
     out.mp = Math.min(it.mp, unit.maxMp - unit.mp);
