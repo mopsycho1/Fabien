@@ -6,6 +6,7 @@
 import { preloadArt } from './art.js';
 import { preloadBoardArt } from './boardArt.js';
 import { preloadNormals } from './lighting.js';
+import { queueNormals } from './fighterLight.js';
 import { preloadSpellArt } from './spellArt.js';
 import { preloadUiArt } from './hud.js';
 import { classPlateFiles } from './nameplate.js';
@@ -19,6 +20,7 @@ export function queueBattleArt(scene, ids) {
   preloadArt(scene, ids);
   preloadBoardArt(scene);
   preloadNormals(scene); // bump pictures for the ?light test
+  queueNormals(scene, ids); // the fighters' normal maps, only with Fighter lighting on (18.58)
   preloadSpellArt(scene); // lightning and Verse effects from the effect sheets
   preloadUiArt(scene); // Suleiman's battle-screen frames, buttons and icons
   for (const f of classPlateFiles()) scene.load.image(f.key, artUrl('./' + f.file)); // his class nameplates (M6)

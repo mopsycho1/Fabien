@@ -382,7 +382,14 @@ export function sfxAt(scene, name, x, y, { flip = false, rotation = 0, depth = 8
   if (!sfxHas(scene, name)) return null;
   const img = sfxPlay(scene, name, x, y, { scale: acrossScale(name, (f) => f.w) * size, rotation, depth });
   if (flip) img.setFlipX(true);
+  scene.events.emit('fxlight', x, y, fxLightColor(name), 1, 420); // his effect lights the fighters near it (18.58)
   return img;
+}
+// The colour of the light one of his effects gives off, read from its name (18.58).
+function fxLightColor(name) {
+  return /fire|flame|fury|ember|shango|kindle|burn/i.test(name) ? 0xff8a3c : /light|bolt|storm|thunder|spark/i.test(name) ? 0xbfd8ff
+    : /water|tide|heal|renew/i.test(name) ? 0x8fe0d8 : /stone|earth|sand|dust/i.test(name) ? 0xe0b070 : /wind|swift|gale|sonic/i.test(name) ? 0xdff6ff
+    : /hex|haunt|spirit|dark|singular|umbra/i.test(name) ? 0xb48aff : 0xffe0b0;
 }
 // The same, looping until it is destroyed (Singularity's dark orb over Gadara while it charges).
 export function sfxLoop(scene, name, x, y, { size = 1 } = {}) {

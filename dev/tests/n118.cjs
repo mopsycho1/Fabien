@@ -60,6 +60,18 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const ala = b.units.find((u) => u.id === 'h5');
   if (ala) { ala.lastStreakAt = 0; b.placeUnit(ala, 4, 4); b.placeUnit(foe, 5, 4); await new Promise((r) => b.performAttack(ala, foe, r)); await sleep(800); check('18.57 Alagara keeps his own drawn slash (no streak)', !ala.lastStreakAt); }
   rowOf('Weapon streaks').emit('pointerdown'); // back Off for the device
+  // 18.58 fighter lighting: the switch, and a normal map for every fighter picture (make_normals.py --all)
+  const lr = rowOf('Fighter lighting');
+  check('18.58 Settings has a Fighter lighting row, Off by default', lr && /Off$/.test(lr.text), lr && lr.text);
+  const fs = require('fs'), path = require('path');
+  const artJson = require('../../src/data/art.json');
+  const SKIP = new Set(['props', 'name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'weapon', 'swingFx', 'channelFx']);
+  const pics = new Set();
+  const walk = (o, top) => { if (o && typeof o === 'object') { for (const [k, v] of Object.entries(o)) { if (top && (SKIP.has(k) || k.startsWith('note'))) continue; walk(v, false); } } else if (typeof o === 'string' && o.endsWith('.png') && fs.existsSync(path.join(__dirname, '../../public/art', o))) pics.add(o); };
+  for (const [id, e] of Object.entries(artJson)) if (id !== 'ruler' && e && typeof e === 'object') walk(e, true);
+  const missing = [...pics].filter((f) => !fs.existsSync(path.join(__dirname, '../../public/art/normals', f)) || !fs.existsSync(path.join(__dirname, '../../public/art/normals', f.replace(/\.png$/, '.webp'))));
+  check('18.58 every fighter picture has a normal map and its WebP twin (' + pics.size + ' pictures)', pics.size > 600 && missing.length === 0, missing.slice(0, 4).join(', '));
+  check('18.58 off: the fighters are drawn as before (no Light2D, no normal maps queued)', !(b.fighterLight && b.fighterLight.on) && b.units.every((u) => !u.sprite || !u.sprite.pipeline || u.sprite.pipeline.name !== 'Light2D'));
   check('18.56 a second tap turns it Off', /Off$/.test(rowOf('Weapon streaks').text));
 
   const real = errors.filter((e) => !/Not implemented/.test(e));

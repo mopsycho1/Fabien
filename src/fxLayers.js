@@ -215,6 +215,7 @@ export function impactLayers(scene, { x, y, gx = x, gy = y, element = 'steel', l
   const el = typeof element === 'string' ? elementOf(element) : element;
   fxLayerCount.impact++;
   const k = [0, 0.7, 1, 1.35, 1.7][level] || 1;
+  scene.events.emit('fxlight', x, y, el.glow, 0.5 + 0.3 * k, 300); // the hit lights the fighters near it (18.58, when Fighter lighting is on)
   // 2. the flash: a white-hot core in a halo of the element's colour, two frames long
   if (has(scene, 'fx-glow')) {
     const halo = scene.add.image(x, y, 'fx-glow').setBlendMode(ADD).setTint(el.glow).setDepth(depth + 1).setScale(0.3 * k).setAlpha(0.9);

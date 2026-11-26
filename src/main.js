@@ -28,7 +28,7 @@ const game = new Phaser.Game({
   scene: window.location.search.includes('lab')
     ? [EffectsLab, StartScene, DialogueScene, SelectScene, BattleScene, EndScene]
     : [StartScene, DialogueScene, SelectScene, BattleScene, EndScene, EffectsLab],
-  render: { maxLights: 24 }, // room for every torch (only used by the ?light test)
+  render: { maxLights: 10 }, // the lights a lit picture adds up (Fighter lighting 18.58, the ?light test): the 10 nearest the view
   loader: { imageLoadType: 'HTMLImageElement' }, // load pictures straight from their files
 });
 followWindow(game);

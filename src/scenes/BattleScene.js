@@ -51,6 +51,7 @@ import { DomHud, domHudWanted } from '../domHud.js'; // the HUD in HTML over the
 import clashData from '../data/clashBanner.json';
 import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.js';
 import { installLighting } from '../lighting.js';
+import { installFighterLight } from '../fighterLight.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName, groundColors } from '../boardArt.js';
 import { LOOKS, lookOn, setLook } from '../look2.js';
 import { weaponStreak } from '../weaponStreak.js';
@@ -345,6 +346,7 @@ export default class BattleScene extends Phaser.Scene {
     for (const u of this.units) if (u.grip) u.attackName = gripAttackName(u); // Gadara: Fork Strike or Blade Strike
 
     installLighting(this); // only with ?light in the address (roadmap 1.38)
+    installFighterLight(this); // the torches and effects light the fighters (18.58, Settings: Fighter lighting)
     createHudTextures(this);
     this.buildHud();
     this.loadClashArt(); // his clash banners, in the background (roadmap 8.15)

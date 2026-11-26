@@ -6,6 +6,7 @@
 // The looks, in the order the Settings sheet shows them. name: the word on the row.
 export const LOOKS = [
   { id: 'streaks', name: 'Weapon streaks' }, // 18.57
+  { id: 'lighting', name: 'Fighter lighting' }, // 18.58
 ];
 
 const KEY = 'fabien.look2.';
