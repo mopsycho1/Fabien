@@ -142,6 +142,10 @@ async function playView(view) {
     const endTurn = async (who) => {
       const s = await state();
       if (s.id !== who || !s.menu) return true; // already over
+      // 1.111: the first tap lights the row and spends nothing; the second ends the turn
+      await pressRow('End turn');
+      const armed = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); return { armed: !!b.endArmed, same: b.activeUnit && b.activeUnit.id }; });
+      check(armed.armed && armed.same === who, tag + 'a first tap on End turn only asks to confirm (1.111)');
       await pressRow('End turn');
       await idle();
       return (await state()).id !== who || (await state()).turn !== s.turn;

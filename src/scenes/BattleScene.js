@@ -2034,6 +2034,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // Works out who acts next and sets up the screen for their turn.
   startTurn() {
+    this.endArmed = null; // (1.111)
     if (this.battleOver) return;
     hideTip(this);
     if (this.cardOpen === true) this.cardOpen = false; // a new turn: the card is the slim bar again
@@ -2766,7 +2767,7 @@ export default class BattleScene extends Phaser.Scene {
         a.set('Press' + star('press'), 'press', free, () => this.onStance('press'), { accent: ENGAGE_COLOR, selected: this.empower });
         b.set('Guard' + star('guard'), 'shield', free, () => this.onStance('guard'), { accent: 0xd9b77a, selected: this.empower });
         c.set('Slip' + star('slip'), 'run', free, () => this.onStance('slip'), { accent: 0x9fd4ff, selected: this.empower });
-        if (doneAlready) d.set('End turn', 'hourglass', true, () => this.onEndButton());
+        if (doneAlready) d.set('End turn', 'hourglass', true, () => this.tapEndTurn(), { selected: this.endArmed === unit });
         else d.set('More  >', 'gem', free, () => this.openStanceMenu('more'));
       }
       return;
@@ -2777,7 +2778,7 @@ export default class BattleScene extends Phaser.Scene {
       a.set('Press', 'press', free, () => this.onPressButton(), { accent: ENGAGE_COLOR });
       b.set('Break away', 'run', free, () => this.onBreakButton());
       c.set(null);
-      d.set('End turn', 'hourglass', isHero, () => this.onEndButton());
+      d.set('End turn', 'hourglass', isHero, () => this.tapEndTurn(), { selected: this.endArmed === unit });
       return;
     }
 
@@ -2837,7 +2838,7 @@ export default class BattleScene extends Phaser.Scene {
     d.set(null);
     const hasItems = heldItems(unit).length > 0 || this.sitesNear(unit).length > 0;
     this.lowHalves[0].set('Items', 'bag', free && hasItems, () => this.onItemsButton(), { accent: GOLD });
-    this.lowHalves[1].set('End turn', 'hourglass', isHero, () => this.onEndButton());
+    this.lowHalves[1].set('End turn', 'hourglass', isHero, () => this.tapEndTurn(), { selected: this.endArmed === unit });
   }
 
   // Shows a unit's card for a few seconds, when the player taps it.
@@ -3507,9 +3508,34 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   onEndButton() {
+    this.endArmed = null;
     if (this.activeUnit.side === 'hero' && !this.busy && !this.battleOver) {
       this.endTurn();
     }
+  }
+
+  // The End turn row needs a second tap, like Prime Bow (1.111: Suleiman lost a turn to a stray tap on it, "that's
+  // something that happens so often"). The first tap only lights the row and says so; a stray tap spends nothing.
+  // The second tap within 4 seconds ends the turn. Any other choice puts it back (cancelEndArm). Space on a keyboard
+  // is deliberate and still ends the turn at once.
+  tapEndTurn() {
+    const unit = this.activeUnit;
+    if (!unit || unit.side !== 'hero' || this.busy || this.battleOver) return;
+    if (this.endArmed === unit && this.time.now - this.endArmedAt <= 4000) return this.onEndButton();
+    this.endArmed = unit;
+    this.endArmedAt = this.time.now;
+    this.showMessage('Tap End turn again to end the turn');
+    play('click');
+    this.refreshStatus();
+    const token = this.endArmedAt;
+    this.time.delayedCall(4000, () => { if (this.endArmed && this.endArmedAt === token) this.cancelEndArm(); });
+  }
+
+  // Put the End turn row back to a single unlit row (any other tap, a new turn, or 4 seconds).
+  cancelEndArm() {
+    if (!this.endArmed) return;
+    this.endArmed = null;
+    if (!this.battleOver) this.refreshStatus();
   }
 
   // ---------- Taps ----------
@@ -3518,6 +3544,7 @@ export default class BattleScene extends Phaser.Scene {
   handleTap(col, row) {
     // Ignore taps while something is moving or attacking, or after the battle
     if (this.busy || this.battleOver) return;
+    this.cancelEndArm(); // a tap on the board puts the End turn confirm away (1.111)
 
     // Tapped outside the board: cancel the current choice
     if (!isInsideGrid(col, row)) {

@@ -31,7 +31,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   b.cancelMode();
   check('2.5 row 4 is Items | End turn: Items live (bags are full), End turn live', b.lowHalves[0].label.text === 'Items' && b.lowHalves[0].enabled && b.lowHalves[1].label.text === 'End turn' && b.lowHalves[1].enabled && !b.slots[3].view.visible);
   b.lowHalves[1].hit.emit('pointerdown'); await sleep(100);
-  check('2.5 tapping End turn ends the turn', ended);
+  b.lowHalves[1].hit.emit('pointerdown'); await sleep(100); /* 1.111: End turn needs a second tap */
+  check('2.5 tapping End turn twice ends the turn', ended);
   const cardText = () => { const t = []; const walk = (c) => c.list.forEach((o) => (o.list ? walk(o) : o.type === 'Text' && t.push(o.text))); walk(b.cardLayer); return t.join(' '); };
   check('2.4 Gaha has no MP line on his card', !/\bMP\b/.test(cardText()), cardText());
   b.activeUnit = layra; layra.hasActed = false; b.cancelMode(); b.refreshCard(layra); b.refreshButtons();

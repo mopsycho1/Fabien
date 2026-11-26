@@ -426,6 +426,7 @@ export class CommandButton {
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
+      if (!(this.label && this.label.text === 'End turn') && scene.cancelEndArm) scene.cancelEndArm(); // any other command puts the End turn confirm away (1.111)
       this.onTap();
     });
     this.hit.on('pointerup', () => this.stopHold());
@@ -603,6 +604,7 @@ export class MenuRow {
       if (!this.enabled || !this.onTap) return;
       play('click');
       this.flash();
+      if (!(this.label && this.label.text === 'End turn') && scene.cancelEndArm) scene.cancelEndArm(); // any other command puts the End turn confirm away (1.111)
       this.onTap();
     });
     this.hit.on('pointerup', () => this.stopHold());

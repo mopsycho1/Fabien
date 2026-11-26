@@ -74,6 +74,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     const st = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const g = b.units.find((u) => u.id === 'h2'); return { acted: g.hasActed, tile: g.col + ',' + g.row, active: b.activeUnit && b.activeUnit.id, mode: b.mode, menu: b.menu.visible, menuAlpha: b.menu.alpha, uiHidden: !!b.uiHidden, floats: window.__floats.slice(0, 6) }; });
     const enabled = after.filter((r) => r.enabled).map((r) => r.word);
     const turn0 = await page.evaluate(() => window.__game.scene.getScene('BattleScene').turnCount);
+    await pressRow('End turn'); // 1.111: the first tap only lights the row
     const ended = await pressRow('End turn');
     await sleep(1500);
     const passed = await page.evaluate((t) => window.__game.scene.getScene('BattleScene').turnCount !== t, turn0);

@@ -650,9 +650,8 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "self",
-    freeAction: true,
-    note: "1.82 (Suleiman 21 Nov: apply poison to her weapon at any point in time). A free action in her turn (even after acting, or in a clash); the next hit that lands poisons like Poison Arrow.",
-    text: "Free, at any time in your turn: coat your arrows and dagger. Your next hit that lands Poisons the target (3 damage at the start of each of its next 3 turns, never the last point). Ready again after 3 turns."
+    note: "1.82 (Suleiman 21 Nov: apply poison to her weapon at any point in time); 1.108 (Suleiman 22 Nov 19:29: 'I still think it should take a turn to poison her arrow ... all I meant was that ... she'd be able to poison the arrow even when not attacking an enemy directly'). It uses her action (she can still walk, as with her other skills), with no foe needed; tap it again to use it. The next hit that lands poisons like Poison Arrow.",
+    text: "Uses your action (you can still walk): coat your arrows and dagger, no foe needed. Your next hit that lands Poisons the target (3 damage at the start of each of its next 3 turns, never the last point). Ready again after 3 turns."
   },
   wardSwitch: {
     name: "Ward",
