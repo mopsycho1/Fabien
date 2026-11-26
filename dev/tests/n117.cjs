@@ -1,6 +1,7 @@
 // 26 Nov batch (Suleiman 22 to 26 Nov). Run with FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1.
 //   1.103 no floor or painted shadow left under Layra's standing and battle pictures (dev/tools/shadow_clean.py --check)
 //   1.105 the save records the line-up with its sides, so Continue builds the same fighters (dev/browser/resume_lineup.cjs: the reload)
+//   1.106 Gaha's Attack and Lunge strike with his newest drawn thrust (the 18 Nov lunge attack sheet), never the old skeleton-era frames
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -53,6 +54,31 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   const sides = b.units.map((u) => u.id + ':' + u.side).sort().join(' ');
   const saved = snap && snap.lineUp ? [...snap.lineUp.hero.map((i) => i + ':hero'), ...snap.lineUp.enemy.map((i) => i + ':enemy')].sort().join(' ') : 'no lineUp in the save';
   check('1.105 the save records who fights on which side', saved === sides, saved);
+
+  // ---------- 1.106 ----------
+  const gaha = U('h2'), foe6 = U('e2');
+  const watch = async (fn) => {
+    const seen = new Set(); const iv = setInterval(() => { try { seen.add(gaha.sprite.texture.key); } catch (e) {} }, 10);
+    await fn(); clearInterval(iv); return [...seen];
+  };
+  const park6 = () => b.units.forEach((u, i) => { if (u !== gaha && u !== foe6) b.placeUnit(u, [[0, 0], [10, 0], [0, 10], [10, 10], [1, 0], [9, 0]][i % 6][0], [[0, 0], [10, 0], [0, 10], [10, 10], [1, 0], [9, 0]][i % 6][1]); u.engagedWith = null; u.hp = u.maxHp = 300; });
+  park6(); b.placeUnit(gaha, 4, 6); b.placeUnit(foe6, 5, 6);
+  const att = await watch(() => new Promise((r) => b.performAttack(gaha, foe6, r)));
+  await sleep(500);
+  check('1.106 Gaha attacks with his newest thrust (gaha_n_lunge)', att.some((k) => /gaha_n_lunge/.test(k)), att.join(','));
+  check('1.106 no old thrust frame in his attack', !att.some((k) => /gaha_thrust/.test(k)));
+  park6();
+  // a line where the Lunge can run (flat enough): the first one found
+  let lineOk = false;
+  for (let r = 1; r < 10 && !lineOk; r++) for (let c = 0; c < 7 && !lineOk; c++) {
+    if (b.isBlocked(c, r) || b.isBlocked(c + 4, r)) continue;
+    b.placeUnit(gaha, c, r); b.placeUnit(foe6, c + 4, r);
+    if (b.lungeSpot(gaha, foe6, w.__spellsAll.lunge)) lineOk = true;
+  } gaha.status.cooldowns = {}; gaha.hasActed = false; gaha.hasMoved = false; gaha.stepsUsed = 0; gaha.status.rooted = true; b.activeUnit = gaha; /* (Lunge needs him Rooted, as n75) */
+  const lun = await watch(() => new Promise((r) => { b.busy = true; b.castSpell(gaha, foe6, 'lunge', () => { b.busy = false; r(); }); }));
+  await sleep(500);
+  check('1.106 the Lunge shows his leap and his lunge attack', lun.some((k) => /gaha_n_leap/.test(k)) && lun.some((k) => /gaha_n_lunge/.test(k)), lun.join(','));
+  check('1.106 no old thrust frame in the Lunge', !lun.some((k) => /gaha_thrust/.test(k)));
 
   // (more parts follow, one per fix)
 

@@ -133,7 +133,7 @@ const FIXES = {
       const U = (id) => b.units.find((u) => u.id === id);
       const realEnd = b.__realEnd || (b.__realEnd = b.endTurn); b.endTurn = () => {}; // turns stand still while we film
       // ---- stage the board: everyone fresh, the two actors on their tiles, the rest out of the way ----
-      const spots = [[0, 0], [8, 0], [0, 2], [8, 2], [0, 4], [8, 4], [1, 1], [7, 1]]; let k = 0;
+      const spots = [[0, 0], [8, 0], [0, 2], [8, 2], [0, 4], [8, 4], [1, 1], [7, 1], [10, 0], [10, 2], [10, 10], [0, 10]]; let k = 0; /* (12 fighters since Leol and the Thief, 26 Nov) */
       const who = U(move.who), foe = U(move.foe), sage = U('h3');
       for (const u of b.units) {
         if (!u.alive) continue;

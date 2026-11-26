@@ -4812,7 +4812,8 @@ export default class BattleScene extends Phaser.Scene {
     // a fighter with a frame-by-frame thrust (Gaha, 6.3): frames 0 to 2 are the draw back,
     // 3 is the full thrust as the blow lands, 4 and 5 bring the spear home
     const up = attacker.facing && attacker.facing.startsWith('up');
-    const thrust = !close && moveFrames(attacker.id, up ? 'thrustUp' : 'thrust', 'right') ? (up ? 'thrustUp' : 'thrust') : null;
+    // (no fighter has these now: Gaha's old skeleton-era frames were retired on 26 Nov, 1.106. A Lunge never plays them: its own strike picture wins)
+    const thrust = !close && !attacker.lungeStrike && moveFrames(attacker.id, up ? 'thrustUp' : 'thrust', 'right') ? (up ? 'thrustUp' : 'thrust') : null;
     // The wind-up before the blow (roadmap 18.29). A fighter with a drawn wind-up ("strikeWindup" in art.json: Gaha,
     // 15 Nov) shows that picture for the draw back; every other melee fighter leans back in code until its frames come.
     const drawnWindup = !close && this.hasPose(attacker, 'strikeWindup');

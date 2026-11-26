@@ -744,13 +744,21 @@
         }
       },
       "attack": {
+        "upLeft": {
+          "file": "gaha_n_lunge_upLeft.png",
+          "originX": 0.57
+        },
         "upRight": {
-          "file": "gaha_iso_attack_upRight.png",
-          "originX": 0.059
+          "file": "gaha_n_lunge_upRight.png",
+          "originX": 0.379
+        },
+        "downLeft": {
+          "file": "gaha_n_lunge_downLeft.png",
+          "originX": 0.507
         },
         "downRight": {
-          "file": "gaha_iso_attack_downRight.png",
-          "originX": 0.733
+          "file": "gaha_n_lunge_downRight.png",
+          "originX": 0.473
         }
       },
       "ready": {
@@ -1158,64 +1166,6 @@
             "originX": 0.425
           }
         ]
-      },
-      "thrust": {
-        "frameMs": 50,
-        "frames": [
-          {
-            "file": "gaha_thrust_0.png",
-            "originX": 0.529
-          },
-          {
-            "file": "gaha_thrust_1.png",
-            "originX": 0.509
-          },
-          {
-            "file": "gaha_thrust_2.png",
-            "originX": 0.424
-          },
-          {
-            "file": "gaha_thrust_3.png",
-            "originX": 0.345
-          },
-          {
-            "file": "gaha_thrust_4.png",
-            "originX": 0.353
-          },
-          {
-            "file": "gaha_thrust_5.png",
-            "originX": 0.488
-          }
-        ]
-      },
-      "thrustUp": {
-        "frameMs": 50,
-        "frames": [
-          {
-            "file": "gaha_thrustUp_0.png",
-            "originX": 0.551
-          },
-          {
-            "file": "gaha_thrustUp_1.png",
-            "originX": 0.563
-          },
-          {
-            "file": "gaha_thrustUp_2.png",
-            "originX": 0.67
-          },
-          {
-            "file": "gaha_thrustUp_3.png",
-            "originX": 0.512
-          },
-          {
-            "file": "gaha_thrustUp_4.png",
-            "originX": 0.561
-          },
-          {
-            "file": "gaha_thrustUp_5.png",
-            "originX": 0.577
-          }
-        ]
       }
     },
     "note_fury": "Gaha under Fury (roadmap 6.14), from his 30 Oct turnaround: front and back views; down-right and up-left are their mirror images.",
@@ -1375,6 +1325,7 @@
     "note_oldstyle": "Size ruler batch (roadmap 18.2, 12 Nov): the old-style pictures are out until Suleiman redraws them (ART2, ART3): \"knocked\" uses his in-the-air fall picture. The game leans the picture back itself.",
     "note_windup": "15 Nov (roadmap 6.52, 18.29): his drawn wind-up and release, four views each (dev/tools/make_gaha_windup.py). throw = the wind-up before Spear Throw, throwRelease = the release, strikeWindup = the same wind-up shown before his melee strike. Down-right is the down-left picture flipped.",
     "note_n18": "18 Nov sheets, wired 21 Nov (6.72, dev/tools/make_gaha_new.py): the new neutral (spear on the shoulder) is his standing in four facings, the battle damaged sheets his weak look in four facings, the Lunge leap and Lunge attack sheets the poses lungeLeap and lungeAttack (BattleScene.castLunge).",
+    "note_attack_26nov": "26 Nov (1.106, Suleiman 23 Nov 07:26: \"Gaha is still using the skeleton we set up back when ... his lunge attack don't even animate right because he used that attack animation\"). CAUSE: his Attack played the old frame-by-frame thrust (gaha_thrust_0 to 5, thrustUp, 6.3, from the skeleton-era test), and BattleScene let those frames override any strike picture, the Lunge's own included. Those two moves are gone from here (the files stay in public/art); his Attack now strikes with his newest drawn thrust, the 18 Nov \"Gaha lunge attack\" sheet (four true views, the same as lungeAttack), after his drawn wind-up (strikeWindup).",
     "ruler": {
       "gaha_n_stand_upRight.png": {
         "footX": 0.61
@@ -1436,12 +1387,21 @@
         "scale": 1.13,
         "footX": 0.503
       },
-      "gaha_iso_attack_upRight.png": {
-        "scale": 1.12
+      "gaha_n_lunge_upLeft.png": {
+        "scale": 0.92,
+        "footX": 0.718
       },
-      "gaha_iso_attack_downRight.png": {
-        "scale": 1.12,
-        "footX": 0.437
+      "gaha_n_lunge_upRight.png": {
+        "scale": 0.92,
+        "footX": 0.266
+      },
+      "gaha_n_lunge_downLeft.png": {
+        "scale": 0.92,
+        "footX": 0.601
+      },
+      "gaha_n_lunge_downRight.png": {
+        "scale": 0.92,
+        "footX": 0.398
       },
       "gaha_iso_guard_upRight.png": {
         "scale": 0.9,
@@ -1513,6 +1473,13 @@
       "gaha_release_downRight.png": {
         "footX": 0.59
       },
+      "gaha_iso_attack_upRight.png": {
+        "scale": 1.12
+      },
+      "gaha_iso_attack_downRight.png": {
+        "scale": 1.12,
+        "footX": 0.437
+      },
       "gaha_n6_sonicPrep_upLeft.png": {
         "scale": 1.24,
         "footX": 0.45
@@ -1568,22 +1535,6 @@
       },
       "gaha_n_leap_downRight.png": {
         "footX": 0.421
-      },
-      "gaha_n_lunge_upLeft.png": {
-        "scale": 0.92,
-        "footX": 0.718
-      },
-      "gaha_n_lunge_upRight.png": {
-        "scale": 0.92,
-        "footX": 0.266
-      },
-      "gaha_n_lunge_downLeft.png": {
-        "scale": 0.92,
-        "footX": 0.601
-      },
-      "gaha_n_lunge_downRight.png": {
-        "scale": 0.92,
-        "footX": 0.398
       },
       "gaha_n_weakA_downLeft.png": {
         "footX": 0.638
@@ -1666,42 +1617,6 @@
       "gaha_n6_furyDive_f3.png": {
         "scale": 1.33,
         "footX": 0.271
-      },
-      "gaha_thrust_0.png": {
-        "footX": 0.646
-      },
-      "gaha_thrust_1.png": {
-        "footX": 0.618
-      },
-      "gaha_thrust_2.png": {
-        "footX": 0.531
-      },
-      "gaha_thrust_3.png": {
-        "footX": 0.419
-      },
-      "gaha_thrust_4.png": {
-        "footX": 0.442
-      },
-      "gaha_thrust_5.png": {
-        "footX": 0.587
-      },
-      "gaha_thrustUp_0.png": {
-        "footX": 0.594
-      },
-      "gaha_thrustUp_1.png": {
-        "footX": 0.606
-      },
-      "gaha_thrustUp_2.png": {
-        "footX": 0.717
-      },
-      "gaha_thrustUp_3.png": {
-        "footX": 0.552
-      },
-      "gaha_thrustUp_4.png": {
-        "footX": 0.606
-      },
-      "gaha_thrustUp_5.png": {
-        "footX": 0.62
       },
       "gaha_n6_stoneAttack_upLeft.png": {
         "scale": 1.09,
