@@ -24,7 +24,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     if (u.view) u.view.alpha = 1;
   });
   const cast = (c, t, id) => new Promise((res) => { b.busy = true; b.castSpell(c, t, id, () => { b.busy = false; res(); }); });
-  const sure = (fn) => { const real = w.Math.random; let n = 0; w.Math.random = () => (n++ < 8 ? 0.01 + n * 0.001 : real()); try { return fn(); } finally { w.Math.random = real; } };
+  const sure = (fn) => { const real = w.Math.random; let n = 0; w.Math.random = () => (n++ < 20 ? 0.01 + n * 0.001 : real()); /* 20, not 8: the "Hammer" callout uses some first (26 Nov, shaky) */ try { return fn(); } finally { w.Math.random = real; } };
 
   // --- Leol ---
   park();
@@ -43,9 +43,14 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('Concussive Shot breaks the channel', broke || !foeFar.channel);
   // Hammer Strike pushes and readies Prepared Defender
   park(); b.placeUnit(leol, 5, 5); b.placeUnit(foeFar, 5, 6);
-  await sure(() => cast(leol, foeFar, 'hammerStrike')); await sleep(1800);
+  // (26 Nov: the forced numbers ran out before the hit roll, so this missed about 1 time in 5. The blow is made sure
+  // with aim, and tried up to 3 times: this checks the push and Prepared Defender, not the hit chance.)
+  const hpH = foeFar.hp; leol.accuracy += 100;
+  for (let tries = 0; tries < 3 && foeFar.hp === hpH; tries++) { park(); b.placeUnit(leol, 5, 5); b.placeUnit(foeFar, 5, 6); leol.prepared = false; await sure(() => cast(leol, foeFar, 'hammerStrike')); await sleep(1800); }
+  leol.accuracy -= 100;
+  const why = 'hp ' + hpH + '->' + foeFar.hp + ' who at 5,7: ' + ((b.getUnitAt(5, 7) || {}).id || 'nobody') + ' engaged ' + (foeFar.engagedWith && foeFar.engagedWith.id);
   check('Hammer Strike takes the hammer', leol.weapon === 'dagger');
-  check('Hammer Strike pushes the foe back (1 tile, more if it then falls off a ledge)', foeFar.col === 5 && foeFar.row >= 7, foeFar.col + ',' + foeFar.row);
+  check('Hammer Strike pushes the foe back (1 tile, more if it then falls off a ledge)', foeFar.col === 5 && foeFar.row >= 7, foeFar.col + ',' + foeFar.row + ' ' + why);
   check('Prepared Defender is ready', leol.prepared === true);
   const before = b.slingChance({ ...leol, prepared: false }, foeFar);
   const withIt = b.slingChance(leol, foeFar);

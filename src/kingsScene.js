@@ -177,6 +177,12 @@ export const kingMethods = {
   // ---------- castSpell hands the kings' skills here ----------
   castKingSkill(caster, target, id, onDone) {
     const spell = spells[id];
+    // back in his stance when the skill is done (26 Nov: the bot battles caught Alagara frozen in his strike picture)
+    if (!onDone || !onDone.backToStance) {
+      const done = onDone;
+      onDone = (...args) => { this.backToStance(caster); return done && done(...args); };
+      onDone.backToStance = true;
+    }
     // from Alagara's Echo: one more turn before it is ready again (10.18)
     if (spell.verseSkill && fromEcho(caster, id)) caster.status.cooldowns[id] = (caster.status.cooldowns[id] || 0) + A.echoCooldownExtra;
     switch (spell.kind) {

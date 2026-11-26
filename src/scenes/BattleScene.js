@@ -2281,6 +2281,10 @@ export default class BattleScene extends Phaser.Scene {
     tickBuff(this.activeUnit); // spells on this unit get one turn shorter
     tickBorrowed(this.activeUnit); // Bloodied stacks Alagara took with Claim run down too (10.41)
     tickShield(this.activeUnit); // Aegis lasts 2 of the fighter's turns (10.46)
+    // the turn is over: every fighter stands in his stance, in the look he has now (26 Nov: bot battles caught Gaha left in his
+    // Swift guard picture after the Verse ran out, Layra in her blessing float, Sudeen in a wind-up after a push, the Bull in
+    // his old look after starting a clash). showStanding keeps a held look (a charge, an aim, a meditation, a clash stance).
+    for (const u of this.units) this.backToStance(u);
     if (this.activeUnit.storedSwitch) { // Alagara's Active Verse ran out: his stored one takes over (10.47)
       const id = this.activeUnit.storedSwitch;
       this.activeUnit.storedSwitch = null;
@@ -2789,8 +2793,9 @@ export default class BattleScene extends Phaser.Scene {
       a.set('Undo move', 'back', !this.busy, () => this.undoMove());
     } else {
       const left = this.stepsLeft(unit);
-      const label = unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
-      a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move' });
+      // pinned by the archer's arrow (19.6) the row says so: on 26 Nov Baiyee found Sudeen "can't move at all" with no word why
+      const label = isPinned(unit) ? 'Pinned: no move' : unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
+      a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move', tip: isPinned(unit) ? { title: 'Pinned', body: 'An arrow pins this fighter to the ground: no walking this turn. Attacks and skills still work.' } : undefined });
     }
     const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
     // a Verse can change the attack itself (Layra: Thunderclap under Stone, Wildfire under Fury)
@@ -4565,6 +4570,13 @@ export default class BattleScene extends Phaser.Scene {
     if (!fx || !unit.view) return;
     const name = fx === 'gale' ? galeFx(this, unit) : fx;
     sfxAt(this, name, unit.view.x + Math.sign(dx || 1) * 10, unit.view.y - (unit.centerY || 40) * 0.8, { flip: dx < 0, size: 1.2, depth: unit.view.depth + 0.6 });
+  }
+
+  // A fighter whose action is over goes back to his stance (standing, battle stance or weakened, as showStanding
+  // picks), unless something is still drawing him: a push, a fall, his defeat.
+  backToStance(unit) {
+    if (!unit || !unit.alive || unit.knock || !unit.view || !unit.view.active || !unit.sprite || !unit.sprite.active) return;
+    this.showStanding(unit);
   }
 
   // The picture as a thrown spear leaves the hand: his release picture if the
@@ -6815,6 +6827,14 @@ export default class BattleScene extends Phaser.Scene {
   // Infuse casts a Verse), so no MP, cooldown or action is taken again.
   castSpell(caster, target, id, onDone, free = false) {
     const spell = spells[id];
+    // Every skill ends with the caster back in his stance (26 Nov bug: Leol stayed frozen in his sling or hammer
+    // picture after Concussive Shot and Hammer Strike, which never put him back). The skills that already do it lose
+    // nothing: showStanding keeps a held look (meditating, a charge, a clash stance, a knock) as before.
+    if (!onDone || !onDone.backToStance) {
+      const done = onDone;
+      onDone = (...args) => { this.backToStance(caster); return done && done(...args); };
+      onDone.backToStance = true;
+    }
     if (!free) {
       spendMp(caster, id);
       startCooldown(caster, id);

@@ -139,7 +139,7 @@ export const newClassMethods = {
       if (hit) { screenShake(this, 0.006, 140); if (sfxHas(this, 'lunge_impact')) sfxAt(this, 'lunge_impact', target.view.x, target.view.y + 4, { size: 0.7 }); }
       if (broke) this.time.delayedCall(260, () => target.alive && this.floatText(target, broke, '#f2d38a', { rise: 52 }));
     });
-    this.newFinish(onDone, ms + 800);
+    this.newFinish(onDone, ms + 800, caster);
   },
   // Breaks what a unit was preparing: Singularity's charge, an aim, a meditation, a ward. Returns the word to show, or null.
   breakPrepared(unit) {
@@ -173,7 +173,7 @@ export const newClassMethods = {
       if (pushed && (pushed.path.length || pushed.fall)) this.time.delayedCall(160, () => this.knockBack(target, pushed, dx));
       if (caster.prepared) this.time.delayedCall(500, () => caster.alive && this.floatText(caster, 'Prepared', '#e8c88a', { rise: 40 }));
     });
-    this.newFinish(onDone, 1200);
+    this.newFinish(onDone, 1200, caster);
   },
   castBarricade(caster, tile, spell, onDone) {
     this.takeWeapon(caster, true);
@@ -298,7 +298,7 @@ export const newClassMethods = {
       this.showImpact(caster, target, { hit, damage, note }, dx, target.hp === 0);
       if (hit && target.alive) this.time.delayedCall(300, () => target.alive && this.floatText(target, target.bleedBlocked ? 'Armour weakened' : 'Bleeding, armour weakened', '#ff7a7a', { rise: 52 }));
     });
-    this.newFinish(onDone, 1200);
+    this.newFinish(onDone, 1200, caster);
   },
   trapAt(col, row) {
     return (this.traps || []).find((t) => t.col === col && t.row === row) || null;
@@ -359,12 +359,13 @@ export const newClassMethods = {
   },
 
   // Ends a skill: checks the battle, waits, then carries on (or shows the result).
-  newFinish(onDone, wait = 900) {
+  newFinish(onDone, wait = 900, caster = null) {
     const outcome = this.checkBattleEnd();
     if (outcome) this.battleOver = true;
     this.refreshButtons();
     this.refreshStatusTags();
     this.time.delayedCall(wait, () => {
+      if (caster) this.backToStance(caster); // back to his stance once the blow is done (26 Nov: Leol stayed frozen in it)
       if (outcome) { this.busy = false; this.showResult(outcome); } else onDone();
     });
   },

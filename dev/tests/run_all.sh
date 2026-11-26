@@ -49,6 +49,7 @@ settings_for() {
     n116) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=h4,e1" ;; # Leol and the Thief (19.1, 19.2)
     n117) echo "FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1" ;;
     n118) echo "FABIEN_MAP=cavern FABIEN_BENCH=h4,e1" ;; # Graphics 2.0 step 1 (26 Nov: 1.111, 18.56 to 18.61)
+    n119) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_KINGS=1 FABIEN_BENCH=" ;; # part 0 bugs 26 Nov: Sudeen walks after each skill, everyone back in his stance
   esac
 }
 
