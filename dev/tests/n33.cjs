@@ -79,7 +79,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   check('6.9 it is small and over the unit\'s head', c1[0] && Math.abs(c1[0].o.x - sudeen.view.x) < 2 && c1[0].o.y < sudeen.view.y - sudeen.topY && c1[0].o.list[0].displayHeight <= 92, c1[0] && Math.round(c1[0].o.list[0].displayHeight));
   check('6.9 no big floating word on top of the card', !b.children.list.some((o) => o.type === 'Text' && o.text === 'Stone x2'));
   await p; await sleep(500);
-  check('6.9 it shrinks away into the icon row', cards().length === 0 && icons(sudeen) === 'stone', cards().length + ' / ' + icons(sudeen));
+  check('6.9 it shrinks away into the icon row', cards().length === 0 && icons(sudeen).replace(/,ward(_off)?/, '') === 'stone' /* (6.93: his WARD tag has its own icon now) */, cards().length + ' / ' + icons(sudeen));
   check('6.8 Stone\'s effect is called Earth\'s Bulwark (short word EARTH; BULWARK stays the Warden\'s)', S.buffOf(sudeen).effect === "Earth's Bulwark" && S.statusTags(sudeen).some((t) => t.text === 'EARTH' && t.icon === 'stone'));
   b.refreshCard(sudeen);
   check('6.8 the card line says Earth\'s Bulwark: 2 turns left', /Earth's Bulwark: 2 turns left/.test(cardText()), cardText());

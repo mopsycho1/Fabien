@@ -588,3 +588,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Their skills: src/data/spells.json, smokePellet, suppressiveFire, concussiveShot, hammerStrike, barricade (Leol), ambush and trap (the Thief). Change "cooldown", "range", "damageShare" (1 = one normal blow), "hp" and "turns" (the barricade), "damage" and "push" (the trap), "poison" and "turns" (Bleeding). "text" is what the skill card says.
 - Their lines on the character select: src/data/bios.json, "h6" and "e6" ("line" short, "bio" for Suleiman's longer text).
 - Both sit out by default ("bench": true in src/data/units.json): pick them in the character select.
+
+## 26 Nov batch: music, Leol's kit, the result screen
+- Battle music on rotation: src/audio.js, TRACKS and ROTATION. Put an MP3 in public/music, add one line to TRACKS and its name to ROTATION. Each track plays once, then crossfades (CROSSFADE seconds) into the next.
+- Leol's Barricade is out of his kit until Suleiman's barricade sheet comes: src/data/jobs.json, "slinger", "laterSpells". To bring it back, move "barricade" into his "spells" list.
+- How tall Leol and the Thief are drawn: dev/tools/make_newclass.py HEIGHT (Leol 92, the Thief 70), written into art.json by `MODE=heights ~/.fabien-tools/venv/bin/python dev/tools/make_newclass.py <any folder>`.
+- The result screen: how dark the board goes behind it, src/data/ending.json "dim" (phone) and "dimWide" (computer).
+- Hide the battle screen for a screenshot: the eye button left of the Settings gear, or H on a computer. A tap anywhere, or H, brings it back.

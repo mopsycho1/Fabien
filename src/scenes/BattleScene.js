@@ -8512,17 +8512,21 @@ export default class BattleScene extends Phaser.Scene {
     }
     this.refreshButtons();
     play('whoosh');
-    // the two trade places in one quick hop, Sudeen behind his shield
+    // the two trade places in one quick hop, Sudeen behind his shield. (26 Nov, jump logger: the hop took 300 ms whatever the
+    // distance, so a swap over 2 tiles or more flew over a tile in one frame; it takes 220 ms a tile now, 300 at least)
+    const a0 = tileToScreen(from.col, from.row), a1 = tileToScreen(to.col, to.row);
+    const steps = Math.hypot(a1.x - a0.x, a1.y - a0.y) / Math.hypot(TILE_WIDTH / 2, TILE_HEIGHT / 2); // (in one-tile steps on the screen)
+    const hopMs = Math.round(Math.max(300, steps * 220));
     const hop = (u, tile, lift) => {
       const p = tileToScreen(tile.col, tile.row);
       this.afterimage(u);
-      this.tweens.add({ targets: u.view, x: p.x, duration: 300, ease: 'Quad.easeInOut' });
-      this.tweens.add({ targets: u.view, y: p.y, duration: 300, ease: 'Quad.easeInOut', onUpdate: (tw) => u.view.setDepth(depthFor(tile.col, tile.row) + 1 + (lift ? 1 : 0)) });
+      this.tweens.add({ targets: u.view, x: p.x, duration: hopMs, ease: 'Sine.easeInOut' });
+      this.tweens.add({ targets: u.view, y: p.y, duration: hopMs, ease: 'Sine.easeInOut', onUpdate: (tw) => u.view.setDepth(depthFor(tile.col, tile.row) + 1 + (lift ? 1 : 0)) });
     };
     this.showPose(sudeen, 'guard', tileToScreen(to.col, to.row).x - sudeen.view.x);
     hop(sudeen, to, true);
     hop(ally, from, false);
-    this.time.delayedCall(330, () => {
+    this.time.delayedCall(hopMs + 30, () => {
       for (const [u, t] of [[sudeen, to], [ally, from]]) if (u.view && u.view.active) this.placeUnit(u, t.col, t.row);
       this.faceNearestOpponent(sudeen);
       this.faceNearestOpponent(ally);

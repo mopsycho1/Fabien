@@ -45,7 +45,7 @@ const check = (name, ok, extra) => { console.log((ok ? 'PASS ' : 'FAIL ') + name
   check('second tap engages: the scout has used its action', h2.hasActed === true && b.inCinematic === true);
   check('the result is decided at once: Warlord off-balance and pushed to (3,2), contact broken', !h2.engagedWith && !e2.engagedWith && e2.col === 3 && e2.row === 2 && w.__status.isOffBalance(e2), e2.col + ',' + e2.row);
   check('his clash banner sweeps across first (8.6; was the "ENGAGE!" cut-in)', await waitFor(() => b.children.list.some((o) => o.type === 'Image' && o.texture && o.texture.key === 'ui:clash_frame'), 1500));
-  check('after the cut-in the scout winds up and the clash plays', await waitFor(() => /gaha_(windup|attack|iso_attack_)/.test(h2.sprite.texture.key), 4000), h2.sprite.texture.key);
+  check('after the cut-in the scout winds up and the clash plays', await waitFor(() => /gaha_(windup|attack|iso_attack_|n_lunge_)/ /* (1.106: his attack is his newest thrust) */.test(h2.sprite.texture.key), 4000), h2.sprite.texture.key);
   check('the battlefield camera zooms in on the clash', await waitFor(() => b.cameras.main.zoom > 1.2, 3000), b.cameras.main.zoom.toFixed(2));
   check('...while the interface camera stays still', b.uiCam.zoom === 1 && b.uiCam.scrollX === 0 && b.uiCam.scrollY === 0);
   await idle();
