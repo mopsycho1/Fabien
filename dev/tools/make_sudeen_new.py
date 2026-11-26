@@ -118,9 +118,30 @@ if __name__ == '__main__':
         for s in SHEETS: L.raw(s)
         sys.exit()
     got = {s: cut(s, tile=s != 'sudeen_n_battle') for s in SHEETS}
+    # 1.107 (26 Nov): floor planks and lines left loose under his slash (pieces not joined to him, low in the picture; the sword's
+    # tip can be a loose piece too, but it is higher up) and specks
+    from scipy import ndimage as nd
+    for f in sorted(os.listdir(OUT)):
+        if not f.startswith('sudeen_n_slash_') or not f.endswith('.png'): continue
+        a = np.array(Image.open(OUT + f).convert('RGBA')); h, w = a.shape[:2]
+        sol = a[..., 3] > 40; lab, n = nd.label(sol)
+        if n < 2: continue
+        sz = nd.sum(sol, lab, range(1, n + 1)); tops = nd.minimum(np.arange(h)[:, None].repeat(w, 1), lab, range(1, n + 1))
+        for i in range(1, n + 1):
+            if sz[i - 1] < sz.max() and (sz[i - 1] < 12 or (tops[i - 1] > 0.65 * h and sz[i - 1] < 0.1 * sz.max())): a[lab == i, 3] = 0
+        Image.fromarray(a).save(OUT + f, optimize=True)
     # the two back views of the Four-View sheet are the same side from two angles (the facing check says so, 0.68 against 0.34
     # mirrored), not a left and a right: the up-right picture is the up-left one mirrored, as the game does for his other poses
     got['sudeen_n_battle']['upRight'] = dict(got['sudeen_n_battle']['upLeft'], flip=True)
+    # 1.107 (26 Nov, Suleiman 23 Nov: "sudeen's weapon placement is inconsistent so his attack and block animations swap the placement
+    # of his weapons"). A mirrored picture swaps his hands, so in one facing every pose must come from the same side of the mirror, or
+    # the sword and shield jump hands between poses. Read with dev/tools/facing_sheet.py and a hands sheet (shield side per facing):
+    # up-left and down-right are drawn true in every pose; up-right and down-left are mirrors for his block and wind-up. So:
+    #   - the slash's true up-right (shield on screen-left) went: up-right is the up-left slash mirrored, like his block;
+    #   - the Four-View sheet's true down-left (shield on screen-right) went: down-left is the down-right stance mirrored, like his
+    #     slash, block and wind-up (his sheet's down-left slash is itself drawn with the shield in his right hand, 1.107 note).
+    got['sudeen_n_slash'].pop('upRight', None)
+    got['sudeen_n_battle'].pop('downLeft', None)
     art = json.load(open(ART)); e = art['h1']
     e['battle'] = got['sudeen_n_battle']
     e['poses']['ready'] = got['sudeen_n_battle']

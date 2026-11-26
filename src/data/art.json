@@ -17,10 +17,6 @@
         "file": "sudeen_n_battle_downRight.png",
         "originX": 0.224
       },
-      "downLeft": {
-        "file": "sudeen_n_battle_downLeft.png",
-        "originX": 0.912
-      },
       "upLeft": {
         "file": "sudeen_n_battle_upLeft.png",
         "originX": 0.83
@@ -47,10 +43,6 @@
           "file": "sudeen_n_battle_downRight.png",
           "originX": 0.224
         },
-        "downLeft": {
-          "file": "sudeen_n_battle_downLeft.png",
-          "originX": 0.912
-        },
         "upLeft": {
           "file": "sudeen_n_battle_upLeft.png",
           "originX": 0.83
@@ -62,10 +54,6 @@
         }
       },
       "attack": {
-        "upRight": {
-          "file": "sudeen_n_slash_upRight.png",
-          "originX": 0.5
-        },
         "upLeft": {
           "file": "sudeen_n_slash_upLeft.png",
           "originX": 0.528
@@ -194,10 +182,6 @@
         "downRight": {
           "file": "sudeen_n_battle_downRight.png",
           "originX": 0.224
-        },
-        "downLeft": {
-          "file": "sudeen_n_battle_downLeft.png",
-          "originX": 0.912
         },
         "upLeft": {
           "file": "sudeen_n_battle_upLeft.png",
@@ -446,15 +430,13 @@
     "note_falls": "Fall set from Suleiman's 13 Nov sheets (dev/tools/make_falls_dodges.py): fallAir, fallLand, fallRise in two views; the game mirrors them for the other two.",
     "portraitHurt": "sudeen_face_pained.png",
     "note_n20": "20 Nov sheets, wired 21 Nov (6.81, dev/tools/make_sudeen_new.py): the Four-View Warrior sheet is his battle stance with the scimitar showing (ready and dodge too; answers 1.62), the Slash Action Poses his attack, the Herb Pouch Toss his heal and cast, the bash sheet his Shield Bash pictures (slipStrike, push; the \"mirrored pov\" sheet is the same flipped and is not cut). Faces from the Expression Sheet Grid: neutral is the portrait, pained (damaged) the hurt face, angry the battle cry; happy, hurt, determined, surprised, confident and thoughtful are cut too (sudeen_face_*.png) for mood faces later.",
+    "note_hands": "26 Nov (1.107): in each facing every pose comes from the same side of the mirror, so the sword and shield never swap hands between his stance, attack, block and wind-up: up-left and down-right drawn true, up-right and down-left mirrored (make_sudeen_new.py says why). Suleiman's down-left slash is drawn with the shield in his right hand; a true right-handed down-left needs his redraw.",
     "ruler": {
       "sudeen_iso_stand_downRight.png": {
         "footX": 0.558
       },
       "sudeen_n_battle_downRight.png": {
         "footX": 0.555
-      },
-      "sudeen_n_battle_downLeft.png": {
-        "footX": 0.576
       },
       "sudeen_n_battle_upLeft.png": {
         "footX": 0.796
@@ -467,14 +449,11 @@
         "scale": 1.1,
         "footX": 0.405
       },
-      "sudeen_n_slash_upRight.png": {
-        "footX": 0.668
-      },
       "sudeen_n_slash_upLeft.png": {
-        "footX": 0.487
+        "footX": 0.768
       },
       "sudeen_n_slash_downRight.png": {
-        "footX": 0.524
+        "footX": 0.523
       },
       "sudeen_n_herb_upRight.png": {
         "footX": 0.285

@@ -2,6 +2,7 @@
 //   1.103 no floor or painted shadow left under Layra's standing and battle pictures (dev/tools/shadow_clean.py --check)
 //   1.105 the save records the line-up with its sides, so Continue builds the same fighters (dev/browser/resume_lineup.cjs: the reload)
 //   1.106 Gaha's Attack and Lunge strike with his newest drawn thrust (the 18 Nov lunge attack sheet), never the old skeleton-era frames
+//   1.107 Sudeen keeps his sword and shield in the same hands across stance, attack, block and wind-up in each facing
 //   1.104 Aegis blocks poison, Bleeding and burn; a poison tick on a shielded fighter is soaked by the shield; the dome covers him
 const { start, battle } = require('./boot.cjs');
 const { execSync } = require('child_process');
@@ -79,6 +80,27 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   await sleep(500);
   check('1.106 the Lunge shows his leap and his lunge attack', lun.some((k) => /gaha_n_leap/.test(k)) && lun.some((k) => /gaha_n_lunge/.test(k)), lun.join(','));
   check('1.106 no old thrust frame in the Lunge', !lun.some((k) => /gaha_thrust/.test(k)));
+
+  // ---------- 1.107 ----------
+  // Read on 26 Nov with dev/tools/hands_sheet.py: per facing, these are the pictures (and mirrors) whose shield side agrees.
+  // A mirror swaps the hands, so the two facings made by mirroring (up-right, down-left) must mirror in every one of these poses.
+  const want = {
+    upLeft:    { battle: 'sudeen_n_battle_upLeft.png', attack: 'sudeen_n_slash_upLeft.png', guard: 'sudeen_n8_guard_upLeft.png' },
+    upRight:   { battle: 'sudeen_n_battle_upLeft.png M', attack: 'sudeen_n_slash_upLeft.png M', guard: 'sudeen_n8_guard_upRight.png' },
+    downLeft:  { battle: 'sudeen_n_battle_downRight.png M', attack: 'sudeen_n_slash_downLeft.png', guard: 'sudeen_n8_guard_downRight.png M' },
+    downRight: { battle: 'sudeen_n_battle_downRight.png', attack: 'sudeen_n_slash_downRight.png', guard: 'sudeen_n8_guard_downRight.png' },
+  };
+  const bad7 = [];
+  const artH1 = require('../../src/data/art.json').h1;
+  const MIR = { upLeft: 'upRight', upRight: 'upLeft', downLeft: 'downRight', downRight: 'downLeft' };
+  const pick7 = (g, fc) => { let v = g[fc], flip = false; if (!v) { v = g[MIR[fc]]; flip = true; } if (v.flip) flip = !flip; return v.file + (flip ? ' M' : ''); };
+  for (const fc of Object.keys(want)) for (const [pose, file] of Object.entries(want[fc])) {
+    const g = pose === 'battle' ? artH1.battle : artH1.poses[pose];
+    const got = pick7(g, fc);
+    if (got !== file) bad7.push(fc + ' ' + pose + ': ' + got);
+  }
+  check('1.107 Sudeen: in every facing his stance, attack and block come from the same side of the mirror', bad7.length === 0, bad7.join(' | ') || 'as read');
+  check('1.107 Sudeen: the dodge and ready stance follow the battle stance', JSON.stringify(artH1.poses.dodge) === JSON.stringify(artH1.battle) && JSON.stringify(artH1.poses.ready) === JSON.stringify(artH1.battle));
 
   // (more parts follow, one per fix)
 
