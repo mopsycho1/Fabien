@@ -595,3 +595,11 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - How tall Leol and the Thief are drawn: dev/tools/make_newclass.py HEIGHT (Leol 92, the Thief 70), written into art.json by `MODE=heights ~/.fabien-tools/venv/bin/python dev/tools/make_newclass.py <any folder>`.
 - The result screen: how dark the board goes behind it, src/data/ending.json "dim" (phone) and "dimWide" (computer).
 - Hide the battle screen for a screenshot: the eye button left of the Settings gear, or H on a computer. A tap anywhere, or H, brings it back.
+
+## Graphics 2.0, step 1 (27 Nov, roadmap 18.56 to 18.61)
+- The new looks are Settings rows, all Off until Baiyee approves them: Weapon streaks, Fighter lighting, Mood. To see them all at once, add `?g2=all` to the address (`?g2=off` turns them off; `?g2=mood,lighting` picks some). The list of looks is LOOKS in src/look2.js.
+- Weapon streaks: how thick and how long, src/weaponStreak.js (`width`, `fade`, `sweep`). Which kind of swing each fighter has (arc, thrust, blunt): SWING at the top. Where the weapon is on each strike picture: run `~/.fabien-tools/venv/bin/python -I dev/tools/weapon_tips.py sheet out.jpg` after new strike pictures; a wrong point is pinned by hand in its PINS.
+- Fighter lighting: how warm and strong the fires are, src/fighterLight.js AMBIENT and TORCH. New fighter pictures need their normal maps: `~/.fabien-tools/venv/bin/python -I dev/tools/make_normals.py --all`, then make_webp.py.
+- Mood: the colour grade, bloom, edge blur and vignette are the numbers in the shader at the top of src/mood.js (each line says what it does); the dust is `dustUp` below it.
+- End turn needs two taps (1.111): the 4 seconds it waits for the second tap are in tapEndTurn in src/scenes/BattleScene.js.
+- The art template for Suleiman: Fabien Blueprint/TEMPLATE; redraw it with `~/.fabien-tools/venv/bin/python -I dev/tools/make_template.py`.
