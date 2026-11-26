@@ -7,6 +7,7 @@
 export const LOOKS = [
   { id: 'streaks', name: 'Weapon streaks' }, // 18.57
   { id: 'lighting', name: 'Fighter lighting' }, // 18.58
+  { id: 'mood', name: 'Mood' }, // 18.59
 ];
 
 const KEY = 'fabien.look2.';

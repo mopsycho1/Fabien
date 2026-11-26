@@ -71,6 +71,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   for (const [id, e] of Object.entries(artJson)) if (id !== 'ruler' && e && typeof e === 'object') walk(e, true);
   const missing = [...pics].filter((f) => !fs.existsSync(path.join(__dirname, '../../public/art/normals', f)) || !fs.existsSync(path.join(__dirname, '../../public/art/normals', f.replace(/\.png$/, '.webp'))));
   check('18.58 every fighter picture has a normal map and its WebP twin (' + pics.size + ' pictures)', pics.size > 600 && missing.length === 0, missing.slice(0, 4).join(', '));
+  const mr = rowOf('Mood');
+  check('18.59 Settings has a Mood row, Off by default; off, the camera has no mood pass', mr && /Off$/.test(mr.text) && !(b.mood && b.mood.on), mr && mr.text);
   check('18.58 off: the fighters are drawn as before (no Light2D, no normal maps queued)', !(b.fighterLight && b.fighterLight.on) && b.units.every((u) => !u.sprite || !u.sprite.pipeline || u.sprite.pipeline.name !== 'Light2D'));
   check('18.56 a second tap turns it Off', /Off$/.test(rowOf('Weapon streaks').text));
 
