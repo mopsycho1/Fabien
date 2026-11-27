@@ -3,6 +3,10 @@ tile at "feet" (ruler, 1 = the bottom edge, src/art.js). Any see-through rows be
 the figure hang in the air. This lists every picture of every fighter whose feet are more than LIMIT board pixels above it.
 Airborne pictures (leaps, falls in the air, Layra's blessed floating) are meant to float and are listed apart.
 Run:  ~/.fabien-tools/venv/bin/python -I dev/tools/float_audit.py [--fix]    (--fix trims the empty rows at the bottom of a picture)
+Feet kept (1.119, 27 Nov: "Leol has no feet, the Thief is missing his legs"): a floor clean-up that takes the feet with the tile
+makes a picture SHORTER. Every fighter's upright pictures (standing, battle stance, weak) have their height pinned in
+dev/tools/stand_heights.json; a picture more than SHORT shorter than its pin fails. After a recut that is meant to change a height,
+look at it next to its sheet, then:  float_audit.py --pin-heights
 """
 import json, os, sys
 import numpy as np
@@ -10,6 +14,23 @@ from PIL import Image
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 ART = json.load(open(os.path.join(ROOT, 'src', 'data', 'art.json')))
 LIMIT = 2.0
+SHORT = 0.06   # 1.119: an upright picture may not lose more than 6 percent of its height (its feet) without a new pin
+HEIGHTS = os.path.join(ROOT, 'dev', 'tools', 'stand_heights.json')
+UPRIGHT = ('.standing', '.battle', '.weak')
+def upright_heights():
+    """{picture: height in pixels} for every fighter's standing, battle stance and weak pictures."""
+    out = {}
+    for cid, e in ART.items():
+        if not isinstance(e, dict) or e.get('unwired') or 'standing' not in e: continue
+        for path, f in pictures(e):
+            if not path.startswith(UPRIGHT): continue
+            p = os.path.join(ROOT, 'public', 'art', f)
+            if os.path.exists(p): out[f] = Image.open(p).height
+    return out
+def lost_feet():
+    """[(picture, pinned height, height now)] for upright pictures more than SHORT shorter than pinned."""
+    pins = json.load(open(HEIGHTS)) if os.path.exists(HEIGHTS) else {}
+    return [(f, pins[f], h) for f, h in sorted(upright_heights().items()) if f in pins and h < pins[f] * (1 - SHORT)]
 AIR = ('leap', 'fallAir', 'air', 'bless', 'float', 'jump', 'dive', 'hover')
 def pictures(entry, path=''):
     if isinstance(entry, str) and entry.endswith('.png'):
@@ -44,6 +65,11 @@ def run(fix=False):
             if gap > LIMIT: bad.append((cid, path, f, round(gap, 1), air, feet))
     return bad
 if __name__ == '__main__':
+    if '--pin-heights' in sys.argv:
+        hs = upright_heights(); json.dump(dict(sorted(hs.items())), open(HEIGHTS, 'w'), indent=1); open(HEIGHTS, 'a').write('\n')
+        print('pinned the heights of %d upright pictures' % len(hs)); sys.exit(0)
+    lost = lost_feet()
+    for f, was, now in lost: print('SHORT %-46s %d px, pinned %d: has it lost its feet? Look, then --pin-heights' % (f, now, was))
     fix = '--fix' in sys.argv
     bad = run()
     for cid, path, f, gap, air, feet in sorted(bad, key=lambda b: -b[3]):
@@ -52,5 +78,5 @@ if __name__ == '__main__':
             p = os.path.join(ROOT, 'public', 'art', f); im = Image.open(p).convert('RGBA'); a = np.array(im)[..., 3]
             rows = np.nonzero((a > 128).sum(1) >= 2)[0]; im.crop((0, 0, im.width, rows[-1] + 1)).save(p, optimize=True)
     n = sum(1 for b in bad if not b[4])
-    print('%d floating, %d airborne (meant to)' % (n, len(bad) - n))
-    sys.exit(1 if n and not fix else 0)
+    print('%d floating, %d airborne (meant to); %d upright pictures shorter than pinned (1.119)' % (n, len(bad) - n, len(lost)))
+    sys.exit(1 if (n and not fix) or lost else 0)

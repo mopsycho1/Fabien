@@ -6819,7 +6819,7 @@
   "h6": {
     "note": "Leol the Slinger (roadmap 19.1, art 6.76; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure (the plates are not trusted): his sling sheets run front-left, front-right, back-left, back-right; the hammer sheets front-left, back-left, back-right, front-right. \"hammer\" is his hammer stance (the archer's dagger look), \"hammerStrike\" and \"hammerRaise\" the Hammer Strike and Barricade. No walk pictures: the walk is made in code.",
     "name": "Leol",
-    "height": 92,
+    "height": 114,
     "standing": {
       "upLeft": {
         "file": "leol_stand_3.png"
@@ -7076,188 +7076,188 @@
     "note_props": "\"props\": pictures he puts on the board, not his body: the Barricade (19.1, cut by make_newclass.py from \"Isometric Wooden Spike Barricade Tile Set\"), two of its four views, one per direction of the wall.",
     "note_hammer_looks": "26 Nov (6.96): his hammer dodge, hurt and battle-worn sheets, used while he holds the hammer (jobs.json slinger closeWeapon \"poses\" and \"weak\"). Facings read by the figure: each sheet has two true front views; one back view, the other back view its mirror.",
     "ruler": {
+      "leol_stand_3.png": {
+        "footX": 0.444
+      },
       "leol_stand_4.png": {
-        "footX": 0.477
+        "footX": 0.531
       },
       "leol_stand_1.png": {
-        "footX": 0.615
+        "footX": 0.517
       },
       "leol_stand_2.png": {
-        "footX": 0.472
+        "footX": 0.548
       },
       "leol_battle_3.png": {
         "scale": 0.85,
-        "footX": 0.626
+        "footX": 0.556
       },
       "leol_battle_4.png": {
         "scale": 0.85,
-        "footX": 0.383
+        "footX": 0.487
       },
       "leol_battle_1.png": {
         "scale": 0.85,
-        "footX": 0.54
+        "footX": 0.367
       },
       "leol_battle_2.png": {
         "scale": 0.85,
-        "footX": 0.278
+        "footX": 0.412
       },
       "leol_weak_3.png": {
         "scale": 0.87,
-        "footX": 0.284
+        "footX": 0.376
       },
       "leol_weak_4.png": {
         "scale": 0.87,
-        "footX": 0.421
+        "footX": 0.64
       },
       "leol_weak_1.png": {
         "scale": 0.87,
-        "footX": 0.539
+        "footX": 0.454
       },
       "leol_weak_2.png": {
         "scale": 0.87,
-        "footX": 0.527
+        "footX": 0.525
       },
       "leol_shot_3.png": {
         "scale": 0.9,
-        "footX": 0.735
+        "footX": 0.689
       },
       "leol_shot_4.png": {
         "scale": 0.9,
-        "footX": 0.282
+        "footX": 0.331
       },
       "leol_shot_1.png": {
         "scale": 0.9,
-        "footX": 0.635
+        "footX": 0.556
       },
       "leol_shot_2.png": {
         "scale": 0.9,
-        "footX": 0.289
+        "footX": 0.384
       },
       "leol_hguard_2.png": {
         "scale": 0.9,
-        "footX": 0.369
+        "footX": 0.45
       },
       "leol_hguard_3.png": {
         "scale": 0.9,
-        "footX": 0.696
+        "footX": 0.627
       },
       "leol_hguard_1.png": {
         "scale": 0.9,
-        "footX": 0.324
+        "footX": 0.453
       },
       "leol_hguard_4.png": {
         "scale": 0.9,
-        "footX": 0.693
+        "footX": 0.622
       },
       "leol_dodge_2.png": {
         "scale": 0.87,
-        "footX": 0.553
+        "footX": 0.534
       },
       "leol_dodge_3.png": {
         "scale": 0.87,
-        "footX": 0.55
+        "footX": 0.519
       },
       "leol_dodge_1.png": {
         "scale": 0.87,
-        "footX": 0.42
+        "footX": 0.528
       },
       "leol_dodge_4.png": {
         "scale": 0.87,
-        "footX": 0.13
+        "footX": 0.241
       },
       "leol_hstrike_2.png": {
-        "footX": 0.599
+        "footX": 0.394
       },
       "leol_hstrike_3.png": {
-        "footX": 0.402
+        "footX": 0.621
       },
       "leol_hstrike_1.png": {
-        "footX": 0.404
+        "footX": 0.448
       },
       "leol_hstrike_4.png": {
-        "footX": 0.397
+        "footX": 0.709
       },
       "leol_hraise_2.png": {
-        "footX": 0.74
+        "footX": 0.514
       },
       "leol_hraise_1.png": {
-        "footX": 0.385
+        "footX": 0.419
       },
       "leol_hurt_3.png": {
         "scale": 0.95,
-        "footX": 0.479
+        "footX": 0.299
       },
       "leol_hurt_4.png": {
-        "scale": 0.95,
-        "footX": 0.406
+        "scale": 0.95
       },
       "leol_hurt_1.png": {
         "scale": 0.95,
-        "footX": 0.622
+        "footX": 0.43
       },
       "leol_hurt_2.png": {
         "scale": 0.95,
-        "footX": 0.279
+        "footX": 0.445
       },
       "leol_down_1.png": {
         "scale": 0.87,
-        "footX": 0.594
+        "footX": 0.529
       },
       "leol_victory_3.png": {
         "scale": 0.95,
-        "footX": 0.447
+        "footX": 0.578
       },
       "leol_victory_4.png": {
         "scale": 0.95,
-        "footX": 0.436
+        "footX": 0.588
       },
       "leol_victory_1.png": {
         "scale": 0.95,
-        "footX": 0.728
+        "footX": 0.523
       },
       "leol_victory_2.png": {
         "scale": 0.95,
-        "footX": 0.542
+        "footX": 0.555
       },
       "leol_hdodge_3.png": {
         "scale": 0.87,
-        "footX": 0.676
+        "footX": 0.686
       },
       "leol_hdodge_2.png": {
-        "scale": 0.87,
-        "footX": 0.481
+        "scale": 0.87
       },
       "leol_hdodge_1.png": {
         "scale": 0.87,
-        "footX": 0.302
+        "footX": 0.297
       },
       "leol_hdodge_4.png": {
         "scale": 0.87,
-        "footX": 0.632
+        "footX": 0.648
       },
       "leol_hhurt_3.png": {
         "scale": 0.95,
-        "footX": 0.458
+        "footX": 0.277
       },
       "leol_hhurt_1.png": {
-        "scale": 0.95,
-        "footX": 0.537
+        "scale": 0.95
       },
       "leol_hhurt_2.png": {
         "scale": 0.95,
-        "footX": 0.342
+        "footX": 0.383
       },
       "leol_hweak_3.png": {
         "scale": 0.87,
-        "footX": 0.469
+        "footX": 0.645
       },
       "leol_hweak_2.png": {
         "scale": 0.87,
-        "footX": 0.593
+        "footX": 0.624
       },
       "leol_hweak_1.png": {
         "scale": 0.87,
-        "footX": 0.467
+        "footX": 0.457
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
@@ -7265,7 +7265,7 @@
   "e6": {
     "note": "The Thief (roadmap 19.2, art 6.77; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure per sheet (his sheets are in no fixed order; a missing side is the other one mirrored). \"ambush\" is the Dagger Ambush leap, \"trap\" laying a trap. No walk pictures: the walk is made in code. Faces from the 21 Nov expression sheet (15 cut; neutral, hurt and angry wired).",
     "name": "Thief",
-    "height": 70,
+    "height": 79,
     "standing": {
       "upLeft": {
         "file": "thief_stand_2.png"
@@ -7487,46 +7487,43 @@
     "note_steal": "thief_steal_1 to 4 (performing a steal) are cut but wait for a Steal skill (6.96, 26 Nov: no move goes with it yet)",
     "ruler": {
       "thief_stand_2.png": {
-        "footX": 0.524
+        "footX": 0.472
       },
       "thief_stand_4.png": {
-        "footX": 0.371
+        "footX": 0.44
       },
       "thief_stand_1.png": {
-        "footX": 0.483
-      },
-      "thief_stand_3.png": {
-        "footX": 0.547
+        "footX": 0.536
       },
       "thief_battle_2.png": {
-        "footX": 0.433
+        "footX": 0.437
       },
       "thief_battle_1.png": {
-        "footX": 0.28
+        "footX": 0.354
       },
       "thief_weak_2.png": {
-        "footX": 0.598
+        "footX": 0.578
       },
       "thief_weak_1.png": {
-        "footX": 0.162
+        "footX": 0.147
       },
       "thief_slash_2.png": {
-        "footX": 0.38
+        "footX": 0.477
       },
       "thief_slash_3.png": {
-        "footX": 0.112
+        "footX": 0.243
       },
       "thief_slash_1.png": {
-        "footX": 0.572
+        "footX": 0.582
       },
       "thief_parry_2.png": {
-        "footX": 0.641
+        "footX": 0.458
       },
       "thief_parry_4.png": {
-        "footX": 0.591
+        "footX": 0.642
       },
       "thief_parry_3.png": {
-        "footX": 0.151
+        "footX": 0.35
       },
       "thief_dodge_2.png": {
         "footX": 0.435
@@ -7535,16 +7532,19 @@
         "footX": 0.583
       },
       "thief_hurt_4.png": {
-        "footX": 0.586
+        "footX": 0.57
+      },
+      "thief_hurt_3.png": {
+        "footX": 0.55
       },
       "thief_down_1.png": {
-        "footX": 0.471
+        "footX": 0.474
       },
       "thief_victory_2.png": {
         "footX": 0.463
       },
-      "thief_victory_1.png": {
-        "footX": 0.54
+      "thief_victory_3.png": {
+        "footX": 0.617
       },
       "thief_ambush_2.png": {
         "footX": 0.577
@@ -7559,25 +7559,19 @@
         "footX": 0.259
       },
       "thief_trap_2.png": {
-        "footX": 0.578
+        "footX": 0.631
       },
       "thief_trap_4.png": {
-        "footX": 0.404
+        "footX": 0.39
       },
       "thief_trap_1.png": {
-        "footX": 0.571
-      },
-      "thief_fallen_2.png": {
-        "footX": 0.595
-      },
-      "thief_fallen_4.png": {
-        "footX": 0.443
+        "footX": 0.573
       },
       "thief_fallen_3.png": {
-        "footX": 0.449
+        "footX": 0.511
       },
       "thief_fallen_1.png": {
-        "footX": 0.482
+        "footX": 0.439
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."

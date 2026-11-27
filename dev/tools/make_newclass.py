@@ -79,7 +79,9 @@ BASE = 0.40
 # the head from it). 1.112 (26 Nov, Baiyee: "the Thief is drawn bigger than everyone else"): his standing sheet is a deep crouch,
 # so the 100 a standing fighter gets drew his crouch as tall as a standing man and his head about 1.25 times the Bull's. Sized by eye
 # beside Sudeen, Gaha and Leol at game size (dev/browser/size_row.cjs): 70 puts his head with the humans' (n99 checks it).
-HEIGHT = {'leol': 92, 'thief': 70}   # Leol 92: at 100 he was as broad as the Bull Commander; 92 keeps him a big lion warrior, a little over the humans
+# 1.119 (27 Nov): with their feet and legs back their tallest standing pictures are taller (Leol 139 to 172 px, the Thief 144 to
+# 162), so the heights grew by the same ratio (92 x 172/139, 70 x 162/144): the bodies are drawn exactly as big as before.
+HEIGHT = {'leol': 114, 'thief': 79}   # Leol 92: at 100 he was as broad as the Bull Commander; 92 keeps him a big lion warrior, a little over the humans
 ART_ID = {'leol': 'h6', 'thief': 'e6'}
 
 def set_heights():
@@ -119,6 +121,81 @@ def restore_steel(raw, a, min_px=30):
     a = a.copy(); a[patch] = raw[patch]
     return a
 
+DEBUG_NAME = ['']
+NO_BODY = ('thief_victory_2.png',)   # 1.119: judged by eye, the model's answer brought a patch of the sandy floor back: today's cut kept
+BAND = 8   # 1.119: the band of untouched picture round the kept figure shown to the model when the whole picture fails
+def add_body(a, raw, g, min_alpha=128, clean=0.12):
+    """1.119 (Suleiman 27 Nov: "Leol has no feet", "the Thief is missing his legs"). The floor clean-up (detile, deslab) goes by
+    colour, and Leol's paws and fur and the Thief's cream trousers and sandals are the colour of the terracotta tile, so it took them
+    with the tile. A person-segmentation model (rembg u2net_human_seg) tells the figure from the floor by shape, not colour: what it
+    calls body is put back from the untouched cut. It sometimes drops a weapon or a sling cord, so nothing the colour clean-up kept
+    is taken away (the result is both together).
+    The model does not always leave the tile out (at this small size it can see figure and tile as one shape), so it is asked
+    several ways (bigger, with a margin round it) and the answer that keeps the least of the slab's SIDE faces wins: feet stand on
+    the top of the tile and never cover its sides, so an answer that keeps the sides has kept the tile. If every answer keeps more
+    than "clean" of the sides (a fighter lying on the tile), the picture stays as the colour clean-up left it.
+    Only solid body (model alpha min_alpha or more), joined to what is kept and above the slab's sides, comes back."""
+    from bgremove import rembg_rgba
+    from scipy import ndimage as nd
+    from detile import _poly_mask
+    if g is None: return a
+    h, w = raw.shape[:2]
+    xl, ylt, xr, yrt, xf, yft, yt, th = g
+    sides = _poly_mask(h, w, [(xl, ylt + 2), (xf, yft + 2), (xr, yrt + 2), (xr, yrt + th), (xf, yft + th), (xl, ylt + th)]) & (raw[..., 3] > 128)
+    below = _poly_mask(h, w, [(xl - 3, ylt + 1), (xf, yft + 1), (xr + 3, yrt + 1), (xr + 3, h + 5), (xl - 3, h + 5)])
+    if sides.sum() < 20: return a
+    base = Image.new('RGBA', (w, h), (0, 0, 0, 255)); base.alpha_composite(Image.fromarray(raw)); base = base.convert('RGB')
+    best = None
+    for scale, pad in [(3, 0.3), (1, 0.0), (3, 0.0), (1, 0.4), (2, 0.2)]:
+        im = base.resize((w * scale, h * scale), Image.LANCZOS)
+        p = int(max(im.size) * pad)
+        big = Image.new('RGB', (im.width + 2 * p, im.height + 2 * p), (0, 0, 0)); big.paste(im, (p, p))
+        m = np.array(rembg_rgba(big, 'u2net_human_seg'))[..., 3][p:p + im.height, p:p + im.width]
+        m = np.array(Image.fromarray(m).resize((w, h), Image.BILINEAR)) >= min_alpha
+        side = (m & sides).sum() / float(sides.sum())
+        if best is None or side < best[0]: best = (side, m)
+        if side < 0.02: break
+    kept = a[..., 3] > 20
+    how = 'whole'
+    if best[0] > clean:
+        # Every answer kept the tile (the Thief's grassy tile with its plate reads as "a man on a platform"). Ask again, showing
+        # the model only what is kept with a band of BAND pixels of the untouched picture round it, the rest black: it then sees
+        # the broken legs on black and joins them up. Only that band can come back.
+        band = nd.binary_dilation(kept, iterations=BAND) & ~below
+        inp = raw.copy(); inp[~(band | kept), 3] = 0
+        im = Image.new('RGBA', (w, h), (0, 0, 0, 255)); im.alpha_composite(Image.fromarray(inp)); im = im.convert('RGB').resize((w * 3, h * 3), Image.LANCZOS)
+        p = int(max(im.size) * 0.3)
+        big = Image.new('RGB', (im.width + 2 * p, im.height + 2 * p), (0, 0, 0)); big.paste(im, (p, p))
+        m = np.array(rembg_rgba(big, 'u2net_human_seg'))[..., 3][p:p + im.height, p:p + im.width]
+        best = (best[0], (np.array(Image.fromarray(m).resize((w, h), Image.BILINEAR)) >= min_alpha) & band)
+        how = 'band'
+    if os.environ.get('DEBUG_BODY'): print('add_body', DEBUG_NAME[0], 'side %.2f' % best[0], how, file=sys.stderr)
+    body = best[1] & (raw[..., 3] > 20) & ~below
+    lab, n = nd.label(body | kept)
+    if not n: return a
+    near = set(np.unique(lab[kept])) - {0}   # pieces of body joined to what is kept
+    back = body & ~kept & np.isin(lab, list(near))
+    # A wedge of paving can come back joined to a foot. The paving's colours are learnt from the top of the tile the model left
+    # out; restored pixels in those colours that make a solid patch (still there after an opening of radius 2) are paving, not a
+    # paw: a paw breaks up under it (its outline and the fur's shading are not paving colours).
+    top = _poly_mask(h, w, [(xl, ylt), (xf, yt), (xr, yrt), (xf, yft)])
+    floor = top & ~best[1] & (raw[..., 3] > 128)
+    if floor.sum() > 50:
+        q = (raw[..., :3].astype(int) // 16)
+        key = q[..., 0] * 256 + q[..., 1] * 16 + q[..., 2]
+        hist = np.bincount(key[floor], minlength=4096)
+        common = hist >= max(3, np.percentile(hist[hist > 0], 40))
+        paving = back & common[key]
+        disk = np.array([[0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [1, 1, 1, 1, 1], [0, 1, 1, 1, 0]], bool)
+        patch = nd.binary_dilation(nd.binary_opening(paving, structure=disk), iterations=1) & back & (common[key] | top)
+        back &= ~patch
+        # (pieces cut off by that, no longer joined to the figure, go too)
+        lab, n = nd.label(back | kept)
+        near = set(np.unique(lab[kept])) - {0}
+        back &= np.isin(lab, list(near))
+    a = a.copy(); a[back] = raw[back]
+    return a
+
 # detile front: how far above the tile's front edges everything is cleared (share of the half width). Lying poses lie ON the slab top,
 # a little higher; the barricade is not a figure (its own frame stands on the tile edges): no clearing.
 FRONT = {'barricade': None}   # detile: how common a colour must be in the tile samples (see detile.py)
@@ -130,6 +207,7 @@ def cut_all(prefix):
         names = []
         for i, (cl, box) in enumerate(parts):
             name = '%s_%d.png' % (sheet, i + 1)
+            DEBUG_NAME[0] = name
             # keep=0.02: a sling's cord or a dagger can be apart from the body
             mk.final_cut(cl, box, L.OUT + name, BASE, keep=0.02)
             a = np.array(Image.open(L.OUT + name).convert('RGBA'))
@@ -142,6 +220,7 @@ def cut_all(prefix):
                 if os.environ.get('DEBUG'): print('DEBUG', name, a.shape[:2], 'slab' if g else 'NO SLAB', file=sys.stderr); Image.fromarray(raw).save(WORK + 'dbg_' + name)
                 a = deslab(detile(a, common=COMMON[prefix]), geom=g, colour=False, rim=0.05 if sheet in NO_BACK else RIM[prefix], raw=raw, back=0 if sheet in NO_BACK else BACK[prefix]) if g and not sheet.endswith('ambush') else detile(a, common=COMMON[prefix])
                 # (the ambush is a leap above the tile: its outline is not the slab's)
+                if not sheet.endswith('ambush') and name not in NO_BODY: a = add_body(a, raw, g)   # 1.119: the feet and legs the colour clean-up took with the tile
                 # loose pieces low down (a shadow or blood under the victory pose)
                 from scipy import ndimage as nd
                 bb = Image.fromarray(a).getbbox()

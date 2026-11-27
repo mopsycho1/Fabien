@@ -1,5 +1,6 @@
 // 22 Nov, part 1 bugs (roadmap 1.87 to 1.95). Run with FABIEN_MAP=cavern FABIEN_KINGS=1 FABIEN_BENCH=h4,e1.
 //   1.89 no fighter's picture leaves see-through rows under the feet (dev/tools/float_audit.py), except airborne ones
+//   1.119 no upright picture (standing, battle, weak) gets over 6 percent shorter than pinned: a lost pair of feet (float_audit.py, stand_heights.json)
 //   1.87 Gaha starts turned toward the enemies: his up-right standing picture is the one cut from the sheet figure that turns right
 //   1.88 Layra in meditation sits (her seated meditation pictures, not the spell chant)
 //   1.91 Gaha standing his ground keeps his Stone look (no old painted "rooted" picture)
