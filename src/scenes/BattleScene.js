@@ -158,6 +158,7 @@ const CONTEST_CTX = { random: (...a) => Math.random(...a), heightOf: (col, row) 
 // The menu's dragged spot (8.16), kept on the device as fractions of the screen so it fits any
 // size. No storage (private window): it simply starts at home.
 const MENU_PIN_KEY = 'fabien.menuPin';
+const MENU_SHARE = 0.25; // 1.116: the phone menu is at most about this share of the screen's height
 function loadMenuPin() {
   try {
     const p = JSON.parse(window.localStorage.getItem(MENU_PIN_KEY) || 'null');
@@ -509,8 +510,10 @@ export default class BattleScene extends Phaser.Scene {
     // 18.50 (Suleiman 21 Nov, phone): the rows LOOK slim (visRowH, about 21 real pixels) but each row's band, which is its
     // whole tap area, is at least 40 real pixels tall. Rows cannot both be 21 apart and 40 tall, so the pitch is 40 and the
     // gold highlight, words and pictures keep the slim size (domHud draws the highlight at visRowH in the middle of the band).
-    const visRowH = Math.round((portrait ? 28 : 26) * px);
-    const rowH = portrait ? Math.max(visRowH, Math.ceil(40 / real)) : visRowH;
+    // 1.116 (Baiyee 27 Nov): on a phone each row's gold band fills its whole tap band (no empty bands round a slim
+    // highlight), rows about 44 real pixels apart; layoutMenu fits the main menu in about a quarter of the screen.
+    const rowH = portrait ? Math.ceil(44 / real) : Math.round(26 * px);
+    const visRowH = rowH;
     this.lay = { W, H, s, m, portrait, cardW, infoW, real, px, F, minText, minTap, rowH, visRowH, menuW, skillW, top: 0, bottom: H };
     // The board's corners leave the screen's corners free, which is where the
     // frame goes; in portrait the cards sit under the board instead.
@@ -1076,23 +1079,30 @@ export default class BattleScene extends Phaser.Scene {
       need = Math.max(need, r.word.width + (r.cost.text ? r.cost.width + D(7) : 0));
     }
     // (20 Nov polish: a slim column, about 15 percent of a phone's width: 4 left, the picture, 3.5, the word, 5 right)
-    const mW = Math.round(2 * pad + D(4) + icon * 1.25 + D(3.5) + need + D(5));
-    const rH = this.lay.rowH;
-    const colW = mW - 2 * pad;
+    const colW = Math.round(D(4) + icon * 1.25 + D(3.5) + need + D(5));
+    // 1.116 (Baiyee 27 Nov, phone): rows about 44 real pixels apart and the whole main menu no taller than about a quarter
+    // of the screen. Where five rows 44 apart do not fit in a quarter, the rows close up to 40 apart (still a finger's
+    // tap); where even that is too tall (a 375 x 667 phone), the commands stand in two columns, 44 apart.
+    const grid = this.menuGrid(rows.length, pad * 2 + gripH, !header);
+    const rH = grid.rowH;
+    const cols = grid.cols;
+    const mW = 2 * pad + cols * colW;
     rows.forEach((r, i) => {
       r.compact = true;
       r.compactFont = word;
       r.iconSize = icon;
       r.costFont = this.lay.F.small;
-      r.place(pad, pad + gripH + i * rH, colW, rH, P, this.lay.minText);
+      r.place(pad + (i % cols) * colW, pad + gripH + Math.floor(i / cols) * rH, colW, rH, P, this.lay.minText);
     });
-    const h = pad * 2 + gripH + rows.length * rH;
+    const lines = Math.ceil(rows.length / cols);
+    const h = pad * 2 + gripH + lines * rH;
     this.menuHeader.setText('').setVisible(false);
     this.menuPanel.clear();
     framePanel(this.menuPanel, 0, 0, mW, h, P);
     // faint lines between the rows, as his
     this.menuPanel.lineStyle(1, 0xc9a35a, 0.13);
-    for (let i = 1; i < rows.length; i++) this.menuPanel.lineBetween(pad + D(4), pad + gripH + i * rH, mW - pad - D(4), pad + gripH + i * rH);
+    for (let i = 1; i < lines; i++) this.menuPanel.lineBetween(pad + D(4), pad + gripH + i * rH, mW - pad - D(4), pad + gripH + i * rH);
+    if (cols === 2) this.menuPanel.lineBetween(pad + colW, pad + gripH + D(4), pad + colW, h - pad - D(4));
     // the grip: a short row of small gold dots along the top (brighter when it has been moved)
     this.menuGrip.clear().fillStyle(this.menuPin ? 0xffd27a : UI.bronzeLight, this.menuPin ? 0.9 : 0.5);
     for (let i = -2; i <= 2; i++) this.menuGrip.fillCircle(mW / 2 + i * D(4), pad + gripH / 2, Math.max(1, D(0.9)));
@@ -1105,9 +1115,23 @@ export default class BattleScene extends Phaser.Scene {
     this.menuSize = { w: mW, h };
     this.ui(this.menu);
     // the main commands, remembered so they can stand beside a list
-    if (!header) this.mainSpec = { unit: this.activeUnit, font: word, w: mW, rows: rows.map((r) => ({ label: r.label.text, icon: r.iconName, enabled: r.enabled, onTap: r.onTap, emblem: r.emblem, accent: r.accent, shown: r.shown })) };
+    if (!header) this.mainSpec = { unit: this.activeUnit, font: word, w: mW, colW, cols, rowH: rH, rows: rows.map((r) => ({ label: r.label.text, icon: r.iconName, enabled: r.enabled, onTap: r.onTap, emblem: r.emblem, accent: r.accent, shown: r.shown })) };
     this.layoutSideMenu(header, pad, gripH);
     this.placeMenu();
+  }
+
+  // 1.116 (Baiyee 27 Nov): how the menu's rows stand. n rows, chrome: the panel's own top and bottom (game pixels).
+  // main: the main commands (a list of skills or items always stands in one column).
+  // On a phone the rows are 44 real pixels apart while the menu fits in a quarter of the screen; else they close up,
+  // down to 40; if still too tall, the main commands take two columns, 44 apart. A wide screen keeps its rows.
+  menuGrid(n, chrome, main) {
+    const { real, H, portrait, rowH } = this.lay;
+    if (!portrait) return { cols: 1, rowH };
+    const best = Math.ceil(44 / real), least = Math.ceil(40 / real);
+    const room = H * MENU_SHARE - chrome; // a quarter of the screen, less the panel's edges
+    if (!main || n * best <= room) return { cols: 1, rowH: best };
+    if (n * least <= room) return { cols: 1, rowH: Math.floor(room / n) };
+    return { cols: 2, rowH: best };
   }
 
   // The main commands beside an open list (UI rework 16 Nov). The row of the open list is lit;
@@ -1120,7 +1144,9 @@ export default class BattleScene extends Phaser.Scene {
     this.sidePanel.clear();
     if (!on) return;
     const P = this.lay.px;
-    const rH = this.lay.rowH;
+    const rH = spec.rowH || this.lay.rowH;
+    const cols = spec.cols || 1; // (1.116: the same columns as the main menu)
+    const colW = spec.colW || spec.w - 2 * pad;
     const open = header === 'ITEMS' || header === 'Items' ? 'Items' : null;
     spec.rows.slice(0, this.sideRows.length).forEach((d, i) => {
       const r = this.sideRows[i];
@@ -1132,12 +1158,14 @@ export default class BattleScene extends Phaser.Scene {
       r.compactFont = spec.font;
       r.iconSize = Math.round(this.lay.F.mid * 0.9);
       r.costFont = this.lay.F.small;
-      r.place(pad, pad + gripH + i * rH, spec.w - 2 * pad, rH, P, this.lay.minText);
+      r.place(pad + (i % cols) * colW, pad + gripH + Math.floor(i / cols) * rH, colW, rH, P, this.lay.minText);
     });
-    const h = pad * 2 + gripH + Math.min(spec.rows.length, this.sideRows.length) * rH;
+    const lines = Math.ceil(Math.min(spec.rows.length, this.sideRows.length) / cols);
+    const h = pad * 2 + gripH + lines * rH;
     framePanel(this.sidePanel, 0, 0, spec.w, h, P);
     this.sidePanel.lineStyle(1, 0xc9a35a, 0.13);
-    for (let i = 1; i < Math.min(spec.rows.length, this.sideRows.length); i++) this.sidePanel.lineBetween(pad + 4 * P, pad + gripH + i * rH, spec.w - pad - 4 * P, pad + gripH + i * rH);
+    for (let i = 1; i < lines; i++) this.sidePanel.lineBetween(pad + 4 * P, pad + gripH + i * rH, spec.w - pad - 4 * P, pad + gripH + i * rH);
+    if (cols === 2) this.sidePanel.lineBetween(pad + colW, pad + gripH + 4 * P, pad + colW, h - pad - 4 * P);
     this.sideSize = { w: spec.w, h };
     this.ui(this.sideMenu);
   }
@@ -1200,7 +1228,18 @@ export default class BattleScene extends Phaser.Scene {
       // lands on it, even after being pushed back onto the screen, is the last choice. Spots are tried at three gaps from the body.)
       const bodyHalf = TILE_WIDTH * 0.2 * cam.zoom;
       const body = { x0: ux - bodyHalf, x1: ux + bodyHalf, y0: feetY - (u.topY || 60) * cam.zoom, y1: feetY };
-      for (const left of [false, true]) for (const [gi, g] of [gap, gap * 2, gap * 3.2].entries()) for (const yy of [uy - tallest * 0.4, feetY - tallest - tileH * 0.3, feetY - tallest - tileH * 1.1]) spots.push({ left, gi, x: left ? ux - g - total : ux + g, y: yy });
+      // (1.116: besides the usual heights, a ladder of heights down the free screen, a little worse the further from his
+      // chest, so on a zoomed-in phone the menu can step up or down past a neighbour's head instead of sitting on it)
+      const chest = uy - tallest * 0.4;
+      const heights = [[chest, 0], [feetY - tallest - tileH * 0.3, 0], [feetY - tallest - tileH * 1.1, 0], [feetY - tileH * 0.2, 0], [uy - tallest * 0.9, 0]];
+      const yTop = this.lay.top, yLow = floor - tallest;
+      for (let i = 0; i <= 8; i++) { const yy = yTop + ((yLow - yTop) * i) / 8; heights.push([yy, 1 + Math.abs(yy - chest) / 120]); }
+      for (const left of [false, true]) for (const [gi, g] of [gap, gap * 2, gap * 3.2].entries()) for (const [yy, far] of heights) spots.push({ left, gi, far, x: left ? ux - g - total : ux + g, y: yy });
+      // 1.116 (Baiyee 27 Nov): never over ANY fighter: every other fighter's body is a box too, a spot on one is a poor choice
+      const bodies = this.units.filter((o) => o.alive && o.view && o !== u).map((o) => {
+        const ox = (o.view.x - v.x) * cam.zoom, of = (o.view.y - v.y) * cam.zoom;
+        return { x0: ox - bodyHalf, x1: ox + bodyHalf, y0: of - (o.topY || 60) * cam.zoom * 0.9, y1: of - tileH * 0.1 };
+      });
       const scr = (wx, wy) => ({ x: (wx - v.x) * cam.zoom, y: (wy - v.y) * cam.zoom });
       const marks = [];
       for (const k of this.reachableKeys || []) { const [c, r] = k.split(',').map(Number); const p = tileToScreen(c, r); marks.push({ ...scr(p.x, p.y), w: 1 }); }
@@ -1211,7 +1250,8 @@ export default class BattleScene extends Phaser.Scene {
         let score = (sp.left !== wantLeft ? (foe ? 6 : 0.5) : 0) + Math.abs(cx - sp.x) / 40; // (a spot pushed back onto the screen counts against it)
         for (const q of marks) if (q.x > cx - 4 && q.x < cx + total + 4 && q.y > cy - 4 && q.y < cy + tallest + 4) score += q.w;
         if (cx < body.x1 && cx + total > body.x0 && cy < body.y1 && cy + tallest > body.y0) score += 200; // on the fighter: never, unless nothing else fits
-        score += sp.gi * 0.4; // (a nearer gap is better)
+        for (const o of bodies) if (cx < o.x1 && cx + total > o.x0 && cy < o.y1 && cy + tallest > o.y0) score += 120; // on another fighter (1.116): worse than any number of blue tiles
+        score += sp.gi * 0.4 + sp.far + (sp.y > uy ? 0.3 : 0); // (a nearer gap is better; level with or above the chest a little better than low)
         if (!best || score < best.score - 0.01) best = { ...sp, score };
       }
       onLeft = best.left;

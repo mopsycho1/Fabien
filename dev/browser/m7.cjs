@@ -79,14 +79,18 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
     await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); b.openSettings(false); });
     // over a stretch of real play: every moment the menu is open, it is beside the unit and above the card
     await page.evaluate(() => {
-      const b = window.__game.scene.getScene('BattleScene'); window.__menuSeen = { n: 0, far: 0, overCard: 0 };
+      const b = window.__game.scene.getScene('BattleScene'); window.__menuSeen = { n: 0, far: 0, overCard: 0, onFighter: 0 };
       setInterval(() => {
         if (!b.menu.visible || b.menuPin || !b.activeUnit) return;
         const u = b.activeUnit, cam = b.cameras.main, v = cam.worldView, ux = (u.view.x - v.x) * cam.zoom;
         const lead = b.sideMenu.visible ? Math.min(b.sideMenu.x, b.menu.x) : b.menu.x, tail = b.menu.x + b.menuSize.w;
+        if (ux < 0 || ux > b.scale.width) return; // (1.116: the camera is still gliding to him; the menu waits at the edge)
         const s = window.__menuSeen; s.n++;
         if (Math.max(0, lead - ux, ux - tail) / b.scale.width >= 0.2) s.far++;
         if (b.menu.y + b.menuSize.h > b.cardTop + 1) s.overCard++;
+        // 1.116: never over a fighter (any fighter's body, as BattleScene.placeMenu sees it)
+        const x0 = lead, x1 = tail, y0 = b.menu.y, y1 = b.menu.y + b.menuSize.h, half = 86 * 0.2 * cam.zoom;
+        if (b.units.some((o) => { if (!o.alive || !o.view) return false; const ox = (o.view.x - v.x) * cam.zoom, of = (o.view.y - v.y) * cam.zoom; return x0 < ox + half && x1 > ox - half && y0 < of - 4 && y1 > of - (o.topY || 60) * cam.zoom * 0.8; })) s.onFighter++;
       }, 100);
     });
     await startPlayer(page, 45000);
@@ -94,6 +98,7 @@ const { openBattle, startPlayer } = require('./lib/play.cjs');
     const seen = await page.evaluate(() => window.__menuSeen);
     // (a sample can fall in the frame a turn passes, while the camera is still panning: under 5 percent is allowed)
     check(view + ' 18.44: 40 seconds of play, the menu beside the unit and above the card', seen.n > 0 && seen.far <= seen.n * 0.05 && seen.overCard === 0, JSON.stringify(seen));
+    check(view + ' 1.116: 40 seconds of play, the menu over no fighter (5 percent of moments allowed: a crowd can leave no room)', seen.n > 0 && seen.onFighter <= seen.n * 0.05, JSON.stringify(seen));
     check(view + ': no page errors', errors.length === 0, errors.slice(0, 2).join(' | '));
     await browser.close();
   }

@@ -74,7 +74,8 @@ const { openBattle } = require('./lib/play.cjs');
         // 1.116: the main menu at most about a quarter of the screen, rows about 44 real pixels apart, each row's band its tap area
         await shoot(view + '_' + size + '_menu');
         const main = m0.rows.filter((r) => r.panel === 0);
-        const pitch = main.length > 1 ? (main[main.length - 1].top - main[0].top) / (main.length - 1) : 0;
+        const tops = [...new Set(main.map((r) => Math.round(r.top)))].sort((a, c) => a - c); // (one row a line, or two columns)
+        const pitch = tops.length > 1 ? (tops[tops.length - 1] - tops[0]) / (tops.length - 1) : 0;
         console.log('  main menu: ' + main.length + ' rows, ' + m0.mainH.toFixed(0) + ' px tall (' + (100 * m0.mainH / m0.H).toFixed(1) + '% of ' + m0.H + '), rows ' + pitch.toFixed(1) + ' px apart, tap bands ' + main.map((r) => r.h.toFixed(0)).join('/'));
         if (view === 'phone') {
           check(m0.mainH <= m0.H * 0.27, '[' + size + '] 1.116: the main menu is ' + (100 * m0.mainH / m0.H).toFixed(1) + '% of the screen tall (about 25 at most)');
@@ -84,6 +85,9 @@ const { openBattle } = require('./lib/play.cjs');
         first = false;
       }
       check(!m0.covers, '[' + size + '] ' + who + ': the menu does not cover him');
+      if (m0.others.length) await shoot(view + '_' + size + '_' + id + '_menu');
+      // (all twelve stand close here, so a fighter in a crowd may have no clear spot: a note, not a failure; m7.cjs checks real play)
+      if (m0.others.length) console.log('NOTE [' + size + '] ' + who + ': the menu touches ' + m0.others.join(', ') + ' (crowded, photo ' + id + '_menu)');
       await page.evaluate(() => window.__game.scene.getScene('BattleScene').onSpellButton());
       await page.waitForTimeout(400);
       const m1 = await measure();

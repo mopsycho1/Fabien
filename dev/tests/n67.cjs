@@ -50,7 +50,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // UI rework 16 Nov: the menu has no fixed home any more; it stands beside the hero (his mock-up)
   check('D5 (rework): every hero, main menu and skills list, in two corners of the board: the menu stands somewhere on the screen each time', seen.size >= 1 && [...seen].every((c) => { const [x, y] = c.split(',').map(Number); return x <= b.lay.W && y <= b.lay.H; }), [...seen].join(' | '));
   check('the menu stays above the card', b.menu.y + b.menuSize.h <= b.cardTop);
-  check('rows look slim like his (26 to 32 design px; 18.50: on a phone the band, rowH, is 40 real px) and each touch band is its whole row (18.35)', b.lay.visRowH >= 26 * b.lay.px && b.lay.visRowH <= 32 * b.lay.px && b.lay.rowH >= b.lay.visRowH && b.menuRows.every((r) => r.hit.height >= r.h), b.lay.visRowH + ' ' + b.lay.rowH + ' ' + b.lay.minTap);
+  /* 1.116 (27 Nov): on a phone the rows are 40 to 44 real px apart and the gold band fills the row (no slim highlight inside a taller band); a wide screen keeps his slim 26 design px rows */
+  const realPx = (n) => n * b.lay.real;
+  check('1.116 rows: on a phone 40 to 44 real px, the band fills the row; on a wide screen 26 design px; each touch band is its whole row (18.35)', (b.lay.portrait ? realPx(b.lay.rowH) >= 39.5 && realPx(b.lay.rowH) <= 45 && b.lay.visRowH === b.lay.rowH : Math.abs(b.lay.rowH - Math.round(26 * b.lay.px)) <= 1) && b.menuRows.every((r) => r.hit.height >= r.h), b.lay.visRowH + ' ' + b.lay.rowH + ' real ' + b.lay.real.toFixed(2));
 
   // ---------- the top strip ----------
   const all = []; const walk = (o) => { if (o.type === 'Text') all.push(o.text); if (o.list) o.list.forEach(walk); }; b.children.list.forEach(walk);
