@@ -19,6 +19,7 @@ import * as items from './src/items.js';
 import * as spellArt from './src/spellArt.js';
 import * as knockback from './src/knockback.js';
 import * as enemyAi from './src/enemyAi.js';
+import * as aiStyle from './src/aiStyle.js';
 import * as artLib from './src/art.js';
 import * as fxLayers from './src/fxLayers.js';
 import * as codeWalk from './src/codeWalk.js';
@@ -35,7 +36,7 @@ window.__kings = kingsLib; // the kings' rules (Phase 10)
 window.__artUrl = artUrlLib; window.__battleLoad = battleLoad; window.__prefetch = prefetchLib; // loading (18.47, 18.48)
 import unitList from './src/data/units.json';
 window.__lineup = lineup; window.__unitList = unitList; // the character select (18.30)
-window.__tooltip = tooltip; window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__signature = signature; window.__spellsAll = spellsAll; window.__grid = grid; window.__combat = combat; window.__items = items; window.__fx = spellArt; window.__knockback = knockback; window.__ai = enemyAi; window.__art = artLib; window.__layers = fxLayers; window.__walk = codeWalk; window.__ending = ending; window.__save = saveGame;
+window.__tooltip = tooltip; window.__effects = effects; window.__engagement = engagement; window.__status = status; window.__signature = signature; window.__spellsAll = spellsAll; window.__grid = grid; window.__combat = combat; window.__items = items; window.__fx = spellArt; window.__knockback = knockback; window.__ai = enemyAi; window.__aiStyle = aiStyle; window.__art = artLib; window.__layers = fxLayers; window.__walk = codeWalk; window.__ending = ending; window.__save = saveGame;
 window.__game = new Phaser.Game({ type: Phaser.CANVAS, parent: 'game', width: 720, height: 1280, backgroundColor: '#1a1410', banner: false, audio: { noAudio: true }, loader: { imageLoadType: 'HTMLImageElement' }, scene: [StartScene, DialogueScene, SelectScene, BattleScene, EndScene, EffectsLab] });
 EOT
 node_modules/.bin/esbuild harness-entry.js --bundle --format=iife --platform=browser --outfile=$OUT_DIR/bundle.js --log-level=error

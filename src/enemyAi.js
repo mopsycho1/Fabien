@@ -70,8 +70,9 @@ export function isCaster(unit) {
   return unit.attackType === 'magic' || (unit.maxMp || 0) > 0;
 }
 
-export function chooseMoveTile(unit, units, extraBlocked = () => false) {
-  const opponents = units.filter((other) => other.alive && other.side !== unit.side);
+// only (13.69): optional list of foes to walk at (a protector going for the foe hurting a friend); the rest still block.
+export function chooseMoveTile(unit, units, extraBlocked = () => false, only = null) {
+  const opponents = units.filter((other) => other.alive && other.side !== unit.side && (!only || only.includes(other) || (other.isDecoy && only.some((o) => o.id === other.id))));
   if (opponents.length === 0) return null;
 
   // Units standing on a tile block it

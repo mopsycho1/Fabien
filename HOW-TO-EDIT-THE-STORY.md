@@ -603,3 +603,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Mood: the colour grade, bloom, edge blur and vignette are the numbers in the shader at the top of src/mood.js (each line says what it does); the dust is `dustUp` below it.
 - End turn needs two taps (1.111): the 4 seconds it waits for the second tap are in tapEndTurn in src/scenes/BattleScene.js.
 - The art template for Suleiman: Fabien Blueprint/TEMPLATE; redraw it with `~/.fabien-tools/venv/bin/python -I dev/tools/make_template.py`.
+
+## Play styles for the computer (27 Nov, roadmap 13.69, 13.77, 13.80)
+- Each fighter's play style is in src/data/aiStyles.json: "fighters" gives each one (by its id in units.json) a style, and "styles" holds the four: aggressive, protector, support, skirmisher. To change how someone plays, change its "style" word.
+- Each style has three numbers: "careAt" (a friend at or under this share of health counts as hurt, so it gets healed, guarded or saved), "fallBackAt" (under this share of its own health it walks back to a healer friend; 0 means never) and "focus" (who it likes to strike: weakest, threat, casters or nearest). Everyone takes a kill first.
+- A new character needs a line in "fighters", or it plays as aggressive. Test n120 fails if one is missing.
+- What each kit does under the computer is written in src/aiKit.js (Layra, Sudeen, Gaha), src/scenes/BattleScene.js shamanChoice (Kofi), src/newClasses.js newClassChoice (Leol, the Thief) and src/kingsScene.js (the kings).
+- To see how often everyone uses each skill: `bash dev/tests/kit_use.sh 2 3` (the computer plays both sides, three line-ups, about 3 minutes).

@@ -1,0 +1,23 @@
+{
+  "note": "Roadmap 13.69, 13.77, 13.80 (27 Nov): each fighter's play style when the computer plays it (either side). The style steers who it strikes, how it walks and when it falls back; its kit rules live in src/aiStyle.js and BattleScene.styleKitChoice. Keyed by unit id (units.json). Numbers: careAt = an ally at or under this share of health is 'hurt' to this fighter (it heals, guards or saves it); fallBackAt = under this share of its own health, with no kill to take and not locked in a clash, it walks back to its friends (0 = never); focus = who it likes to strike: weakest (lowest health, finish the kill), threat (the foe hurting a friend, or the hardest hitter), casters (casters and archers first), nearest.",
+  "styles": {
+    "aggressive": { "text": "Goes for the kill: strikes the weakest foe in reach and walks straight at the enemy line. Never falls back.", "careAt": 0.4, "fallBackAt": 0, "focus": "weakest" },
+    "protector": { "text": "Guards his friends: strikes whoever is hurting a hurt friend, walks to stand by them, heals or takes the blow for them.", "careAt": 0.6, "fallBackAt": 0.25, "focus": "threat" },
+    "support": { "text": "Keeps the team alive: heals and blesses the friend who needs it most, stays behind the front line, curses the most dangerous foe.", "careAt": 0.7, "fallBackAt": 0.4, "focus": "threat" },
+    "skirmisher": { "text": "Hits and runs: picks off casters and lone foes, keeps out of reach, and saves a friend in trouble when it can.", "careAt": 0.5, "fallBackAt": 0.35, "focus": "casters" }
+  },
+  "fighters": {
+    "h1": { "style": "protector", "why": "Sudeen: Ward, Herbs, Intercept Ally" },
+    "h2": { "style": "aggressive", "why": "Gaha: Lunge, Spear Throw, Sonic Javelin" },
+    "h3": { "style": "support", "why": "Layra: the Verses, Healing Wind, Slow, Husk" },
+    "h4": { "style": "support", "why": "Kofi: Infuse (Renewal, Stone), Haunt" },
+    "h5": { "style": "aggressive", "why": "Alagara: Rend, Gale Cut, Radiant Rift" },
+    "h6": { "style": "skirmisher", "why": "Leol: sling at range, Smoke Pellet to save a friend" },
+    "e1": { "style": "aggressive", "why": "Tayo: Earth Drive, Clap, Element Blast" },
+    "e2": { "style": "aggressive", "why": "the Bull Commander: Horn Charge, Shield Toss" },
+    "e3": { "style": "skirmisher", "why": "the Archer: keeps her distance, poisons, Smoke Bomb" },
+    "e4": { "style": "protector", "why": "Rabdul: Spear Ward, Hold the Line, Enchant on a friend" },
+    "e5": { "style": "aggressive", "why": "Gadara: Heavy Cleave, Snare Hook, Singularity" },
+    "e6": { "style": "skirmisher", "why": "the Thief: hides, ambushes casters, sets traps" }
+  }
+}

@@ -960,7 +960,8 @@ export const kingMethods = {
       if (rescue) return this.aiCast(unit, rescue, 'drawnBlade', finish);
     }
     // Radiant Rift (10.52): with a magic buff to spend, at a foe he cannot reach with his blade this turn, or one it would finish
-    if (this.aiReady(unit, 'radiantRift') && this.riftFuel(unit).length) {
+    // (13.69: also with no buff, at its smaller power, when nobody is next to him: it was never cast in the bot battles)
+    if (this.aiReady(unit, 'radiantRift') && (this.riftFuel(unit).length || !near.length)) {
       const rifts = this.kingTargets(unit, 'radiantRift').sort((a, b) => a.hp - b.hp);
       const killable = rifts.find((t) => this.riftDamage(unit, t) >= t.hp);
       const pick = killable || (!near.length ? rifts[0] : null);

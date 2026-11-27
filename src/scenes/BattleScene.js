@@ -38,6 +38,7 @@ import { takeHit, afterBeat, pushResist, pushExtra, autoPick, holdingSignature, 
 import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { kingMethods, KING_KINDS, KING_SELF_KINDS, galeFx } from '../kingsScene.js';
+import { aiKitMethods } from '../aiKit.js'; // each fighter's whole kit and play style for the computer (13.69)
 import { newClassMethods, NEW_KINDS, NEW_TILE_KINDS, slingStone } from '../newClasses.js'; // Leol and the Thief (19.1, 19.2) // the two kings' moves and AI (Phase 10)
 import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak, swingFxOf, hasChannelFx } from '../art.js';
@@ -2146,7 +2147,7 @@ export default class BattleScene extends Phaser.Scene {
         if (this.battleOver || !king.alive || this.activeUnit !== king) return;
         this.refreshButtons();
         this.refreshStatus();
-        if (king.side === 'enemy') this.time.delayedCall(ENEMY_THINK_MS, () => this.activeUnit === king && this.runEnemyTurn());
+        if (this.aiControls(king)) this.time.delayedCall(ENEMY_THINK_MS, () => this.activeUnit === king && this.runEnemyTurn());
       });
       return;
     }
@@ -2169,7 +2170,7 @@ export default class BattleScene extends Phaser.Scene {
         if (this.battleOver) return;
         this.refreshButtons();
         this.refreshStatus();
-        if (archer.side === 'enemy') this.time.delayedCall(400, () => this.activeUnit === archer && this.endTurn());
+        if (this.aiControls(archer)) this.time.delayedCall(400, () => this.activeUnit === archer && this.endTurn());
       });
       return;
     }
@@ -2199,7 +2200,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // Enemies play by themselves, after a short pause so you can follow it
     // (0.4 s, it was 0.6: long enough for the camera to reach it, roadmap 18.11).
-    if (this.activeUnit.side === 'enemy') {
+    if (this.aiControls(this.activeUnit)) {
       this.time.delayedCall(ENEMY_THINK_MS, () => this.runEnemyTurn());
     } else {
       play('turn');
@@ -5597,6 +5598,12 @@ export default class BattleScene extends Phaser.Scene {
 
   // An enemy's whole turn: walk toward the heroes if needed, attack if
   // someone is in range, then end the turn.
+  // Who the computer plays: the enemies, and (13.69, for bot battles that measure every fighter's AI)
+  // the heroes too when a test sets aiBoth.
+  aiControls(unit) {
+    return !!unit && (unit.side === 'enemy' || !!this.aiBoth);
+  }
+
   runEnemyTurn() {
     const unit = this.activeUnit;
 
@@ -5671,6 +5678,29 @@ export default class BattleScene extends Phaser.Scene {
     // dagger and stabs first, then steps back with the steps she has left (1.46, 13.53).
     if (unit.closeWeapon && this.adjacentFoe(unit)) {
       this.enemyAttack(unit);
+      return;
+    }
+    // A move that is its walk and its blow at once, before walking (13.69): Gaha's Lunge or a Sonic Javelin
+    // through two foes, Sudeen's Intercept on the foe hurting a friend
+    const pre = this.preWalkKit(unit);
+    if (pre) {
+      this.busy = true;
+      this.castSpell(unit, pre.target, pre.id, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
+    // Its play style may walk it somewhere else than the nearest foe (13.69, src/aiStyle.js): a hurt fighter
+    // falls back to its friends, a support stays in reach of the friend who needs it, a protector goes for the
+    // foe hurting a friend. { stay: true } means it holds its tile.
+    unit.aiNote = null;
+    let styled = this.styleWalk(unit, hiddenAt);
+    // (Rabdul keeps with the line even when he goes to guard a friend, 10.31: alone in front he falls first)
+    if (styled && !styled.stay && unit.spells.includes('spearWard')) styled = keepWithLine(unit, this.enemyEyes(), styled, hiddenAt) || { stay: true };
+    if (styled) {
+      if (styled.stay) this.enemyAttack(unit);
+      else this.moveUnit(unit, styled.col, styled.row, () => this.enemyAttack(unit));
       return;
     }
     // Nobody to strike this turn: it forages (roadmap 13.48). It digs up what is buried or
@@ -5918,6 +5948,17 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
+    // Layra's Verses, Slow, Husk and Meditate; Sudeen's Herbs and Intercept; Gaha's Spear Throw (13.69, 13.80; src/aiKit.js)
+    const kit = this.styleKitChoice(unit, seen);
+    if (kit) {
+      this.busy = true;
+      this.castSpell(unit, kit.target, kit.id, () => {
+        this.busy = false;
+        this.enemyWrapUp(unit);
+      });
+      return;
+    }
+
     // Leol and the Thief (19.1, 19.2): their kits, either side
     const nc = this.newClassChoice(unit, seen);
     if (nc && nc.wait) { this.time.delayedCall(300, () => this.endTurn()); return; } // the Thief stays out of sight and hides
@@ -5951,8 +5992,10 @@ export default class BattleScene extends Phaser.Scene {
 
     // Exploit openings first: Off-Balance targets, then distracted (engaged) ones,
     // then casters (fragile and dangerous), then whoever has the least health.
-    const opening = (t) => (isOffBalance(t) ? 2 : 0) + (isDistracted(t, unit) ? 1 : 0);
-    targets.sort((a, b) => opening(b) - opening(a) || isCaster(b) - isCaster(a) || a.hp - b.hp);
+    // (13.69: a kill first for everyone, then the opening, then what its play style goes for: the weakest,
+    // the foe hurting a friend, or casters and archers; src/aiStyle.js sortTargets)
+    const sortedTargets = this.styleSort(unit, targets);
+    targets.splice(0, targets.length, ...sortedTargets);
     // An archer with Poison Arrow ready poisons the healthiest foe in reach that is not poisoned yet
     if (unit.spells.includes('poisonArrow') && canAfford(unit, 'poisonArrow') && !isBlinded(unit) && !holdsDagger(unit)) { // (it needs the bow in hand)
       const reach = spells.poisonArrow.range;
@@ -10408,3 +10451,4 @@ export default class BattleScene extends Phaser.Scene {
 // The two kings' moves, Singularity and their AI (Phase 10) live in src/kingsScene.js
 Object.assign(BattleScene.prototype, kingMethods);
 Object.assign(BattleScene.prototype, newClassMethods);
+Object.assign(BattleScene.prototype, aiKitMethods);

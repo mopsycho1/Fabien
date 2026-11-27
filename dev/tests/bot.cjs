@@ -14,6 +14,8 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
   const brain = require('./bot_brain.cjs')(w, tally);
   for (let n = 1; n <= N; n++) {
     b.setSpeed('base', 8);
+    b.aiBoth = !!process.env.AI_BOTH; // 13.69: the game's AI plays both sides, so every fighter's kit use is measured
+    if (b.aiBoth) { const t = Date.now(); while ((b.busy || b.inCinematic) && Date.now() - t < 6000) await sleep(20); if (b.activeUnit && b.activeUnit.side === 'hero') b.runEnemyTurn(); } // (the first turn began before the switch)
     if (process.env.NO_WARD) for (const u of b.units) u.wardOff = true; // measuring others' damage: Sudeen's Ward off (19.3)
     if (process.env.NO_ENCHANT) for (const u of b.units) u.spells = u.spells.filter((s) => s !== 'enchant'); // balance runs: Enchant off
     const dmg = {}; const acts = {};
@@ -35,8 +37,9 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         if (b.__bal && b.__turnWho) { const k = b.__turnWho.side + ' ' + (b.__turnInClash ? 'clash' : b.__turnAct || 'walk or wait'); b.__bal.spent = b.__bal.spent || {}; b.__bal.spent[k] = (b.__bal.spent[k] || 0) + 1; }
         // 26 Nov (Leol froze in his attack picture): the fighter whose turn just ended must be back in his stance.
         // What he shows now must be what showStanding would pick; FROZEN names him, the picture and what he did.
-        if (!b.battleOver) for (const p of b.units) { if (p && p.alive && !p.knock && p.sprite && p.sprite.active) { const k1 = p.sprite.texture.key; b.showStanding(p); const k2 = p.sprite.texture.key; if (k1 !== k2) { tally.frozen = (tally.frozen || 0) + 1; console.log('FROZEN', p.id, p.name, 'showed', k1, 'not', k2, 'after', p === b.__turnWho ? 'his turn: ' + (b.__turnAct || 'walk or wait') : 'someone else\'s turn', '| last:', (b.__trail || []).slice(-3).join(' > ')); } } }
+        if (!b.battleOver && b.turnCount > 0) for (const p of b.units) { /* (27 Nov: not at the very first turn, called from create before the line-up has its stances) */ if (p && p.alive && !p.knock && p.sprite && p.sprite.active) { const k1 = p.sprite.texture.key; b.showStanding(p); const k2 = p.sprite.texture.key; if (k1 !== k2) { tally.frozen = (tally.frozen || 0) + 1; console.log('FROZEN', p.id, p.name, 'showed', k1, 'not', k2, 'after', p === b.__turnWho ? 'his turn: ' + (b.__turnAct || 'walk or wait') : 'someone else\'s turn', '| last:', (b.__trail || []).slice(-3).join(' > ')); } } }
         const r = st(...a);
+        if (b.activeUnit && !b.battleOver) { const k = b.activeUnit.name + ': (turns)'; used[k] = (used[k] || 0) + 1; } // 13.69: turns per fighter, to read kit use per turn
         b.__turnWho = b.activeUnit; b.__turnInClash = !!(b.activeUnit && b.activeUnit.engagedWith); b.__turnAct = null;
         // MOVE_LOG=h1 (26 Nov bug, Sudeen cannot move): that fighter's move range at the start of every turn of his, and why it is 0
         if (process.env.MOVE_LOG && b.activeUnit && b.activeUnit.id === process.env.MOVE_LOG && !b.battleOver) { const u = b.activeUnit; const MV = w.__movement || null; const steps = b.stepsLeft(u); let reach = -1; try { reach = b.reachableCount ? b.reachableCount(u) : -1; } catch (e) {} const why = { steps, move: u.move, stepsUsed: u.stepsUsed, engaged: u.engagedWith ? u.engagedWith.id : null, stunned: !!(u.status && u.status.stunned), status: Object.keys(u.status || {}).filter((k) => u.status[k]).join(','), buff: u.status && u.status.buff && u.status.buff.id, zone: u.zone && u.zone.name, ward: u.wardOn, busy: b.busy, cine: b.inCinematic }; console.log((steps === 0 ? 'MOVE0 ' : 'MOVE  ') + 'turn ' + b.turnCount + ' ' + JSON.stringify(why)); }
@@ -53,7 +56,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     b.__trail = [];
     // every skill and item each fighter uses, counted per battle (checklist G3: the enemies use every
     // skill they own; roadmap 18.11 and 18.15). The enemy AI calls these casts directly.
-    for (const fn of ['castSpell', 'castKingSkill', 'useFreeKingAction', 'castEnchant', 'castSmokeBomb', 'castElementBlast', 'castClap', 'castEarthDrive', 'castPoisonArrow', 'castShieldToss', 'castDoubleHit', 'useItem', 'performEngage']) {
+    for (const fn of ['performAttack', 'castSpell', 'castKingSkill', 'useFreeKingAction', 'castEnchant', 'castSmokeBomb', 'castElementBlast', 'castClap', 'castEarthDrive', 'castPoisonArrow', 'castShieldToss', 'castDoubleHit', 'useItem', 'performEngage']) {
       if (b['__counted_' + fn]) continue; b['__counted_' + fn] = true; // (the scene object lives on across battles: wrap it once, or battle n would count n times)
       const orig = b[fn].bind(b);
       b[fn] = (...args) => {
@@ -74,7 +77,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
       b.setButtons = () => { b.__lastSet = { who: b.activeUnit && b.activeUnit.label, busy: b.busy, mode: b.mode, at: Math.round(b.time.now), from: (new Error().stack || '').split('\n').slice(2, 6).map((l) => l.trim().replace(/^at /, '').replace(/ \(.*$/, '')).join(' < ') }; return origSet(); };
       b.events.on('postupdate', () => {
         const u = b.activeUnit;
-        if (!u || u.side !== 'hero' || b.busy || b.inCinematic || b.battleOver) { b.__noBtnSince = 0; return; }
+        if (!u || u.side !== 'hero' || b.aiBoth || b.busy || b.inCinematic || b.battleOver) { b.__noBtnSince = 0; return; }
         const live = [...b.slots, ...b.halves, ...b.lowHalves].some((sl) => sl.enabled);
         if (live) { b.__noBtnSince = 0; return; }
         if (!b.__noBtnSince) b.__noBtnSince = b.time.now;
@@ -123,7 +126,7 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
         lastSig = sig; lastChange = Date.now();
       }
       if (Date.now() - lastChange > 7000) { stuck = true; console.log('STUCK', u.label, 'busy', b.busy, 'mode', b.mode, 'cine', b.inCinematic, 'acted', u.hasActed, 'steps', b.stepsLeft(u), 'pinned', St.isPinned(u), 'endWait', b.endTurnWaiting, 'knock', Math.round((b.knockUntil || 0) - b.time.now), 'zone', !!u.zone, 'reach', b.reachableKeys && b.reachableKeys.size, '| last:', (b.__trail || []).slice(-10).join(' > ')); break; }
-      if (u.side === 'hero' && !b.busy && !b.inCinematic) {
+      if (u.side === 'hero' && !b.aiBoth && !b.busy && !b.inCinematic) {
         // every figure must be standing on the middle of its tile (roadmap 13.47): checked twice,
         // a moment apart, so a body still settling is not counted
         const off = () => b.units.filter((x) => x.alive && x.view && x.view.active && !x.knock).map((x) => { const p = w.__grid.tileToScreen(x.col, x.row); return { x, d: Math.hypot(x.view.x - p.x, x.view.y - p.y) }; }).filter((o) => o.d > 2);
@@ -214,7 +217,8 @@ const allTexts = (sc) => { const out = []; const walk = (o) => { if (o.type === 
     }
     if (stuck) { tally.stuck++; break; }
     const tw = Date.now(); while (!(allTexts(b).includes('Victory') || allTexts(b).includes('Defeat')) && Date.now() - tw < 5000) await sleep(30);
-    const r = allTexts(b).includes('Victory') ? 'Victory' : allTexts(b).includes('Defeat') ? 'Defeat' : 'NONE';
+    // (27 Nov: the result screen's words are HTML now, so the canvas texts often miss them: who is left decides)
+    const r = allTexts(b).includes('Victory') ? 'Victory' : allTexts(b).includes('Defeat') ? 'Defeat' : !alive('enemy').length ? 'Victory' : !alive('hero').length ? 'Defeat' : 'NONE';
     if (tally[r] !== undefined) tally[r]++;
     turnsList.push(b.turnCount);
     console.log(`battle ${n}: ${r} after ${b.turnCount} turns (${b.__bal.rounds.toFixed(1)} rounds) | fell ${b.__bal.deaths.join(' ')} | healed ${b.__bal.heal} | misses ${b.__bal.miss} | spent ${JSON.stringify(b.__bal.spent || {})} | damage dealt ${JSON.stringify(b.__dmg)} | attacks ${JSON.stringify(b.__acts)} | hp left ${b.units.map(u => u.label + ':' + (u.alive ? u.hp : 'x')).join(' ')}`);

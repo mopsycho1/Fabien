@@ -24,6 +24,7 @@ import { dustPuff, screenShake } from './effects.js';
 import { sfxHas, sfxAt } from './spellArt.js';
 import { play } from './audio.js';
 import { endDuel } from './engagement.js';
+import { styleOf } from './aiStyle.js';
 
 export const NEW_KINDS = ['smokePellet', 'concussive', 'hammerStrike', 'barricade', 'ambush', 'trap'];
 export const NEW_TILE_KINDS = ['barricade', 'trap'];
@@ -375,15 +376,16 @@ export const newClassMethods = {
     const foes = seen.filter((t) => t.alive && !t.isDecoy && t.side !== unit.side && !t.hidden);
     const ready = (id) => unit.spells.includes(id) && canAfford(unit, id) && !cooldownOf(unit, id) && !this.newBlock(unit, id);
     if (unit.job === 'slinger') {
+      // a friend in trouble first (13.69): smoke over the most hurt friend a foe is striking
+      const allies = this.units.filter((a) => a.alive && a.side === unit.side && !a.hidden && distance(unit, a) <= spells.smokePellet.range);
+      const pressed = allies.filter((a) => a.hp / a.maxHp <= styleOf(unit).careAt && foes.some((f) => distance(f, a) === 1)).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; // (13.69: his style's care line, the most hurt first)
+      if (pressed && ready('smokePellet')) return { id: 'smokePellet', target: pressed };
       const near = foes.filter((t) => distance(unit, t) === 1);
       if (near.length && ready('hammerStrike')) return { id: 'hammerStrike', target: [...near].sort((a, b) => a.hp - b.hp)[0] };
       const reach = foes.filter((t) => distance(unit, t) >= 2 && distance(unit, t) <= spells.concussiveShot.range && hasClearShot(unit, t));
       const preparing = reach.find((t) => t.channel || t.aiming || t.meditating || (t.zone && t.zone.charges > 0));
       // (26 Nov, bot battles: he only ever used the hammer) a foe preparing something first; otherwise the weakest in reach
       if (reach.length && ready('concussiveShot')) return { id: 'concussiveShot', target: preparing || [...reach].sort((a, b) => a.hp - b.hp)[0] };
-      const allies = this.units.filter((a) => a.alive && a.side === unit.side && !a.hidden && distance(unit, a) <= spells.smokePellet.range);
-      const pressed = allies.find((a) => a.hp / a.maxHp < 0.4 && foes.some((f) => distance(f, a) === 1));
-      if (pressed && ready('smokePellet')) return { id: 'smokePellet', target: pressed };
       if (!near.length && !reach.length && foes.some((t) => distance(unit, t) <= 7) && ready('suppressiveFire') && !unit.zone) return { id: 'suppressiveFire', target: unit };
       if (near.length && ready('barricade') && unit.hp / unit.maxHp < 0.5) { const tiles = this.freeTilesNear(unit); if (tiles.length) return { id: 'barricade', target: tiles[0] }; }
       return null;
@@ -393,7 +395,8 @@ export const newClassMethods = {
       // a mage hunter: casters and archers first
       const order = (t) => (t.maxMp > 0 || t.attackEffect === 'arrow' || t.attackEffect === 'spark' ? 0 : 1) * 1000 + t.hp;
       if (unit.hidden && near.length && ready('ambush')) return { id: 'ambush', target: [...near].sort((a, b) => order(a) - order(b))[0] };
-      if (unit.hidden && !near.length && ready('trap') && foes.some((t) => distance(unit, t) <= 4)) {
+      // a trap while hidden with nobody to ambush (or Ambush still cooling down, 13.69: he never set one in the bot battles)
+      if (unit.hidden && (!near.length || !ready('ambush')) && ready('trap') && foes.some((t) => distance(unit, t) <= 4)) {
         const tiles = this.freeTilesNear(unit);
         const best = tiles.sort((a, b) => Math.min(...foes.map((f) => distance(a, f))) - Math.min(...foes.map((f) => distance(b, f))))[0];
         if (best) return { id: 'trap', target: best };
