@@ -124,6 +124,10 @@ const SPIKE_LEVELS = 3;  // an Earth Drive spike counts as a block this many lev
 // The modes in which the player is picking a target on the board: the
 // command menu gets out of the way then (roadmap 8.9).
 const TARGET_MODES = ['attack', 'engage', 'spellTarget', 'huskTile', 'approach', 'itemTarget'];
+// A fighter who falls in its own turn (27 Nov freeze, see watchDeadTurn): a player's turn ends this long after the board
+// settles; any turn ends this long after the fall if no new turn has started (the safety net).
+const DEAD_TURN_SETTLE_MS = 600;
+const DEAD_TURN_NET_MS = 5000;
 
 const BAR_WIDTH = 48;    // width of a unit's health bar, in pixels
 const UNIT_RADIUS = 22;  // size of a unit's circle
@@ -4474,7 +4478,39 @@ export default class BattleScene extends Phaser.Scene {
       this.refreshStatusTags();
     }
     this.refreshTurnStrip(); // take it out of the turn order bar
+    if (unit === this.activeUnit) this.watchDeadTurn(unit); // it fell in its own turn: the turn must still end (27 Nov freeze)
   }
+
+  // A fighter fell during its own turn (27 Nov freeze: Layra walked onto the Thief's hidden trap, died mid-walk, and
+  // nobody ever got a turn again). The CAUSE: a player's walk has nothing to do when it ends; the turn ends only when
+  // the player taps, and a fallen hero has no menu. The AI's own turns always reach enemyWrapUp, but nothing checked.
+  // Now: a turn the player was playing ends by itself once the board has settled (nothing busy, nobody flying); and
+  // as a safety net, ANY turn whose fighter has fallen ends by itself DEAD_TURN_NET_MS after the fall if no new turn has
+  // started (the AI's turns end sooner on their own). If that side is out, the result is shown instead.
+  watchDeadTurn(unit) {
+    if (this.battleOver || this.watchingDead === unit) return;
+    this.watchingDead = unit;
+    const turn = this.turnCount;
+    const player = unit.side === 'hero' && !this.aiBoth;
+    const started = this.time.now;
+    const look = () => {
+      if (this.battleOver || this.turnCount !== turn || this.activeUnit !== unit) { this.watchingDead = null; return; }
+      const idle = !this.busy && !this.inCinematic && !((this.knockUntil || 0) > this.time.now);
+      const waited = this.time.now - started;
+      if ((player && idle && waited >= DEAD_TURN_SETTLE_MS) || waited >= DEAD_TURN_NET_MS) {
+        this.watchingDead = null;
+        this.busy = false;
+        this.cancelMode();
+        const outcome = this.checkBattleEnd();
+        if (outcome) { this.battleOver = true; this.showResult(outcome); return; }
+        this.endTurn();
+        return;
+      }
+      this.time.delayedCall(200, look);
+    };
+    this.time.delayedCall(200, look);
+  }
+
 
   // ---------- Attack animation ----------
 
@@ -5832,6 +5868,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // Attacks the weakest hero in range, if any, then ends the turn.
   enemyAttack(unit) {
+    if (!unit.alive) return this.enemyWrapUp(unit); // it fell on the way (a trap, a ward): no blow from beyond, the turn ends (27 Nov)
     this.aiPickWeapon(unit); // her one free weapon switch: dagger next to a foe, bow otherwise (13.29)
     const finish = () => {
       this.busy = false;
