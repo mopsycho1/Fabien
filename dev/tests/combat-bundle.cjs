@@ -218,6 +218,40 @@ var spells_default = {
     use: "enemy",
     text: "A hex: the spirits leave the target Disoriented for its next 2 turns (attack -2, defense -2, evade -10, magic hits it harder; Herbs lift it). It rolls against the target's magic defense first: a strong mind can shake it off. What Kofi reads adds to it when it lands. Fire: it also burns. Water: Drenched. Earth: bound, slower for 3 turns. Storm: shaken, its aim or trance breaks and it is Off-Balance."
   },
+  callSpirit: {
+    name: "Call Spirit",
+    button: "Call Spirit",
+    short: "SPIRIT",
+    kind: "callSpirit",
+    color: "#8fe0b0",
+    range: 3,
+    mp: 3,
+    cooldown: 3,
+    turns: 3,
+    size: 0.62,
+    use: "tile",
+    note: "13.72 (decided by Baiyee 27 Nov; it replaces Infuse in Kofi's kit). Every number picked by Claude (Suleiman's 12 Nov sheet: 3 MP, a spirit by the reading; the rest is ours): range 3 (his sheet said next to him; 3 lets the ground choose), mp 3, ready again after 3 turns, turns 3 = it uses its move when it comes and at the start of Kofi's next 2 turns, then fades; size = its height as a share of Kofi's. The tile picks the spirit (src/spirits.js natureAt): by a lamp Ember, water Tide, sand or rubble Stone, high ground (2 levels or more) Gale; plain floor: what Kofi reads.",
+    spirits: {
+      ember: { name: "Ember Spirit", element: "fire", color: "#ff8a3c", hp: 8, move: "Ember Lash", damage: 4, text: "Ember Lash: 4 damage to every foe next to it, and they burn." },
+      tide: { name: "Tide Spirit", element: "water", color: "#7fd6c4", hp: 8, move: "Tide Mend", heal: 5, text: "Tide Mend: 5 health to every ally next to it (Kofi too) and one weak status lifted (poison, burn, blinded, disoriented)." },
+      stone: { name: "Stone Spirit", element: "earth", color: "#d9b77a", hp: 14, move: "Stone Ward", guard: 2, text: "Stone Ward: every ally next to it takes 2 less from each hit (never below 1). A wall the foes must walk round, the toughest spirit." },
+      gale: { name: "Gale Spirit", element: "storm", color: "#bfd8ff", hp: 8, move: "Gale Burst", damage: 2, push: 1, text: "Gale Burst: every foe next to it takes 2 and is blown 1 tile away (into a wall or a unit: a slam)." }
+    },
+    text: "Raises a small spirit on an empty tile up to 3 away; the ground picks which. By a lamp: Ember (burns the foes next to it). Water: Tide (heals the allies next to it). Sand or rubble: Stone (allies next to it take 2 less a hit). High ground: Gale (blows the foes next to it away). Plain floor: the spirit of what Kofi reads. It uses its move when it comes and at the start of his next 2 turns, then fades; foes can break it. One spirit at a time. Ready again after 3 turns."
+  },
+  spiritSwap: {
+    name: "Spirit Swap",
+    button: "Spirit Swap",
+    short: "SWAP",
+    kind: "spiritSwap",
+    free: true,
+    color: "#8fe0b0",
+    range: 0,
+    mp: 0,
+    use: "self",
+    note: "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action; not in a clash.",
+    text: "Free, once a turn, no action: Kofi and his spirit trade places."
+  },
   infuse: {
     name: "Infuse",
     button: "Infuse",
@@ -234,6 +268,7 @@ var spells_default = {
     cooldown: 2,
     mp: 2,
     use: "ally",
+    note: `Kofi's until 27 Nov (13.72: Call Spirit replaces it in his kit). Not in anyone's kit now; its verses map is the one Alagara's Claim from nature uses (claim "nature").`,
     text: "A blessing for an ally within 3 tiles, or himself, from what Kofi reads. Earth: the Stone Verse. Storm: Swiftness. Fire: Fury. Water: Renewal, a healing that starts at once and goes on for 3 turns. Ready again after 2 turns."
   },
   renewal: {
@@ -912,7 +947,7 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    text: "Fork end. Tear one blessing off the foe next to him (Swiftness, Earth's Bulwark, Fury or an Enchanted weapon). No damage. Adds 2 to his Mask Gauge. Ready again after 3 turns."
+    text: "Fork end. Tear one blessing off the foe next to him (Swiftness, Earth's Bulwark, Fury or an Enchanted weapon). No damage. Adds 2 to his Mask Gauge (one for the touch, one for the strip). Ready again after 3 turns."
   },
   heavyCleave: {
     category: "Techniques",
@@ -941,7 +976,33 @@ var spells_default = {
     uses: 1,
     mp: 0,
     use: "self",
-    text: "Needs a full Mask Gauge (6). He dons the mask: it takes his whole turn, and the area within 3 tiles of him is marked. At the start of his next turn every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented, one that ends next to him is Off-Balance. Then every foe still standing takes a blow that cannot miss, 1.5 times a normal hit of his. Then he is Exposed for a turn (defense -2, evade -10) and the gauge is empty. A Stun, a fall or a slam on him while it charges breaks it. Once a battle."
+    text: "Needs a full Mask Gauge (5) and spends it all. He dons the mask: it takes his whole turn, and the area within 3 tiles of him is marked. At the start of his next turn every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented, one that ends next to him is Off-Balance. Then every foe still standing takes a blow that cannot miss, 1.5 times a normal hit of his. Then he is Exposed for a turn (defense -2, evade -10) and the gauge is empty. A Stun, a fall or a slam on him while it charges breaks it. Once a battle."
+  },
+  shadowStep: {
+    category: "Spells",
+    name: "Shadow Step",
+    button: "Shadow Step",
+    short: "STEP",
+    kind: "shadowStep",
+    color: "#9a7bd0",
+    range: 3,
+    mp: 0,
+    use: "tile",
+    note: "10.53 (Suleiman's Shadow Passage draft, Solo Passage; decided by Baiyee 27 Nov). Costs 1 mask (kings.json gadara.passage.soloCost), not MP. The cloak is Suleiman's Swirling Shadow Cloak GIF (6.95).",
+    text: "1 mask. He folds into his cloak and steps out on an empty tile up to 3 away: walls and heights do not stop him, and it gets him out of a clash. It is his walk for the turn; he keeps his action. Once a turn (Shadow Step or Shadow Passage)."
+  },
+  shadowPassage: {
+    category: "Spells",
+    name: "Shadow Passage",
+    button: "Shadow Passage",
+    short: "PASSAGE",
+    kind: "passage",
+    color: "#7a5cc0",
+    range: 2,
+    mp: 0,
+    use: "enemy",
+    note: "10.53 (Forced Passage in Suleiman's draft; decided by Baiyee 27 Nov). 1 mask for each foe taken; the numbers are in kings.json gadara.passage. Kings, a foe under the Stone Verse and Unmoved cannot be taken (the draft's Anchored).",
+    text: "One mask for each foe he takes (up to 4). He wraps himself and the foes he picks within 2 tiles in his cloak, and they all come out somewhere at random at least 4 tiles away, the foes next to him, cut off from their friends. It takes his walk and his action. Kings and a foe under the Stone Verse stand firm. Once a turn (Shadow Step or Shadow Passage)."
   },
   verseSwap: {
     category: "Forms",
@@ -984,7 +1045,9 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "both",
-    text: "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
+    nature: { fire: "fury", water: "renewal", earth: "stone", storm: "swiftness" },
+    natureNote: "13.72 (decided by Baiyee 27 Nov): Claim can also draw a Verse from the ground, his own tile or an empty tile next to him (src/spirits.js natureAt, the same ground Kofi's spirits read): by a lamp Fury, water Renewal, sand or rubble Earth's Bulwark (Stone), high ground Swiftness. It is his action, no MP, the Verse lasts 2 turns ('turns'), the same cooldown. Plain floor gives nothing.",
+    text: "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. Or draw one from the ground, his own tile or an empty tile next to him: by a lamp Fury, water Renewal, sand or rubble Earth's Bulwark, high ground Swiftness (2 turns). A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
   },
   mantle: {
     category: "Forms",
@@ -1129,6 +1192,20 @@ var spells_default = {
     use: "enemy",
     note: "19.2, numbers picked by Claude: Hidden only; 1.5 times a blow, Armor Weakening (defense -2 until the foe's next turn ends), Bleeding (2 a turn for 3 turns; any healing item stops it); it always reveals him, hit or miss.",
     text: "Hidden only. Strike the foe next to you from hiding: 1.5 times a blow, its armour weakened (defense -2) and Bleeding (2 a turn for 3 turns; a healing item stops it). It always reveals you. Ready again after 2 turns."
+  },
+  steal: {
+    name: "Steal",
+    button: "Steal",
+    short: "STEAL",
+    kind: "steal",
+    color: "#d8a64a",
+    range: 1,
+    turns: 2,
+    cooldown: 3,
+    mp: 0,
+    use: "enemy",
+    note: "19.11 (Suleiman and Baiyee 27 Nov): takes one item or one buff from the foe next to him, with his cut steal pose (6.96). Numbers picked by Claude: a stolen Verse or Enchant is his for 2 turns ('turns'); what he takes first: a Verse, then an Enchanted weapon, then one item (healing first); no damage, no roll (it cannot miss: the cooldown is the price), it does not reveal him; ready again after 3 turns. Rabdul stays his counter (his wards catch him walking in; nothing new was built for that).",
+    text: "Take one thing from the foe next to you: its blessing (a Verse or an Enchanted weapon, yours for 2 turns), or else one item from its bag (healing first). No damage, and it does not reveal you. Ready again after 3 turns."
   },
   trap: {
     name: "Trap",
@@ -1410,10 +1487,11 @@ var kings_default = {
   gadara: {
     fork: { name: "Fork Strike", secondShare: 0.5, lineDepth: 2, note: "Fork mode basic attack: the target and the next foe straight behind it (an ally in between is skipped), each hit rolled on its own, the second at half damage." },
     blade: { name: "Blade Strike", bonus: 2, note: "Blade mode basic attack: one target, +2 damage." },
-    mask: { max: 6, strip: 2, beat: 1, hit: 1, note: "+2 when he strips a buff, +1 for each clash beat he holds (wins or ties), +1 when he takes a hit." },
+    mask: { max: 5, strip: 2, perFoeHit: 1, hitCap: 3, beat: 1, hit: 1, note: "10.53 (27 Nov, Suleiman's Shadow Passage draft, decided by Baiyee): 0 to 5 masks. +1 for each different foe his attack or skill hits (at most +3 an attack: Fork Strike through two foes = +2); Sunder Boon's strip +2 (the touch and the strip); +1 the first clash beat he holds between two of his turns ('beat'); +1 the first time he takes damage between two of his turns ('hit'). No decay. Shadow Passage and Singularity spend them, so they compete." },
+    passage: { soloCost: 1, soloRange: 3, carryRange: 2, maxCarry: 4, minDistance: 4, note: "Shadow Passage (10.53). Shadow Step (solo): 1 mask, an empty tile within 3, in place of his walk, his action kept, once a turn. Shadow Passage (carry): 1 mask for each foe taken (1 to 4 foes he can see within 2 tiles; a king, a foe under the Stone Verse or one standing Unmoved cannot be taken), to a random spot at least 4 tiles from where he stood, each foe on a free tile next to him; it takes his walk and his action. Never the spot he arrived at last time, when another is free. No spot free: it cannot be used and costs nothing." },
     dominion: { radius: 2, step: { attack: 1, defense: 1, evade: 5, amount: 1 }, note: "Buffs on his foes within 2 tiles are one step weaker: Fury +2 to +1, Swift's evade +15 to +10, Earth's Bulwark +2 to +1, and the clash bonus of a Verse 1 lower. Rabdul's Enchant burns 1 less." },
     singularity: { radius: 3, pull: 3, collisionDamage: 2, damageShare: 1.5, damageNote: "1.80 (21 Nov): every foe still standing when the pull ends takes 1.5 times a normal blow from him, a sure hit (5 to 8 normally, so 8 to 12 here), on top of a slam or fall.", chargeTicks: 8, chargeNote: "It resolves after a fixed charge of 8 time ticks (about one turn for each other fighter), not after his own slow turn: at speed 6 that was 13 turns, and it was nearly always broken or out of reach first (20 Nov).", exposed: { defense: 2, evade: 10 }, note: "Every foe within 3 tiles is pulled up to 3 tiles straight toward him; one stopped by a wall, a higher level or another unit takes 2 damage and is Disoriented; one that ends next to him is Off-Balance. Then he is Exposed for a turn (defense -2, evade -10), the mask comes off and the gauge is 0. Once a battle. A Stun, a fall or a slam on him while it charges breaks it (the gauge empties, the once-a-battle use is kept)." },
-    ai: { clusterMin: 2, clusterAlways: 3, note: "The enemy AI casts Singularity when at least 2 foes stand within 3 tiles (always at 3 or more)." }
+    ai: { clusterMin: 2, clusterAlways: 3, saveFor: 4, note: "The enemy AI casts Singularity when at least 2 foes stand within 3 tiles (always at 3 or more). saveFor (10.53): with Singularity unused and 4 masks or more he keeps them for it rather than spend one on Shadow Passage, unless a carry would take 2 foes or he is in trouble." }
   },
   alagara: {
     activeBonus: 1.5,
@@ -1432,6 +1510,7 @@ var kings_default = {
 
 // src/kings.js
 var MASK_MAX = kings_default.gadara.mask.max;
+var PASSAGE = kings_default.gadara.passage;
 function dominionStep(stat) {
   return kings_default.gadara.dominion.step[stat] || 0;
 }

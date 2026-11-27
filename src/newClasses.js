@@ -25,8 +25,9 @@ import { sfxHas, sfxAt } from './spellArt.js';
 import { play } from './audio.js';
 import { endDuel } from './engagement.js';
 import { styleOf } from './aiStyle.js';
+import { ITEMS, heldItems, giveItem } from './items.js';
 
-export const NEW_KINDS = ['smokePellet', 'concussive', 'hammerStrike', 'barricade', 'ambush', 'trap'];
+export const NEW_KINDS = ['smokePellet', 'concussive', 'hammerStrike', 'barricade', 'ambush', 'trap', 'steal'];
 export const NEW_TILE_KINDS = ['barricade', 'trap'];
 const passive = (u, k) => (jobs[u.job] && jobs[u.job].passives && jobs[u.job].passives[k]) || 0;
 
@@ -75,6 +76,7 @@ export const newClassMethods = {
       case 'barricade': return this.castBarricade(caster, target, spell, onDone);
       case 'ambush': return this.castAmbush(caster, target, spell, onDone);
       case 'trap': return this.castTrap(caster, target, spell, onDone);
+      case 'steal': return this.castSteal(caster, target, spell, onDone);
       default: return onDone();
     }
   },
@@ -305,6 +307,54 @@ export const newClassMethods = {
     });
     this.newFinish(onDone, 1200, caster);
   },
+  // ---------- the Thief's Steal (19.11) ----------
+  // What he would take from this foe, or null: { kind: 'verse' | 'enchant' | 'item', id }. A Verse first, then an Enchanted
+  // weapon, then one item (healing first, then the rest in items.json order).
+  stealPick(target) {
+    if (!target || !target.alive || target.isDecoy) return null;
+    const st = target.status || {};
+    if (st.buff && spells[st.buff.id] && spells[st.buff.id].kind === 'buff') return { kind: 'verse', id: st.buff.id };
+    if (st.enchant) return { kind: 'enchant', id: 'enchant' };
+    const items = heldItems(target).sort((a, b) => (!!ITEMS[b].heal - !!ITEMS[a].heal));
+    return items.length ? { kind: 'item', id: items[0] } : null;
+  },
+  castSteal(caster, target, spell, onDone) {
+    const pick = this.stealPick(target);
+    let word = 'Nothing to take';
+    if (pick && pick.kind === 'verse') {
+      const b = target.status.buff;
+      target.status.buff = null;
+      if (target.attune && target.attune.echo) { target.status.buff = target.attune.echo; target.attune.echo = null; } // Alagara's Echo takes over
+      caster.status.buff = { ...b, turnsLeft: spell.turns };
+      word = 'Stole ' + (spells[b.id].effect || spells[b.id].button);
+    } else if (pick && pick.kind === 'enchant') {
+      caster.status.enchant = { ...target.status.enchant, turnsLeft: spell.turns };
+      target.status.enchant = null;
+      word = 'Stole the Enchant';
+    } else if (pick && pick.kind === 'item') {
+      target.bag[pick.id] -= 1;
+      if (target.bag[pick.id] <= 0) delete target.bag[pick.id];
+      giveItem(caster, pick.id);
+      word = 'Stole ' + ITEMS[pick.id].name;
+    }
+    const dx = target.view.x - caster.view.x || 1;
+    this.faceToward(caster, dx, target.view.y - caster.view.y);
+    if (this.hasPose(caster, 'steal')) this.showPose(caster, 'steal', dx); // his cut steal pose (6.96)
+    play('whoosh');
+    this.time.delayedCall(320, () => {
+      const p = this.centerOf(target), c = this.centerOf(caster);
+      const glint = this.add.circle(p.x, p.y, 6, Phaser.Display.Color.HexStringToColor(spell.color).color, 0.95).setDepth(95);
+      this.tweens.add({ targets: glint, x: c.x, y: c.y, scale: 0.4, duration: 300, ease: 'Quad.easeIn', onComplete: () => glint.destroy() });
+      play('select');
+      this.floatText(caster, word, spell.color, { pop: true });
+      if (pick) this.floatText(target, 'Robbed!', '#e8d5a8', { rise: 46 });
+      this.showStanding(target);
+      this.refreshStatusTags();
+      this.refreshButtons();
+    });
+    this.newFinish(onDone, 1100, caster);
+  },
+
   trapAt(col, row) {
     return (this.traps || []).find((t) => t.col === col && t.row === row) || null;
   },
@@ -399,6 +449,12 @@ export const newClassMethods = {
       // a mage hunter: casters and archers first
       const order = (t) => (t.maxMp > 0 || t.attackEffect === 'arrow' || t.attackEffect === 'spark' ? 0 : 1) * 1000 + t.hp;
       if (unit.hidden && near.length && ready('ambush')) return { id: 'ambush', target: [...near].sort((a, b) => order(a) - order(b))[0] };
+      // Steal (19.11): a foe next to him wears a blessing (take it), or he is hurt and a foe next to him carries healing
+      if (near.length && ready('steal')) {
+        const blessed = near.find((t) => { const p = this.stealPick(t); return p && p.kind !== 'item'; });
+        const healer = unit.hp / unit.maxHp <= 0.5 ? near.find((t) => { const p = this.stealPick(t); return p && p.kind === 'item' && ITEMS[p.id].heal; }) : null;
+        if (blessed || healer) return { id: 'steal', target: blessed || healer };
+      }
       // a trap while hidden with nobody to ambush (or Ambush still cooling down, 13.69: he never set one in the bot battles)
       if (unit.hidden && (!near.length || !ready('ambush')) && ready('trap') && foes.some((t) => distance(unit, t) <= 4)) {
         const tiles = this.freeTilesNear(unit);

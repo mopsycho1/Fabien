@@ -22,15 +22,16 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
     b.placeUnit(k, ...kolo);
     b.activeUnit = k; b.busy = false;
   };
-  // 1. a hurt friend beside him: Renewal (Water) goes to the most hurt one
+  // 1. (13.72, 27 Nov: Call Spirit replaced Infuse) a hurt friend: a Tide Spirit beside him (plain floor, read as water)
+  const dist = (p, q) => Math.abs(p.col - q.col) + Math.abs(p.row - q.row);
   setReading('water'); stage();
   b.placeUnit(mates[0], 5, 6); mates[0].hp = Math.round(mates[0].maxHp * 0.4);
   let pick = b.shamanChoice(k);
-  check('water: a hurt friend in reach gets Infuse (Renewal)', pick && pick.id === 'infuse' && pick.target === mates[0], pick && pick.id + ' on ' + pick.target.name);
-  // 2. himself on low health, nobody else near
-  stage(); k.hp = Math.round(k.maxHp * 0.3);
+  check('water: a hurt friend in reach gets a Tide Spirit beside him', pick && pick.id === 'callSpirit' && dist(pick.target, mates[0]) <= 1 && b.spiritKindAt(k, pick.target) === 'tide', pick && pick.id + ' ' + JSON.stringify(pick.target));
+  // 2. himself on low health, nobody else near: a Tide Spirit beside himself
+  stage([5, 1]); k.hp = Math.round(k.maxHp * 0.3); /* (plain floor round him, away from the others) */
   pick = b.shamanChoice(k);
-  check('water: Kofi on low health with nobody near infuses himself', pick && pick.id === 'infuse' && pick.target === k, pick && pick.id + ' on ' + pick.target.name);
+  check('water: Kofi on low health with nobody near calls a Tide Spirit beside himself', pick && pick.id === 'callSpirit' && dist(pick.target, k) <= 1, pick && pick.id + ' ' + JSON.stringify(pick.target));
   // 3. everyone healthy, a foe within 4: Haunt on the foe
   stage(); b.placeUnit(foes[0], 5, 8);
   pick = b.shamanChoice(k);
@@ -42,19 +43,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // 5. no MP: nothing
   stage(); b.placeUnit(foes[0], 5, 8); k.mp = 0;
   check('no MP: no skill', b.shamanChoice(k) === null);
-  // 6. Stone: the fighter nearest a foe, when hurt in the fight
-  setReading('earth'); stage(); b.placeUnit(foes[0], 5, 8); b.placeUnit(mates[0], 5, 7); mates[0].hp = Math.round(mates[0].maxHp * 0.5);
-  pick = b.shamanChoice(k);
-  check('earth: a hurt friend in the fight gets the Stone Verse', pick && pick.id === 'infuse' && pick.target === mates[0], pick && pick.target.name);
-  // 7. Fury: the hardest hitter in the fight
-  setReading('fire'); stage(); b.placeUnit(foes[0], 5, 8); b.placeUnit(mates[0], 5, 7); b.placeUnit(mates[1], 4, 7);
-  mates[0].attack = 3; mates[1].attack = 9;
-  pick = b.shamanChoice(k);
-  check('fire: the hardest hitter in the fight gets Fury', pick && pick.id === 'infuse' && pick.target === mates[1], pick && pick.target.name);
-  // 8. someone under a Verse already is passed over
-  mates[1].status.buff = { id: 'fury', turnsLeft: 2, power: 1 };
-  pick = b.shamanChoice(k);
-  check('a friend who already wears a Verse is passed over', !pick || pick.target !== mates[1], pick && pick.target.name);
+  // 6. (13.72) Infuse is not his any more: whatever he reads, no choice names it
+  let named = false;
+  for (const el of ['water', 'earth', 'fire', 'storm']) { setReading(el); stage(); b.placeUnit(foes[0], 5, 8); b.placeUnit(mates[0], 5, 7); mates[0].hp = Math.round(mates[0].maxHp * 0.5); const p = b.shamanChoice(k); if (p && p.id === 'infuse') named = true; }
+  check('Infuse is gone from his choices (Call Spirit took its place)', !named && !k.spells.includes('infuse'));
   // 9. the whole enemy turn: a real cast happens, MP is spent, the turn ends
   setReading('water'); stage(); b.placeUnit(foes[0], 5, 8);
   const mp0 = k.mp; let ended = false; b.endTurn = () => { ended = true; };

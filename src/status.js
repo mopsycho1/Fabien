@@ -2,7 +2,7 @@ import spells from './data/spells.json';
 import rules from './data/engagement.json';
 import conditions from './data/conditions.json';
 import terrain from './data/terrain.json';
-import { attuneTimes, dominionStep } from './kings.js';
+import { attuneTimes, dominionStep, MASK_MAX } from './kings.js';
 
 // Short-lived conditions on a unit: being Off-Balance, a helpful spell (a
 // buff, like a Verse), a harmful one (a hex, like Slow), and spells waiting to
@@ -710,9 +710,11 @@ export function statusTags(unit) {
   if (statusOf(unit).blinded) tags.push({ text: 'BLINDED', color: '#c9c0b4', icon: 'blinded' }); // the archer's Smoke Bomb
   if (statusOf(unit).drenched) tags.push({ text: 'DRENCHED', color: '#7fd0ff', icon: 'drenched' }); // waded through the cavern's water
   if (unit.echoReady) tags.push({ text: 'ECHO', color: '#c9a8ff', icon: 'echo' }); // Husk: the decoy will copy the next spell
+  // Kofi's spirit while it stands (13.72): its name and the moves it has left
+  if (unit.spiritOut) tags.push({ text: unit.spiritOut.kind.toUpperCase() + ' SPIRIT ' + unit.spiritOut.movesLeft, color: (spells.callSpirit.spirits[unit.spiritOut.kind] || {}).color || '#8fe0b0', count: unit.spiritOut.movesLeft });
   // the kings (Phase 10): Gadara's Mask Gauge and his charging Singularity, Alagara's Echo Verse
   if (unit.channel) tags.push({ text: 'SINGULARITY', color: '#b48cff' });
-  if (unit.mask !== null && unit.mask !== undefined && !unit.singularityUsed) tags.push({ text: 'MASK ' + unit.mask + '/6', color: unit.mask >= 6 ? '#e0c8ff' : '#a98bff', count: unit.mask });
+  if (unit.mask !== null && unit.mask !== undefined) tags.push({ text: 'MASK ' + unit.mask + '/' + MASK_MAX, color: unit.mask >= MASK_MAX ? '#e0c8ff' : '#a98bff', count: unit.mask }); // (10.53: shown after Singularity too, Shadow Passage spends them)
   if (unit.attune && unit.attune.echo && spells[unit.attune.echo.id]) tags.push({ text: 'ECHO ' + spells[unit.attune.echo.id].short, color: spells[unit.attune.echo.id].color });
   // In a clash, a hero's last stance is known to everyone (an enemy's is not)
   if (unit.engagedWith && unit.side === 'hero' && unit.stance && unit.stance !== 'break') {

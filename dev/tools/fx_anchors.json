@@ -368,6 +368,12 @@
       "anchor": "box",
       "originX": 0.5,
       "originY": 0.5
+    },
+    "sfx_shadow_cloak": {
+      "frames": 9,
+      "anchor": "keep",
+      "originX": 0.5,
+      "originY": 0.6
     }
   }
 }

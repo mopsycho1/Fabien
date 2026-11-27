@@ -21,7 +21,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const overlaps = [];
   for (const p of b.units) for (const q of b.units) if (p !== q && p.view.y < q.view.y && Math.abs(p.view.x - q.view.x) < 30 && q.view.y - p.view.y < 60) overlaps.push(p.id + '/' + q.id);
   check('no figure stands right in front of another at the start', overlaps.length === 0, overlaps.join(' '));
-  check('Kofi is a Shaman with Haunt and Infuse, and his attack is Spirit Bolt', kofi.jobName === 'Shaman' && kofi.spells.join() === 'haunt,infuse' && kofi.attackName === 'Spirit Bolt' && kofi.reading === true && kofi.maxMp === 10);
+  check('Kofi is a Shaman with Haunt, Call Spirit and Spirit Swap (13.72), and his attack is Spirit Bolt', kofi.jobName === 'Shaman' && kofi.spells.join() === 'haunt,callSpirit,spiritSwap' && kofi.attackName === 'Spirit Bolt' && kofi.reading === true && kofi.maxMp === 10);
   const keys = game.textures.getTextureKeys();
   const want = []; for (const el of ['water', 'fire', 'storm', 'earth']) for (const k of ['chant', 'cast']) for (let i = 1; i <= 4; i++) want.push('h4:kofi_' + el + '_' + k + '_f' + i + '.png');
   for (let i = 1; i <= 4; i++) want.push('h4:kofi_down_f' + i + '.png');

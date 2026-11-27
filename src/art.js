@@ -100,8 +100,9 @@ function lookEntry(id) {
 // ids: only these characters' pictures (the fighters picked for the battle, 18.47); no list loads everyone.
 export function preloadArt(scene, ids = null) {
   for (const [id, entry] of Object.entries(art)) {
-    if (ids && !ids.includes(id)) continue;
-    if (entry.unwired) continue; // cut but not in the game yet (Kofi's spirits): do not load their pictures
+    // (Kofi's spirits, 13.72: "summonOf" loads them with the fighter who calls them)
+    if (ids && !ids.includes(id) && !(entry.summonOf && ids.includes(entry.summonOf))) continue;
+    if (entry.unwired) continue; // cut but not in the game yet: do not load their pictures
     for (const file of allFiles(entry)) {
       scene.load.image(textureKey(id, file), artUrl('./art/' + file));
     }

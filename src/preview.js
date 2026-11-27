@@ -80,6 +80,8 @@ export function planSkill(scene, unit, target, id) {
   if (sp.kind === 'cleave') return { label: sp.button, end: null, hits: [target], pushes: [], marks: [] };
   if (sp.kind === 'sunder') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Blessing torn' }] };
   if (sp.kind === 'claim') return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: 'Claimed' }] };
+  if (sp.kind === 'steal') { const p = scene.stealPick(target); return { label: sp.button, end: null, hits: [], pushes: [], marks: [{ unit: target, text: p ? (p.kind === 'item' ? 'Item taken' : 'Blessing taken') : 'Nothing' }] }; } // (19.11)
+  if (sp.kind === 'passage') return null; // (Shadow Passage picks several foes: its hint line explains it, 10.53)
   if (sp.kind === 'gale') {
     const g = scene.galePlan(unit, target);
     return g.land ? { label: sp.button, end: g.land, zip: true, hits: g.hits, pushes: [], marks: [], line: g.tiles } : null;

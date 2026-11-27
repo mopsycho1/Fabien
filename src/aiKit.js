@@ -67,7 +67,7 @@ export const aiKitMethods = {
   // How far its heals and blessings reach (0 when none is ready): a support walks to within this of a hurt friend
   supportReach(unit) {
     let reach = 0;
-    for (const id of ['infuse', 'stone', 'swiftness', 'healingWind', 'herbs']) {
+    for (const id of ['infuse', 'callSpirit', 'stone', 'swiftness', 'healingWind', 'herbs']) { // (Kofi's Call Spirit, 13.72: a Tide Spirit beside the friend)
       if (!unit.spells.includes(id) && !(id === 'healingWind' && unit.spells.includes('swiftness'))) continue;
       const sp = spells[id];
       if ((unit.mp || 0) < (sp.mp || 0)) continue;

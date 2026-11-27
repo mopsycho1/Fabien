@@ -78,7 +78,7 @@ const units = require('../../src/data/units.json');
   // 5. Kofi (13.77): walks to within reach of a hurt friend; a hurt fighter falls back
   stage(); b.placeUnit(kofi, 4, 10); b.placeUnit(sudeen, 8, 8); b.placeUnit(bull, 2, 0); sudeen.hp = Math.round(sudeen.maxHp * 0.3);
   const t = b.styleWalk(kofi, () => false);
-  check('Kofi walks to a tile in Infuse reach of the hurt friend', t && !t.stay && Math.abs(t.col - 8) + Math.abs(t.row - 8) <= 3, JSON.stringify(t));
+  check('Kofi walks to a tile in Call Spirit reach of the hurt friend (13.72)', t && !t.stay && Math.abs(t.col - 8) + Math.abs(t.row - 8) <= 3, JSON.stringify(t));
   stage(); b.placeUnit(sudeen, 5, 9); b.placeUnit(bull, 5, 8); b.placeUnit(kofi, 8, 10); sudeen.hp = 5; bull.hp = bull.maxHp;
   const back = b.styleWalk(sudeen, () => false);
   check('Sudeen at 5 health falls back, away from the foe', back && !back.stay && Math.abs(back.col - 5) + Math.abs(back.row - 8) > 1, JSON.stringify(back));

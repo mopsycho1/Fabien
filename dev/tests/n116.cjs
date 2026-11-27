@@ -148,7 +148,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   leol.weapon = 'bow'; b.showPose(leol, 'hurt', 1);
   check('6.96 with the sling, his sling hurt look', /leol_hurt_/.test(leol.sprite.texture.key), leol.sprite.texture.key);
   leol.hp = leol.maxHp = 300;
-  check('6.96 the Thief has a fallen (kneel) pose for his fall; steal waits for its skill', b.hasPose(thief, 'kneel') && !b.hasPose(thief, 'steal'));
+  check('6.96 the Thief has a fallen (kneel) pose for his fall; his steal pose is wired with Steal (19.11)', b.hasPose(thief, 'kneel') && b.hasPose(thief, 'steal'));
   check('no page errors', real.length === 0, real.slice(0, 3).join(' | '));
   console.log('RESULT ' + (fails ? 'FAILED' : 'ALL PASSED'));
   process.exit(fails ? 1 : 0);

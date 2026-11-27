@@ -110,7 +110,20 @@ FILES = {
     # A flame streak rising from lower left to upper right, sparks round it: it burns on him while his spear is kindled.
     'buff_kindle_loop': ("Ward Ui and New Enchantment effect for Rabdul's spell/Animated Shango Flame Aura.gif", 'box', 0.5, 0.5),
     'sfx_orb_burst': ('Dark Magic Orb Explosion Animation/Dark Magic Orb Explosion Animation.gif', 'keep', 0.5, 0.92),         # Gadara's orb bursting (6.91)
+    # 27 Nov (6.95, 10.53): Gadara's Shadow Passage, folder INBOX/2026-11-26/email, ONLY=sfx_shadow_cloak. A dark cloak that
+    # swirls shut round him and opens again: SOLID (below), so it is drawn as cloth, not as light.
+    'sfx_shadow_cloak': ("Gadara’s Swirling Shadow Cloak/Gadara’s Swirling Shadow Cloak.gif", 'keep', 0.5, 0.6),
 }
+
+# GIFs of SOLID things on black (dark cloth, not light): the black goes see-through by a short ramp (a pixel 18 or more bright
+# in its brightest channel is fully solid) and the colour is kept as drawn. The game draws them with normal blending
+# (fxSlots "solid": true), because ADD would turn dark cloth into a faint glow.
+SOLID = {'sfx_shadow_cloak': 18.0}
+
+def solid_alpha(rgb, ramp):
+    a = rgb.astype(float)
+    alpha = np.clip(a.max(axis=2) * 255.0 / ramp, 0, 255)
+    return np.dstack([a, alpha]).astype(np.uint8)
 
 # GIFs whose ground is a flat dark colour, not pure black: that colour is taken off first (6.88: the empower GIF is 12, 9, 6)
 GROUND = {'sfx_empower': (12, 9, 6)}
@@ -176,7 +189,7 @@ def main():
             sm = fr.resize((round(fr.width * HALF), round(fr.height * HALF)), Image.LANCZOS)
             px = np.asarray(sm)
             if name in GROUND: px = lift_ground(px, GROUND[name])
-            rgba = Image.fromarray(to_alpha(px))
+            rgba = Image.fromarray(solid_alpha(px, SOLID[name]) if name in SOLID else to_alpha(px))
             q = rgba.quantize(255, method=Image.Quantize.FASTOCTREE)   # keeps the alpha
             q.save(FX + '%s_%d.png' % (name, i), optimize=True)
             small.append(Image.open(FX + '%s_%d.png' % (name, i)).convert('RGBA'))
@@ -193,6 +206,7 @@ def main():
             else:
                 info.update({'originX': ox, 'originY': oy})
             info['size'] = list(small[0].size)
+            if name in SOLID: info['solid'] = True
             slots['spells'][name[4:]] = {**slots['spells'].get(name[4:], {}), **info}
         else:
             _, verse, part = name.split('_')

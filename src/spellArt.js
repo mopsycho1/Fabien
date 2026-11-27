@@ -209,7 +209,7 @@ export function buffCastFx(scene, x, y, id, unit = null) {
 // part "rooted" the standing-his-ground frames. Returns { objects, tweens } for BattleScene.keepAura, or null.
 // Sized by the fit (6.64): an aura about 1.0 body height tall (16 Nov, fxSlots.json), wrapped round the body (back half behind, front half in front); the Rooted dome is
 // in front of Gaha (it overlays him); the orbiting stones are drawn behind and their near, lower half again in front.
-export function buffLoopFx(scene, unit, id, part = 'loop') {
+export function buffLoopFx(scene, unit, id, part = 'loop', { layer: layerAs = null } = {}) {
   if (!hasBuffPart(scene, id, part)) return null;
   const keys = buffFrames(id, part);
   const slot = BUFF_FX[id];
@@ -224,7 +224,7 @@ export function buffLoopFx(scene, unit, id, part = 'loop') {
     sp.play(anim);
     return sp;
   };
-  const layer = (fit && fit.layer) || 'behind';
+  const layer = layerAs || (fit && fit.layer) || 'behind'; // (layerAs: Aegis wraps the rock dome round the body, 1.127)
   const objects = [];
   if (layer === 'split') {
     // Wrapped round the body: the back half behind the figure, the front half in front and fainter. The front half is cut
@@ -353,7 +353,8 @@ export function sfxInfo(name) {
 function sfxPlay(scene, name, x, y, { scale = 1, scaleY = scale, rotation = 0, depth = 81, fade = 160 } = {}) {
   const info = SFX[name];
   const keys = sfxKeys(name);
-  const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale, scaleY).setRotation(rotation).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+  // (a SOLID one, like Gadara's shadow cloak, is dark cloth, not light: drawn with normal blending, 10.53)
+  const img = scene.add.image(x, y, 'fx:' + keys[0]).setOrigin(info.originX, info.originY).setScale(scale, scaleY).setRotation(rotation).setDepth(depth).setBlendMode(info.solid ? Phaser.BlendModes.NORMAL : Phaser.BlendModes.ADD);
   keys.forEach((k, i) => scene.time.delayedCall(i * info.frameMs, () => img.active && img.setTexture('fx:' + k)));
   scene.tweens.add({ targets: img, alpha: 0, delay: keys.length * info.frameMs, duration: fade, onComplete: () => img.destroy() });
   return img;

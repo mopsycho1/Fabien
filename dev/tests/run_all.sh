@@ -51,6 +51,9 @@ settings_for() {
     n118) echo "FABIEN_MAP=cavern FABIEN_BENCH=h4,e1" ;; # Graphics 2.0 step 1 (26 Nov: 1.111, 18.56 to 18.61)
     n121) echo "FABIEN_MAP=cavern FABIEN_BENCH=h4" ;; # 27 Nov fixes (1.116 to 1.124)
     n123) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_KINGS=1 FABIEN_BENCH=" ;; # the 27 Nov freeze: a fighter falling in its own turn
+    n124) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Kofi's Call Spirit, Alagara's Claim from nature (13.72)
+    n125) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=" ;; # the Thief's Steal (19.11)
+    n122) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Gadara the tank, Shadow Step and Shadow Passage (10.53)
     n119|n120) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_KINGS=1 FABIEN_BENCH=" ;; # part 0 bugs 26 Nov: Sudeen walks after each skill, everyone back in his stance
   esac
 }

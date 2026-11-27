@@ -14,7 +14,7 @@ import { artUrl } from './artUrl.js';
 import { lightingOn as oldTestOn } from './lighting.js';
 import art from './data/art.json';
 
-const SKIP = new Set(['props', 'name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'weapon', 'swingFx', 'channelFx']);
+const SKIP = new Set(['props', 'name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'summonOf', 'weapon', 'swingFx', 'channelFx']);
 const AMBIENT = 0xd6cdc4;   // a little under full, a touch warm: a fighter away from any fire is slightly dimmer
 const TORCH = { color: 0xffc28a, intensity: 0.75, radius: 280 };
 

@@ -5190,8 +5190,8 @@
   "sp_ember": {
     "name": "Ember Spirit",
     "height": 80,
-    "unwired": true,
-    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "summonOf": "h4",
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), 27 Nov (13.72): Call Spirit is built; \"summonOf\": \"h4\" loads its pictures with Kofi (src/art.js preloadArt). The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
     "standing": {
       "downLeft": {
         "file": "sp_ember_f1.png",
@@ -5214,8 +5214,8 @@
   "sp_tide": {
     "name": "Tide Spirit",
     "height": 80,
-    "unwired": true,
-    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "summonOf": "h4",
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), 27 Nov (13.72): Call Spirit is built; \"summonOf\": \"h4\" loads its pictures with Kofi (src/art.js preloadArt). The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
     "standing": {
       "downLeft": {
         "file": "sp_tide_f1.png",
@@ -5238,8 +5238,8 @@
   "sp_stone": {
     "name": "Stone Spirit",
     "height": 80,
-    "unwired": true,
-    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "summonOf": "h4",
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), 27 Nov (13.72): Call Spirit is built; \"summonOf\": \"h4\" loads its pictures with Kofi (src/art.js preloadArt). The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
     "standing": {
       "downLeft": {
         "file": "sp_stone_f1.png",
@@ -5262,8 +5262,8 @@
   "sp_gale": {
     "name": "Gale Spirit",
     "height": 80,
-    "unwired": true,
-    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), so \"unwired\" keeps the game from loading its pictures (src/art.js preloadArt); take that line out when Call Spirit is built. The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
+    "summonOf": "h4",
+    "note": "One of Kofi's four spirits (roadmap 6.38, 6.39), Suleiman's 15 Nov full-quality sheet, cut by dev/tools/make_spirits.py. CUT ONLY: nothing summons it yet (Call Spirit comes later), 27 Nov (13.72): Call Spirit is built; \"summonOf\": \"h4\" loads its pictures with Kofi (src/art.js preloadArt). The sheet is a turntable of four cells; by eye: cells 1 and 3 show the mask (the front), 2 and 4 are from behind with the mask edge on the right (2) and on the left (4), so they are wired as downLeft, upRight, downRight, upLeft. Check the turn again when Call Spirit is built. The picture ends at the middle of the floor diamond, so the bottom edge is the ground and the spirit hovers by its own gap.",
     "standing": {
       "downLeft": {
         "file": "sp_gale_f1.png",
@@ -7451,6 +7451,20 @@
           "file": "thief_ambush_1.png"
         }
       },
+      "steal": {
+        "upLeft": {
+          "file": "thief_steal_2.png"
+        },
+        "upRight": {
+          "file": "thief_steal_4.png"
+        },
+        "downLeft": {
+          "file": "thief_steal_3.png"
+        },
+        "downRight": {
+          "file": "thief_steal_1.png"
+        }
+      },
       "trap": {
         "upLeft": {
           "file": "thief_trap_2.png"
@@ -7560,6 +7574,15 @@
       },
       "thief_ambush_1.png": {
         "footX": 0.259
+      },
+      "thief_steal_2.png": {
+        "footX": 0.599
+      },
+      "thief_steal_3.png": {
+        "footX": 0.459
+      },
+      "thief_steal_1.png": {
+        "footX": 0.329
       },
       "thief_trap_2.png": {
         "footX": 0.631

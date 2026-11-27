@@ -905,6 +905,27 @@
     "H": 207,
     "tiles": 1.0
    }
+  },
+  "shadow_cloak": {
+   "frames": 9,
+   "frameMs": 140,
+   "originX": 0.5,
+   "originY": 0.6,
+   "size": [
+    207,
+    207
+   ],
+   "solid": true,
+   "fit": {
+    "h": 151,
+    "w": 157,
+    "mx": 106,
+    "my": 105,
+    "by": 177,
+    "W": 207,
+    "H": 207,
+    "tiles": 1.0
+   }
   }
  },
  "wrap": {

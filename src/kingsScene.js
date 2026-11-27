@@ -13,8 +13,9 @@ import { getHitChance, getDamage, distance, hasClearShot } from './combat.js';
 import { canBeCaught, startEngagement, startDuel, endDuel, isStanceDuel, shiftMomentum } from './engagement.js';
 import { applyOffBalance, clearOffBalance, isOffBalance, applyBuff, buffOf, applyExposed, applyDisoriented, startCooldown, cooldownOf, canAfford, moveRules, moveOf } from './status.js';
 import { TURN_COST } from './turnOrder.js';
-import { KING_RULES, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
-import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome, sfxInfo } from './spellArt.js';
+import { getReachableTiles } from './movement.js';
+import { KING_RULES, MASK_MAX, PASSAGE, carryable, maskFromHits, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
+import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome, sfxInfo, buffLoopFx, hasBuffPart } from './spellArt.js';
 import { play } from './audio.js';
 import { floorLight, lightNearby } from './fxLayers.js';
 import { screenShake } from './effects.js';
@@ -24,7 +25,7 @@ import conditions from './data/conditions.json';
 const G = KING_RULES.gadara;
 const A = KING_RULES.alagara;
 // the skill kinds this file plays (castSpell hands them here)
-export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending', 'shield', 'rift'];
+export const KING_KINDS = ['grip', 'swap', 'hook', 'sunder', 'cleave', 'singularity', 'drawn', 'claim', 'mantle', 'gale', 'rending', 'shield', 'rift', 'shadowStep', 'passage'];
 // skills cast on himself: tap the skill again (or his own tile) to use it
 export const KING_SELF_KINDS = ['singularity', 'mantle', 'shield'];
 const isKingSkill = (id) => !!spells[id] && KING_KINDS.includes(spells[id].kind);
@@ -53,8 +54,18 @@ export const kingMethods = {
     if (spell.grip && unit.grip !== spell.grip) return spell.grip === 'fork' ? 'Fork end' : 'Blade end';
     if (spell.kind === 'singularity') {
       if (unit.singularityUsed) return 'used';
-      if (!maskFull(unit)) return 'Mask ' + (unit.mask || 0) + '/6';
+      if (!maskFull(unit)) return 'Mask ' + (unit.mask || 0) + '/' + MASK_MAX;
       if (unit.engagedWith) return 'in a clash';
+    }
+    // Shadow Step and Shadow Passage (10.53): once a turn, paid in masks
+    if (spell.kind === 'shadowStep' || spell.kind === 'passage') {
+      if (unit.passaged) return 'once a turn';
+      if ((unit.mask || 0) < PASSAGE.soloCost) return 'Mask ' + (unit.mask || 0) + '/' + MASK_MAX;
+      if (unit.channel) return 'channelling';
+      if (spell.kind === 'shadowStep' && (unit.hasMoved || (unit.stepsUsed || 0) > 0)) return 'he has walked';
+      if (spell.kind === 'shadowStep' && !this.shadowStepTiles(unit).length) return 'no room';
+      if (spell.kind === 'passage' && !this.passageFoes(unit).length) return 'nobody to take';
+      if (spell.kind === 'passage' && !this.passageSpot(unit, this.passageFoes(unit).slice(0, 1))) return 'no room';
     }
     if (spell.verseSkill && !verseSkillsNow(unit).some((s) => s.id === id)) return 'needs ' + spells[spell.verseSkill].button;
     if (spell.kind === 'mantle' && !(unit.status && unit.status.buff)) return 'needs a Verse';
@@ -75,12 +86,14 @@ export const kingMethods = {
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && distance(unit, t) >= 1 && distance(unit, t) <= spell.range && this.hookLineClear(unit, t));
       case 'sunder':
         return seen.filter((t) => foeOf(unit, t) && distance(unit, t) === 1 && hasBlessing(t));
-      case 'claim':
-        return seen.filter((t) => t !== unit && !t.isDecoy && distance(unit, t) === 1 && hasBlessing(t));
+      case 'claim': // a blessed unit next to him; himself too when his own tile holds a Verse (13.72, Claim from nature)
+        return [...seen.filter((t) => t !== unit && !t.isDecoy && distance(unit, t) === 1 && hasBlessing(t)), ...(this.natureVerse({ col: unit.col, row: unit.row }) ? [unit] : [])];
       case 'gale':
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && this.galePlan(unit, t).hits.includes(t));
       case 'rift': // Radiant Rift (10.52): a foe up to its range away in a clear line
         return seen.filter((t) => foeOf(unit, t) && distance(unit, t) <= spell.range && hasClearShot(unit, t));
+      case 'passage': // Shadow Passage (10.53): the foes he could take, and himself (tap him to go)
+        return [...this.passageFoes(unit), unit];
       default: // cleave, drawn, rending: the foe next to him
         return seen.filter((t) => foeOf(unit, t) && distance(unit, t) <= (spell.range || 1));
     }
@@ -109,6 +122,11 @@ export const kingMethods = {
   useFreeKingAction(unit, id) {
     const spell = spells[id];
     if (this.kingBlock(unit, id)) return false;
+    if (spell.kind === 'spiritSwap') { // Kofi's free swap with his spirit (6.49, src/spirits.js)
+      const ok = this.swapWithSpirit(unit);
+      this.refreshButtons(); this.refreshStatus();
+      return ok;
+    }
     if (spell.kind === 'grip') {
       unit.grip = otherGrip(unit);
       unit.gripSwitched = true;
@@ -197,6 +215,8 @@ export const kingMethods = {
       case 'gale': return this.castGaleCut(caster, target, spell, onDone, verseSkillPower(caster, id));
       case 'shield': return this.castBulwarkShield(caster, spell, onDone, verseSkillPower(caster, id));
       case 'rift': return this.castRadiantRift(caster, target, spell, onDone);
+      case 'shadowStep': return this.castShadowStep(caster, target, spell, onDone);
+      case 'passage': return this.castShadowPassage(caster, (target && target.passengers) || [], spell, onDone);
       default: return onDone();
     }
   },
@@ -276,6 +296,7 @@ export const kingMethods = {
   castSnareHook(caster, target, spell, onDone) {
     const done = this.collectRelays(onDone); // a pulled foe next to his allies: Relay Strikes
     const result = this.kingStrike(caster, target, { share: spell.damageShare });
+    maskFromHits(caster, [result.hit && target]); // +1 mask for a foe hit (10.53)
     const pulled = result.hit && target.alive ? this.pullLoser(target, caster, spell.pull) : null;
     if (target.engagedWith && distance(target, target.engagedWith) > 1) {
       endDuel(target);
@@ -369,6 +390,7 @@ export const kingMethods = {
   // Blade end, the foe next to him: one and a half times the damage, ignoring 2 defense; a slow overhead blow.
   castHeavyCleave(caster, target, spell, onDone) {
     const result = this.kingStrike(caster, target, { share: spell.damageTimes, ignoreDefense: spell.ignoreDefense });
+    maskFromHits(caster, [result.hit && target]); // +1 mask for a foe hit (10.53)
     this.kingSwing(caster, target, 'cleaveWindup', 'cleave', (dx) => {
       sfxAt(this, 'cleave_impact', target.view.x, target.view.y + 6, { flip: dx < 0, depth: target.view.depth + 2 });
       screenShake(this, 0.008, 180);
@@ -506,6 +528,150 @@ export const kingMethods = {
     this.kingFinish(done, 1900);
   },
 
+  // ---------- Gadara: Shadow Passage (10.53, Suleiman's draft of 22 Nov, decided by Baiyee 27 Nov) ----------
+  // A tile anyone could arrive on by magic: inside the board, nobody and nothing on it, no trap, no spirit.
+  passageFree(c, r) {
+    return c >= 0 && r >= 0 && c < GRID_SIZE && r < GRID_SIZE && !this.isBlocked(c, r) && !(this.trapAt && this.trapAt(c, r));
+  },
+  // Shadow Step: the empty tiles within 3 of him (he passes through the shadows, so walls and heights do not matter).
+  shadowStepTiles(unit) {
+    const out = [];
+    for (let c = unit.col - PASSAGE.soloRange; c <= unit.col + PASSAGE.soloRange; c++) {
+      for (let r = unit.row - PASSAGE.soloRange; r <= unit.row + PASSAGE.soloRange; r++) {
+        const d = Math.abs(c - unit.col) + Math.abs(r - unit.row);
+        if (d >= 1 && d <= PASSAGE.soloRange && this.passageFree(c, r)) out.push({ col: c, row: r });
+      }
+    }
+    return out;
+  },
+  // Shadow Passage: the foes he could take now (he can see them, within 2 tiles, not anchored), up to his masks.
+  passageFoes(unit) {
+    return this.units.filter((t) => this.canSee(unit, t) && !t.hidden && distance(unit, t) <= PASSAGE.carryRange && carryable(unit, t));
+  },
+  // Where a carry could land: a tile for him at least minDistance from where he stands, with a free tile next to it
+  // for each passenger. Returns { at, seats } picked at random (never the spot he arrived at last time when another
+  // is free), or null. "pick" = false returns every spot (the AI looks at them).
+  passageSpot(unit, passengers, pick = true) {
+    const n = passengers.length;
+    const spots = [];
+    for (let c = 0; c < GRID_SIZE; c++) {
+      for (let r = 0; r < GRID_SIZE; r++) {
+        if (Math.abs(c - unit.col) + Math.abs(r - unit.row) < PASSAGE.minDistance || !this.passageFree(c, r)) continue;
+        const seats = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dc, dr]) => ({ col: c + dc, row: r + dr })).filter((t) => this.passageFree(t.col, t.row));
+        if (seats.length >= n) spots.push({ at: { col: c, row: r }, seats: seats.slice(0, n) });
+      }
+    }
+    if (!pick) return spots;
+    if (!spots.length) return null;
+    const last = unit.passageLast;
+    const fresh = spots.filter((s) => !last || s.at.col !== last.col || s.at.row !== last.row);
+    const pool = fresh.length ? fresh : spots;
+    return pool[Math.floor(Math.random() * pool.length)];
+  },
+
+  // The cloak swirls shut round a unit, it is gone, and (after "ms") it swirls open again on its new tile.
+  // Returns how long the whole thing takes. The GIF closes on its 5th frame, so the swap happens then.
+  cloakMove(unit, to, delay = 0) {
+    const frame = sfxFrameMs('shadow_cloak');
+    const closed = frame * 4;
+    const size = 1.5;
+    const at = (u) => ({ x: u.view.x, y: u.view.y - u.centerY * 0.55 });
+    this.time.delayedCall(delay, () => {
+      if (!unit.view || !unit.view.active) return;
+      const p = at(unit);
+      if (!sfxAt(this, 'shadow_cloak', p.x, p.y, { size, depth: unit.view.depth + 2 })) floorLight(this, unit.view.x, unit.view.y, 0x6a3cc8, { size: 1.2, peak: 0.7, ms: 500 });
+      this.tweens.add({ targets: unit.view, alpha: 0, delay: closed - 160, duration: 160 });
+    });
+    this.time.delayedCall(delay + closed, () => {
+      if (!unit.alive) return;
+      this.placeUnit(unit, to.col, to.row);
+      const p = at(unit);
+      if (!sfxAt(this, 'shadow_cloak', p.x, p.y, { size, depth: unit.view.depth + 2 })) floorLight(this, unit.view.x, unit.view.y, 0x6a3cc8, { size: 1.2, peak: 0.7, ms: 500 });
+      this.tweens.add({ targets: unit.view, alpha: unit.hidden ? this.hiddenAlpha(unit) : 1, delay: closed - 120, duration: 220 });
+    });
+    return delay + closed * 2 + 200;
+  },
+  // After a teleport: clashes whose two sides are no longer side by side end; water and the camera catch up.
+  afterPassage(units) {
+    for (const u of units) if (u.engagedWith && distance(u, u.engagedWith) > 1) endDuel(u);
+    this.refreshEngagementMarks();
+    this.refreshWater();
+    for (const u of this.units) if (u.alive) this.faceNearestOpponent(u);
+    this.refreshStatusTags();
+  },
+
+  // Shadow Step (solo): 1 mask, an empty tile within 3, in place of his walk; he keeps his action.
+  castShadowStep(caster, tile, spell, onDone) {
+    caster.mask -= PASSAGE.soloCost;
+    caster.passaged = true;
+    caster.hasMoved = true;
+    caster.stepsUsed = Infinity; // the step is his walk
+    caster.hasActed = false; // ...and he keeps his action (castSpell took it)
+    if (caster.engagedWith) endDuel(caster); // he can slip a clash this way (no free blow: it is magic)
+    play('spell');
+    this.floatText(caster, 'Shadow Step', spell.color, { rise: 30 });
+    const ms = this.cloakMove(caster, tile);
+    this.time.delayedCall(ms, () => {
+      caster.passageLast = { col: tile.col, row: tile.row };
+      this.afterPassage([caster]);
+      this.followUnit(caster);
+      if (caster.alive) this.showStanding(caster);
+      this.refreshButtons();
+      this.refreshStatus();
+      onDone();
+    });
+  },
+
+  // Shadow Passage (carry): 1 mask for each foe taken; all of them to a random spot at least 4 tiles away, the
+  // foes next to him. It takes his walk and his action.
+  castShadowPassage(caster, passengers, spell, onDone) {
+    const take = passengers.filter((t) => carryable(caster, t)).slice(0, Math.min(PASSAGE.maxCarry, caster.mask));
+    const spot = take.length ? this.passageSpot(caster, take) : null;
+    if (!spot) { this.floatText(caster, 'No way through', '#e8d5a8'); return this.kingFinish(onDone, 400); } // costs nothing (the draft)
+    caster.mask -= take.length;
+    caster.passaged = true;
+    caster.hasMoved = true;
+    caster.stepsUsed = Infinity;
+    for (const u of [caster, ...take]) if (u.engagedWith) endDuel(u);
+    play('spell');
+    this.floatText(caster, 'Shadow Passage', spell.color, { pop: true });
+    lightNearby(this, caster.view.x, caster.view.y - caster.centerY, 0x6a3cc8, { radius: 200, peak: 0.5, ms: 900 });
+    let ms = this.cloakMove(caster, spot.at);
+    take.forEach((t, i) => { ms = Math.max(ms, this.cloakMove(t, spot.seats[i], 120 * (i + 1))); });
+    caster.passageLast = { ...spot.at };
+    this.time.delayedCall(ms, () => {
+      this.afterPassage([caster, ...take]);
+      this.followUnit(caster);
+      for (const t of take) if (t.alive) this.floatText(t, 'Taken!', spell.color, { rise: 46 });
+      if (caster.alive) this.showStanding(caster);
+    });
+    this.kingFinish(onDone, ms + 500);
+  },
+
+  // The player picks who to take: a tap on a foe adds or drops it (as many as he has masks), a tap on him goes.
+  passageTap(col, row) {
+    const unit = this.activeUnit;
+    const t = this.getUnitAt(col, row);
+    this.passengers = this.passengers || [];
+    if (t === unit) {
+      if (!this.passengers.length) { this.showMessage('Tap the foes to take first'); return; }
+      this.pendingTarget = { passengers: [...this.passengers], col: unit.col, row: unit.row };
+      this.passengers = [];
+      this.confirmSpell();
+      return;
+    }
+    if (!t || !this.targetsInRange.includes(t)) { this.passengers = []; this.spellBack(); return; }
+    if (this.passengers.includes(t)) this.passengers = this.passengers.filter((p) => p !== t);
+    else if (this.passengers.length >= Math.min(PASSAGE.maxCarry, unit.mask)) { this.showMessage('One mask for each foe: ' + unit.mask + ' now'); return; }
+    else if (!this.passageSpot(unit, [...this.passengers, t])) { this.showMessage('No room for that many'); return; }
+    else this.passengers.push(t);
+    play('select');
+    const color = Phaser.Display.Color.HexStringToColor(spells.shadowPassage.color).color;
+    this.showHighlights(this.targetsInRange.map((u) => ({ col: u.col, row: u.row })), color);
+    if (this.passengers.length) this.showHighlights(this.passengers.map((u) => ({ col: u.col, row: u.row })), 0xffe08a, { keep: true, alpha: 0.85 });
+    this.refreshStatus();
+  },
+
   // ---------- Alagara: Drawn Blade and Rending Draw ----------
   // Drawn Blade: a full blow from the sheath; a hit locks them in a clash with the momentum one step his way.
   // Rending Draw (Fury): ignores 2 defense and throws the foe 2 tiles back. power: 0.75 from the Echo.
@@ -568,9 +734,50 @@ export const kingMethods = {
   },
 
   // ---------- Alagara: Claim ----------
+  // The Verse the ground on this tile gives (13.72): by a lamp Fury, water Renewal, sand or rubble Stone, high ground
+  // Swiftness; plain floor null. The ground is read as for Kofi's spirits (src/spirits.js natureAt).
+  natureVerse(tile) {
+    const el = this.natureAt(tile);
+    return el ? spells.claim.nature[el] : null;
+  },
+  // The empty tiles next to him whose ground gives a Verse (Claim from nature picks one of these, or his own tile).
+  natureTiles(unit) {
+    return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dc, dr]) => ({ col: unit.col + dc, row: unit.row + dr }))
+      .filter((t) => t.col >= 0 && t.row >= 0 && t.col < GRID_SIZE && t.row < GRID_SIZE && !this.isBlocked(t.col, t.row) && this.natureVerse(t));
+  },
   // Takes one blessing from the unit next to him (ally or foe): it leaves them and is his for 2 turns.
+  // target = himself or an empty tile: he draws the Verse of the ground there instead (13.72).
   castClaim(caster, target, spell, onDone) {
     let taken = null;
+    if (target === caster || !target.status) {
+      const tile = { col: target.col, row: target.row };
+      const verse = this.natureVerse(tile);
+      if (verse) {
+        taken = verse;
+        applyBuff(caster, verse, 1);
+        caster.status.buff.turnsLeft = spell.turns;
+        caster.status.buff.fromGround = true;
+      }
+      const p = tileToScreen(tile.col, tile.row);
+      const dx = (p.x - caster.view.x) || 1;
+      this.faceToward(caster, dx, p.y - caster.view.y);
+      if (this.hasPose(caster, 'claimReach')) this.showPose(caster, 'claimReach', dx);
+      play('select');
+      const color = verse && spells[verse].color ? Phaser.Display.Color.HexStringToColor(spells[verse].color).color : 0xf2c14e;
+      floorLight(this, p.x, p.y, color, { size: 1.5, peak: 0.75, ms: 800 });
+      sfxAt(this, 'claim_take', p.x, p.y - 20, { depth: depthFor(tile.col, tile.row) + 2 });
+      this.time.delayedCall(380, () => { if (this.hasPose(caster, 'claimSnatch')) this.showPose(caster, 'claimSnatch', dx); });
+      this.time.delayedCall(700, () => {
+        if (this.hasPose(caster, 'claimStore')) this.showPose(caster, 'claimStore', dx);
+        const c = this.centerOf(caster);
+        sfxAt(this, 'claim_absorb', c.x, c.y, { depth: caster.view.depth + 2 });
+        play('spell');
+        this.floatText(caster, taken ? 'Claimed from the ground: ' + (spells[taken].effect || spells[taken].button) : 'Nothing to claim', spell.color, { pop: true });
+        this.refreshStatusTags();
+      });
+      this.time.delayedCall(1300, () => caster.alive && this.showStanding(caster));
+      return this.kingFinish(onDone, 1500);
+    }
     if (target.status.buff && spells[target.status.buff.id] && spells[target.status.buff.id].kind === 'buff') {
       const b = target.status.buff;
       taken = b.id;
@@ -689,7 +896,16 @@ export const kingMethods = {
       return;
     }
     if (unit.shieldDome && unit.shieldDome.active) return;
-    // Suleiman's Aegis GIF when it is loaded (1.98); the drawn dome below otherwise
+    // 1.127 (Suleiman and Baiyee 27 Nov): the concentrated Earth's Bulwark rock dome, the one Rabdul shows holding the line
+    // (fxSlots buffs.stone "rooted"), wrapped round the body (back half behind him, the lower front half faint in front), so
+    // the fighter is not covered. Suleiman's Aegis GIF (1.98) only if the rock dome is not loaded; the drawn dome last.
+    const rock = hasBuffPart(this, 'stone', 'rooted') ? buffLoopFx(this, unit, 'stone', 'rooted', { layer: 'split' }) : null;
+    if (rock && rock.objects.length) {
+      const objs = rock.objects;
+      unit.shieldDome = { rock: true, objects: objs, get active() { return objs.every((o) => o.active); }, destroy() { for (const o of objs) o.destroy(); } };
+      if (pop) for (const o of objs) { const s = o.scaleX; o.setScale(s * 0.4); this.tweens.add({ targets: o, scaleX: s, scaleY: s, duration: 260, ease: 'Back.easeOut' }); }
+      return;
+    }
     const gif = aegisDome(this, unit);
     if (gif) { unit.shieldDome = gif; return; }
     const h = (unit.topY || 60) + 10, w = Math.max(30, h * 0.62);
@@ -710,8 +926,10 @@ export const kingMethods = {
 
   // A hit on the shield: the dome flashes bright for a moment.
   shieldFlash(unit) {
-    const g = unit.shieldDome;
-    if (!g || !g.active) return;
+    const dome = unit.shieldDome;
+    if (!dome || !dome.active) return;
+    if (dome.rock) { for (const o of dome.objects) { const a = o.alpha; this.tweens.add({ targets: o, alpha: Math.min(1, a + 0.4), duration: 90, yoyo: true }); } return; } // (the rock dome brightens)
+    const g = dome;
     // (from its own size: Suleiman's GIF dome is drawn at a scale far from 1, 1.104)
     if (g.baseSX === undefined) { g.baseSX = g.scaleX; g.baseSY = g.scaleY; }
     if (g.flash) g.flash.stop(); g.setScale(g.baseSX, g.baseSY); // (only the last flash; the drawn dome's slow pulse goes on)
@@ -904,6 +1122,47 @@ export const kingMethods = {
     return false;
   },
 
+  // ---------- Gadara's AI: Shadow Passage and Shadow Step (10.53), decided before he walks ----------
+  // Returns true if he acted (then finish() runs, or for a Shadow Step his attack follows).
+  gadaraShadowAi(unit, finish) {
+    if (!unit.grip || unit.engagedWith || unit.channel) return false;
+    const foes = this.enemyEyes().filter((t) => foeOf(unit, t) && !t.isDecoy);
+    if (!foes.length) return false;
+    const saving = !unit.singularityUsed && unit.mask >= G.ai.saveFor; // keep 4 or 5 masks for Singularity
+    const mine = this.units.filter((a) => a.alive && a !== unit && a.side === unit.side && !a.isDecoy);
+    const reach = this.aiReady(unit, 'shadowPassage') ? this.passageFoes(unit) : [];
+    // (1) A friend of his is badly hurt (40 percent or less) with foes on him: take those foes away
+    const rescue = mine.filter((a) => a.hp / a.maxHp <= 0.4).map((a) => reach.filter((f) => distance(f, a) === 1)).sort((a, b) => b.length - a.length)[0] || [];
+    // (2) A dangerous foe from the back (a caster or a shooter), or a hurt one, standing with friends: take it alone
+    const lone = reach.filter((f) => (f.range > 1 || f.maxMp > 0 || f.hp / f.maxHp <= 0.5) && getDamage(unit, f) < f.hp
+      && foes.some((o) => o !== f && distance(o, f) <= 2)).sort((a, b) => (b.range > 1) - (a.range > 1) || a.hp - b.hp);
+    let take = rescue.length ? rescue.slice(0, Math.min(PASSAGE.maxCarry, unit.mask)) : lone.slice(0, 1);
+    if (take.length && !(saving && take.length < 2 && !rescue.length) && unit.hp / unit.maxHp >= 0.4 && this.passageSpot(unit, take)) {
+      this.busy = true;
+      unit.hasActed = true;
+      startCooldown(unit, 'shadowPassage');
+      this.castKingSkill(unit, { passengers: take }, 'shadowPassage', finish);
+      return true;
+    }
+    // Shadow Step: nobody in reach on foot this turn, but a shooter or caster can be reached through the shadows
+    if (saving || !this.aiReady(unit, 'shadowStep')) return false;
+    const blocked = (c, r) => this.isBlocked(c, r);
+    const walk = [{ col: unit.col, row: unit.row }, ...getReachableTiles(unit.col, unit.row, moveOf(unit), blocked, moveRules(unit))];
+    if (walk.some((t) => foes.some((f) => distance(t, f) <= unit.range))) return false;
+    const marks = foes.filter((f) => f.range > 1 || f.maxMp > 0).sort((a, b) => a.hp - b.hp);
+    for (const f of marks) {
+      const tile = this.shadowStepTiles(unit).filter((t) => distance(t, f) === 1).sort((a, b) => foes.filter((o) => distance(o, a) <= 2).length - foes.filter((o) => distance(o, b) <= 2).length)[0];
+      if (!tile) continue;
+      this.busy = true;
+      this.castShadowStep(unit, tile, spells.shadowStep, () => {
+        this.busy = false;
+        this.enemyAttack(unit); // his action is still his: strike from there
+      });
+      return true;
+    }
+    return false;
+  },
+
   // Would a Fork Strike on this foe also catch one behind it?
   forkPreview(unit, t) {
     const dc = Math.sign(t.col - unit.col), dr = Math.sign(t.row - unit.row);
@@ -946,9 +1205,22 @@ export const kingMethods = {
     }
     // Claim a blessing: a foe's first; an ally's only when he has no Verse of his own
     if (this.aiReady(unit, 'claim')) {
-      const marks = this.kingTargets(unit, 'claim').filter((t) => t.side !== unit.side || !(unit.status && unit.status.buff));
+      const marks = this.kingTargets(unit, 'claim').filter((t) => t !== unit && (t.side !== unit.side || !(unit.status && unit.status.buff)));
       marks.sort((a, b) => (a.side === unit.side) - (b.side === unit.side));
       if (marks.length) return this.aiCast(unit, marks[0], 'claim', finish);
+      // Claim from nature (13.72): no Verse on him (or his last turn of one), and the ground here or next to him gives one.
+      // The Verse he wants: Renewal when hurt (60 percent or less), Fury with a foe next to him, else Swiftness; any other
+      // the ground gives is still better than none
+      // (only with no foe next to him, or for Renewal when hurt: a foe beside him gets his blade, or his Drawn Blade frees a
+      // friend from a clash first; 27 Nov, n87 and n104)
+      const buff = unit.status && unit.status.buff;
+      if (!buff || (buff.turnsLeft || 0) <= 1) {
+        const spots = [{ col: unit.col, row: unit.row }, ...this.natureTiles(unit)].filter((t) => this.natureVerse(t));
+        const hurt = unit.hp / unit.maxHp <= 0.6;
+        const want = hurt ? 'renewal' : 'swiftness';
+        const pick = near.length ? (hurt ? spots.find((t) => this.natureVerse(t) === 'renewal') : null) : spots.find((t) => this.natureVerse(t) === want) || spots[0];
+        if (pick) return this.aiCast(unit, pick.col === unit.col && pick.row === unit.row ? unit : pick, 'claim', finish);
+      }
     }
     // Mantle: his Verse on allies in reach (3 tiles)
     if (this.aiReady(unit, 'mantle') && this.mantleAllies(unit).length) {

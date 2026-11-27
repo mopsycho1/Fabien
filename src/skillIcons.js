@@ -37,7 +37,7 @@ const BY_ID = {
 };
 const BY_KIND = { heal: 'heal', poison: 'poison', hex: 'hex', haunt: 'spirit', infuse: 'spirit', buff: 'spirit', rest: 'spirit', escape: 'wind', smoke: 'wind', enchant: 'spirit',
   earthDrive: 'earth', clap: 'sound', sunder: 'steel', cleave: 'steel', hook: 'steel', grip: 'steel', drawn: 'steel', gale: 'wind', rending: 'fire', unmoved: 'earth', shield: 'earth',
-  singularity: 'hex', claim: 'spirit', mantle: 'spirit', swap: 'spirit' };
+  singularity: 'hex', claim: 'spirit', mantle: 'spirit', swap: 'spirit', callSpirit: 'spirit', spiritSwap: 'spirit', shadowStep: 'hex', passage: 'hex' };
 export function skillElement(id) {
   const sp = spells[id] || {};
   if (BY_ID[id]) return BY_ID[id];

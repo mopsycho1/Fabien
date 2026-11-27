@@ -26,7 +26,7 @@ def upright_heights():
     """{picture: height in pixels} for every fighter's standing, battle stance and weak pictures."""
     out = {}
     for cid, e in ART.items():
-        if not isinstance(e, dict) or e.get('unwired') or 'standing' not in e: continue
+        if not isinstance(e, dict) or e.get('unwired') or e.get('summonOf') or 'standing' not in e: continue  # (Kofi's spirits hover by design, 13.72)
         for path, f in pictures(e):
             if not path.startswith(UPRIGHT): continue
             p = os.path.join(ROOT, 'public', 'art', f)
@@ -40,7 +40,7 @@ def all_widths():
     """{picture: width in pixels} for every picture of every fighter."""
     out = {}
     for cid, e in ART.items():
-        if not isinstance(e, dict) or e.get('unwired') or 'standing' not in e: continue
+        if not isinstance(e, dict) or e.get('unwired') or e.get('summonOf') or 'standing' not in e: continue  # (Kofi's spirits hover by design, 13.72)
         for path, f in pictures(e):
             p = os.path.join(ROOT, 'public', 'art', f)
             if os.path.exists(p): out[f] = Image.open(p).width
@@ -65,7 +65,7 @@ def pictures(entry, path=''):
 def run(fix=False):
     bad = []; seen = set()
     for cid, e in ART.items():
-        if not isinstance(e, dict) or e.get('unwired') or 'standing' not in e: continue
+        if not isinstance(e, dict) or e.get('unwired') or e.get('summonOf') or 'standing' not in e: continue  # (Kofi's spirits hover by design, 13.72)
         tallest = max(Image.open(os.path.join(ROOT, 'public', 'art', v['file'])).height for v in e['standing'].values() if isinstance(v, dict))
         board = (e.get('height', 100) * 1.0) / tallest        # board pixels per picture pixel (before the ruler's scale)
         ruler = e.get('ruler', {})

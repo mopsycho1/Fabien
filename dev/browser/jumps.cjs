@@ -14,7 +14,7 @@ const { openBattle, startPlayer, waitForEnd } = require('./lib/play.cjs');
 
 // Moves that are meant to be faster than one tile in 80 ms (ids from spells.json,
 // plus 'knockback' for pushes, falls and wall slams, which fly by design).
-const ALLOWED = ['sonicJavelin', 'blitz', 'husk', 'knockback'];
+const ALLOWED = ['sonicJavelin', 'blitz', 'husk', 'knockback', 'shadowStep', 'shadowPassage', 'spiritSwap']; // (Gadara's cloak and Kofi's swap are teleports, hidden while they move: 10.53, 13.72)
 const WINDOW_MS = 80;
 const SELFTEST = !!process.env.SELFTEST;
 

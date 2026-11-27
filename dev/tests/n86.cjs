@@ -31,7 +31,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
       if (u.view) u.view.setVisible(true);
     }
     g.status = { offBalance: false, buff: null, hex: null, cooldowns: {}, exposed: null };
-    g.engagedWith = null; g.hp = g.maxHp; g.mask = 0; g.channel = null; g.singularityUsed = false; g.grip = 'fork'; g.gripSwitched = false; g.attackName = 'Fork Strike';
+    g.engagedWith = null; g.hp = g.maxHp; g.mask = 0; g.maskRound = {}; g.channel = null; g.singularityUsed = false; g.grip = 'fork'; g.gripSwitched = false; g.attackName = 'Fork Strike';
     g.hasActed = false; g.hasMoved = false; g.stepsUsed = 0;
     b.clearTelegraph(g);
     b.placeUnit(g, 5, 5);
@@ -47,9 +47,9 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 1. profile (10.24)
   park();
-  check('his numbers: HP 41 (54 x healthScale 0.75, 18.32), attack 8, defense 4 (balance pass 10.31), speed 6, move 3, evade 5', g.maxHp === 41 && g.attack === 8 && g.defense === 4 && g.speed === 6 && g.move === 3 && g.evade === 5, [g.maxHp, g.attack, g.defense, g.speed, g.move, g.evade].join(','));
+  check('his numbers (the heavy tank, 10.53): HP 48 (64 x healthScale 0.75, 18.32), attack 7, defense 5, speed 6, move 3, evade 5', g.maxHp === 48 && g.attack === 7 && g.defense === 5 && g.speed === 6 && g.move === 3 && g.evade === 5, [g.maxHp, g.attack, g.defense, g.speed, g.move, g.evade].join(','));
   check('he starts with the fork end, the Mask Gauge at 0', g.grip === 'fork' && g.mask === 0 && g.attackName === 'Fork Strike');
-  check('clash: Press strong, Guard average, Slip weak (Power 8, Guard 6, Agility 2)', g.stances.press === 'strong' && g.stances.guard === 'average' && g.stances.slip === 'weak' && g.contest.power === 8 && g.contest.guard === 6 && g.contest.agility === 2);
+  check('clash: Press strong, Guard average, Slip weak (Power 8, Guard 8 since 10.53, Agility 2)', g.stances.press === 'strong' && g.stances.guard === 'average' && g.stances.slip === 'weak' && g.contest.power === 8 && g.contest.guard === 8 && g.contest.agility === 2);
 
   // 2. Reverse Grip: free, once a turn
   park();
@@ -129,12 +129,12 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   park(); check('Heavy Cleave needs the blade end', b.kingBlock(g, 'heavyCleave') === 'Blade end');
   h1.maxHp = h1.hp = heroes[0] === h1 ? 48 : h1.maxHp;
 
-  // 8. Mask Gauge: +1 for a hit taken, +1 for a clash beat held, never above 6
+  // 8. Mask Gauge: +1 for a hit taken, +1 for a clash beat held, never above 5 (10.53)
   park();
   b.landHit(g, 3);
   check('Mask +1 when he takes a hit', g.mask === 1, g.mask);
-  g.mask = 6; b.landHit(g, 3);
-  check('...never above 6', g.mask === 6);
+  g.mask = 5; g.maskRound = {}; b.landHit(g, 3);
+  check('...never above 5', g.mask === 5);
   park();
   b.placeUnit(h1, 5, 6);
   const E = w.__engagement;
@@ -166,7 +166,7 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
 
   // 10. Singularity: needs a full gauge, charges for a turn, pulls, Exposed after
   park();
-  check('Singularity needs a full Mask Gauge', b.kingBlock(g, 'singularity') === 'Mask 0/6');
+  check('Singularity needs a full Mask Gauge', b.kingBlock(g, 'singularity') === 'Mask 0/5');
   g.mask = 6;
   check('...ready at 6', !b.kingBlock(g, 'singularity'));
   // foes: one 3 tiles away in a line (ends next to him), one behind another (slams), one 4 away (not caught)

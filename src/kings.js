@@ -2,8 +2,10 @@
 //
 // GADARA THE GREATER (job "sovereign", roadmap 10.23 to 10.29, the 19 Nov "Basic Attack Revision"):
 //   unit.grip    'fork' or 'blade': which end of his sword-staff leads (Reverse Grip, free, once a turn)
-//   unit.mask    the Mask Gauge, 0 to 6: +2 when he strips a buff, +1 for each clash beat he holds,
-//                +1 when he takes a hit. Full: Singularity can be cast (once a battle).
+//   unit.mask    the Mask Gauge, 0 to 5 (10.53, 27 Nov): +1 for each different foe an attack of his hits (at most 3),
+//                +2 when he strips a buff, +1 for the first clash beat he holds and +1 for the first hit he takes
+//                between two of his turns. Full: Singularity can be cast (once a battle). Shadow Step and Shadow
+//                Passage spend masks too (1 for himself, 1 for each foe carried), so they compete with Singularity.
 //   unit.channel { spellId, tiles } while Singularity charges (it resolves at the start of his next turn)
 //   Dominion (passive): buffs on his foes within 2 tiles of him are one step weaker (see dominionStep).
 //
@@ -62,12 +64,31 @@ export function forkSecond(attacker, target, units) {
 export const hasMask = (unit) => !!(unit && unit.mask !== undefined && unit.mask !== null);
 export const MASK_MAX = kings.gadara.mask.max;
 
-// Adds to the gauge (never above 6). Returns how much was really added.
+// Adds to the gauge (never above the max). Returns how much was really added. It keeps filling after Singularity
+// is spent (10.53): Shadow Passage still needs masks.
 export function feedMask(unit, amount) {
-  if (!hasMask(unit) || unit.singularityUsed) return 0;
+  if (!hasMask(unit)) return 0;
   const before = unit.mask;
   unit.mask = Math.min(MASK_MAX, unit.mask + amount);
   return unit.mask - before;
+}
+
+// The same, but only once between two of his turns for this reason ('beat': a clash beat held, 'hit': a hit taken).
+// unit.maskRound is cleared at the start of his turn.
+export function feedMaskOnce(unit, why, amount) {
+  if (!hasMask(unit)) return 0;
+  unit.maskRound = unit.maskRound || {};
+  if (unit.maskRound[why]) return 0;
+  const fed = feedMask(unit, amount);
+  if (fed) unit.maskRound[why] = true;
+  return fed;
+}
+
+// An attack or skill of his hit these foes: +1 for each different one (at most 3). "hits" may hold nulls (misses).
+export function maskFromHits(unit, hits) {
+  if (!hasMask(unit)) return 0;
+  const foes = new Set(hits.filter((t) => t && !t.isDecoy && t.side !== unit.side));
+  return feedMask(unit, Math.min(kings.gadara.mask.hitCap, foes.size * kings.gadara.mask.perFoeHit));
 }
 
 export function maskFull(unit) {
@@ -92,6 +113,18 @@ export function singularityTiles(unit, gridSize) {
 export function singularityCatch(unit, units) {
   const r = kings.gadara.singularity.radius;
   return units.filter((u) => u.alive && !u.isDecoy && u.side !== unit.side && Math.abs(u.col - unit.col) + Math.abs(u.row - unit.row) <= r);
+}
+
+// ---------- Gadara: Shadow Passage (10.53) ----------
+export const PASSAGE = kings.gadara.passage;
+
+// Can this foe be carried? Not a king, not one under the Stone Verse, not one standing Unmoved (Anchored).
+export function carryable(unit, foe) {
+  if (!foe || !foe.alive || foe.isDecoy || foe.side === unit.side) return false;
+  if (foe.grip || foe.attune) return false; // the kings stand their ground (the draft: bosses are immune, shown on the card)
+  if (foe.status && foe.status.buff && foe.status.buff.id === 'stone') return false;
+  if (foe.unmoved) return false;
+  return true;
 }
 
 // ---------- Gadara: Dominion ----------

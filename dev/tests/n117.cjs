@@ -47,11 +47,17 @@ const PY = path.join(process.env.HOME, '.fabien-tools', 'venv', 'bin', 'python')
   const dome = sud.shieldDome;
   const slots = require('../../src/data/fxSlots.json');
   const find = (o) => { for (const k in o) { if (k === 'aegis' && o[k].fit) return o[k]; if (o[k] && typeof o[k] === 'object') { const r = find(o[k]); if (r) return r; } } return null; };
-  const ae = find(slots);
-  const domeH = dome && ae ? ae.fit.h * dome.scaleY : 0, body = sud.topY - 12;
-  check('1.104 the Aegis dome is as tall as the fighter or taller', dome && domeH >= body * 1.15, Math.round(domeH) + ' vs body ' + Math.round(body));
+  // 1.127 (27 Nov): the dome is the concentrated Earth's Bulwark rock dome (Rabdul's when he holds the line), wrapped round
+  // the fighter: as tall as him or taller, its back half behind his figure, so he is not covered
+  const rf = slots.buffs.stone.fit.rooted;
+  const first = dome && dome.objects ? dome.objects[0] : null;
+  const domeH = first ? rf.h * first.scaleY : 0, body = sud.topY - 12;
+  check('1.127 Aegis is the concentrated Earth\'s Bulwark rock dome', !!(dome && dome.rock && /buff_stone_rooted|stone_rooted/.test(first.texture.key)), first && first.texture.key);
+  check('1.104 the Aegis dome is as tall as the fighter or taller', domeH >= body * 1.15, Math.round(domeH) + ' vs body ' + Math.round(body));
+  const list = sud.view.list;
+  check('1.127 ...its back half is behind his figure, the front only a faint lower part', first && list.indexOf(first) < list.indexOf(sud.sprite) && dome.objects.slice(1).every((o) => o.alpha < 0.5), list.indexOf(first) + ' vs ' + list.indexOf(sud.sprite));
   b.shieldFlash(sud); await sleep(400);
-  check('1.104 a hit on the shield flashes the dome and leaves its size', dome && Math.abs(dome.scaleY * ae.fit.h - domeH) < 1, (dome && dome.scaleY));
+  check('1.104 a hit on the shield flashes the dome and leaves its size', first && Math.abs(first.scaleY * rf.h - domeH) < 1, (first && first.scaleY));
   sud.shield = null; b.syncShieldDome(sud);
 
   // ---------- 1.105 ----------

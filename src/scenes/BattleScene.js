@@ -39,8 +39,9 @@ import { startStep } from '../story.js';
 import { buildUnit } from '../jobs.js';
 import { kingMethods, KING_KINDS, KING_SELF_KINDS, galeFx } from '../kingsScene.js';
 import { aiKitMethods } from '../aiKit.js'; // each fighter's whole kit and play style for the computer (13.69)
-import { newClassMethods, NEW_KINDS, NEW_TILE_KINDS, slingStone } from '../newClasses.js'; // Leol and the Thief (19.1, 19.2) // the two kings' moves and AI (Phase 10)
-import { feedMask, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
+import { newClassMethods, NEW_KINDS, NEW_TILE_KINDS, slingStone } from '../newClasses.js';
+import { spiritMethods, SPIRITS, setSpiritMap } from '../spirits.js'; // Kofi's spirits and the ground's elements (13.72) // Leol and the Thief (19.1, 19.2) // the two kings' moves and AI (Phase 10)
+import { feedMask, feedMaskOnce, maskFromHits, forkSecond, gripBonus, gripAttackName, KING_RULES, soakShield, tickShield } from '../kings.js';
 import { hasArt, artHeight, standingFrame, standingKeys, poseFrame, moveFrames, walkFrames, walkStyle, clashArt, textureKey, hasPaintedAura, portraitKey, shoutKey, moodFaceKey, ALERT_RANGE, HURT_FACE_AT, setLookLookup, setBuffLookup, setElementLookup, artHasLook, artHasWeak, swingFxOf, hasChannelFx } from '../art.js';
 import { codeStep, sandStep, settle, dropWalk } from '../codeWalk.js';
 import { drawUnitCard, drawSkillPanel, CARD, CARD_ROOMY, SKILL_PANEL, goldDiamond, emblemFor, framePanel, diamondPortrait, tileBlock } from '../battleCard.js';
@@ -232,6 +233,7 @@ export default class BattleScene extends Phaser.Scene {
     this.uiCam.fadeIn(500, 0, 0, 0);
 
     mapData = MAPS[this.mapName];
+    setSpiritMap(mapData); // (the ground Kofi's spirits and Alagara's Claim read, 13.72)
     setBoardShape(mapData.board);    // how many tiles, and how big (each map has its own)
     setTileHeights(mapData.heights); // tell grid.js how high each tile is
     // and the attack rules, for shooting from high ground. A spike of Tayo's
@@ -309,7 +311,8 @@ export default class BattleScene extends Phaser.Scene {
     this.empower = false;           // in a clash: spend 1 Poise to empower the next stance
     this.decoys = [];
     this.smokes = [];               // Smoke Bomb clouds standing on tiles until their thrower's next turn (13.26)
-    this.spikes = [];               // Tayo's Earth Drive spikes standing as walls (see castEarthDrive)               // Husk decoys (see addDecoy)
+    this.spikes = [];
+    this.spirits = [];              // Kofi's spirits (13.72, src/spirits.js)               // Tayo's Earth Drive spikes standing as walls (see castEarthDrive)               // Husk decoys (see addDecoy)
     // clash stances: 'auto' (the default, from engagement.json) or 'manual', remembered on this device
     let savedChoice = null;
     try {
@@ -2151,6 +2154,7 @@ export default class BattleScene extends Phaser.Scene {
     // Tayo's spikes stand for 2 of his turns, then crumble (roadmap 4.2)
     this.tickSpikes(this.activeUnit);
     this.tickNewClasses(this.activeUnit); // Leol's barricade rises; a foe on the highest ground spots a Hidden Thief (19.1, 19.2)
+    this.tickSpirits(this.activeUnit); // Kofi's spirit uses its move again, or fades (13.72)
     this.manualView = false;
     // Fast enemy turns (roadmap 18.11): everything an enemy does on its own turn runs at double
     // speed when the player has asked for it. A hero's turn is always at normal speed.
@@ -2166,6 +2170,8 @@ export default class BattleScene extends Phaser.Scene {
     this.wakeSmoke(this.activeUnit); // her Smoke Bomb clears and she shows herself (13.26)
     this.activeUnit.weaponSwitched = false; // one free weapon switch a turn (13.29)
     this.activeUnit.gripSwitched = false; // Gadara: one free Reverse Grip a turn (Phase 10)
+    this.activeUnit.maskRound = {}; // Gadara: the once-between-turns masks (a held beat, a hit taken) can come again (10.53)
+    this.activeUnit.passaged = false; // Gadara: one Shadow Step or Shadow Passage a turn (10.53)
     this.spellPage = 0; // the skills list opens on its first page
     if (this.activeUnit.attune) this.activeUnit.attune.swapped = false; // Alagara: one free Verse swap a turn
     this.activeUnit.surgeStone = false; // (a Stone Surge lasts only the turn it came in)
@@ -2540,7 +2546,7 @@ export default class BattleScene extends Phaser.Scene {
     let plan = null;
     if (this.mode === 'spellTarget' && this.pendingTarget) plan = planSkill(this, unit, this.pendingTarget, this.selectedSpell);
     else if (this.mode === 'attack' && this.pendingTarget) plan = planAttack(this, unit, this.pendingTarget);
-    else if (this.mode === 'huskTile' && this.pendingTile && !(spells[this.selectedSpell] && NEW_TILE_KINDS.includes(spells[this.selectedSpell].kind))) plan = planHusk(this, unit, this.pendingTile);
+    else if (this.mode === 'huskTile' && this.pendingTile && !(spells[this.selectedSpell] && NEW_TILE_KINDS.includes(spells[this.selectedSpell].kind)) && !this.skillTiles(unit, this.selectedSpell)) plan = planHusk(this, unit, this.pendingTile);
     if (!plan) return;
     this.previewPlan = plan; // (tests and the browser check read this)
     this.previewItems = drawPlan(this, unit, plan);
@@ -2639,6 +2645,16 @@ export default class BattleScene extends Phaser.Scene {
       text = 'Choose a skill' + (verse ? (lent.mp > 0 ? '  (' + lent.mp + ' MP from the ' + verse + ')' : '  (the ' + verse + "'s MP is spent)") : '');
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose from the ' + this.spellGroup : 'Choose a Verse') + '  (' + unit.mp + ' MP)';
+    } else if (this.mode === 'spellTarget' && this.pendingTile && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'claim') {
+      const v = this.natureVerse(this.pendingTile); // Claim from the ground (13.72)
+      text = 'Claim ' + (v ? spells[v].effect || spells[v].button : 'nothing') + ' from the ground here (2 turns)? Tap it again.';
+    } else if (this.mode === 'spellTarget' && this.pendingTarget === unit && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'claim') {
+      const v = this.natureVerse(unit);
+      text = 'Claim ' + (v ? spells[v].effect || spells[v].button : 'nothing') + ' from the ground under him (2 turns)? Tap again.';
+    } else if (this.mode === 'spellTarget' && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'passage') {
+      // Gadara's Shadow Passage (10.53): the foes he picks so far, and how to go
+      const n = (this.passengers || []).length;
+      text = 'Shadow Passage: tap the foes to take (' + n + ' of ' + Math.min(KING_RULES.gadara.passage.maxCarry, unit.mask) + ', one mask each),\nthen tap ' + unit.name + ' to go. They land somewhere at random, far away.';
     } else if (this.mode === 'spellTarget' && this.pendingTarget && spells[this.selectedSpell].kind === 'throw') {
       const t = this.pendingTarget;
       const extra = this.spellReach(unit, t, spells.spearThrow) - spells.spearThrow.range;
@@ -2735,6 +2751,8 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spellTarget') {
       const kind = spells[this.selectedSpell].kind;
       text = 'Tap a lit tile: who gets ' + spells[this.selectedSpell].name + '?'; // (the tiles are in the skill's colour)
+    } else if (this.mode === 'huskTile' && this.skillTiles(unit, this.selectedSpell)) {
+      text = this.tileHint(unit, this.selectedSpell, this.pendingTile); // Shadow Step, Call Spirit (10.53, 13.72)
     } else if (this.mode === 'huskTile') {
       text = this.pendingTile ? 'Slip away to this tile? Tap it again.' : 'Tap a green tile to slip away to';
     } else if (unit.engagedWith && isStanceDuel()) {
@@ -3228,7 +3246,7 @@ export default class BattleScene extends Phaser.Scene {
       const wait = spell.verse ? 0 : cooldownOf(unit, id);
       const left = usesLeft(unit, id); // pouches left this battle (Herbs), or null
       // the kings (Phase 10): why a skill cannot be used now (Fork end, Mask 3/6, once a turn...)
-      const block = this.kingBlock(unit, id) || this.newBlock(unit, id); // (Leol and the Thief: 'needs Hidden', 'no room')
+      const block = this.kingBlock(unit, id) || this.newBlock(unit, id) || this.spiritBlock(unit, id); // (Leol and the Thief: 'needs Hidden', 'no room')
       const free = spell.kind === 'grip' ? '  to ' + (unit.grip === 'blade' ? 'Fork' : 'Blade') : '';
       return {
         label: (spell.kind === 'wardSwitch' ? (unit.wardOff ? 'Ward: off' : 'Ward: on') : spell.button) + free + (left !== null && spell.kind !== 'singularity' ? ' x' + left : '') + (wait ? '  (' + wait + ')' : block ? '  ' + block : spell.mp ? '  ' + spell.mp + ' MP' : ''),
@@ -3323,6 +3341,40 @@ export default class BattleScene extends Phaser.Scene {
     this.cancelMode();
   }
 
+  // The tiles a skill of this kind is aimed at, when it picks a tile of its own (not a unit), else null:
+  // Gadara's Shadow Step (10.53) and Kofi's Call Spirit (13.72).
+  skillTiles(unit, id) {
+    const spell = spells[id];
+    if (!spell || !unit) return null;
+    if (spell.kind === 'shadowStep') return this.shadowStepTiles(unit);
+    if (spell.kind === 'callSpirit') return this.spiritTiles(unit);
+    return null;
+  }
+  // What the hint line says while one of those tiles is being picked.
+  tileHint(unit, id, tile) {
+    const spell = spells[id];
+    if (spell.kind === 'callSpirit') {
+      if (!tile) return 'Call Spirit: the ground picks the spirit. By a lamp: Ember. Water: Tide.\nSand or rubble: Stone. High ground: Gale. Plain floor: what he reads.';
+      const k = this.spiritKindAt(unit, tile);
+      return 'Call the ' + SPIRITS[k].name + ' here? Tap it again.\n' + SPIRITS[k].text;
+    }
+    return tile ? 'Step through the shadows to this tile? Tap it again.' : 'Shadow Step (1 mask): tap a tile up to 3 away. He keeps his action.';
+  }
+  // The lit tiles of a tile choice: Call Spirit's in the colour of the spirit each would raise, others green.
+  showTileChoice(tiles) {
+    const spell = spells[this.selectedSpell];
+    if (spell && spell.kind === 'callSpirit') { // each tile in the colour of the spirit it would raise
+      this.clearHighlights();
+      for (const k of Object.keys(SPIRITS)) {
+        const mine = tiles.filter((t) => this.spiritKindAt(this.activeUnit, t) === k);
+        if (mine.length) this.showHighlights(mine, Phaser.Display.Color.HexStringToColor(SPIRITS[k].color).color, { keep: true });
+      }
+      return;
+    }
+    const color = spell && spell.kind === 'shadowStep' ? Phaser.Display.Color.HexStringToColor(spell.color).color : 0x8fd18a;
+    this.showHighlights(tiles, color);
+  }
+
   // A spell was picked. What happens next depends on its kind:
   //   buff   : gold tiles on anyone in range, friend or foe
   //   hex    : purple tiles on enemies in range
@@ -3332,7 +3384,7 @@ export default class BattleScene extends Phaser.Scene {
     const unit = this.activeUnit;
     const spell = spells[id];
     // the kings (Phase 10): a reason it cannot be used now; Reverse Grip and Swap Verse are free and happen at once
-    const kingWhy = this.kingBlock(unit, id);
+    const kingWhy = this.kingBlock(unit, id) || this.spiritBlock(unit, id); // (Kofi's Call Spirit and Spirit Swap, 13.72)
     if (kingWhy) {
       this.showMessage(spell.button + ': ' + kingWhy);
       return;
@@ -3426,10 +3478,14 @@ export default class BattleScene extends Phaser.Scene {
     }
 
     this.selectedSpell = id;
-    if (spell.kind === 'escape' || spell.kind === 'smoke' || NEW_TILE_KINDS.includes(spell.kind)) {
+    this.passengers = []; // (Shadow Passage's picks, 10.53)
+    const ownTiles = this.skillTiles(unit, id); // Shadow Step and Call Spirit pick a tile of their own (10.53, 13.72)
+    if (spell.kind === 'escape' || spell.kind === 'smoke' || NEW_TILE_KINDS.includes(spell.kind) || ownTiles) {
       this.mode = 'huskTile';
       let tiles = [];
-      if (NEW_TILE_KINDS.includes(spell.kind)) {
+      if (ownTiles) {
+        tiles = ownTiles;
+      } else if (NEW_TILE_KINDS.includes(spell.kind)) {
         tiles = this.freeTilesNear(unit); // Barricade and Trap: an empty tile next to him (19.1, 19.2)
       } else if (spell.kind === 'smoke') {
         // Smoke Bomb: she slips out of the cloud on foot, up to 2 tiles (or stays in it)
@@ -3443,13 +3499,13 @@ export default class BattleScene extends Phaser.Scene {
         }
       }
       this.reachableKeys = new Set(tiles.map((t) => t.col + ',' + t.row));
-      this.showHighlights(tiles, 0x8fd18a);
+      this.showTileChoice(tiles);
       this.refreshStatus();
       return;
     }
 
     this.mode = 'spellTarget';
-    const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast', 'concussive', 'hammerStrike', 'ambush'].includes(spell.kind);
+    const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast', 'concussive', 'hammerStrike', 'ambush', 'steal'].includes(spell.kind);
     const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap' || spell.kind === 'smokePellet';
     this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || spell.kind === 'coat' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
@@ -3459,6 +3515,7 @@ export default class BattleScene extends Phaser.Scene {
         (spell.kind !== 'pin' || distance(unit, u) >= 2) && // Pinning Shot is a bow shot: no room to draw it next to a foe (19.6)
         (spell.kind !== 'concussive' || distance(unit, u) >= 2) && // a sling shot too (19.1)
         (spell.kind !== 'smokePellet' || !u.engagedWith) &&
+        (spell.kind !== 'steal' || !!this.stealPick(u)) && // the Thief's Steal: only a foe with something to take (19.11)
         this.clearShot(unit, u, spell) &&
         (!foesOnly || u.side !== unit.side) && (!friendsOnly || u.side === unit.side) &&
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
@@ -3472,8 +3529,11 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    if (this.targetsInRange.length === 0) {
-      this.showMessage('No enemy in reach');
+    // Alagara's Claim from nature (13.72): the empty tiles next to him whose ground gives a Verse can be picked too
+    const groundTiles = spell.kind === 'claim' ? this.natureTiles(unit) : [];
+    this.spellTiles = groundTiles.length ? new Set(groundTiles.map((t) => t.col + ',' + t.row)) : null;
+    if (this.targetsInRange.length === 0 && !groundTiles.length) {
+      this.showMessage(spell.kind === 'claim' ? 'Nothing to claim here' : 'No enemy in reach');
       this.selectedSpell = null;
       this.mode = 'spell';
       return;
@@ -3484,6 +3544,7 @@ export default class BattleScene extends Phaser.Scene {
     const areaSkill = spell.kind === 'singularity' || spell.kind === 'mantle' || spell.kind === 'shield'; // Mantle shows the 3 tiles it reaches too (1.81)
     if (areaSkill) this.showHighlights(this.kingAreaTiles(unit, id), color, { alpha: 0.25 });
     this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), color, { keep: areaSkill });
+    if (groundTiles.length) this.showHighlights(groundTiles, color, { keep: true, alpha: 0.4 });
     this.holdCharge(unit, id);
     this.refreshOutlines();
     this.refreshStatus();
@@ -3701,6 +3762,17 @@ export default class BattleScene extends Phaser.Scene {
 
     // Choosing who gets a spell: first tap explains it, second tap casts it
     if (this.mode === 'spellTarget') {
+      if (spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'passage') return this.passageTap(col, row); // Shadow Passage: pick foes, then him (10.53)
+      // Claim from a ground tile (13.72): first tap shows it, second claims
+      if (this.spellTiles && this.spellTiles.has(col + ',' + row) && !this.getUnitAt(col, row)) {
+        if (this.pendingTile && this.pendingTile.col === col && this.pendingTile.row === row) { this.confirmSpell(); return; }
+        play('select');
+        this.pendingTarget = null;
+        this.pendingTile = { col, row };
+        this.showHighlights([{ col, row }], 0xffe08a, { keep: true, alpha: 0.85 });
+        this.refreshStatus();
+        return;
+      }
       const target = this.getUnitAt(col, row);
       if (target && this.targetsInRange.includes(target)) {
         if (target === this.pendingTarget) {
@@ -3722,7 +3794,7 @@ export default class BattleScene extends Phaser.Scene {
           play('select');
           this.pendingTile = { col, row };
           const tiles = [...this.reachableKeys].map((k) => k.split(',').map(Number)).map(([c, r]) => ({ col: c, row: r }));
-          this.showHighlights(tiles, 0x8fd18a);
+          this.showTileChoice(tiles);
           this.showHighlights([{ col, row }], 0xffe08a, { keep: true, alpha: 0.85 });
           this.refreshStatus();
         }
@@ -3780,7 +3852,7 @@ export default class BattleScene extends Phaser.Scene {
 
   // True if a living unit is standing on the tile.
   isBlocked(col, row) {
-    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row) || !!this.spikeAt(col, row) || !!this.potAt(col, row);
+    return this.getUnitAt(col, row) !== undefined || this.isDecoyAt(col, row) || !!this.spikeAt(col, row) || !!this.potAt(col, row) || !!this.spiritAt(col, row); // (Kofi's spirits stand on their tiles, 13.72)
   }
 
   // An undug pot or bone pile standing on a tile (it blocks the tile), or undefined.
@@ -4284,6 +4356,9 @@ export default class BattleScene extends Phaser.Scene {
       }
       prong = { target: second, result: { hit, damage, note } };
     }
+    // Gadara's Mask Gauge (10.53): +1 for each different foe this blow hit (Fork Strike through two = +2)
+    const masked = maskFromHits(attacker, [result.hit && target, prong && prong.result.hit && prong.target]);
+    if (masked) this.time.delayedCall(500, () => attacker.alive && this.floatText(attacker, 'Mask +' + masked, '#c9a8ff', { rise: 40 }));
     // Husk echo: the decoy nobody struck fires a second bolt at the same target
     let echo = null;
     const echoDecoy = attacker.echoReady ? this.decoys.find((d) => d.owner === attacker) : null;
@@ -4384,6 +4459,8 @@ export default class BattleScene extends Phaser.Scene {
   // it (and builds up its stacks). Returns { damage, note }.
   // A hit that does damage also breaks a Sage's meditation and an archer's aim.
   landHit(target, damage) {
+    const stone = damage > 0 ? this.stoneGuard(target) : 0; // next to a Stone Spirit of its side: 2 less (13.72)
+    if (stone) damage = Math.max(1, damage - stone);
     if (isRooted(target) && damage > 0) damage = Math.max(1, Math.round(damage * rootedShare())); // Gaha standing his ground
     const landed = takeHit(target, damage);
     // Alagara's Aegis (10.46) soaks what is left, up to its points
@@ -4403,7 +4480,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     this.damageTaken[target.id] = (this.damageTaken[target.id] || 0) + (landed.damage || 0); // for the result screen (M12)
     if (landed.damage > 0) this.interrupt(target);
-    if (landed.damage > 0) feedMask(target, KING_RULES.gadara.mask.hit); // Gadara's Mask Gauge: +1 for a hit taken
+    if (landed.damage > 0) feedMaskOnce(target, 'hit', KING_RULES.gadara.mask.hit); // Gadara's Mask Gauge: +1 for the first hit taken between his turns (10.53)
     if (landed.damage > 0 && target.hidden) this.revealHidden(target); // caught by an area attack: found out (1.47)
     return landed;
   }
@@ -4478,6 +4555,7 @@ export default class BattleScene extends Phaser.Scene {
       this.refreshStatusTags();
     }
     this.refreshTurnStrip(); // take it out of the turn order bar
+    this.spiritsFall(unit); // Kofi's spirit goes with him (13.72)
     if (unit === this.activeUnit) this.watchDeadTurn(unit); // it fell in its own turn: the turn must still end (27 Nov freeze)
   }
 
@@ -4510,7 +4588,6 @@ export default class BattleScene extends Phaser.Scene {
     };
     this.time.delayedCall(200, look);
   }
-
 
   // ---------- Attack animation ----------
 
@@ -5729,7 +5806,7 @@ export default class BattleScene extends Phaser.Scene {
 
     // It plans with what it can see: a hidden caster's decoy instead of her.
     // Her real tile still blocks the way, even if they do not know why.
-    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r);
+    const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || !!this.spiritAt(c, r);
     // Tayo with an element on him fires it down a line at once, without walking up first (roadmap 13.4)
     const mark = this.blastTarget(unit);
     if (mark && distance(unit, mark) >= 2) {
@@ -5771,6 +5848,10 @@ export default class BattleScene extends Phaser.Scene {
       this.enemyAttack(unit);
       return;
     }
+    // Kofi slips out to his spirit's tile when a foe stands next to him (free, 6.49, 13.72)
+    if (unit.spells.includes('spiritSwap')) this.spiritSwapAi(unit);
+    // Gadara's Shadow Passage or Shadow Step (10.53): before he walks
+    if (unit.grip && this.gadaraShadowAi(unit, () => { this.busy = false; this.enemyWrapUp(unit); })) return;
     // A move that is its walk and its blow at once, before walking (13.69): Gaha's Lunge or a Sonic Javelin
     // through two foes, Sudeen's Intercept on the foe hurting a friend
     const pre = this.preWalkKit(unit);
@@ -6078,6 +6159,7 @@ export default class BattleScene extends Phaser.Scene {
     if (targets.length === 0) {
       // nobody to strike: a foe's barricade next to it is broken down instead (19.1)
       if (this.hitBarricade(unit, () => this.enemyWrapUp(unit))) { unit.hasActed = true; return; }
+      if (this.hitSpirit(unit, () => this.enemyWrapUp(unit))) { unit.hasActed = true; return; } // a foe's spirit next to it (13.72)
       this.time.delayedCall(400, () => this.endTurn());
       return;
     }
@@ -6136,7 +6218,7 @@ export default class BattleScene extends Phaser.Scene {
     if (this.enemySecondWalk === false || cannot()) return end(); // (tests can switch the second walk off)
     this.time.delayedCall(260, () => {
       if (cannot() || this.busy) return end();
-      const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || this.isDecoyAt(c, r);
+      const hiddenAt = (c, r) => this.units.some((u) => u.alive && u.hidden && u.col === c && u.row === r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || !!this.spiritAt(c, r) || this.isDecoyAt(c, r);
       const aim = unit.aiming && unit.aiming.target && unit.aiming.target.alive ? { target: unit.aiming.target, range: (spells[unit.aiming.spellId] || {}).range || unit.range } : null;
       let tile = chooseAfterTile(unit, this.enemyEyes(), this.stepsLeft(unit), hiddenAt, aim);
       // Rabdul with a Spear Ward or Hold the Line set guards the tile he set it on (a Rapid Ward walks with him); otherwise he keeps with the line (10.31)
@@ -6205,7 +6287,7 @@ export default class BattleScene extends Phaser.Scene {
     steps = Math.max(0, steps - pushResist(loser)); // Bulwark: a warden in Guard is hard to move
     if (steps === 0) return { held: true, path: [], levels: 0, slam: false };
     const blocked = (c, r) => {
-      if (moved && moved.unit.col === c && moved.unit.row === r && !(moved.to.col === c && moved.to.row === r)) return this.isDecoyAt(c, r) || !!this.spikeAt(c, r) || !!this.potAt(c, r); // it has left this tile
+      if (moved && moved.unit.col === c && moved.unit.row === r && !(moved.to.col === c && moved.to.row === r)) return this.isDecoyAt(c, r) || !!this.spikeAt(c, r) || !!this.potAt(c, r) || !!this.spiritAt(c, r); // it has left this tile
       if (moved && moved.to.col === c && moved.to.row === r) return true; // and stands here now
       return this.isBlocked(c, r);
     };
@@ -6381,8 +6463,8 @@ export default class BattleScene extends Phaser.Scene {
     actor.hasActed = true;
     this.refreshButtons();
     const beat = resolveBeat(actor, stance, holder, holderStance, CONTEST_CTX, empowered, opening);
-    // Gadara's Mask Gauge: +1 for each clash beat he holds (wins, or stands even)
-    for (const u of [actor, holder]) if (beat.kind !== 'break' && beat.loser !== u) feedMask(u, KING_RULES.gadara.mask.beat);
+    // Gadara's Mask Gauge: +1 for holding a clash (a beat he wins or stands even), once between his turns (10.53)
+    for (const u of [actor, holder]) if (beat.kind !== 'break' && beat.loser !== u) feedMaskOnce(u, 'beat', KING_RULES.gadara.mask.beat);
     const outcome = this.applyBeat(beat);
     if (opening) {
       this.beginCinematic();
@@ -7000,6 +7082,7 @@ export default class BattleScene extends Phaser.Scene {
     }
     if (NEW_KINDS.includes(spell.kind)) return this.castNewSkill(caster, target, id, onDone); // Leol and the Thief (19.1, 19.2)
     if (spell.kind === 'haunt') return this.castHaunt(caster, target, spell, onDone);
+    if (spell.kind === 'callSpirit') return this.castCallSpirit(caster, target, spell, onDone); // Kofi (13.72)
     if (spell.kind === 'infuse') {
       // the blessing for what he reads, always a spirit's Verse that lasts (1.49): Stone, Swiftness, Fury or
       // Renewal (Water). It used to be a plain herb-pouch heal in Water, which threw a pouch at the ally.
@@ -7232,33 +7315,19 @@ export default class BattleScene extends Phaser.Scene {
 
   // ---------- Rabdul's Enchant (roadmap 4.1) ----------
 
-  // What Kofi does with his action besides the free Spirit Bolt (1.78): { id, target } for Infuse or Haunt, or null.
-  //  - Infuse (blessing for what he reads, reach 3, himself too): a friend that is hurt gets the heal or the guard
-  //    first (Renewal and Stone at 70 percent health or less, Swiftness to get a very hurt one out at 40 percent or
-  //    less); otherwise the hardest hitter in the fight gets Fury or Swiftness, and the friend nearest a foe gets Stone.
-  //    Nobody who already wears a Verse is given another (it would replace it).
+  // What Kofi does with his action besides the free Spirit Bolt (1.78): { id, target } for Call Spirit or Haunt, or null.
+  //  - Call Spirit (13.72, it replaced Infuse): the free tile in reach where the spirit the ground gives would do most
+  //    (spirits.js spiritChoice), while he has no spirit out.
   //  - Haunt (hex, reach 4): the most dangerous foe in reach that is not Disoriented yet, unless the bolt would
-  //    finish somebody. He keeps 2 MP back for Infuse while a friend is there to use it.
+  //    finish somebody. He keeps 3 MP back for Call Spirit while no spirit is out.
   shamanChoice(unit) {
     const foes = this.units.filter((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy);
-    const inFight = (a) => !!a.engagedWith || foes.some((f) => distance(a, f) <= moveOf(a) + a.range + 1);
-    const ratio = (a) => a.hp / a.maxHp;
-    if (unit.spells.includes('infuse') && canAfford(unit, 'infuse')) {
-      const sp = spells.infuse;
-      const verse = sp.verses[this.reading(unit).element];
-      const friends = this.units.filter((a) => a.alive && a.side === unit.side && !a.isDecoy && distance(unit, a) <= sp.range && !buffOf(a) &&
-        !(verse === 'renewal' && a.engagedWith)); // (1.65: Renewal does not tick for a fighter locked in a clash)
-      const byHurt = (list) => list.sort((a, b) => ratio(a) - ratio(b) || (b === unit) - (a === unit));
-      let pick = null;
-      if (verse === 'renewal') pick = byHurt(friends.filter((a) => ratio(a) <= 0.7))[0];
-      else if (verse === 'stone') pick = byHurt(friends.filter((a) => ratio(a) <= 0.7 && inFight(a)))[0] || friends.filter(inFight).sort((a, b) => Math.min(...foes.map((f) => distance(a, f))) - Math.min(...foes.map((f) => distance(b, f))))[0];
-      else if (verse === 'swiftness') pick = byHurt(friends.filter((a) => ratio(a) <= 0.4))[0] || friends.filter(inFight).sort((a, b) => b.attack - a.attack)[0];
-      else pick = friends.filter(inFight).sort((a, b) => b.attack - a.attack)[0]; // Fury: the hardest hitter
-      if (pick) return { id: 'infuse', target: pick };
-    }
+    // Call Spirit (13.72, src/spirits.js): where a spirit would do most now (it replaced Infuse)
+    const call = this.spiritChoice(unit);
+    if (call) return call;
     if (unit.spells.includes('haunt') && canAfford(unit, 'haunt')) {
       const sp = spells.haunt;
-      const spare = unit.mp - sp.mp >= (spells.infuse ? spells.infuse.mp : 0) || !this.units.some((a) => a.alive && a.side === unit.side && distance(unit, a) <= spells.infuse.range);
+      const spare = !unit.spells.includes('callSpirit') || !!this.spiritOf(unit) || cooldownOf(unit, 'callSpirit') > 0 || unit.mp - sp.mp >= spells.callSpirit.mp; // (3 MP kept back for a spirit while none is out and it is ready, 13.72)
       const marks = foes.filter((t) => distance(unit, t) <= this.spellReach(unit, t, sp) && !isDisoriented(t) && getDamage(unit, t) < t.hp);
       if (spare && marks.length > 0) {
         marks.sort((a, b) => b.attack - a.attack || b.hp - a.hp);
@@ -10531,6 +10600,8 @@ export default class BattleScene extends Phaser.Scene {
     this.spellGroup = null;
     this.pendingTarget = null;
     this.pendingTile = null;
+    this.spellTiles = null; // (Claim's ground tiles, 13.72)
+    this.passengers = []; // (Shadow Passage's picks, 10.53)
     this.approach = null;
     this.targetsInRange = [];
     this.reachableKeys.clear();
@@ -10543,4 +10614,5 @@ export default class BattleScene extends Phaser.Scene {
 // The two kings' moves, Singularity and their AI (Phase 10) live in src/kingsScene.js
 Object.assign(BattleScene.prototype, kingMethods);
 Object.assign(BattleScene.prototype, newClassMethods);
+Object.assign(BattleScene.prototype, spiritMethods);
 Object.assign(BattleScene.prototype, aiKitMethods);

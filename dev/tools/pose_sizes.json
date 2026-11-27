@@ -809,6 +809,11 @@
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
     "h": 0.981
    },
+   "thief_steal": {
+    "size": 1.0,
+    "why": "27 Nov (19.11), next to standing and the ambush at the size drawn (every Thief sheet is cut at one scale): head, dreadlocks and feet; a deep crouch, so a short body",
+    "h": 0.904
+   },
    "thief_ambush": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
