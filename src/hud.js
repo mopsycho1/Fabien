@@ -593,21 +593,30 @@ export class MenuRow {
       // A mouse gets its tooltip by resting on the button, not by holding it down, so only a
       // finger starts the hold timer. (15 Nov bug: this used to 'return' here, which also
       // skipped the tap below, so no mouse click on a button did anything.)
+      // 1.117 (27 Nov, Baiyee and Suleiman on phones): a FINGER acts when it lifts, not when it lands. A short tap
+      // does the row's job at once; a hold (TIP_HOLD_MS) only shows the row's info, and lifting after it does nothing.
+      // (Before, the row acted on the press and the menu was redrawn under the finger, so the lift never reached
+      // the row: the tooltip timer was never stopped and a tooltip came up after every quick tap.)
+      // A mouse click and a press sent by a test (no pointer, or wasTouch false) still act at once.
+      const finger = !!(pointer && pointer.wasTouch === true);
       const touch = !(pointer && pointer.wasTouch === false);
-      if (touch) this.holdTimer = setTimeout(() => {
-        this.holdTimer = null;
-        const tip = this.tip || buttonTip(this.label.text);
-        if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
-      }, TIP_HOLD_MS);
-      else hoverTipEnd(scene); // a click puts the hover tooltip away
+      if (touch) {
+        this.press = { held: false };
+        const press = this.press;
+        this.holdTimer = setTimeout(() => {
+          this.holdTimer = null;
+          if (this.press !== press) return; // (lifted already, or another press began)
+          press.held = true;
+          const tip = this.tip || buttonTip(this.label.text);
+          if (tip && this.view.visible && scene.lay) showTip(scene, tip, at.x, at.y);
+        }, TIP_HOLD_MS);
+      } else hoverTipEnd(scene); // a click puts the hover tooltip away
       if (touch) hideTip(scene); // a finger's tooltip stays until the next tap (1.74)
-      if (!this.enabled || !this.onTap) return;
-      play('click');
-      this.flash();
-      if (!(this.label && this.label.text === 'End turn') && scene.cancelEndArm) scene.cancelEndArm(); // any other command puts the End turn confirm away (1.111)
-      this.onTap();
+      if (finger) return; // a finger: wait for the lift (release, below)
+      this.act();
     });
-    this.hit.on('pointerup', () => this.stopHold());
+    // (a finger lifting on the canvas row; the HTML HUD calls release itself, 1.117)
+    this.hit.on('pointerup', (pointer) => (pointer && pointer.wasTouch === true ? this.release(true) : this.stopHold()));
     // a mouse resting on the button for half a second shows its tooltip; leaving puts it away (15 Nov)
     this.hit.on('pointerover', (pointer) => {
       this.draw(true);
@@ -622,6 +631,31 @@ export class MenuRow {
   stopHold() {
     if (this.holdTimer) clearTimeout(this.holdTimer);
     this.holdTimer = null;
+  }
+
+  // The row's job (a tap or a click on it)
+  act() {
+    if (!this.enabled || !this.onTap) return;
+    play('click');
+    this.flash();
+    if (!(this.label && this.label.text === 'End turn') && this.scene.cancelEndArm) this.scene.cancelEndArm(); // any other command puts the End turn confirm away (1.111)
+    this.onTap();
+  }
+
+  // 1.117: the finger that pressed this row lifts. inside: still on the row (a tap, not a slide or a scroll).
+  // Before the hold time it is a tap: the row acts. After it the info was shown: nothing more.
+  release(inside) {
+    const press = this.press;
+    this.press = null;
+    this.stopHold();
+    if (!press || press.held || !inside || !this.view.visible) return;
+    this.act();
+  }
+
+  // The finger left without a tap (a scroll of the list, or the press was taken over): forget the press.
+  dropPress() {
+    this.press = null;
+    this.stopHold();
   }
 
   // label: the words on the row, or null to hide it.

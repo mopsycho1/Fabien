@@ -32,7 +32,17 @@ async function playView(view) {
   try {
     const rowsSeen = new Set();
     // A real click or tap at a point on the page.
-    const press = async (p) => { if (desktop) await page.mouse.click(p.x, p.y); else await page.touchscreen.tap(p.x, p.y); };
+    // 1.117 (27 Nov): a finger tap as a phone makes it: down, 110 ms, up. Then, when the tap began on the HUD, the
+    // pretend mouse press and click an iPhone sends after a touch nobody cancelled (they put a just-picked skill away).
+    const cdp = desktop ? null : await page.context().newCDPSession(page);
+    const fingerTap = async (p, holdMs = 110) => {
+      const onHud = await page.evaluate(([x, y]) => { const el = document.elementFromPoint(x, y); return !!(el && el.closest('#fabien-hud .fp')); }, [p.x, p.y]);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: p.x, y: p.y }] });
+      await sleep(holdMs);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      if (onHud) for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await cdp.send('Input.dispatchMouseEvent', { type, x: p.x, y: p.y, button: 'left', clickCount: 1 });
+    };
+    const press = async (p) => { if (desktop) await page.mouse.click(p.x, p.y); else await fingerTap(p); };
 
     // Watches (does not drive) what the game does: attacks, spells, items, walks.
     await page.evaluate(() => {
@@ -302,6 +312,90 @@ async function playView(view) {
       }
       await page.evaluate(() => window.__game.scene.getScene('BattleScene').cancelMode());
       await sleep(300);
+    }
+
+    // ----- 1.117: a tap on a skill picks it and lights its targets at once; a hold shows its info only -----
+    // (Suleiman 27 Nov, phone: "you have to hold the skill, then tap a fighter".) One skill of each kind, all by taps.
+    const hudRow = (word) => page.evaluate((word) => {
+      const el = [...document.querySelectorAll('#fabien-hud .fp.menu .mrow')].find((r) => r.getClientRects().length && !r.closest('.hide') && r.dataset.word.startsWith(word));
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }, word);
+    const look = () => page.evaluate(() => {
+      const b = window.__game.scene.getScene('BattleScene');
+      return { mode: b.mode, sel: b.selectedSpell, targets: (b.targetsInRange || []).map((t) => t.name || t.col + ',' + t.row), tiles: b.reachableKeys ? b.reachableKeys.size : 0, tip: !!(b.tip && b.tip.visible), casts: window.__seen.filter((x) => x === 'castSpell').length };
+    });
+    // the fighter "who" acts now, rested, with a foe "foeAt" tiles away and an ally next to him (set-up only)
+    const setUp = (who, foeAt, hurt) => page.evaluate(([who, foeAt, hurt]) => {
+      const b = window.__game.scene.getScene('BattleScene');
+      const u = b.units.find((x) => x.name === who && x.alive);
+      if (!u) return null;
+      b.cancelMode();
+      b.activeUnit = u; u.hasActed = false; u.hasMoved = false; u.mp = u.maxMp; u.cooldowns = {}; b.busy = false;
+      const free = (c, r) => c >= 0 && r >= 0 && c < 11 && r < 11 && !b.getUnitAt(c, r) && !b.isBlocked(c, r);
+      const near = (d, pick) => { for (const [dc, dr] of [[d, 0], [0, d], [-d, 0], [0, -d]]) if (free(u.col + dc, u.row + dr)) return pick(u.col + dc, u.row + dr); return null; };
+      const foe = b.units.find((x) => x.alive && x.side === 'enemy');
+      const ally = b.units.find((x) => x.alive && x.side === 'hero' && x !== u);
+      if (foeAt && foe) near(foeAt, (c, r) => b.placeUnit(foe, c, r));
+      if (ally) near(1, (c, r) => b.placeUnit(ally, c, r));
+      if (hurt) u.hp = Math.max(1, Math.round(u.maxHp * 0.5));
+      if (b.followUnit) b.followUnit(u, 0);
+      b.cancelMode(); b.refreshStatus(); b.refreshCard(u);
+      return { foe: foe && foe.id, ally: ally && ally.id, me: u.id };
+    }, [who, foeAt, hurt]);
+    const kinds = [
+      { who: 'Gaha', open: 'Skills', skill: 'Spear Throw', on: 'foe', foeAt: 2 },
+      { who: 'Layra', open: 'Verses', group: 'Blessings', skill: 'Swiftness', on: 'ally', foeAt: 5 },
+      { who: 'Layra', open: 'Verses', skill: 'Husk', on: 'tile', foeAt: 5 },
+      { who: 'Sudeen', open: 'Skills', skill: 'Herbs', on: 'self', foeAt: 5, hurt: true },
+    ];
+    let heldChecked = false;
+    for (const k of kinds) {
+      if (!(await heroTurn())) break;
+      const ids = await setUp(k.who, k.foeAt, k.hurt);
+      if (!ids) { check(false, tag + '1.117: ' + k.who + ' is on the board'); continue; }
+      await sleep(900); // (the camera settles on him, the menu moves beside him)
+      const name = k.who + "'s " + k.skill + ' (on ' + k.on + ')';
+      let p = await hudRow(k.open);
+      if (!p) { check(false, tag + '1.117: ' + k.open + ' on the menu for ' + k.who); continue; }
+      await press(p); await sleep(250);
+      let l = await look();
+      check(l.mode === 'spell', tag + '1.117: one tap on ' + k.open + ' opens the list at once (' + l.mode + ')');
+      if (!desktop && !heldChecked) { await sleep(500); l = await look(); check(!l.tip, tag + '1.117: no tooltip after a quick tap on ' + k.open); }
+      if (k.group) { p = await hudRow(k.group); if (p) { await press(p); await sleep(250); } }
+      p = await hudRow(k.skill);
+      if (!p) { check(false, tag + '1.117: ' + k.skill + ' in the list'); continue; }
+      if (!desktop && !heldChecked) {
+        // a hold: the info only. Then a plain tap picks it.
+        heldChecked = true;
+        await fingerTap(p, 800);
+        await sleep(150);
+        l = await look();
+        check(l.tip && l.mode === 'spell' && !l.sel, tag + '1.117: holding ' + k.skill + ' shows its info and does not pick it ' + JSON.stringify(l));
+        p = await hudRow(k.skill);
+      }
+      await press(p); await sleep(300);
+      l = await look();
+      const lit = k.on === 'tile' ? l.mode === 'huskTile' && l.tiles > 0 : l.mode === 'spellTarget' && l.targets.length > 0;
+      check(lit && !!l.sel, tag + '1.117: one tap on ' + name + ' picks it and lights its targets at once ' + JSON.stringify({ mode: l.mode, targets: l.targets.slice(0, 4), tiles: l.tiles }));
+      await sleep(700); // (still picked a moment later: nothing put it away)
+      l = await look();
+      check(!!l.sel && (l.mode === 'spellTarget' || l.mode === 'huskTile'), tag + '1.117: ' + k.skill + ' still picked 0.7 s later (' + l.mode + ')');
+      // the target, by taps (a second tap confirms where the game asks)
+      const before = l.casts;
+      for (let t = 0; t < 2; t++) {
+        const m = (await look()).mode;
+        if (m !== 'spellTarget' && m !== 'huskTile') break;
+        if (k.on === 'tile') {
+          const tile = await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); const k0 = [...b.reachableKeys][0]; return k0 ? k0.split(',').map(Number) : null; });
+          if (tile) await pressTile(tile[0], tile[1]);
+        } else await pressUnit(k.on === 'foe' ? ids.foe : k.on === 'ally' ? ids.ally : ids.me);
+      }
+      await idle();
+      l = await look();
+      check(l.casts > before, tag + '1.117: ' + name + ' cast by taps');
+      await page.evaluate(() => { const b = window.__game.scene.getScene('BattleScene'); b.cancelMode(); });
     }
 
     // ----- The grip: drag the menu, and it is remembered -----

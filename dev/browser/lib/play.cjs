@@ -6,6 +6,7 @@ const { chromium } = require('playwright');
 
 // Opens the game and waits until the battle is on screen.
 //   view : 'phone' (390 x 844, touch) or 'desktop' (1440 x 900, mouse)
+//          PHONE=375x667 (or opts.phone) opens the phone at another size (1.124: 375 x 667, 412 x 915)
 // Gives back { browser, page, errors }; errors fills with every page error.
 //   opts.dsf      : the desktop's pixel ratio (2 = a Retina screen; 18.44)
 //   opts.everyone : true puts all seven fighters on the board (nobody sits out), for filming every skill
@@ -15,9 +16,10 @@ const { chromium } = require('playwright');
 exports.openBattle = async function openBattle(view, opts = {}) {
   const desktop = view === 'desktop';
   const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
+  const [pw, ph] = String(opts.phone || process.env.PHONE || '390x844').split('x').map(Number);
   const ctx = await browser.newContext(desktop
     ? { viewport: { width: 1440, height: 900 }, deviceScaleFactor: opts.dsf || 1 }
-    : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+    : { viewport: { width: pw, height: ph }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
   const page = await ctx.newPage();
   if (opts.everyone) await page.addInitScript(() => { window.__bench = []; });
   if (opts.noKings) await page.addInitScript(() => { window.__sitOut = ['h5', 'e5']; }); // a check written for the line-up before the kings (Phase 10)

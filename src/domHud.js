@@ -259,6 +259,7 @@ export class DomHud {
 
   destroy() {
     if (this.onMove) window.removeEventListener('pointermove', this.onMove);
+    for (const [t, fn] of this.winListeners || []) window.removeEventListener(t, fn, true);
     if (this.root) this.root.remove();
     this.root = null;
   }
@@ -351,15 +352,49 @@ export class DomHud {
     // a pointer event as Phaser's handlers expect it (x, y in game pixels; a mouse is not a touch)
     const ptr = (e) => ({ ...this.gamePoint(e), wasTouch: e.pointerType !== 'mouse', isDown: true });
     const rowOf = (e, rows) => { const t = e.target.closest('.mrow'); return t ? rows()[Number(t.dataset.i)] : null; };
+    // 1.117 (27 Nov): a finger on a row acts when it LIFTS (MenuRow.release); a hold shows the row's info only.
+    // The lift is followed on the window: the row under the finger may be redrawn while it is down, and then
+    // the lift never reaches the row itself. Sliding the finger away (a scroll of the list) is not a tap.
+    this.fingerOn = null; // { r, id, x, y }: the row a finger is pressing
+    const SLIP = 10; // page pixels a finger may slide and still tap
+    const lift = (e) => {
+      const f = this.fingerOn;
+      if (!f || e.pointerId !== f.id) return;
+      this.fingerOn = null;
+      if (e.type === 'pointercancel') f.r.dropPress();
+      else f.r.release(Math.hypot(e.clientX - f.x, e.clientY - f.y) <= SLIP);
+    };
+    const slide = (e) => { const f = this.fingerOn; if (f && e.pointerId === f.id && Math.hypot(e.clientX - f.x, e.clientY - f.y) > SLIP) { this.fingerOn = null; f.r.dropPress(); } };
+    // 1.117: after a finger tap, a phone browser sends a pretend mouse press and click at the same spot (iPhone
+    // Safari always, unless the touch is cancelled, and the redrawn row cannot cancel it). The menu has moved by then,
+    // so it landed on the board, where it read as "a tap on empty ground: cancel": the skill just picked was put away
+    // at once (Suleiman: "you have to hold the skill"; a long press sends no pretend click, so it worked). Any mouse
+    // press, click or hover within TOUCH_GHOST_MS of a finger is that pretend one: it is stopped before the game sees it.
+    const TOUCH_GHOST_MS = 800;
+    this.lastFinger = -1e9;
+    const fingerNow = (e) => { if (e.type.startsWith('touch') || e.pointerType === 'touch' || e.pointerType === 'pen') this.lastFinger = performance.now(); };
+    const ghost = (e) => {
+      if (e.type.startsWith('pointer') && e.pointerType !== 'mouse') return;
+      if (performance.now() - this.lastFinger > TOUCH_GHOST_MS) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+    };
+    this.winListeners = [['pointerup', lift], ['pointercancel', lift], ['pointermove', slide],
+      ['touchstart', fingerNow], ['touchend', fingerNow], ['pointerdown', fingerNow], ['pointerup', fingerNow], ['pointercancel', fingerNow],
+      ['mousedown', ghost], ['mouseup', ghost], ['click', ghost], ['pointerdown', ghost], ['pointerup', ghost],
+      ['mouseover', ghost], ['mousemove', ghost], ['pointerover', ghost], ['pointermove', ghost]]; // (the pretend mouse also "hovers": no hover tooltip from it)
+    for (const [t, fn] of this.winListeners) window.addEventListener(t, fn, true);
     for (const [panel, rows] of [[this.menu, () => this.menuRowsShown || []], [this.side, () => this.sideRowsShown || []]]) {
       panel.addEventListener('pointerdown', (e) => {
         if (e.target.closest('.grip')) return;
         const r = rowOf(e, rows);
         if (!r) return;
-        e.preventDefault();
+        if (e.pointerType !== 'mouse' && e.cancelable && !e.target.closest('.scroll')) e.preventDefault(); // (a list that scrolls must still scroll under the finger)
+        if (e.pointerType === 'mouse') e.preventDefault();
+        if (this.fingerOn) this.fingerOn.r.dropPress();
+        this.fingerOn = e.pointerType === 'mouse' ? null : { r, id: e.pointerId, x: e.clientX, y: e.clientY };
         r.hit.emit('pointerdown', ptr(e));
       });
-      panel.addEventListener('pointerup', (e) => { const r = rowOf(e, rows); if (r) r.hit.emit('pointerup', ptr(e)); });
       // a mouse resting on a row: the pointer moves there, and the row's tooltip (as the canvas row)
       panel.addEventListener('pointerover', (e) => {
         const t = e.target.closest('.mrow');
@@ -374,6 +409,7 @@ export class DomHud {
       });
       panel.addEventListener('pointerout', (e) => {
         const t = e.target.closest('.mrow');
+        if (e.pointerType !== 'mouse') return; // (a finger lifting "leaves" the row too: its held info must stay up, 1.117)
         if (!t || (e.relatedTarget && t.contains(e.relatedTarget))) return;
         if (!t.isConnected) return; // (redrawn away under the mouse: not a leave)
         const r = rows()[Number(t.dataset.i)];
