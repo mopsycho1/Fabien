@@ -1,6 +1,7 @@
 // Graphics 2.0, step 1 (26 Nov). Run with FABIEN_MAP=cavern FABIEN_BENCH=h4,e1.
 //   1.111 End turn needs a second tap (like Prime Bow): a stray tap spends nothing
 //   18.56 to 18.61: every new look sits behind a Settings switch, Off until Baiyee approves it
+//   1.123 (27 Nov): Weapon streaks and Fighter lighting approved, On by default; Mood stays Off
 const { start, battle } = require('./boot.cjs');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? '  [' + x + ']' : '')); if (!ok) fails++; };
@@ -45,24 +46,27 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   // 18.56 the switches, 18.57 weapon streaks
   const rowOf = (word) => b.settingsRows.find((r) => r.text.startsWith(word));
   const sr = rowOf('Weapon streaks');
-  check('18.56 Settings has a Weapon streaks row, Off by default', sr && /Off$/.test(sr.text), sr && sr.text);
+  check('1.123 Settings has a Weapon streaks row, On by default (approved 27 Nov)', sr && /On$/.test(sr.text), sr && sr.text);
+  sr.emit('pointerdown'); // switched Off, for the old arc
+  check('18.56 a tap turns it Off', /Off$/.test(rowOf('Weapon streaks').text), rowOf('Weapon streaks').text);
   check('18.56 the sheet still ends with Close', b.settingsRows[b.settingsRows.length - 1].text === 'Close');
   const sud = b.units.find((u) => u.id === 'h1'), foe = b.units.find((u) => u.side === 'enemy' && u.alive);
   b.placeUnit(sud, 4, 6); b.placeUnit(foe, 5, 6); foe.hp = 999;
   sud.lastStreakAt = 0;
   await new Promise((r) => b.performAttack(sud, foe, r)); await sleep(800);
   check('18.57 switched off: no streak (the old arc)', !sud.lastStreakAt);
-  sr.emit('pointerdown');
+  rowOf('Weapon streaks').emit('pointerdown');
   check('18.56 a tap turns it On', /On$/.test(rowOf('Weapon streaks').text), rowOf('Weapon streaks').text);
   sud.lastStreakAt = 0; sud.hasActed = false;
   await new Promise((r) => b.performAttack(sud, foe, r)); await sleep(800);
   check('18.57 switched on: his blow plays a streak', sud.lastStreakAt > 0, sud.lastStreakAt);
   const ala = b.units.find((u) => u.id === 'h5');
   if (ala) { ala.lastStreakAt = 0; b.placeUnit(ala, 4, 4); b.placeUnit(foe, 5, 4); await new Promise((r) => b.performAttack(ala, foe, r)); await sleep(800); check('18.57 Alagara keeps his own drawn slash (no streak)', !ala.lastStreakAt); }
-  rowOf('Weapon streaks').emit('pointerdown'); // back Off for the device
   // 18.58 fighter lighting: the switch, and a normal map for every fighter picture (make_normals.py --all)
   const lr = rowOf('Fighter lighting');
-  check('18.58 Settings has a Fighter lighting row, Off by default', lr && /Off$/.test(lr.text), lr && lr.text);
+  check('1.123 Settings has a Fighter lighting row, On by default (approved 27 Nov)', lr && /On$/.test(lr.text), lr && lr.text);
+  lr.emit('pointerdown'); // Off, to check the fighters go back to the plain drawing
+  check('1.123 a tap turns lighting Off', /Off$/.test(rowOf('Fighter lighting').text), rowOf('Fighter lighting').text);
   const fs = require('fs'), path = require('path');
   const artJson = require('../../src/data/art.json');
   const SKIP = new Set(['props', 'name', 'portrait', 'portraitHurt', 'shout', 'hurtFaces', 'clash', 'height', 'auraPainted', 'ruler', 'headTurn', 'walkStyle', 'unwired', 'weapon', 'swingFx', 'channelFx']);
@@ -74,7 +78,8 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   const mr = rowOf('Mood');
   check('18.59 Settings has a Mood row, Off by default; off, the camera has no mood pass', mr && /Off$/.test(mr.text) && !(b.mood && b.mood.on), mr && mr.text);
   check('18.58 off: the fighters are drawn as before (no Light2D, no normal maps queued)', !(b.fighterLight && b.fighterLight.on) && b.units.every((u) => !u.sprite || !u.sprite.pipeline || u.sprite.pipeline.name !== 'Light2D'));
-  check('18.56 a second tap turns it Off', /Off$/.test(rowOf('Weapon streaks').text));
+  rowOf('Fighter lighting').emit('pointerdown'); // back to the defaults for the device
+  check('1.123 back On: streaks and lighting at their defaults', /On$/.test(rowOf('Weapon streaks').text) && /On$/.test(rowOf('Fighter lighting').text));
 
   const real = errors.filter((e) => !/Not implemented/.test(e));
   check('no page errors', real.length === 0, real.slice(0, 3).join(' | '));
