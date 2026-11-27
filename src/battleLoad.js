@@ -5,6 +5,7 @@
 // A second battle in the same visit finds everything in the cache and shows no bar.
 import { preloadArt } from './art.js';
 import { preloadBoardArt } from './boardArt.js';
+import { board3dOn, queueBoard3d } from './board3d.js';
 import { preloadNormals } from './lighting.js';
 import { queueNormals } from './fighterLight.js';
 import { preloadSpellArt } from './spellArt.js';
@@ -19,6 +20,7 @@ import { allCharacters } from './lineup.js';
 export function queueBattleArt(scene, ids) {
   preloadArt(scene, ids);
   preloadBoardArt(scene);
+  if (board3dOn()) queueBoard3d(scene, 0); // ?map=blender: the Blender board's first side (the others load when the camera turns)
   preloadNormals(scene); // bump pictures for the ?light test
   queueNormals(scene, ids); // the fighters' normal maps, only with Fighter lighting on (18.58)
   preloadSpellArt(scene); // lightning and Verse effects from the effect sheets

@@ -54,6 +54,7 @@ import { play, startBattleMusic, stopMusic, isMuted, setMuted } from '../audio.j
 import { installLighting } from '../lighting.js';
 import { installFighterLight } from '../fighterLight.js';
 import { installMood } from '../mood.js';
+import { board3dReady, drawBoard3d, withBoard3d } from '../board3d.js';
 import { createBoardTextures, drawTileBlock, drawUnderside, drawBackdrop, drawScenery, drawCavern, drawSite, prepareLights, setBoardSetting, terrainAt, groundName, groundColors } from '../boardArt.js';
 import { LOOKS, lookOn, setLook } from '../look2.js';
 import { weaponStreak } from '../weaponStreak.js';
@@ -1625,10 +1626,15 @@ export default class BattleScene extends Phaser.Scene {
   buildBoard() {
     const before = new Set(this.children.list);
     prepareLights(mapData); // where the fires are, as the camera sees them (the Hidden Cavern is lit only by fire)
-    drawUnderside(this); // the cave floor around the board, or the rock hanging under it
-    this.drawBoard();
+    // ?map=blender (Graphics 2.0 step 3): the board rendered in Blender, in place of the tile blocks,
+    // the cave floor and the walls round it (board3d.js)
+    const baked = mapData.setting === 'cavern' && board3dReady(this, getRotation()) && drawBoard3d(this, getRotation()); // (rendered for the cavern only)
+    if (!baked) {
+      drawUnderside(this); // the cave floor around the board, or the rock hanging under it
+      this.drawBoard();
+    }
     drawScenery(this, mapData); // cliffs behind the board, the sigil wall, sandfalls
-    drawCavern(this, mapData);  // the Hidden Cavern: its walls, ledge and props, waterfalls, lamps (Phase 11)
+    drawCavern(this, mapData, baked);  // the Hidden Cavern: its walls, ledge and props, waterfalls, lamps (Phase 11)
     this.boardObjects = this.children.list.filter((o) => !before.has(o));
   }
 
@@ -1642,7 +1648,7 @@ export default class BattleScene extends Phaser.Scene {
     play('select');
     const cam = this.cameras.main;
     cam.fadeOut(110, 10, 6, 4);
-    cam.once('camerafadeoutcomplete', () => {
+    cam.once('camerafadeoutcomplete', () => withBoard3d(this, (getRotation() + dir) & 3, () => {
       setRotation(getRotation() + dir);
       for (const o of this.boardObjects) {
         this.tweens.killTweensOf(o);
@@ -1653,7 +1659,7 @@ export default class BattleScene extends Phaser.Scene {
       cam.fadeIn(170, 10, 6, 4);
       this.rotating = false;
       this.refreshCompass();
-    });
+    })); // (withBoard3d: with ?map=blender the next side's pictures are fetched first, if they are not in yet)
   }
 
   // The little board diamond by the turn button, with a dot on the corner

@@ -12,6 +12,7 @@ const { chromium } = require('playwright');
 //   opts.sides    : put characters on the other side, { e5: 'hero' } puts Gadara on the heroes' side (10.38)
 //   opts.select   : true stops at the character select (dev/browser/select.cjs); otherwise it is skipped
 //   opts.water    : 'drawn' (Suleiman's waterfall) or 'blender' (the Blender loops), to compare them
+//   opts.map      : 'drawn' (today's board) or 'blender' (the board rendered in Blender, ?map=blender)
 exports.openBattle = async function openBattle(view, opts = {}) {
   const desktop = view === 'desktop';
   const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -28,6 +29,7 @@ exports.openBattle = async function openBattle(view, opts = {}) {
   if (opts.sides) await page.addInitScript((sd) => { window.__sides = sd; }, opts.sides); // put a character on the other side: { e5: 'hero' } (10.38)
   if (opts.ringSet) await page.addInitScript((r) => { window.__ringSet = r; }, opts.ringSet); // team ring colours to try (boardRead.js)
   if (opts.water) await page.addInitScript((style) => { window.__waterStyle = style; }, opts.water); // 'drawn' or 'blender' (roadmap 1.48)
+  if (opts.map) await page.addInitScript((style) => { window.__mapStyle = style; }, opts.map); // 'drawn' or 'blender' (the Blender board, Graphics 2.0 step 3)
   const errors = [];
   page.on('pageerror', (e) => errors.push((e.stack || e.message).split('\n').slice(0, 4).join(' | ')));
   // GAME_URL plays another build, for example the live site (https://mopsycho1.github.io/Fabien/)

@@ -1215,12 +1215,14 @@ function fireTint(f) {
 // Everything in the cavern that isn't a tile you can stand on: the ledge and
 // rock walls round the far sides with his props on the ledge, water pouring
 // off the ritual platform, and the ritual lamps. All read from the map file.
-export function drawCavern(scene, map) {
+// baked: the Blender board (?map=blender, board3d.js) already shows the walls, ledge, props and
+// lamp bowls, and draws their flames itself; only the waterfalls and the dig sites are added.
+export function drawCavern(scene, map, baked = false) {
   if (setting !== 'cavern') return;
-  drawSurround(scene, map.surround || {});
+  if (!baked) drawSurround(scene, map.surround || {});
   waterfallSprites.length = 0; // (a new board: the old pictures went with the old scene)
   for (const w of map.waterfalls || []) drawWaterfall(scene, w);
-  for (const [c, r] of map.lamps || []) drawLamp(scene, c, r, map.sigilCircle || [4, 4]);
+  if (!baked) for (const [c, r] of map.lamps || []) drawLamp(scene, c, r, map.sigilCircle || [4, 4]);
   drawSites(scene);
 }
 
@@ -1299,7 +1301,7 @@ function drawSurround(scene, surround) {
 }
 
 // A flickering flame with its glow and sparks (braziers, lamps).
-function flame(scene, x, y, depth, size) {
+export function flame(scene, x, y, depth, size) {
   // drawn round its own point and placed at (x, y): a Graphics scales from its
   // own point, and drawn at (x, y) inside it the flame slid up and down the
   // screen as it flickered (the lights "moving out of place", Baiyee 1 Nov)
