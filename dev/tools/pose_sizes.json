@@ -418,9 +418,9 @@
     "h": 0.995
    },
    "tayo_n6b_weak": {
-    "size": 0.92,
-    "why": "21 Nov, next to standing at the size drawn: head and feet",
-    "h": 0.689
+    "size": 1.0,
+    "why": "27 Nov (1.120, Suleiman: Tayo shrinks at low health): drawn at 0.87 (ruler_marks.json), beside standing, battle and hurt at game size: head, gauntlet and feet as standing. The 21 Nov eye reading (0.92 at 0.73) was wrong",
+    "h": 0.821
    },
    "tayo_n6b_battleFire": {
     "size": 1.0,

@@ -78,9 +78,11 @@
   "e1": {
     "scale": {
       "tayo_n6b_victory": 1.0,
-      "tayo_n6b_battleFire": 0.87
+      "tayo_n6b_battleFire": 0.87,
+      "tayo_n6b_weak": 0.87
     },
-    "feet": {}
+    "feet": {},
+    "note_weak": "1.120 (Suleiman 27 Nov: Tayo shrinks when his health is low): the head finder read his hunched weak head 1.33 times his standing head (the fist by his face; 2.1 on one view), so the ruler drew the weak stance at 0.73 and his whole body shrank by about a quarter. Pinned at 0.87, his battle stance's size, judged by eye at game size beside standing, battle and hurt (head, gauntlet and feet)."
   },
   "e4": {
     "note": "Rabdul is bald, so the head finder has no hair to go by: every family is set by eye.",
