@@ -133,7 +133,9 @@ export default class SelectScene extends Phaser.Scene {
     const rowsPer = sides.map((sd) => Math.ceil(sd.list.length / cols));
     const free = H - top - footH - m - (wide ? S(42) : 2 * S(42) + S(10));
     const rowCount = wide ? Math.max(...rowsPer) : rowsPer[0] + rowsPer[1];
-    const cardH = Phaser.Math.Clamp(Math.floor(free / rowCount) - gap, S(wide ? 110 : 120), S(wide ? 190 : 170));
+    // 1.122 (27 Nov): on a wide screen the cards may get as short as 72 design px, so twelve a side still fit above the footer
+    // on a 1366 x 768 or 1280 x 720 laptop window (at 110 the footer, with Start battle, fell below the screen there)
+    const cardH = Phaser.Math.Clamp(Math.floor(free / rowCount) - gap, S(wide ? 72 : 120), S(wide ? 190 : 170));
     let y = top, bottom = top;
     sides.forEach((sd, i) => {
       const x0 = wide ? m + i * (colW + m) : m;
@@ -155,8 +157,18 @@ export default class SelectScene extends Phaser.Scene {
       bottom = Math.max(bottom, end);
     });
 
-    // the footer: Reset to default, Start battle (it sits at the bottom of the screen, or under the cards)
-    const fy = Math.max(H - m - footH, bottom + S(8));
+    // the footer: Reset to default, Start battle.
+    // 1.122 (Suleiman 27 Nov, desktop: stuck on the select): the footer stood under the cards, so when the cards ran past the
+    // bottom of a laptop window (1366 x 768, 1280 x 720: twelve a side since Leol and the Thief came) Start battle was off the
+    // screen and only the mouse wheel, with nothing to say so, could reach it. Now the footer is pinned to the bottom of the
+    // screen (it does not scroll), on a dark band that takes the taps; the cards scroll under it when they do not fit.
+    const fy = H - m - footH;
+    const band = add(this.add.rectangle(0, fy - S(8), W, H - fy + S(8), 0x140f0b, 0.94).setOrigin(0, 0).setScrollFactor(0).setInteractive());
+    band.label = 'footer';
+    this.footTop = fy - S(8); // (where the pinned footer begins on the screen: cards above it can be tapped)
+    const bandLine = add(this.add.graphics().setScrollFactor(0));
+    bandLine.fillStyle(GOLD, 0.35).fillRect(m, fy - S(8), W - 2 * m, 1);
+    const footerFrom = layer.list.length; // (everything added from here on is the footer: pinned to the screen)
     const ready = this.pick.hero.length > 0 && this.pick.enemy.length > 0;
     const bw = Math.min(S(300), (W - 3 * m) / 2), bh = Math.max(S(64), 44 / (this.scale.displayScale ? 1 : 1));
     this.button(add, W / 2 - m / 2 - bw, fy + (footH - bh) / 2, bw, bh, 'Reset to default', true, F, S, () => {
@@ -171,7 +183,9 @@ export default class SelectScene extends Phaser.Scene {
       saveLineUp(this.pick);
       this.startBattle(this.pick);
     }, true);
-    this.maxScroll = Math.max(0, fy + footH + m - H);
+    for (const o of layer.list.slice(footerFrom)) o.setScrollFactor(0);
+    // the cards scroll under the pinned footer: as far as the last card standing just above it
+    this.maxScroll = Math.max(0, bottom + S(8) - (fy - S(8)));
     this.cameras.main.scrollY = Phaser.Math.Clamp(this.cameras.main.scrollY, 0, this.maxScroll);
   }
 

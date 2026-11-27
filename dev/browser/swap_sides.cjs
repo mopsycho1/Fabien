@@ -31,9 +31,11 @@ async function run(view) {
     const h = hits.find((o) => o && (side ? o.charId === pred && o.side === side : o.label === pred));
     if (!h) return null;
     // scroll it into view when it is off the screen
-    let gy = h.y + h.height / 2 - cam.scrollY;
-    if (gy < 0 || gy > s.scale.height) { cam.scrollY = Math.max(0, Math.min(s.maxScroll, h.y - s.scale.height / 2)); gy = h.y + h.height / 2 - cam.scrollY; }
-    const gx = h.x + h.width / 2 - cam.scrollX;
+    // (1.122: the footer is pinned, scroll factor 0; a card under it is scrolled up above it)
+    const sf = h.scrollFactorY, low = sf ? (s.footTop || s.scale.height) : s.scale.height;
+    let gy = h.y + h.height / 2 - cam.scrollY * sf;
+    if (gy < 0 || gy > low) { cam.scrollY = Math.max(0, Math.min(s.maxScroll, h.y - low / 2)); gy = h.y + h.height / 2 - cam.scrollY * sf; }
+    const gx = h.x + h.width / 2 - cam.scrollX * h.scrollFactorX;
     return { x: c.left + gx * c.width / s.scale.width, y: c.top + gy * c.height / s.scale.height };
   }, { pred, side });
   const tap = async (pred, side) => { const p = await find(pred, side); if (!p) return false; await press(p); return true; };
