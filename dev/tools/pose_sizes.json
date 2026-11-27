@@ -777,57 +777,57 @@
    "thief_weak": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 0.98
+    "h": 0.994
    },
    "thief_slash": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 0.885
+    "h": 0.994
    },
    "thief_parry": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 1.01
+    "h": 0.923
    },
    "thief_dodge": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 1.007
+    "h": 0.92
    },
    "thief_hurt": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 1.115
+    "h": 1.019
    },
    "thief_down": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 0.601
+    "h": 0.549
    },
    "thief_victory": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 1.074
+    "h": 0.981
    },
    "thief_ambush": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 0.926
+    "h": 0.846
    },
    "thief_battle": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 1.098
+    "h": 1.003
    },
    "thief_trap": {
     "size": 1.0,
     "why": "26 Nov, next to standing at the size drawn: head, mane and feet",
-    "h": 0.97
+    "h": 0.886
    },
    "thief_fallen": {
     "size": 1.0,
     "why": "26 Nov (6.96), next to standing at the size drawn: three of four head readings agree at about 1.0",
-    "h": 0.77
+    "h": 0.704
    }
   }
  },

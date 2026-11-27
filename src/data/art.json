@@ -7203,7 +7203,7 @@
       },
       "leol_down_1.png": {
         "scale": 0.87,
-        "footX": 0.529
+        "footX": 0.542
       },
       "leol_victory_3.png": {
         "scale": 0.95,
@@ -7265,7 +7265,7 @@
   "e6": {
     "note": "The Thief (roadmap 19.2, art 6.77; cut 22 to 26 Nov by dev/tools/make_newclass.py). Facings read by the figure per sheet (his sheets are in no fixed order; a missing side is the other one mirrored). \"ambush\" is the Dagger Ambush leap, \"trap\" laying a trap. No walk pictures: the walk is made in code. Faces from the 21 Nov expression sheet (15 cut; neutral, hurt and angry wired).",
     "name": "Thief",
-    "height": 79,
+    "height": 81,
     "standing": {
       "upLeft": {
         "file": "thief_stand_2.png"
@@ -7487,13 +7487,16 @@
     "note_steal": "thief_steal_1 to 4 (performing a steal) are cut but wait for a Steal skill (6.96, 26 Nov: no move goes with it yet)",
     "ruler": {
       "thief_stand_2.png": {
-        "footX": 0.472
+        "footX": 0.531
       },
       "thief_stand_4.png": {
-        "footX": 0.44
+        "footX": 0.714
       },
       "thief_stand_1.png": {
-        "footX": 0.536
+        "footX": 0.367
+      },
+      "thief_stand_3.png": {
+        "footX": 0.654
       },
       "thief_battle_2.png": {
         "footX": 0.437
@@ -7502,19 +7505,19 @@
         "footX": 0.354
       },
       "thief_weak_2.png": {
-        "footX": 0.578
+        "footX": 0.436
       },
       "thief_weak_1.png": {
-        "footX": 0.147
+        "footX": 0.337
       },
       "thief_slash_2.png": {
-        "footX": 0.477
+        "footX": 0.357
       },
       "thief_slash_3.png": {
-        "footX": 0.243
+        "footX": 0.281
       },
       "thief_slash_1.png": {
-        "footX": 0.582
+        "footX": 0.151
       },
       "thief_parry_2.png": {
         "footX": 0.458

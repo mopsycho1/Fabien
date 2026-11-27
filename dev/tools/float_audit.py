@@ -7,6 +7,9 @@ Feet kept (1.119, 27 Nov: "Leol has no feet, the Thief is missing his legs"): a 
 makes a picture SHORTER. Every fighter's upright pictures (standing, battle stance, weak) have their height pinned in
 dev/tools/stand_heights.json; a picture more than SHORT shorter than its pin fails. After a recut that is meant to change a height,
 look at it next to its sheet, then:  float_audit.py --pin-heights
+No tile strips (1.125, 27 Nov): a floor clean-up that leaves the tile's rim as pale strips by the feet makes a picture WIDER (the
+Thief's standing 1 was 153 px wide with its strips, 115 without). Every fighter picture's width is pinned in dev/tools/pic_widths.json
+(written by the same --pin-heights); one more than WIDE wider than its pin fails.
 """
 import json, os, sys
 import numpy as np
@@ -16,6 +19,8 @@ ART = json.load(open(os.path.join(ROOT, 'src', 'data', 'art.json')))
 LIMIT = 2.0
 SHORT = 0.06   # 1.119: an upright picture may not lose more than 6 percent of its height (its feet) without a new pin
 HEIGHTS = os.path.join(ROOT, 'dev', 'tools', 'stand_heights.json')
+WIDE = 0.08   # 1.125: a picture may not grow more than 8 percent wider (a tile strip back) without a new pin
+WIDTHS = os.path.join(ROOT, 'dev', 'tools', 'pic_widths.json')
 UPRIGHT = ('.standing', '.battle', '.weak')
 def upright_heights():
     """{picture: height in pixels} for every fighter's standing, battle stance and weak pictures."""
@@ -31,6 +36,19 @@ def lost_feet():
     """[(picture, pinned height, height now)] for upright pictures more than SHORT shorter than pinned."""
     pins = json.load(open(HEIGHTS)) if os.path.exists(HEIGHTS) else {}
     return [(f, pins[f], h) for f, h in sorted(upright_heights().items()) if f in pins and h < pins[f] * (1 - SHORT)]
+def all_widths():
+    """{picture: width in pixels} for every picture of every fighter."""
+    out = {}
+    for cid, e in ART.items():
+        if not isinstance(e, dict) or e.get('unwired') or 'standing' not in e: continue
+        for path, f in pictures(e):
+            p = os.path.join(ROOT, 'public', 'art', f)
+            if os.path.exists(p): out[f] = Image.open(p).width
+    return out
+def strips_back():
+    """[(picture, pinned width, width now)] for pictures more than WIDE wider than pinned."""
+    pins = json.load(open(WIDTHS)) if os.path.exists(WIDTHS) else {}
+    return [(f, pins[f], w) for f, w in sorted(all_widths().items()) if f in pins and w > pins[f] * (1 + WIDE)]
 AIR = ('leap', 'fallAir', 'air', 'bless', 'float', 'jump', 'dive', 'hover')
 def pictures(entry, path=''):
     if isinstance(entry, str) and entry.endswith('.png'):
@@ -67,9 +85,12 @@ def run(fix=False):
 if __name__ == '__main__':
     if '--pin-heights' in sys.argv:
         hs = upright_heights(); json.dump(dict(sorted(hs.items())), open(HEIGHTS, 'w'), indent=1); open(HEIGHTS, 'a').write('\n')
-        print('pinned the heights of %d upright pictures' % len(hs)); sys.exit(0)
+        ws = all_widths(); json.dump(dict(sorted(ws.items())), open(WIDTHS, 'w'), indent=1); open(WIDTHS, 'a').write('\n')
+        print('pinned the heights of %d upright pictures and the widths of %d pictures' % (len(hs), len(ws))); sys.exit(0)
     lost = lost_feet()
     for f, was, now in lost: print('SHORT %-46s %d px, pinned %d: has it lost its feet? Look, then --pin-heights' % (f, now, was))
+    wide = strips_back()
+    for f, was, now in wide: print('WIDE  %-46s %d px, pinned %d: is a tile strip back by the feet? Look, then --pin-heights' % (f, now, was))
     fix = '--fix' in sys.argv
     bad = run()
     for cid, path, f, gap, air, feet in sorted(bad, key=lambda b: -b[3]):
@@ -78,5 +99,5 @@ if __name__ == '__main__':
             p = os.path.join(ROOT, 'public', 'art', f); im = Image.open(p).convert('RGBA'); a = np.array(im)[..., 3]
             rows = np.nonzero((a > 128).sum(1) >= 2)[0]; im.crop((0, 0, im.width, rows[-1] + 1)).save(p, optimize=True)
     n = sum(1 for b in bad if not b[4])
-    print('%d floating, %d airborne (meant to); %d upright pictures shorter than pinned (1.119)' % (n, len(bad) - n, len(lost)))
-    sys.exit(1 if (n and not fix) or lost else 0)
+    print('%d floating, %d airborne (meant to); %d upright pictures shorter than pinned (1.119); %d pictures wider than pinned (1.125)' % (n, len(bad) - n, len(lost), len(wide)))
+    sys.exit(1 if (n and not fix) or lost or wide else 0)

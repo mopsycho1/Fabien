@@ -81,7 +81,8 @@ BASE = 0.40
 # beside Sudeen, Gaha and Leol at game size (dev/browser/size_row.cjs): 70 puts his head with the humans' (n99 checks it).
 # 1.119 (27 Nov): with their feet and legs back their tallest standing pictures are taller (Leol 139 to 172 px, the Thief 144 to
 # 162), so the heights grew by the same ratio (92 x 172/139, 70 x 162/144): the bodies are drawn exactly as big as before.
-HEIGHT = {'leol': 114, 'thief': 79}   # Leol 92: at 100 he was as broad as the Bull Commander; 92 keeps him a big lion warrior, a little over the humans
+# 1.125 (27 Nov): his standing 4 with its legs back by hand is 166, the new tallest: 79 x 166/162 = 81, drawn as big as before.
+HEIGHT = {'leol': 114, 'thief': 81}   # Leol 92: at 100 he was as broad as the Bull Commander; 92 keeps him a big lion warrior, a little over the humans
 ART_ID = {'leol': 'h6', 'thief': 'e6'}
 
 def set_heights():
@@ -196,40 +197,118 @@ def add_body(a, raw, g, min_alpha=128, clean=0.12):
     a = a.copy(); a[back] = raw[back]
     return a
 
+# 1.125 (27 Nov, Baiyee: "try cleaning them by hand once, by eye on a contact sheet next to his sheet"). Where the colour clean-up
+# and the person model both failed, areas marked by eye on the untouched cell (10 px grid, picture pixels before the crop):
+# "erase" clears the tile's back rim left as pale strips, "body" puts back legs, trousers and paws from the untouched cut.
+# Pixels within 2 px of a "body" outline in the paving's colours are left out (the outline drawn by eye can graze the tile).
+# "fill" puts back holes closed in on every side (the colour clean-up took cream cloth inside the body).
+HAND = {
+    'thief_stand_1.png': {'erase': [[(0, 115), (38, 115), (38, 165), (0, 165)], [(112, 112), (160, 112), (160, 165), (112, 165)]],
+                          'body': [[(38, 123), (52, 123), (54, 133), (48, 140), (48, 148), (46, 160), (40, 162), (32, 160), (32, 148), (34, 138), (36, 130)],
+                                   [(98, 112), (110, 112), (112, 122), (122, 124), (128, 128), (129, 135), (124, 138), (108, 137), (100, 134), (98, 124)]]},
+    'thief_stand_2.png': {'erase': [[(0, 118), (41, 118), (41, 146), (0, 146)], [(134, 118), (158, 118), (158, 150), (134, 150)]]},   # (legs whole; rim strips only)
+    'thief_stand_3.png': {'erase': [[(0, 115), (42, 115), (42, 160), (0, 160)], [(130, 115), (160, 115), (160, 160), (130, 160)]],
+                          'body': [[(44, 110), (55, 110), (56, 124), (52, 134), (45, 139), (30, 140), (26, 136), (30, 130), (40, 126), (44, 120)],
+                                   [(112, 118), (127, 120), (128, 135), (130, 145), (133, 152), (131, 160), (118, 160), (116, 150), (117, 138), (113, 128)]]},
+    'thief_stand_4.png': {'erase': [[(0, 122), (16, 122), (40, 138), (40, 165), (0, 165)], [(106, 115), (160, 115), (160, 170), (118, 170)]],
+                          'body': [[(30, 104), (42, 110), (38, 118), (32, 124), (30, 132), (26, 138), (18, 138), (16, 130), (20, 122), (26, 112)],
+                                   [(89, 124), (106, 124), (105, 140), (104, 150), (112, 153), (117, 158), (115, 165), (100, 166), (88, 165), (87, 155), (90, 145)]]},
+    'thief_weak_1.png': {'erase': [[(0, 112), (36, 112), (40, 148), (0, 148)], [(152, 110), (190, 110), (190, 150), (152, 150)]],
+                         'body': [[(38, 110), (58, 108), (60, 125), (58, 140), (62, 150), (60, 159), (45, 160), (40, 152), (42, 140), (40, 125)],
+                                  [(113, 98), (133, 98), (136, 108), (148, 118), (152, 128), (140, 134), (120, 133), (114, 122), (112, 108)]]},
+    'thief_weak_2.png': {'erase': [[(0, 112), (46, 112), (46, 148), (0, 148)], [(146, 112), (195, 112), (195, 150), (146, 150)]],
+                         'body': [[(50, 110), (73, 110), (76, 130), (74, 145), (80, 152), (78, 162), (45, 162), (42, 153), (52, 145), (50, 130)],
+                                  [(145, 105), (160, 108), (166, 118), (165, 128), (152, 130), (144, 122)]], 'fill': True},
+    'thief_slash_1.png': {'erase': [[(0, 100), (50, 100), (52, 140), (0, 140)], [(178, 100), (225, 100), (225, 140), (208, 140), (206, 127), (185, 112)]],
+                          'body': [[(68, 72), (110, 74), (122, 78), (128, 90), (128, 105), (124, 115), (112, 118), (100, 112), (85, 108), (80, 115), (76, 130), (78, 145), (78, 160), (70, 166), (55, 165), (52, 152), (55, 140), (58, 120), (62, 105), (65, 90)],
+                                   [(118, 105), (132, 102), (140, 112), (140, 125), (128, 128), (118, 120)]]},
+    'thief_slash_2.png': {'erase': [[(0, 98), (50, 98), (56, 112), (56, 140), (0, 140)]],
+                          'body': [[(55, 85), (85, 80), (100, 95), (100, 115), (95, 125), (98, 140), (100, 152), (95, 160), (70, 160), (62, 152), (70, 140), (70, 120), (58, 110), (53, 95)],
+                                   [(155, 100), (175, 100), (182, 112), (180, 122), (165, 122), (155, 112)]], 'fill': True},
+    'thief_slash_3.png': {'erase': [[(0, 98), (28, 98), (30, 108), (0, 130)], [(186, 90), (225, 90), (225, 125), (186, 125)], [(165, 115), (186, 115), (186, 125), (165, 125)]],
+                          'body': [[(65, 70), (108, 72), (112, 85), (105, 100), (90, 100), (80, 110), (78, 125), (78, 140), (75, 152), (58, 152), (55, 140), (60, 125), (60, 105), (64, 90)],
+                                   [(150, 80), (170, 82), (180, 95), (185, 108), (182, 115), (165, 115), (155, 105), (150, 92)]]},
+    'leol_down_1.png': {'erase': [[(0, 100), (30, 100), (36, 130), (0, 130)], [(203, 100), (230, 100), (230, 140), (203, 140)]],
+                        'body': [[(32, 95), (45, 80), (70, 70), (78, 55), (95, 35), (110, 20), (130, 5), (175, 2), (190, 15), (195, 45), (190, 70), (180, 82), (185, 105),
+                                  (200, 118), (202, 126), (190, 130), (172, 128), (168, 110), (160, 96), (145, 92), (128, 96), (126, 112), (124, 126), (122, 138), (105, 140),
+                                  (100, 128), (98, 112), (90, 112), (75, 114), (62, 112), (60, 125), (55, 132), (42, 130), (36, 122), (38, 110), (30, 105)]]},
+}
+def hand_clean(a, raw, h):
+    from scipy import ndimage as nd
+    H, W = raw.shape[:2]
+    def poly(pts):
+        m = Image.new('L', (W, H), 0); ImageDraw.Draw(m).polygon(pts, fill=1); return np.array(m) > 0
+    a = a.copy()
+    for pts in h.get('erase', []): a[poly(pts), 3] = 0
+    body = np.zeros((H, W), bool)
+    for pts in h.get('body', []): body |= poly(pts)
+    body &= raw[..., 3] > 20
+    # the paving's colours: what the clean-up took that no "body" area covers, below the kept figure's middle
+    kept = a[..., 3] > 20
+    ys = np.nonzero(kept.any(1))[0]
+    floor = (raw[..., 3] > 128) & ~kept & ~body
+    if len(ys): floor[: (ys[0] + ys[-1]) // 2] = False
+    q = raw[..., :3].astype(int) // 16; key = q[..., 0] * 256 + q[..., 1] * 16 + q[..., 2]
+    if floor.sum() > 50:
+        hist = np.bincount(key[floor], minlength=4096)
+        common = hist >= max(3, np.percentile(hist[hist > 0], 50))
+        rim = body & ~nd.binary_erosion(body, iterations=2)
+        body &= ~(rim & common[key])
+    a[body & ~kept] = raw[body & ~kept]
+    if h.get('fill'):
+        sol = a[..., 3] > 20; holes = nd.binary_fill_holes(sol) & ~sol & (raw[..., 3] > 20)
+        a[holes] = raw[holes]
+    # specks the erase left apart from the figure (a tip of the rim) go
+    sol = a[..., 3] > 20; lab, n = nd.label(sol)
+    if n > 1:
+        sz = nd.sum(sol, lab, range(1, n + 1))
+        for i in range(1, n + 1):
+            if sz[i - 1] < 0.005 * sz.max(): a[lab == i, 3] = 0
+    return a
+
 # detile front: how far above the tile's front edges everything is cleared (share of the half width). Lying poses lie ON the slab top,
 # a little higher; the barricade is not a figure (its own frame stands on the tile edges): no clearing.
 FRONT = {'barricade': None}   # detile: how common a colour must be in the tile samples (see detile.py)
 
+def cut_cell(sheet, i, cl, box, prefix):
+    """One figure: cut from the untouched sheet, floor cleared, body put back. Gives back (picture, untouched cut), not cropped."""
+    name = '%s_%d.png' % (sheet, i + 1)
+    DEBUG_NAME[0] = name
+    # keep=0.02: a sling's cord or a dagger can be apart from the body
+    mk.final_cut(cl, box, L.OUT + name, BASE, keep=0.02)
+    a = np.array(Image.open(L.OUT + name).convert('RGBA'))
+    raw = a.copy()
+    if sheet.endswith('barricade'): a = detile(a, common=COMMON[prefix])
+    else:
+        # 26 Nov: detile takes the top face; deslab then takes the slab's sides, rims and plate, read from the untouched cut
+        from detile import slab_geometry
+        g = slab_geometry(a)
+        if os.environ.get('DEBUG'): print('DEBUG', name, a.shape[:2], 'slab' if g else 'NO SLAB', file=sys.stderr); Image.fromarray(raw).save(WORK + 'dbg_' + name)
+        a = deslab(detile(a, common=COMMON[prefix]), geom=g, colour=False, rim=0.05 if sheet in NO_BACK else RIM[prefix], raw=raw, back=0 if sheet in NO_BACK else BACK[prefix]) if g and not sheet.endswith('ambush') else detile(a, common=COMMON[prefix])
+        # (the ambush is a leap above the tile: its outline is not the slab's)
+        if not sheet.endswith('ambush') and name not in NO_BODY: a = add_body(a, raw, g)   # 1.119: the feet and legs the colour clean-up took with the tile
+        # loose pieces low down (a shadow or blood under the victory pose)
+        from scipy import ndimage as nd
+        bb = Image.fromarray(a).getbbox()
+        if bb:
+            sol = a[..., 3] > 20; lab, n = nd.label(sol)
+            if n > 1:
+                sz = nd.sum(sol, lab, range(1, n + 1)); tops = nd.minimum(np.arange(a.shape[0])[:, None].repeat(a.shape[1], 1), lab, range(1, n + 1))
+                for i in range(1, n + 1):
+                    if sz[i - 1] < 0.25 * sz.max() and tops[i - 1] > bb[1] + 0.72 * (bb[3] - bb[1]): a[lab == i, 3] = 0
+    return a, raw
+
 def cut_all(prefix):
     out = {}
+    only = os.environ.get('ONLY', '').split(',') if os.environ.get('ONLY') else None   # ONLY=thief_stand_1.png,... re-cuts just those
     for sheet in [n for n in SHEETS if n.startswith(prefix + '_')]:
         parts, files = L.raw(sheet)
         names = []
         for i, (cl, box) in enumerate(parts):
             name = '%s_%d.png' % (sheet, i + 1)
-            DEBUG_NAME[0] = name
-            # keep=0.02: a sling's cord or a dagger can be apart from the body
-            mk.final_cut(cl, box, L.OUT + name, BASE, keep=0.02)
-            a = np.array(Image.open(L.OUT + name).convert('RGBA'))
-            raw = a.copy()
-            if sheet.endswith('barricade'): a = detile(a, common=COMMON[prefix])
-            else:
-                # 26 Nov: detile takes the top face; deslab then takes the slab's sides, rims and plate, read from the untouched cut
-                from detile import slab_geometry
-                g = slab_geometry(a)
-                if os.environ.get('DEBUG'): print('DEBUG', name, a.shape[:2], 'slab' if g else 'NO SLAB', file=sys.stderr); Image.fromarray(raw).save(WORK + 'dbg_' + name)
-                a = deslab(detile(a, common=COMMON[prefix]), geom=g, colour=False, rim=0.05 if sheet in NO_BACK else RIM[prefix], raw=raw, back=0 if sheet in NO_BACK else BACK[prefix]) if g and not sheet.endswith('ambush') else detile(a, common=COMMON[prefix])
-                # (the ambush is a leap above the tile: its outline is not the slab's)
-                if not sheet.endswith('ambush') and name not in NO_BODY: a = add_body(a, raw, g)   # 1.119: the feet and legs the colour clean-up took with the tile
-                # loose pieces low down (a shadow or blood under the victory pose)
-                from scipy import ndimage as nd
-                bb = Image.fromarray(a).getbbox()
-                if bb:
-                    sol = a[..., 3] > 20; lab, n = nd.label(sol)
-                    if n > 1:
-                        sz = nd.sum(sol, lab, range(1, n + 1)); tops = nd.minimum(np.arange(a.shape[0])[:, None].repeat(a.shape[1], 1), lab, range(1, n + 1))
-                        for i in range(1, n + 1):
-                            if sz[i - 1] < 0.25 * sz.max() and tops[i - 1] > bb[1] + 0.72 * (bb[3] - bb[1]): a[lab == i, 3] = 0
+            if only and name not in only: continue
+            a, raw = cut_cell(sheet, i, cl, box, prefix)
+            if name in HAND: a = hand_clean(a, raw, HAND[name])   # 1.125: cleaned by hand
             im = Image.fromarray(a); bb = im.getbbox()
             if bb: im = im.crop(bb)
             im.save(L.OUT + name, optimize=True)
@@ -248,5 +327,6 @@ if __name__ == '__main__' and os.environ.get('MODE') == 'cut':
     # thin tile-edge lines left under the feet (strip_lines.py)
     import glob, strip_lines
     for f in sorted(glob.glob(L.OUT + '*_[1-4].png')):
+        if os.environ.get('ONLY') and os.path.basename(f) not in os.environ['ONLY'].split(','): continue
         if os.path.basename(f).split('_')[0] in (sys.argv[2:] or ['leol', 'thief']) and 'barricade' not in f:
             im = Image.open(f).convert('RGBA'); b = Image.fromarray(strip_lines.strip(np.array(im))); bb = b.getbbox(); b = b.crop(bb) if bb else b; b.save(f, optimize=True)
