@@ -1075,8 +1075,9 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "enemy",
-    note: "19.1, numbers picked by Claude: a full blow, 2 to 4 tiles; a hit breaks a prepared action (Singularity's charge, an aimed Poison Arrow, a ward, Meditate).",
-    text: "A heavy stone at a foe 2 to 4 tiles away: a full blow, and a hit breaks whatever it was preparing (Singularity, an aimed arrow, a ward, a meditation). Ready again after 3 turns."
+    disorientTurns: 1,
+    note: "19.1, numbers picked by Claude: a full blow, 2 to 4 tiles; a hit breaks a prepared action (Singularity's charge, an aimed Poison Arrow, a ward, Meditate). 1.121 (Suleiman 27 Nov): a hit also Disorients for disorientTurns of the target's turns (1: through its next turn, as a wall slam; 2 was too much for a skill with no MP and a 3 turn wait). Disoriented: attack and defense -2, evade -10, +3 from any magic (conditions.json).",
+    text: "A heavy stone at a foe 2 to 4 tiles away: a full blow, and a hit Disorients it through its next turn (it fights worse and magic hurts it more) and breaks whatever it was preparing (Singularity, an aimed arrow, a ward, a meditation). Ready again after 3 turns."
   },
   hammerStrike: {
     category: "Hammer",

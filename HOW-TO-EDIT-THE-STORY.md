@@ -585,7 +585,7 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 
 ## Leol and the Thief (26 Nov, roadmap 19.1 and 19.2)
 - Their numbers: src/data/jobs.json, "slinger" (Leol) and "infiltrator" (the Thief): "stats" for health, attack, move and so on; "passives" for Prepared Defender (15 = the accuracy bonus), Hidden Movement (2 = extra steps) and Detection (5 = tiles).
-- Their skills: src/data/spells.json, smokePellet, suppressiveFire, concussiveShot, hammerStrike, barricade (Leol), ambush and trap (the Thief). Change "cooldown", "range", "damageShare" (1 = one normal blow), "hp" and "turns" (the barricade), "damage" and "push" (the trap), "poison" and "turns" (Bleeding). "text" is what the skill card says.
+- Their skills: src/data/spells.json, smokePellet, suppressiveFire, concussiveShot, hammerStrike, barricade (Leol), ambush and trap (the Thief). Change "cooldown", "range", "damageShare" (1 = one normal blow), "hp" and "turns" (the barricade), "damage" and "push" (the trap), "poison" and "turns" (Bleeding). "disorientTurns" (Concussive Shot: how many of the target's turns a hit Disorients it, 1.121). "text" is what the skill card says.
 - Their lines on the character select: src/data/bios.json, "h6" and "e6" ("line" short, "bio" for Suleiman's longer text).
 - Both sit out by default ("bench": true in src/data/units.json): pick them in the character select.
 

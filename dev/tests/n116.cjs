@@ -41,6 +41,10 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   if (realBreak) b.breakChannel = realBreak;
   check('Concussive Shot hits for a blow', foeFar.hp < hp0, hp0 + ' -> ' + foeFar.hp);
   check('Concussive Shot breaks the channel', broke || !foeFar.channel);
+  // 1.121 (Suleiman 27 Nov): a hit also Disorients the target through its next turn
+  const dz = foeFar.status && foeFar.status.disoriented;
+  check('1.121 Concussive Shot Disorients the target', !!dz && dz.by === 'concussive', JSON.stringify(dz));
+  check('1.121 for 1 of its turns (spells.json disorientTurns)', !!dz && dz.turnsLeft === 1, dz && dz.turnsLeft);
   // Hammer Strike pushes and readies Prepared Defender
   park(); b.placeUnit(leol, 5, 5); b.placeUnit(foeFar, 5, 6);
   // (26 Nov: the forced numbers ran out before the hit roll, so this missed about 1 time in 5. The blow is made sure

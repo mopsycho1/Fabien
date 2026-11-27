@@ -18,7 +18,7 @@ import jobs from './data/jobs.json';
 import { tileToScreen, isInsideGrid, getHeight, depthFor } from './grid.js';
 import { GRID_SIZE } from './config.js';
 import { getHitChance, getDamage, distance, hasClearShot } from './combat.js';
-import { applyBlinded, applyPoison, applyExposed, cooldownOf, canAfford } from './status.js';
+import { applyBlinded, applyPoison, applyExposed, applyDisoriented, cooldownOf, canAfford } from './status.js';
 import { smokeCloud } from './smokeArt.js';
 import { dustPuff, screenShake } from './effects.js';
 import { sfxHas, sfxAt } from './spellArt.js';
@@ -130,6 +130,9 @@ export const newClassMethods = {
       if (target.hp === 0) this.defeat(target);
     }
     const broke = hit && target.alive ? this.breakPrepared(target) : null;
+    // 1.121 (Suleiman 27 Nov): a hit also Disorients the target, through its next turn (spells.json "disorientTurns")
+    const dazed = hit && target.alive && spell.disorientTurns > 0;
+    if (dazed) applyDisoriented(target, this.activeUnit === target, spell.disorientTurns, 'concussive');
     const dx = target.view.x - caster.view.x;
     this.faceToward(caster, dx, target.view.y - caster.view.y);
     this.showPose(caster, 'attack', dx);
@@ -139,6 +142,7 @@ export const newClassMethods = {
       this.showImpact(caster, target, { hit, damage, note }, dx, target.hp === 0);
       if (hit) { screenShake(this, 0.006, 140); if (sfxHas(this, 'lunge_impact')) sfxAt(this, 'lunge_impact', target.view.x, target.view.y + 4, { size: 0.7 }); }
       if (broke) this.time.delayedCall(260, () => target.alive && this.floatText(target, broke, '#f2d38a', { rise: 52 }));
+      if (dazed) this.time.delayedCall(broke ? 620 : 300, () => { if (target.alive) { this.floatText(target, 'Disoriented', '#e3a8ff', { pop: true }); this.refreshStatusTags(); } });
     });
     this.newFinish(onDone, ms + 800, caster);
   },

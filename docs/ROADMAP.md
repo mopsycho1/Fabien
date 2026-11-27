@@ -137,9 +137,9 @@ Rules for Claude:
 - [ ] 1.118 The skills list always fits on the screen: beside the menu, or in its place with a back arrow when there is no room, scrolling inside itself if long. Every fighter, Alagara's and Gadara's grouped lists too.
 - [ ] 1.119 Leol has no feet and the Thief is missing his legs (Suleiman 27 Nov). Check against their sheets, restore them, make float_audit or n99 catch a figure losing its feet.
 - [ ] 1.120 Tayo shrinks when his health is low: his hurt pose is drawn at the wrong size. Fix and pin it.
-- [ ] 1.121 Concussive Shot also Disorients the target (Suleiman 27 Nov). Pick the turns and list them.
+- [x] 1.121 Concussive Shot also Disorients the target (Suleiman 27 Nov). Built 27 Nov. A hit Disorients the target through its next turn ("disorientTurns": 1 in spells.json, picked by Claude: as long as a wall slam; 2 was too much for a skill with no MP and a 3 turn wait). Disoriented (conditions.json): attack -2, defense -2, evade -10, +3 damage from any magic. A miss does nothing. "Disoriented" floats over the target and its status tag shows. Skill text updated. Test n116.
 - [ ] 1.122 Desktop character select got stuck (Suleiman's voice note 27 Nov; he could not get past it, later he could). Reproduce on desktop (picking, swapping sides, Reset, an older remembered line-up, Leol and the Thief, double clicks), find the cause, fix, test.
-- [ ] 1.123 Weapon streaks and Fighter lighting On by default (the old rainbow arc is still what players see). Mood stays a switch.
+- [x] 1.123 Weapon streaks and Fighter lighting On by default (Baiyee 27 Nov: the old rainbow arc is still what players see). Built 27 Nov: look2.js gives each look a default; streaks and lighting are On unless the player switched one Off on this device; Mood stays Off until switched on. Test n118 (updated).
 - [ ] 1.124 Check on 390 x 844, 375 x 667 and 412 x 915 (m7.cjs, hud.cjs, turn_clicks.cjs) and select.cjs on desktop; before and after photos with the skills list open (dev/browser/skills_fit.cjs; PHONE=375x667 opens any phone size in every browser check).
 
 ## Phase 2: battle screen restyle (newest UI MOCKUP, his component art) - DONE
