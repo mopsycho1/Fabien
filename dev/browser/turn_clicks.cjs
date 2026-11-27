@@ -81,9 +81,12 @@ async function playView(view) {
     const pressRow = async (word) => {
       const r = await rowAt(word);
       if (!r) return null;
-      const p = await screenPoint(r.gx, r.gy);
+      let p = await screenPoint(r.gx, r.gy);
       // 18.44: the menu is HTML over the canvas; what is under the finger must be that row
-      const under = await page.evaluate(([x, y]) => { const el = document.elementFromPoint(x, y); const row = el && el.closest('#fabien-hud .mrow'); return row ? row.dataset.word : (el ? el.tagName : 'nothing'); }, [p.x, p.y]);
+      const underAt = (p) => page.evaluate(([x, y]) => { const el = document.elementFromPoint(x, y); const row = el && el.closest('#fabien-hud .mrow'); return row ? row.dataset.word : (el ? el.tagName : 'nothing'); }, [p.x, p.y]);
+      let under = await underAt(p);
+      // (27 Nov: the menu may still be following the camera's glide to the fighter: look again until the row is under the finger)
+      for (let k = 0; k < 8 && under !== word; k++) { await sleep(150); const r2 = await rowAt(word); if (r2) p = await screenPoint(r2.gx, r2.gy); under = await underAt(p); }
       if (!rowsSeen.has(word)) { rowsSeen.add(word); check(under === word, tag + 'the HTML row "' + word + '" is what the tap lands on (' + under + ')'); }
       await press(p);
       await sleep(600);

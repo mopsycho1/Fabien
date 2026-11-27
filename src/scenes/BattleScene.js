@@ -1253,7 +1253,7 @@ export default class BattleScene extends Phaser.Scene {
       const heights = [[chest, 0], [feetY - tallest - tileH * 0.3, 0], [feetY - tallest - tileH * 1.1, 0], [feetY - tileH * 0.2, 0], [uy - tallest * 0.9, 0]];
       const yTop = this.lay.top, yLow = floor - tallest;
       for (let i = 0; i <= 8; i++) { const yy = yTop + ((yLow - yTop) * i) / 8; heights.push([yy, 1 + Math.abs(yy - chest) / 120]); }
-      for (const left of [false, true]) for (const [gi, g] of [gap, gap * 2, gap * 3.2].entries()) for (const [yy, far] of heights) spots.push({ left, gi, far, x: left ? ux - g - total : ux + g, y: yy });
+      for (const left of [false, true]) for (const [gi, g] of [gap, gap * 2, gap * 3.2].entries()) for (const [hi, [yy, far]] of heights.entries()) spots.push({ left, gi, far, x: left ? ux - g - total : ux + g, y: yy, id: (left ? 'L' : 'R') + gi + '.' + hi });
       // 1.116 (Baiyee 27 Nov): never over ANY fighter: every other fighter's body is a box too, a spot on one is a poor choice
       const bodies = this.units.filter((o) => o.alive && o.view && o !== u).map((o) => {
         const ox = (o.view.x - v.x) * cam.zoom, of = (o.view.y - v.y) * cam.zoom;
@@ -1270,12 +1270,16 @@ export default class BattleScene extends Phaser.Scene {
         for (const q of marks) if (q.x > cx - 4 && q.x < cx + total + 4 && q.y > cy - 4 && q.y < cy + tallest + 4) score += q.w;
         if (cx < body.x1 + 3 && cx + total > body.x0 - 3 && cy < body.y1 && cy + tallest > body.y0) score += 200; // on the fighter: never, unless nothing else fits
         for (const o of bodies) if (cx < o.x1 + 3 && cx + total > o.x0 - 3 && cy < o.y1 && cy + tallest > o.y0) score += 120; // (3 px to spare: the menu's place is rounded) // on another fighter (1.116): worse than any number of blue tiles
-        score += sp.gi * 0.4 + sp.far + (sp.y > uy ? 0.3 : 0); // (a nearer gap is better; level with or above the chest a little better than low)
+        score += sp.gi * 0.4 + sp.far + (sp.y > uy ? 0.3 : 0);
+        // 1.116: the spot it stood in a moment ago wins unless another is clearly better, so it does not hop from spot to
+        // spot while the camera glides or a list opens (a tap aimed at a row must find it there)
+        if (this.menuSpot && this.menuSpot.unit === u && this.menuSpot.id === sp.id) score -= 2; // (a nearer gap is better; level with or above the chest a little better than low)
         if (!best || score < best.score - 0.01) best = { ...sp, score };
       }
       onLeft = best.left;
       x = best.x;
       y = best.y;
+      this.menuSpot = { unit: u, id: best.id };
     }
     x = Math.min(Math.max(x, m), W - m - total);
     y = Math.min(Math.max(y, this.lay.top), floor - tallest);

@@ -610,3 +610,8 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - A new character needs a line in "fighters", or it plays as aggressive. Test n120 fails if one is missing.
 - What each kit does under the computer is written in src/aiKit.js (Layra, Sudeen, Gaha), src/scenes/BattleScene.js shamanChoice (Kofi), src/newClasses.js newClassChoice (Leol, the Thief) and src/kingsScene.js (the kings).
 - To see how often everyone uses each skill: `bash dev/tests/kit_use.sh 2 3` (the computer plays both sides, three line-ups, about 3 minutes).
+
+## Fixes of 27 Nov (roadmap 1.116 to 1.124)
+- Concussive Shot: src/data/spells.json, concussiveShot "disorientTurns" (how many of the target's turns a hit Disorients it; 1 now). What Disoriented does is in src/data/conditions.json, "disoriented".
+- Weapon streaks and Fighter lighting are On by default, Mood is Off: the "on" next to each look at the top of src/look2.js. A player who switched a look Off keeps it Off on his device.
+- Phone menu size: MENU_SHARE (a quarter of the screen) at the top of src/scenes/BattleScene.js; LIST_ROOM and LIST_SHARE say when a skills list stands beside the menu and when it scrolls.
