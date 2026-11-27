@@ -1,6 +1,8 @@
 // Fixes of 27 Nov (Baiyee and Suleiman). Run with FABIEN_MAP=cavern FABIEN_BENCH=h4 (Tayo on the board).
 //   1.117 a finger acts when it lifts: a tap on Skills opens the list, a tap on a skill picks it and lights its
 //         targets; a hold shows the info only (and lifting after it picks nothing); a mouse click still acts at once
+//   1.118 every fighter's skills list shows all its entries on their own rows (no "More" pages), and a list taller than the room
+//         is capped and scrolls (menuScroll)
 //   1.120 Tayo does not shrink at low health: his weak stance is drawn at his battle stance's size, and no fighter's
 //         weak stance is drawn more than 15 percent smaller than his battle stance (Tayo's was 0.73 against 0.87)
 const { start, battle } = require('./boot.cjs');
@@ -51,6 +53,27 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   rest();
   row('Skills').hit.emit('pointerdown', { x: 10, y: 10, wasTouch: false });
   check('1.117 a mouse click on Skills acts at once', b.mode === 'spell', b.mode);
+
+  // ----- 1.118 -----
+  const listed = [];
+  for (const u of b.units.filter((x) => x.alive)) {
+    const was = u.side; u.side = 'hero'; // (the list shows only on a hero's turn)
+    b.cancelMode(); b.activeUnit = u; b.busy = false; u.hasActed = false; u.mp = u.maxMp; b.refreshStatus();
+    b.onSpellButton();
+    const want = b.spellMenu(u).length;
+    const rows = b.menuRows.filter((r) => r.view.visible && r.label.text !== 'Back').map((r) => r.label.text);
+    if (rows.length !== want || rows.some((t) => /^More/.test(t))) listed.push(u.name + ' ' + rows.length + '/' + want);
+    b.cancelMode(); u.side = was;
+  }
+  check('1.118 every fighter\'s list shows all its entries, no More rows', listed.length === 0, listed.join(', '));
+  // a long list is capped at the room and scrolls: a small screen in effect (the room shrunk)
+  const keepH = b.lay.H; b.lay.H = 300;
+  const keepBag = gaha.bag; gaha.bag = {};
+  for (const id of Object.keys(require('../../src/data/items.json').items).slice(0, 7)) gaha.bag[id] = 1; // (a full bag: all 4 kinds, on a screen 300 tall: room for 3 rows)
+  b.activeUnit = gaha; gaha.hasActed = false; b.cancelMode(); b.refreshStatus(); b.onItemsButton();
+  const capped = b.menuScroll, bagRows = b.menuRows.filter((r) => r.view.visible && r.label.text !== 'Back').length;
+  b.lay.H = keepH; b.cancelMode(); gaha.bag = keepBag; b.refreshStatus();
+  check('1.118 a list taller than its room scrolls inside itself (capped, every row still there)', !!capped && capped.h < capped.full && bagRows >= 4, JSON.stringify(capped) + ' rows ' + bagRows);
 
   // ----- 1.120 -----
   const tayo = b.units.find((u) => u.id === 'e1');

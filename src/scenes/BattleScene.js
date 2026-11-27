@@ -159,6 +159,9 @@ const CONTEST_CTX = { random: (...a) => Math.random(...a), heightOf: (col, row) 
 // size. No storage (private window): it simply starts at home.
 const MENU_PIN_KEY = 'fabien.menuPin';
 const MENU_SHARE = 0.25; // 1.116: the phone menu is at most about this share of the screen's height
+const LIST_ROWS = 10; // 1.118: rows for the rest of a long list (after the first three)
+const LIST_ROOM = 0.6; // 1.118: on a phone the main commands and the list stand side by side only within this share of the width
+const LIST_SHARE = 0.5; // 1.118: a list is at most this share of the screen's height; longer, it scrolls
 function loadMenuPin() {
   try {
     const p = JSON.parse(window.localStorage.getItem(MENU_PIN_KEY) || 'null');
@@ -996,7 +999,10 @@ export default class BattleScene extends Phaser.Scene {
     this.slots = [row(), row(), row(), row()];
     this.halves = [row(), row()];
     this.lowHalves = [row(), row()];
-    for (const b of [...this.halves, ...this.lowHalves]) b.set(null);
+    // 1.118 (27 Nov): a list of skills or items shows every entry (no "More" pages): the entries after the first three go in
+    // these rows. A list taller than the room scrolls inside itself (domHud).
+    this.listRows = Array.from({ length: LIST_ROWS }, row);
+    for (const b of [...this.halves, ...this.lowHalves, ...this.listRows]) b.set(null);
     // The grip along its top edge: drag it to put the menu anywhere (roadmap
     // 8.16, Suleiman 31 Oct 09:43 "see if you can make the battle ui movable").
     // It stays where you put it for the rest of the battle; double-tap the
@@ -1004,7 +1010,7 @@ export default class BattleScene extends Phaser.Scene {
     this.menuGrip = this.add.graphics();
     this.menuGripHit = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.001).setOrigin(0, 0).setInteractive();
     this.menuGripHit.on('pointerdown', (pointer) => this.grabMenu(pointer));
-    this.menu = keep(dom(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves].map((b) => b.view)]).setDepth(5)));
+    this.menu = keep(dom(this.add.container(0, 0, [this.menuPanel, this.menuGrip, this.menuGripHit, this.menuHeader, ...[...this.slots, ...this.halves, ...this.lowHalves, ...this.listRows].map((b) => b.view)]).setDepth(5)));
     // UI rework 16 Nov: while the skills or items list is open, the main commands stay beside it
     // (as in his mock-up). These rows copy the main menu; a tap on another command closes the list first.
     this.sidePanel = this.add.graphics();
@@ -1046,6 +1052,7 @@ export default class BattleScene extends Phaser.Scene {
     add(b);
     if (c.view.visible) add(c);
     else this.halves.forEach(add);
+    this.listRows.forEach(add); // (1.118: the rest of a long list)
     if (d.view.visible) add(d);
     else this.lowHalves.forEach(add);
     // with tap-to-move (8.5) the blue tiles are always there, so Move leaves the menu
@@ -1068,16 +1075,21 @@ export default class BattleScene extends Phaser.Scene {
     // his list has no Back row: while the main commands stand beside it, the lit row closes it
     // (a group of skills, like Blessings, keeps Back: it goes up to the whole list)
     // 20 Nov polish: no Back row anywhere while the main commands stand beside the list: a tap outside goes back one step
-    if (header && this.mainSpec && this.mainSpec.unit === this.activeUnit) {
-      const back = rows.findIndex((r) => r.label.text === 'Back');
-      if (back >= 0 && rows.length > 1) { rows[back].view.setVisible(false); if (rows[back].hit.input) rows[back].hit.input.enabled = false; rows.splice(back, 1); }
-    }
     let need = 0;
     for (const r of rows) {
       r.word.setFontSize(word);
       r.cost.setFontSize(this.lay.F.small);
       need = Math.max(need, r.word.width + (r.cost.text ? r.cost.width + D(7) : 0));
     }
+    // 1.118 (27 Nov): the list stands beside the main commands when there is room for both on the screen beside the fighter;
+    // otherwise it stands alone, in their place, with Back at its top (a narrow phone, the two column menu of 1.116)
+    const listW0 = Math.round(2 * pad + D(4) + icon * 1.25 + D(3.5) + need + D(5));
+    const besideOk = !!(header && this.mainSpec && this.mainSpec.unit === this.activeUnit) && (!this.lay.portrait || this.mainSpec.w + Math.round(5 * P) + listW0 <= this.lay.W * LIST_ROOM);
+    this.listAlone = !!header && !besideOk;
+    const back = rows.findIndex((r) => r.label.text === 'Back');
+    if (header && besideOk) {
+      if (back >= 0 && rows.length > 1) { rows[back].view.setVisible(false); if (rows[back].hit.input) rows[back].hit.input.enabled = false; rows.splice(back, 1); }
+    } else if (this.listAlone && back > 0) rows.unshift(rows.splice(back, 1)[0]); // (Back at the top: where the menu was)
     // (20 Nov polish: a slim column, about 15 percent of a phone's width: 4 left, the picture, 3.5, the word, 5 right)
     const colW = Math.round(D(4) + icon * 1.25 + D(3.5) + need + D(5));
     // 1.116 (Baiyee 27 Nov, phone): rows about 44 real pixels apart and the whole main menu no taller than about a quarter
@@ -1095,7 +1107,14 @@ export default class BattleScene extends Phaser.Scene {
       r.place(pad + (i % cols) * colW, pad + gripH + Math.floor(i / cols) * rH, colW, rH, P, this.lay.minText);
     });
     const lines = Math.ceil(rows.length / cols);
-    const h = pad * 2 + gripH + lines * rH;
+    let h = pad * 2 + gripH + lines * rH;
+    // 1.118: a list taller than the room (between the turn strip and the card) scrolls inside itself; at least 3 rows show
+    this.menuScroll = null;
+    if (header) {
+      const room = Math.min(this.cardTop || this.lay.H, this.lay.H) - this.lay.top - 2 * this.lay.m;
+      const cap = Math.max(pad * 2 + gripH + 3 * rH, Math.min(room, this.lay.H * LIST_SHARE));
+      if (h > cap) { this.menuScroll = { top: pad + gripH, h: cap - 2 * pad - gripH, full: lines * rH }; h = cap; }
+    }
     this.menuHeader.setText('').setVisible(false);
     this.menuPanel.clear();
     framePanel(this.menuPanel, 0, 0, mW, h, P);
@@ -1116,7 +1135,7 @@ export default class BattleScene extends Phaser.Scene {
     this.ui(this.menu);
     // the main commands, remembered so they can stand beside a list
     if (!header) this.mainSpec = { unit: this.activeUnit, font: word, w: mW, colW, cols, rowH: rH, rows: rows.map((r) => ({ label: r.label.text, icon: r.iconName, enabled: r.enabled, onTap: r.onTap, emblem: r.emblem, accent: r.accent, shown: r.shown })) };
-    this.layoutSideMenu(header, pad, gripH);
+    this.layoutSideMenu(header && besideOk ? header : '', pad, gripH);
     this.placeMenu();
   }
 
@@ -1187,7 +1206,7 @@ export default class BattleScene extends Phaser.Scene {
     if (show !== this.menuShown) {
       // a hidden menu must not catch taps meant for the board
       this.menuShown = show;
-      for (const r of [...this.slots, ...this.halves, ...this.lowHalves]) if (r.hit.input) r.hit.input.enabled = show;
+      for (const r of [...this.slots, ...this.halves, ...this.lowHalves, ...this.listRows]) if (r.hit.input) r.hit.input.enabled = show;
       if (this.menuGripHit.input) this.menuGripHit.input.enabled = show;
     }
     const side = !!(show && this.sideSize);
@@ -1249,8 +1268,8 @@ export default class BattleScene extends Phaser.Scene {
         const cx = Math.min(Math.max(sp.x, m), W - m - total), cy = Math.min(Math.max(sp.y, this.lay.top), floor - tallest);
         let score = (sp.left !== wantLeft ? (foe ? 6 : 0.5) : 0) + Math.abs(cx - sp.x) / 40; // (a spot pushed back onto the screen counts against it)
         for (const q of marks) if (q.x > cx - 4 && q.x < cx + total + 4 && q.y > cy - 4 && q.y < cy + tallest + 4) score += q.w;
-        if (cx < body.x1 && cx + total > body.x0 && cy < body.y1 && cy + tallest > body.y0) score += 200; // on the fighter: never, unless nothing else fits
-        for (const o of bodies) if (cx < o.x1 && cx + total > o.x0 && cy < o.y1 && cy + tallest > o.y0) score += 120; // on another fighter (1.116): worse than any number of blue tiles
+        if (cx < body.x1 + 3 && cx + total > body.x0 - 3 && cy < body.y1 && cy + tallest > body.y0) score += 200; // on the fighter: never, unless nothing else fits
+        for (const o of bodies) if (cx < o.x1 + 3 && cx + total > o.x0 - 3 && cy < o.y1 && cy + tallest > o.y0) score += 120; // (3 px to spare: the menu's place is rounded) // on another fighter (1.116): worse than any number of blue tiles
         score += sp.gi * 0.4 + sp.far + (sp.y > uy ? 0.3 : 0); // (a nearer gap is better; level with or above the chest a little better than low)
         if (!best || score < best.score - 0.01) best = { ...sp, score };
       }
@@ -2755,7 +2774,7 @@ export default class BattleScene extends Phaser.Scene {
     const isHero = unit.side === 'hero';
     const free = isHero && !unit.hasActed;
     const [a, b, c, d] = this.slots;
-    for (const half of [...this.halves, ...this.lowHalves]) half.set(null); // half buttons: only in some situations (below)
+    for (const half of [...this.halves, ...this.lowHalves, ...this.listRows]) half.set(null); // half buttons and list rows: only in some situations (below)
 
     if (this.battleOver) {
       for (const slot of this.slots) slot.set(null);
@@ -2764,17 +2783,13 @@ export default class BattleScene extends Phaser.Scene {
 
     // Choosing an item (or Dig up): the bag, three buttons at a time, and Back
     if (isHero && (this.mode === 'item' || this.mode === 'itemTarget')) {
+      // 1.118: the whole bag, one row each (a long bag scrolls inside the list)
       const entries = this.itemMenu(unit);
-      const paged = entries.length > 3;
-      const shown = paged ? entries.slice(this.itemPage * 2, this.itemPage * 2 + 2) : entries;
-      [a, b].forEach((slot, i) => {
-        const e = shown[i];
+      [a, b, c, ...this.listRows].forEach((slot, i) => {
+        const e = entries[i];
         if (e) slot.set(e.label, 'bag', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip });
         else slot.set(null);
       });
-      if (paged) c.set('More  >', 'gem', true, () => { this.itemPage = (this.itemPage + 1) % Math.ceil(entries.length / 2); this.refreshStatus(); });
-      else if (shown[2]) c.set(shown[2].label, 'bag', shown[2].enabled, shown[2].onTap, { selected: shown[2].selected, accent: shown[2].accent });
-      else c.set(null);
       d.set('Back', 'back', true, () => this.itemBack());
       return;
     }
@@ -2782,15 +2797,11 @@ export default class BattleScene extends Phaser.Scene {
     // Choosing a spell: the spells (or groups of spells, like Verse) and Back
     if (isHero && (this.mode === 'spell' || this.mode === 'spellTarget' || this.mode === 'huskTile')) {
       const entries = this.spellMenu(unit);
-      // more than three (the kings): two at a time and More (like the bag)
-      const paged = entries.length > 3;
-      const pages = Math.ceil(entries.length / 2);
-      const page = paged ? (this.spellPage || 0) % pages : 0;
-      const shown = paged ? entries.slice(page * 2, page * 2 + 2) : entries;
-      [a, b, c].forEach((slot, i) => {
-        const e = shown[i];
-        if (paged && i === 2) slot.set('More  >', 'gem', true, () => { this.spellPage = (page + 1) % pages; this.refreshStatus(); });
-        else if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring, el: e.el });
+      // 1.118 (27 Nov): every skill (or group) on its own row, no "More" pages (the kings had two a page); a list taller than
+      // the room scrolls inside itself
+      [a, b, c, ...this.listRows].forEach((slot, i) => {
+        const e = entries[i];
+        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring, el: e.el });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -5423,7 +5434,7 @@ export default class BattleScene extends Phaser.Scene {
     const won = outcome === 'victory';
     stopMusic();
     this.statusText.setText('');
-    for (const slot of [...this.slots, ...this.halves, ...this.lowHalves]) slot.set(null);
+    for (const slot of [...this.slots, ...this.halves, ...this.lowHalves, ...this.listRows]) slot.set(null);
     // 1. the last blow, slowly (real time: the scene's own clock is the thing being slowed)
     this.setSpeed('finale', endingRules.slowTo);
     this.finaleTimer = setTimeout(() => { this.finaleTimer = null; if (this.sys.isActive()) this.setSpeed('finale', 1); }, endingRules.slowMs);

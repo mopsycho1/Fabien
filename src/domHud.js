@@ -706,7 +706,9 @@ export class DomHud {
     this.box(el, cont.x, cont.y, size.w, size.h);
     el.style.transform = cont.scaleX !== 1 || cont.scaleY !== 1 ? 'scale(' + cont.scaleX + ',' + cont.scaleY + ')' : '';
     el.style.opacity = String(cont.alpha);
-    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.el, r.iconName, r.ringColor, r.x, r.y, r.w, r.h].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin;
+    // 1.118: a list taller than its room scrolls inside itself (sc.menuScroll: where the scrolling box starts and how tall it is)
+    const scroll = withGrip && sc.menuScroll ? sc.menuScroll : null;
+    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.el, r.iconName, r.ringColor, r.x, r.y, r.w, r.h].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin + '|' + (scroll ? scroll.h : '');
     this.html(name, el, key, () => {
       let h = CORNERS;
       if (withGrip) {
@@ -714,14 +716,17 @@ export class DomHud {
         const band = rows.length ? rows[0].y : 0;
         h += '<div class="grip tap' + (sc.menuPin ? ' pinned' : '') + '" style="top:' + Math.round(Math.min(0, g.y) * k) + 'px;height:' + Math.round((band - Math.min(0, g.y)) * k) + 'px;padding-top:' + Math.round(-Math.min(0, g.y) * k) + 'px"><i></i><i></i><i></i><i></i><i></i></div>';
       }
+      if (scroll) h += '<div class="scroll" style="position:absolute;left:0;right:0;top:' + Math.round(scroll.top * k) + 'px;height:' + Math.round(scroll.h * k) + 'px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y">';
+      const dy = scroll ? scroll.top : 0;
       rows.forEach((r, i) => {
         const icon = this.rowIcon(r);
         const d = Math.round((r.iconSize || 13 * sc.lay.px) * k * 1.25);
         const ring = r.ringColor !== null && r.ringColor !== undefined && r.emblem ? '<span class="ring" style="background:radial-gradient(circle,' + hex(r.ringColor) + 'cc,' + hex(r.ringColor) + '00 72%)"></span>' : '';
-        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="--vis:' + Math.round(Math.min(r.h, sc.lay.visRowH) * k) + 'px;left:' + Math.round(r.x * k) + 'px;top:' + Math.round(r.y * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
+        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="--vis:' + Math.round(Math.min(r.h, sc.lay.visRowH) * k) + 'px;left:' + Math.round(r.x * k) + 'px;top:' + Math.round((r.y - dy) * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
           + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + (r.el ? skillIconSvg(r.el, d) : ring + (icon ? '<img src="' + icon + '" alt="">' : '')) + '</span>'
           + '<span class="wd fit" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
       });
+      if (scroll) h += '</div>';
       return h;
     });
     this.paintCursor();
