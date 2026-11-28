@@ -416,7 +416,8 @@ export function applyPinned(unit) {
 }
 
 export function isPinned(unit) {
-  return !!(unit && unit.status && unit.status.pinned);
+  // (an arrow's pin, 19.6, or held by a foe's spirit that took over a clash, 28 Nov: no walking, no moving skills)
+  return !!(unit && ((unit.status && unit.status.pinned) || unit.heldBySpirit));
 }
 
 // ---------- The archer's Poison Weapon and Prime Bow (1.82) ----------
@@ -705,6 +706,7 @@ export function statusTags(unit) {
   if (statusOf(unit).stunned) tags.push({ text: 'STUNNED', color: '#ffe08a', icon: 'stunned' });
   if (statusOf(unit).disoriented) tags.push({ text: 'DISORIENTED', color: '#e3a8ff', icon: 'disoriented' }); // slammed into a wall
   if (statusOf(unit).pinned) tags.push({ text: 'PINNED', color: '#d9b77a' }); // the archer's Pinning Shot (19.6)
+  if (unit.heldBySpirit) tags.push({ text: 'HELD', color: '#8fe0b0' }); // a foe's spirit took over the clash (28 Nov)
   if (unit.coated) tags.push({ text: 'POISON BLADE', color: '#9fdc6a', icon: 'poison' }); // her next hit poisons (1.82)
   if (unit.primed) tags.push({ text: 'PRIMED', color: '#ffd27a' }); // Prime Bow drawn (1.82)
   if (statusOf(unit).blinded) tags.push({ text: 'BLINDED', color: '#c9c0b4', icon: 'blinded' }); // the archer's Smoke Bomb

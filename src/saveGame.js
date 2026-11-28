@@ -3,7 +3,7 @@
 // "Continue the battle", which comes back at the start of the turn that was being played.
 //
 // What is saved: every fighter's own numbers and conditions (health, MP, place, Verses,
-// cooldowns, bag, clash, Poise...), the turn count, what has been dug up, Tayo's rocks.
+// cooldowns, bag, clash, Poise...), the turn count, what has been dug up, Tayo's rocks, Kofi's spirits.
 // What is not: things that live only as pictures for a moment (a Husk decoy, a smoke cloud):
 // a hidden fighter comes back visible.
 const KEY = 'fabien.save.v1';
@@ -11,7 +11,9 @@ const KEY = 'fabien.save.v1';
 // Fields of a fighter that are pictures or working values, never saved.
 const SKIP = new Set(['view', 'body', 'sprite', 'hpFill', 'plate', 'rims', 'tagRow', 'idleTargets', 'idleTween', 'orderNumber', 'lowGlow', 'knock', 'knockPending', 'pushedFrom', 'plateHold', 'plateUntil', 'shownHp', 'cardFreeAt', 'dodgeToken', 'hidden', 'smokeHidden', 'echoReady', 'wasWeak', 'restY', 'engagement',
   // sizes worked out from the pictures when the battle is built
-  'artScale', 'baseScale', 'frameScale', 'topY', 'centerY', 'hitRadius', 'bodyHalfWidth', 'ringColor', 'hasEnchantedArt']);
+  'artScale', 'baseScale', 'frameScale', 'topY', 'centerY', 'hitRadius', 'bodyHalfWidth', 'ringColor', 'hasEnchantedArt',
+  // Kofi's spirit is saved on its own ("spirits" below), not through him
+  'spiritOut']);
 
 // Turns a value into plain data. A reference to a fighter becomes { __unit: id }; pictures,
 // tweens and functions are left out (undefined).
@@ -64,6 +66,8 @@ export function snapshot(scene) {
     }),
     sites: (scene.sites || []).map((s) => ({ col: s.col, row: s.row, prop: s.prop, items: s.items.slice(), blocking: !!s.blocking, dug: !!s.dug })),
     spikes: (scene.spikes || []).map((s) => ({ col: s.col, row: s.row, owner: s.owner ? s.owner.id : null, turnsLeft: s.turnsLeft })),
+    // Kofi's spirits (28 Nov): kind, owner, tile, health and moves left (src/spirits.js spiritsData)
+    spirits: scene.spiritsData ? scene.spiritsData() : [],
   };
 }
 

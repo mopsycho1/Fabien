@@ -10,13 +10,17 @@
 // The spirit is a small ally standing on that tile (it blocks it). It has ONE move, used when it comes and again at the
 // start of each of Kofi's next turns, while it lasts (spells.json callSpirit "turns", counting the first). It fades
 // after that, when a foe breaks it (its "hp"), or when Kofi falls. One spirit at a time: a new one sends the old away.
-// SPIRIT SWAP (6.49): free, once a turn, Kofi and his spirit trade places (not while he is locked in a clash).
+// SPIRIT SWAP (6.49): free, once a turn, Kofi and his spirit trade places. In a clash the spirit TAKES OVER the clash
+// (Kofi's sheet, built 28 Nov): Kofi is free, and the foe stays held by the spirit (it cannot walk, and its plain attack
+// can only strike the spirit) until the spirit breaks, fades or leaves its side.
+// Anyone can strike a foe's spirit with a plain attack (players tap it like a fighter; the AI weighs it, spiritToStrike).
+// Spirits are kept in the save (saveGame.js "spirits", restored by restoreSpirits).
 // Every number is in spells.json callSpirit "spirits" (picked by Claude, 27 Nov; Suleiman's sheet gives none).
 import Phaser from 'phaser';
 import spells from './data/spells.json';
 import { tileToScreen, getHeight, depthFor } from './grid.js';
 import { GRID_SIZE } from './config.js';
-import { distance } from './combat.js';
+import { distance, inReach } from './combat.js';
 import { applyBurn, isDrenched, canAfford } from './status.js';
 import { terrainAt } from './boardArt.js';
 import { floorLight, lightNearby, chargeUp, afterglow, energyWaves } from './fxLayers.js';
@@ -81,7 +85,7 @@ export const spiritMethods = {
     if (spell.kind === 'spiritSwap') {
       if (!this.spiritOf(unit)) return 'no spirit out';
       if (unit.spiritSwapped) return 'once a turn';
-      if (unit.engagedWith) return 'in a clash';
+      // (28 Nov: allowed in a clash too: the spirit takes it over, takeOverClash)
     }
     return null;
   },
@@ -116,7 +120,8 @@ export const spiritMethods = {
   },
 
   // Draws a spirit on its tile: its own picture (Suleiman's four, art.json sp_*), small, hovering, facing the foes.
-  addSpirit(owner, kind, tile) {
+  // quiet: no rising (a spirit put back from the save).
+  addSpirit(owner, kind, tile, quiet = false) {
     this.spirits = this.spirits || [];
     const S = SPIRITS[kind];
     const id = 'sp_' + kind;
@@ -138,10 +143,12 @@ export const spiritMethods = {
     view.add(body);
     // it hovers (the picture already floats above its bottom edge) and breathes
     this.tweens.add({ targets: body, y: body.y - 5, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    view.setScale(0.2).setAlpha(0);
-    this.tweens.add({ targets: view, scale: 1, alpha: 1, duration: 380, ease: 'Back.easeOut' });
-    floorLight(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { size: 1.4, peak: 0.7, ms: 700 });
-    energyWaves(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { count: 2, size: 0.8 });
+    if (!quiet) {
+      view.setScale(0.2).setAlpha(0);
+      this.tweens.add({ targets: view, scale: 1, alpha: 1, duration: 380, ease: 'Back.easeOut' });
+      floorLight(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { size: 1.4, peak: 0.7, ms: 700 });
+      energyWaves(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { count: 2, size: 0.8 });
+    }
     const sp = { kind, owner, col: tile.col, row: tile.row, hp: S.hp, maxHp: S.hp, movesLeft: CALL.turns, view, body, h, side: owner.side };
     this.spirits.push(sp);
     owner.spiritOut = sp; // (Kofi's card shows it, status.js)
@@ -221,6 +228,7 @@ export const spiritMethods = {
 
   // The start of a unit's turn: its spirit uses its move again, or fades when it has none left.
   tickSpirits(unit) {
+    this.syncSpiritHolds(); // (a held foe pushed away, or its spirit gone: it is free)
     const sp = this.spiritOf(unit);
     unit.spiritSwapped = false;
     if (!sp) return;
@@ -232,6 +240,7 @@ export const spiritMethods = {
     if (!this.spirits || !this.spirits.includes(sp)) return;
     this.spirits = this.spirits.filter((s) => s !== sp);
     if (sp.owner && sp.owner.spiritOut === sp) sp.owner.spiritOut = null;
+    this.syncSpiritHolds();
     if (why && sp.view && sp.view.active) this.floatText({ view: sp.view, topY: sp.h }, why, SPIRITS[sp.kind].color, { rise: 20 });
     const view = sp.view;
     if (view && view.active) this.tweens.add({ targets: view, alpha: 0, scale: 0.3, duration: 350, onComplete: () => view.destroy() });
@@ -249,19 +258,123 @@ export const spiritMethods = {
     return sp ? SPIRITS.stone.guard : 0;
   },
 
-  // A foe with nobody to attack strikes a spirit next to it (like Leol's barricade, 19.1). At 0 it breaks.
-  hitSpirit(unit, done) {
-    const sp = (this.spirits || []).find((s) => s.side !== unit.side && distance(unit, s) === 1);
-    if (!sp) return false;
-    const dmg = Math.max(1, unit.attack);
-    sp.hp -= dmg;
-    this.faceToward(unit, sp.view.x - unit.view.x, sp.view.y - unit.view.y);
-    this.showPose(unit, 'attack', sp.view.x - unit.view.x);
-    play('slash');
-    this.floatText({ view: sp.view, topY: sp.h }, '-' + dmg, '#ffd9a0', { pop: true });
-    if (sp.hp <= 0) this.time.delayedCall(250, () => this.removeSpirit(sp, 'Broken'));
-    this.time.delayedCall(700, () => { if (unit.alive) this.showStanding(unit); done(); });
+  // ---------- Striking a spirit (28 Nov) ----------
+  // The foe spirits a unit can strike with its plain attack from where it stands (its own reach rules, inReach).
+  // A unit held by a spirit can strike only that spirit.
+  foeSpiritsInReach(unit) {
+    const held = this.heldSpirit(unit);
+    if (held) return inReach(unit, held) || distance(unit, held) === 1 ? [held] : [];
+    return (this.spirits || []).filter((s) => s.side !== unit.side && inReach(unit, s));
+  },
+  // What a blow does to a spirit: the striker's attack, at least 1 (a spirit has no defense).
+  spiritDamage(unit) {
+    return Math.max(1, unit.attack || 1);
+  },
+  // A plain attack on a spirit (players and the AI). It counts as the unit's action. At 0 the spirit breaks.
+  strikeSpirit(unit, sp, done) {
+    if (unit.thiefHidden && this.revealThief) this.revealThief(unit); // (the Thief shows himself when he strikes, 19.2)
+    unit.hasActed = true;
+    const dmg = this.spiritDamage(unit);
+    sp.hp = Math.max(0, sp.hp - dmg);
+    const dx = sp.view.x - unit.view.x || 1;
+    this.faceToward(unit, dx, sp.view.y - unit.view.y);
+    this.showPose(unit, 'attack', dx);
+    play(unit.range > 1 ? 'arrow' : 'slash');
+    this.time.delayedCall(unit.range > 1 ? 260 : 120, () => {
+      if (!this.spirits.includes(sp)) return;
+      const color = Phaser.Display.Color.HexStringToColor(SPIRITS[sp.kind].color).color;
+      floorLight(this, sp.view.x, sp.view.y, color, { size: 1, peak: 0.6, ms: 400 });
+      this.tweens.add({ targets: sp.body, alpha: 0.35, duration: 70, yoyo: true, repeat: 1 });
+      this.floatText({ view: sp.view, topY: sp.h }, '-' + dmg, '#ffd9a0', { pop: true });
+      this.refreshStatusTags();
+      if (sp.hp <= 0) this.time.delayedCall(250, () => this.removeSpirit(sp, 'Broken'));
+    });
+    this.time.delayedCall(750, () => { if (unit.alive) this.showStanding(unit); done(); });
     return true;
+  },
+  // The old fallback (a foe with nobody else to strike), kept for the AI's last resort.
+  hitSpirit(unit, done) {
+    const sp = this.foeSpiritsInReach(unit)[0];
+    if (!sp) return false;
+    return this.strikeSpirit(unit, sp, done);
+  },
+  // How much a spirit's NEXT move would do against "side" (the AI's side), in the same points as spiritChoice.
+  spiritThreat(sp) {
+    if (!sp || sp.movesLeft <= 0) return 0;
+    const S = SPIRITS[sp.kind];
+    const them = this.units.filter((u) => u.alive && !u.isDecoy && u.side !== sp.side); // the spirit's foes
+    const its = this.units.filter((u) => u.alive && !u.isDecoy && u.side === sp.side); // the spirit's friends
+    const near = them.filter((f) => distance(f, sp) === 1);
+    const friends = its.filter((a) => distance(a, sp) <= 1);
+    if (sp.kind === 'ember') return near.length * 4;
+    if (sp.kind === 'gale') return near.length * 3;
+    if (sp.kind === 'tide') return friends.reduce((s, a) => s + Math.min(S.heal, a.maxHp - a.hp), 0);
+    if (sp.kind === 'stone') return friends.filter((a) => them.some((f) => distance(f, a) <= 2)).length * 3;
+    return 0;
+  },
+  // The AI's choice: the spirit it should strike instead of a fighter, or null.
+  //   Held by a spirit: that spirit, always (it is the only thing it can strike).
+  //   Else a spirit in reach it can BREAK with this blow and whose next move is worth 4 or more (spiritThreat),
+  //   unless a fighter in reach can be finished with this blow (a kill comes first). Nobody else in reach: any spirit.
+  //   (early = the check made before its clashes and skills: only a held unit or a spirit worth breaking, never the
+  //   "nobody else" case, which waits until its skills have had their say.)
+  spiritToStrike(unit, targets, early = false) {
+    const held = this.heldSpirit(unit);
+    if (held) return this.foeSpiritsInReach(unit).includes(held) ? held : null;
+    const spirits = this.foeSpiritsInReach(unit);
+    if (!spirits.length) return null;
+    const live = (targets || []).filter((t) => !t.isDecoy);
+    if (!live.length && !early) return spirits[0];
+    const dmg = this.spiritDamage(unit);
+    const kill = live.some((t) => Math.max(1, (unit.attack || 0) - (t.defense || 0)) >= t.hp);
+    if (kill) return null;
+    const best = spirits.filter((s) => dmg >= s.hp && this.spiritThreat(s) >= 4).sort((a, b) => this.spiritThreat(b) - this.spiritThreat(a))[0];
+    return best || null;
+  },
+
+  // ---------- Held by a spirit (the clash taken over, 28 Nov) ----------
+  // The spirit holding this unit, or null. unit.heldBySpirit is the spirit's OWNER (Kofi), so it is kept in the save.
+  heldSpirit(unit) {
+    if (!unit || !unit.heldBySpirit) return null;
+    const sp = this.spiritOf(unit.heldBySpirit);
+    return sp && unit.alive && distance(sp, unit) <= 1 ? sp : null;
+  },
+  // Lets go of every hold whose spirit is gone or no longer next to its foe.
+  syncSpiritHolds() {
+    let changed = false;
+    for (const u of this.units || []) {
+      if (u.heldBySpirit && !this.heldSpirit(u)) { u.heldBySpirit = null; changed = true; if (u.alive && u.view) this.floatText(u, 'Free', '#d9e8c8', { rise: 30 }); }
+    }
+    if (changed && this.refreshStatusTags) this.refreshStatusTags();
+  },
+  // Kofi swaps out of a clash: the clash ends for him, and the foe is held by the spirit now on his old tile.
+  takeOverClash(unit, sp) {
+    const foe = unit.engagedWith;
+    if (!foe) return null;
+    endDuel(unit);
+    if (this.refreshEngagementMarks) this.refreshEngagementMarks();
+    if (!foe.alive || distance(foe, sp) > 1) return null;
+    foe.heldBySpirit = unit;
+    this.floatText({ view: sp.view, topY: sp.h }, 'Takes over!', SPIRITS[sp.kind].color, { pop: true });
+    this.time.delayedCall(300, () => foe.alive && this.floatText(foe, 'Held by the spirit', SPIRITS[sp.kind].color, { rise: 40 }));
+    this.refreshStatusTags();
+    return foe;
+  },
+
+  // ---------- The save ----------
+  // Spirits as plain data (saveGame.js snapshot), and back on the board after Continue.
+  spiritsData() {
+    return (this.spirits || []).map((s) => ({ kind: s.kind, owner: s.owner.id, col: s.col, row: s.row, hp: s.hp, movesLeft: s.movesLeft }));
+  },
+  restoreSpirits(list) {
+    for (const d of list || []) {
+      const owner = this.units.find((u) => u.id === d.owner);
+      if (!owner || !owner.alive || !SPIRITS[d.kind]) continue;
+      const sp = this.addSpirit(owner, d.kind, { col: d.col, row: d.row }, true);
+      sp.hp = d.hp; sp.movesLeft = d.movesLeft;
+    }
+    this.syncSpiritHolds();
+    this.refreshStatusTags();
   },
 
   // ---------- Spirit Swap (6.49): free, once a turn ----------
@@ -270,6 +383,7 @@ export const spiritMethods = {
     if (!sp || this.spiritBlock(unit, 'spiritSwap')) return false;
     unit.spiritSwapped = true;
     const from = { col: unit.col, row: unit.row }, to = { col: sp.col, row: sp.row };
+    const inClash = !!unit.engagedWith;
     play('spell');
     const color = Phaser.Display.Color.HexStringToColor(SPIRITS[sp.kind].color).color;
     floorLight(this, unit.view.x, unit.view.y, color, { size: 1.2, peak: 0.6, ms: 500 });
@@ -281,8 +395,10 @@ export const spiritMethods = {
       floorLight(this, unit.view.x, unit.view.y, color, { size: 1.2, peak: 0.6, ms: 500 });
       this.tweens.add({ targets: [unit.view, sp.view], alpha: 1, duration: 220 });
       this.refreshWater();
+      if (inClash) this.takeOverClash(unit, sp); // the spirit takes his place in the clash (Kofi's sheet)
+      this.syncSpiritHolds(); // (a spirit swapped away from the foe it held lets go)
       this.faceNearestOpponent(unit);
-      if (this.activeUnit === unit && unit.side === 'hero') this.startMove(true); // (his walk tiles from the new spot)
+      if (this.activeUnit === unit && unit.side === 'hero' && !this.aiBoth) { this.refreshButtons(); this.startMove(true); } // (his walk tiles from the new spot)
     } });
     this.floatText(unit, 'Swap', SPIRITS[sp.kind].color, { rise: 30 });
     return true;
@@ -312,10 +428,12 @@ export const spiritMethods = {
     }
     return best && best.score >= 4 ? { id: 'callSpirit', target: best.tile } : null;
   },
-  // Kofi's free swap in the AI: a foe is next to him and none next to his spirit, so he slips out to its tile.
+  // Kofi's free swap in the AI: caught in a clash (the spirit takes it over), or a foe is next to him and none next to
+  // his spirit, so he slips out to its tile.
   spiritSwapAi(unit) {
     const sp = this.spiritOf(unit);
     if (!sp || this.spiritBlock(unit, 'spiritSwap')) return false;
+    if (unit.engagedWith) return this.swapWithSpirit(unit);
     const foes = this.units.filter((u) => u.alive && u.side !== unit.side && !u.isDecoy);
     if (!foes.some((f) => distance(f, unit) === 1) || foes.some((f) => distance(f, sp) === 1)) return false;
     return this.swapWithSpirit(unit);

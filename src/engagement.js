@@ -66,6 +66,7 @@ export function canEngage(attacker, target) {
     canBeCaught(target) &&
     !attacker.engagedWith &&
     !target.engagedWith &&
+    !attacker.heldBySpirit && // held by a foe's spirit (it took over a clash, 28 Nov): it fights only the spirit
     distance(attacker, target) === 1
   );
 }

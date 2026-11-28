@@ -161,8 +161,8 @@
     "range": 0,
     "mp": 0,
     "use": "self",
-    "note": "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action; not in a clash.",
-    "text": "Free, once a turn, no action: Kofi and his spirit trade places."
+    "note": "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action. In a clash (Kofi's sheet, built 28 Nov) the spirit takes the clash over: Kofi is free, the foe is held (no walking, its plain attack only on the spirit) until the spirit breaks, fades or leaves its side.",
+    "text": "Free, once a turn, no action: Kofi and his spirit trade places. In a clash the spirit takes it over: Kofi is free, and the foe is held by the spirit until it breaks it."
   },
   "infuse": {
     "name": "Infuse",

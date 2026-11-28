@@ -2607,8 +2607,12 @@ export default class BattleScene extends Phaser.Scene {
         a.target.name + ': ' + getHitChance(from, a.target) + '% to hit, ' + getDamage(unit, a.target) + ' damage' +
         (notes.length ? ' (' + notes.join(', ') + ')' : '') + '.' + jump +
         '\nTap it again to go' + (a.options.length > 1 ? ', or a blue tile to stand elsewhere.' : '.');
+    } else if (this.mode === 'attack' && this.pendingSpirit) {
+      const sp = this.pendingSpirit;
+      const left = Math.max(0, sp.hp - this.spiritDamage(unit));
+      text = 'Strike the ' + SPIRITS[sp.kind].name + ': ' + this.spiritDamage(unit) + ' damage, ' + (left ? left + ' left of ' + sp.hp + '.' : 'it breaks.') + '\nTap it again to strike.';
     } else if (this.mode === 'attack') {
-      text = 'Tap a red tile to choose a target';
+      text = this.heldSpirit(unit) ? 'Held by the spirit: strike it to get free.' : 'Tap a red tile to choose a target';
     } else if (this.mode === 'engage' && this.pendingTarget && isStanceDuel()) {
       const target = this.pendingTarget;
       const bonus = openingHeightBonus(unit, target, CONTEST_CTX);
@@ -2844,18 +2848,28 @@ export default class BattleScene extends Phaser.Scene {
       // (roadmap 1.67), with Empower counted when it is switched on
       const breakLabel = 'Break away  ' + breakChance(unit, unit.engagedWith, CONTEST_CTX, this.empower && poiseOf(unit) > 0) + '%';
       // Auto (the default): one Fight button picks the stance for you
+      // Kofi with a spirit out (28 Nov): Spirit Swap shares the Empower row; the spirit takes over the clash
+      const swapRow = () => {
+        const id = 'spiritSwap';
+        if (!isHero || !unit.spells.includes(id) || !this.spiritOf(unit)) return false;
+        const why = this.spiritBlock(unit, id);
+        c.set(null);
+        this.halves[0].set('Empower  ' + poiseOf(unit), 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
+        this.halves[1].set('Spirit Swap' + (why ? '  ' + why : ''), 'gem', !this.busy && !why, () => this.useFreeKingAction(unit, id), { accent: Phaser.Display.Color.HexStringToColor(spells[id].color).color, tip: spellTip(id) });
+        return true;
+      };
       if (this.stanceChoice === 'auto' && !doneAlready) {
         const pick = this.autoStanceFor(unit);
         a.set('Fight: ' + stanceName(pick) + star(pick), 'press', free, () => this.onStance(pick), { accent: ENGAGE_COLOR, selected: this.empower });
         b.set(breakLabel, 'run', free, () => this.onStance('break'));
-        c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
+        if (!swapRow()) c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
         d.set('Manual  >', 'gem', isHero, () => this.setStanceChoice('manual'));
         return;
       }
       if (this.stanceMenu === 'more' && !doneAlready) {
         a.set('Auto mode', 'star', isHero, () => this.setStanceChoice('auto'), { accent: GOLD });
         b.set(breakLabel, 'run', free, () => this.onStance('break'));
-        c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
+        if (!swapRow()) c.set('Empower  ' + poiseOf(unit) + ' Poise', 'gem', free && poiseOf(unit) > 0, () => this.toggleEmpower(), { selected: this.empower, accent: 0xffd27a });
         d.set('Back', 'back', isHero, () => this.openStanceMenu('main'));
       } else {
         a.set('Press' + star('press'), 'press', free, () => this.onStance('press'), { accent: ENGAGE_COLOR, selected: this.empower });
@@ -2871,7 +2885,8 @@ export default class BattleScene extends Phaser.Scene {
     if (unit.engagedWith) {
       a.set('Press', 'press', free, () => this.onPressButton(), { accent: ENGAGE_COLOR });
       b.set('Break away', 'run', free, () => this.onBreakButton());
-      c.set(null);
+      if (isHero && unit.spells.includes('spiritSwap') && this.spiritOf(unit) && !this.spiritBlock(unit, 'spiritSwap')) c.set('Spirit Swap', 'gem', !this.busy, () => this.useFreeKingAction(unit, 'spiritSwap')); // (28 Nov)
+      else c.set(null);
       d.set('End turn', 'hourglass', isHero, () => this.tapEndTurn(), { selected: this.endArmed === unit });
       return;
     }
@@ -2884,8 +2899,8 @@ export default class BattleScene extends Phaser.Scene {
     } else {
       const left = this.stepsLeft(unit);
       // pinned by the archer's arrow (19.6) the row says so: on 26 Nov Baiyee found Sudeen "can't move at all" with no word why
-      const label = isPinned(unit) ? 'Pinned: no move' : unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
-      a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move', tip: isPinned(unit) ? { title: 'Pinned', body: 'An arrow pins this fighter to the ground: no walking this turn. Attacks and skills still work.' } : undefined });
+      const label = isPinned(unit) ? (unit.heldBySpirit ? 'Held: no move' : 'Pinned: no move') : unit.hasMoved && left > 0 ? 'Move  ' + left + ' left' : 'Move';
+      a.set(label, 'walk', isHero && left > 0, () => this.onMoveButton(), { selected: this.mode === 'move', tip: isPinned(unit) ? (unit.heldBySpirit ? { title: 'Held', body: 'A foe\'s spirit took over the clash and holds this fighter: no walking, and its attack can only strike the spirit. Break it to get free.' } : { title: 'Pinned', body: 'An arrow pins this fighter to the ground: no walking this turn. Attacks and skills still work.' }) : undefined });
     }
     const weaponIcon = unit.attackType === 'magic' ? 'lightning' : unit.jobName === 'Spearman' ? 'spear' : 'sword';
     // a Verse can change the attack itself (Layra: Thunderclap under Stone, Wildfire under Fury)
@@ -3811,6 +3826,12 @@ export default class BattleScene extends Phaser.Scene {
 
     // Choosing a target: first tap shows the odds, second tap attacks
     if (this.mode === 'attack') {
+      const sp = this.spiritAt(col, row); // a foe's spirit (28 Nov)
+      if (sp && (this.spiritTargets || []).includes(sp)) {
+        if (sp === this.pendingSpirit) this.confirmSpiritStrike();
+        else this.previewSpiritStrike(sp);
+        return;
+      }
       const target = this.getUnitAt(col, row);
       if (target && this.targetsInRange.includes(target)) {
         if (target === this.pendingTarget) {
@@ -4211,9 +4232,11 @@ export default class BattleScene extends Phaser.Scene {
   startAttack() {
     const unit = this.activeUnit;
     if (unit.engagedWith) return; // locked units cannot make ordinary attacks
-    this.targetsInRange = getTargetsInRange(unit, this.units.filter((u) => this.canSee(unit, u)));
+    // held by a foe's spirit (it took over a clash): only the spirit can be struck (28 Nov)
+    this.targetsInRange = this.heldSpirit(unit) ? [] : getTargetsInRange(unit, this.units.filter((u) => this.canSee(unit, u)));
+    this.spiritTargets = this.foeSpiritsInReach(unit); // a foe's spirits in reach can be struck too (28 Nov)
 
-    if (this.targetsInRange.length === 0) {
+    if (this.targetsInRange.length === 0 && this.spiritTargets.length === 0) {
       this.showMessage('No enemy in range');
       return;
     }
@@ -4230,13 +4253,29 @@ export default class BattleScene extends Phaser.Scene {
       }
       this.showHighlights(area, 0xe05a47, { alpha: 0.16 });
     }
-    this.showHighlights(this.targetsInRange.map((t) => ({ col: t.col, row: t.row })), 0xe05a47, { keep: unit.range > 1 });
+    this.showHighlights([...this.targetsInRange, ...this.spiritTargets].map((t) => ({ col: t.col, row: t.row })), 0xe05a47, { keep: unit.range > 1 });
     this.refreshStatus();
+  }
+
+  // First tap on a foe's spirit: pick it (the hint shows the blow); the second tap strikes (28 Nov).
+  previewSpiritStrike(sp) {
+    play('select');
+    this.pendingTarget = null;
+    this.pendingSpirit = sp;
+    this.refreshStatus();
+  }
+  confirmSpiritStrike() {
+    const attacker = this.activeUnit;
+    const sp = this.pendingSpirit;
+    this.cancelMode();
+    this.busy = true;
+    this.strikeSpirit(attacker, sp, () => { this.busy = false; this.refreshButtons(); this.refreshStatus(); });
   }
 
   // First tap on an enemy: pick it and show the odds.
   previewAttack(target) {
     play('select');
+    this.pendingSpirit = null;
     this.pendingTarget = target;
     this.aimCharge(target); // the held charge pose turns toward the pick
     this.refreshOutlines();
@@ -6056,6 +6095,14 @@ export default class BattleScene extends Phaser.Scene {
     const sideRested = this.lastEnemyClashTurn === undefined || this.turnCount - this.lastEnemyClashTurn >= (engagementRules.enemyClashGap || 0);
     const rested = sideRested && (!unit.lastEngagedTurn || this.turnCount - unit.lastEngagedTurn > 6);
     const seen = this.enemyEyes();
+    // a foe's spirit, before clashes and skills, when striking it makes sense: held by it; or this blow breaks it and its
+    // next move matters (and no foe in reach can be finished instead). src/spirits.js spiritToStrike (28 Nov)
+    const spiritMark = this.spiritToStrike(unit, this.heldSpirit(unit) ? [] : getTargetsInRange(unit, seen), true);
+    if (spiritMark) {
+      this.busy = true;
+      this.strikeSpirit(unit, spiritMark, () => { this.busy = false; this.enemyWrapUp(unit); });
+      return;
+    }
     const pins = engageTargets(unit, seen).filter((t) => !t.isDecoy && allyNear(t));
     // (tanks with a signature stance, like the Bruiser and the Warlord, want clashes too)
     if ((styleOf(unit) === 'defence' || (unit.signature && unit.signature.seek !== false)) && rested && pins.length > 0) { // (Rabdul's Switch Ends is no reason to seek clashes: "seek": false, 19.4)
@@ -6154,12 +6201,19 @@ export default class BattleScene extends Phaser.Scene {
       return;
     }
 
-    const targets = getTargetsInRange(unit, seen);
+    const targets = this.heldSpirit(unit) ? [] : getTargetsInRange(unit, seen); // (held by a spirit: only the spirit, 28 Nov)
+
+    // nobody else in reach: a foe's spirit in reach is struck (src/spirits.js spiritToStrike, 28 Nov)
+    const spiritLast = targets.length === 0 ? this.spiritToStrike(unit, targets) : null;
+    if (spiritLast) {
+      this.busy = true;
+      this.strikeSpirit(unit, spiritLast, () => { this.busy = false; this.enemyWrapUp(unit); });
+      return;
+    }
 
     if (targets.length === 0) {
       // nobody to strike: a foe's barricade next to it is broken down instead (19.1)
       if (this.hitBarricade(unit, () => this.enemyWrapUp(unit))) { unit.hasActed = true; return; }
-      if (this.hitSpirit(unit, () => this.enemyWrapUp(unit))) { unit.hasActed = true; return; } // a foe's spirit next to it (13.72)
       this.time.delayedCall(400, () => this.endTurn());
       return;
     }
@@ -10371,6 +10425,7 @@ export default class BattleScene extends Phaser.Scene {
       const p = tileToScreen(s.col, s.row);
       this.spikes.push({ col: s.col, row: s.row, owner: this.units.find((u) => u.id === s.owner) || null, turnsLeft: s.turnsLeft, view: raiseSpike(this, p.x, p.y, depthFor(s.col, s.row) + 1.2, TILE_WIDTH * 1.05) });
     }
+    this.restoreSpirits(save.spirits); // Kofi's spirits stand where they stood (28 Nov)
     this.refreshEngagementMarks();
     this.refreshStatusTags();
     this.resumed = true;
@@ -10601,6 +10656,7 @@ export default class BattleScene extends Phaser.Scene {
     this.pendingTarget = null;
     this.pendingTile = null;
     this.spellTiles = null; // (Claim's ground tiles, 13.72)
+    this.spiritTargets = []; this.pendingSpirit = null; // (a foe's spirit to strike, 28 Nov)
     this.passengers = []; // (Shadow Passage's picks, 10.53)
     this.approach = null;
     this.targetsInRange = [];
