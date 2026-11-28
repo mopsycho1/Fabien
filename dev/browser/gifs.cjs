@@ -49,6 +49,13 @@ const MOVES = {
   thief_trap: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [4, 10], js: "b.hideThief(who); setTimeout(() => b.castSpell(who, { col: 4, row: 8 }, 'trap', () => { b.placeUnit(who, 1, 7); setTimeout(() => b.moveUnit(foe, 4, 7, () => setTimeout(done, 900)), 400); }), 500);" },
   thief_hide: { who: 'e6', at: [4, 7], foe: 'h1', foeAt: [7, 7], js: "setTimeout(() => { b.hideThief(who); setTimeout(done, 1200); }, 300);" },
   archer_poison_weapon: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 4], cast: 'poisonWeapon' }, // 1.108: she dips her arrow (it uses her action)
+  // Kofi's Call Spirit (6.99, 28 Nov): one per spirit, the ground picks it (by the lamp at 4,6: Ember; water: Tide; sand:
+  // Stone; high ground: Gale), and a spirit fading back into its element when its time is up
+  kofi_call_ember: { who: 'h4', at: [2, 7], foe: 'e2', foeAt: [3, 5], js: "who.mp = 9; b.castSpell(who, { col: 3, row: 6 }, 'callSpirit', () => setTimeout(done, 900));" },
+  kofi_call_tide: { who: 'h4', at: [2, 7], foe: 'e2', foeAt: [5, 7], js: "who.mp = 9; who.hp = Math.round(who.maxHp / 2); b.castSpell(who, { col: 3, row: 7 }, 'callSpirit', () => setTimeout(done, 900));" },
+  kofi_call_stone: { who: 'h4', at: [2, 7], foe: 'e2', foeAt: [3, 4], js: "who.mp = 9; b.castSpell(who, { col: 2, row: 5 }, 'callSpirit', () => setTimeout(done, 900));" },
+  kofi_call_gale: { who: 'h4', at: [2, 7], foe: 'e2', foeAt: [1, 8], js: "who.mp = 9; b.castSpell(who, { col: 0, row: 8 }, 'callSpirit', () => setTimeout(done, 900));" },
+  kofi_spirit_fades: { who: 'h4', at: [2, 7], foe: 'e2', foeAt: [4, 6], js: "const sp = b.addSpirit(who, 'ember', { col: 3, row: 6 }, true); setTimeout(() => { sp.movesLeft = 0; b.tickSpirits(who); setTimeout(done, 1600); }, 500);" },
 };
 // Every skill and status effect, for the effects pass (roadmap 18.23, checklist C5):
 //   node dev/browser/gifs.cjs <out dir> phone effects

@@ -151,6 +151,11 @@ const CSS = `
 #fabien-hud .mrow .ic { position: relative; flex: none; display: flex; align-items: center; justify-content: center; }
 #fabien-hud .mrow .ic img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 calc(var(--u) * 1.2) rgba(0,0,0,0.9)); }
 #fabien-hud .mrow .ic .ring { position: absolute; inset: -18%; border-radius: 50%; opacity: 0.55; }
+#fabien-hud .mrow .ic .fill { position: absolute; inset: -22%; border-radius: 50%; -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%); }
+#fabien-hud .mrow.pulse { animation: fh-ready 1.4s ease-in-out infinite; }
+#fabien-hud .mrow.pulse .ic { animation: fh-ready-ic 1.4s ease-in-out infinite; border-radius: 50%; }
+@keyframes fh-ready { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.22); } }
+@keyframes fh-ready-ic { 0%,100% { box-shadow: 0 0 0 rgba(160,240,190,0); } 50% { box-shadow: 0 0 calc(var(--u) * 7) rgba(160,240,190,0.9); } }
 #fabien-hud .mrow .wd { flex: 1; min-width: 0; font-weight: 600; letter-spacing: 0.02em; color: #f1e6c8; text-shadow: 0 1px 2px #000; }
 #fabien-hud .mrow .ct { color: #e8dcc0; font-weight: 600; font-variant-numeric: lining-nums tabular-nums; }
 #fabien-hud .mrow.off .wd { color: #7d6e58; } #fabien-hud .mrow.off .ct { opacity: 0.5; } #fabien-hud .mrow.off .ic img { opacity: 0.4; }
@@ -708,7 +713,7 @@ export class DomHud {
     el.style.opacity = String(cont.alpha);
     // 1.118: a list taller than its room scrolls inside itself (sc.menuScroll: where the scrolling box starts and how tall it is)
     const scroll = withGrip && sc.menuScroll ? sc.menuScroll : null;
-    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.el, r.iconName, r.ringColor, r.x, r.y, r.w, r.h].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin + '|' + (scroll ? scroll.h : '');
+    const key = rows.map((r) => [r.label.text, r.word.text, r.cost.text, r.enabled, r.selected, r.emblem, r.el, r.iconName, r.ringColor, r.x, r.y, r.w, r.h, r.fill, r.pulse].join('~')).join('|') + '|' + size.w + 'x' + size.h + '|' + !!sc.menuPin + '|' + (scroll ? scroll.h : '');
     this.html(name, el, key, () => {
       let h = CORNERS;
       if (withGrip) {
@@ -722,8 +727,10 @@ export class DomHud {
         const icon = this.rowIcon(r);
         const d = Math.round((r.iconSize || 13 * sc.lay.px) * k * 1.25);
         const ring = r.ringColor !== null && r.ringColor !== undefined && r.emblem ? '<span class="ring" style="background:radial-gradient(circle,' + hex(r.ringColor) + 'cc,' + hex(r.ringColor) + '00 72%)"></span>' : '';
-        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="--vis:' + Math.round(Math.min(r.h, sc.lay.visRowH) * k) + 'px;left:' + Math.round(r.x * k) + 'px;top:' + Math.round((r.y - dy) * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
-          + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + (r.el ? skillIconSvg(r.el, d) : ring + (icon ? '<img src="' + icon + '" alt="">' : '')) + '</span>'
+        // a skill's wait filling round its icon, and the ready pulse (Call Spirit, 6.99)
+        const fillRing = r.fill !== null && r.fill !== undefined && r.fill < 1 ? '<span class="fill" style="background:conic-gradient(' + hex(r.ringColor || 0x8fe0b0) + 'dd ' + Math.round(r.fill * 360) + 'deg, rgba(255,255,255,0.08) 0)"></span>' : '';
+        h += '<div class="mrow tap' + (r.enabled ? '' : ' off') + (r.selected ? ' lit' : '') + (r.pulse ? ' pulse' : '') + '" data-i="' + i + '" data-word="' + esc(r.label.text.split('  ')[0]) + '" style="--vis:' + Math.round(Math.min(r.h, sc.lay.visRowH) * k) + 'px;left:' + Math.round(r.x * k) + 'px;top:' + Math.round((r.y - dy) * k) + 'px;width:' + Math.round(r.w * k) + 'px;height:' + Math.round(r.h * k) + 'px">'
+          + '<i class="ptr"></i><span class="ic" style="width:' + d + 'px;height:' + d + 'px">' + fillRing + (r.el ? skillIconSvg(r.el, d) : ring + (icon ? '<img src="' + icon + '" alt="">' : '')) + '</span>'
           + '<span class="wd fit" style="font-size:var(--f-mid)">' + esc(r.word.text) + '</span>' + (r.cost.text ? '<span class="ct" style="font-size:var(--f-small)">' + esc(r.cost.text) + '</span>' : '') + '</div>';
       });
       if (scroll) h += '</div>';

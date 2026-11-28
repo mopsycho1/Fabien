@@ -233,9 +233,9 @@ var spells_default = {
     note: "13.72 (decided by Baiyee 27 Nov; it replaces Infuse in Kofi's kit). Every number picked by Claude (Suleiman's 12 Nov sheet: 3 MP, a spirit by the reading; the rest is ours): range 3 (his sheet said next to him; 3 lets the ground choose), mp 3, ready again after 3 turns, turns 3 = it uses its move when it comes and at the start of Kofi's next 2 turns, then fades; size = its height as a share of Kofi's. The tile picks the spirit (src/spirits.js natureAt): by a lamp Ember, water Tide, sand or rubble Stone, high ground (2 levels or more) Gale; plain floor: what Kofi reads.",
     spirits: {
       ember: { name: "Ember Spirit", element: "fire", color: "#ff8a3c", hp: 8, move: "Ember Lash", damage: 4, text: "Ember Lash: 4 damage to every foe next to it, and they burn." },
-      tide: { name: "Tide Spirit", element: "water", color: "#7fd6c4", hp: 8, move: "Tide Mend", heal: 5, text: "Tide Mend: 5 health to every ally next to it (Kofi too) and one weak status lifted (poison, burn, blinded, disoriented)." },
-      stone: { name: "Stone Spirit", element: "earth", color: "#d9b77a", hp: 14, move: "Stone Ward", guard: 2, text: "Stone Ward: every ally next to it takes 2 less from each hit (never below 1). A wall the foes must walk round, the toughest spirit." },
-      gale: { name: "Gale Spirit", element: "storm", color: "#bfd8ff", hp: 8, move: "Gale Burst", damage: 2, push: 1, text: "Gale Burst: every foe next to it takes 2 and is blown 1 tile away (into a wall or a unit: a slam)." }
+      tide: { name: "Tide Spirit", element: "water", color: "#6ab8ff", hp: 8, move: "Tide Mend", heal: 5, text: "Tide Mend: 5 health to every ally next to it (Kofi too) and one weak status lifted (poison, burn, blinded, disoriented)." },
+      stone: { name: "Stone Spirit", element: "earth", color: "#c9a060", hp: 14, move: "Stone Ward", guard: 2, text: "Stone Ward: every ally next to it takes 2 less from each hit (never below 1). A wall the foes must walk round, the toughest spirit." },
+      gale: { name: "Gale Spirit", element: "storm", color: "#b4f0b4", hp: 8, move: "Gale Burst", damage: 2, push: 1, text: "Gale Burst: every foe next to it takes 2 and is blown 1 tile away (into a wall or a unit: a slam)." }
     },
     text: "Raises a small spirit on an empty tile up to 3 away; the ground picks which. By a lamp: Ember (burns the foes next to it). Water: Tide (heals the allies next to it). Sand or rubble: Stone (allies next to it take 2 less a hit). High ground: Gale (blows the foes next to it away). Plain floor: the spirit of what Kofi reads. It uses its move when it comes and at the start of his next 2 turns, then fades; foes can break it. One spirit at a time. Ready again after 3 turns."
   },
@@ -249,8 +249,8 @@ var spells_default = {
     range: 0,
     mp: 0,
     use: "self",
-    note: "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action; not in a clash.",
-    text: "Free, once a turn, no action: Kofi and his spirit trade places."
+    note: "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action. In a clash (Kofi's sheet, built 28 Nov) the spirit takes the clash over: Kofi is free, the foe is held (no walking, its plain attack only on the spirit) until the spirit breaks, fades or leaves its side.",
+    text: "Free, once a turn, no action: Kofi and his spirit trade places. In a clash the spirit takes it over: Kofi is free, and the foe is held by the spirit until it breaks it."
   },
   infuse: {
     name: "Infuse",

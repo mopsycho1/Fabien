@@ -941,6 +941,7 @@ export default class BattleScene extends Phaser.Scene {
     for (const o of [veil, ...sheetRows]) if (o.input) o.input.enabled = false;
     this.ui(sheet);
     fxWatchFrameRate(this);
+    if (typeof window !== "undefined") window.__setFxMode = setFxMode; // (browser checks switch Full and Light: dev/browser/summon_fps.cjs)
     const rx = muteX - r * 2 - S(16);
     if (isPhone(this)) {
       // On a phone the turn buttons sit halfway down the two sides of the
@@ -2831,7 +2832,7 @@ export default class BattleScene extends Phaser.Scene {
       // the room scrolls inside itself
       [a, b, c, ...this.listRows].forEach((slot, i) => {
         const e = entries[i];
-        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring, el: e.el });
+        if (e) slot.set(e.label, 'gem', e.enabled, e.onTap, { selected: e.selected, accent: e.accent, tip: e.tip, emblem: e.emblem, ring: e.ring, el: e.el, fill: e.fill, pulse: e.pulse });
         else slot.set(null);
       });
       d.set('Back', 'back', true, () => this.spellBack());
@@ -2939,7 +2940,7 @@ export default class BattleScene extends Phaser.Scene {
         this.halves[0].set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (Poison Weapon is free at any time, 1.82)
         this.halves[1].set('To ' + (holdsDagger(unit) ? unit.closeWeapon.farName || 'bow' : unit.closeWeapon.name || 'dagger').toLowerCase(), 'sword', isHero && !this.busy && !unit.engagedWith && !unit.weaponSwitched, () => this.onSwitchWeaponButton(), { accent: 0xd9b77a });
       } else {
-        c.set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD }); // (a free skill stays usable after acting: Ward, 13.68) no MP pool: skills, not spells
+        c.set(word, 'star', free || (isHero && !this.busy && this.freeSkillReady(unit)), () => this.onSpellButton(), { accent: GOLD, pulse: free && this.spiritJustReady(unit) }); // (Call Spirit ready again: the button pulses, 6.99) (a free skill stays usable after acting: Ward, 13.68) no MP pool: skills, not spells
       }
     } else {
       c.set(null);
@@ -3273,6 +3274,9 @@ export default class BattleScene extends Phaser.Scene {
         emblem: spell.kind === 'wardSwitch' ? (unit.wardOff ? 'ward_off' : 'ward') : emblemFor(id), // his emblem, on a ring in the skill's colour (UI rework 16 Nov); Sudeen's Ward shows his shield, lit or dark (6.93)
         el: spell.kind === 'wardSwitch' ? null : skillElement(id), // a small icon by element in the HTML list (20 Nov polish); Sudeen's Ward shows his painted shield instead (6.93)
         ring: Phaser.Display.Color.HexStringToColor(spell.color).color,
+        // Call Spirit (6.99): its icon fills turn by turn while it waits, and pulses on the turn it is ready again
+        fill: spell.kind === 'callSpirit' ? this.spiritFill(unit) : null,
+        pulse: spell.kind === 'callSpirit' && this.spiritJustReady(unit),
       };
     };
     // which of his skills show at all now (the same rule for the whole list and inside a group or category)
@@ -3357,6 +3361,17 @@ export default class BattleScene extends Phaser.Scene {
   }
 
   // The tiles a skill of this kind is aimed at, when it picks a tile of its own (not a unit), else null:
+  // Call Spirit's wait as a share filled (0 just used, 1 ready), for its icon in the skills list (6.99).
+  spiritFill(unit) {
+    const total = spells.callSpirit.cooldown || 1;
+    const wait = cooldownOf(unit, 'callSpirit');
+    return wait ? Math.max(0, (total - wait) / total) : 1;
+  }
+  // Call Spirit came off its wait at the start of this turn and can be used (the row and the Verses button pulse).
+  spiritJustReady(unit) {
+    return !!unit && unit.spells.includes('callSpirit') && unit.spiritReadyTurn === this.turnCount && canAfford(unit, 'callSpirit') && !unit.hasActed;
+  }
+
   // Gadara's Shadow Step (10.53) and Kofi's Call Spirit (13.72).
   skillTiles(unit, id) {
     const spell = spells[id];

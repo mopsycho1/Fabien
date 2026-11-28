@@ -660,8 +660,10 @@ export class MenuRow {
 
   // label: the words on the row, or null to hide it.
   // tip: { title, body } for the long-press tooltip (see CommandButton.set)
-  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null, emblem = null, ring = null, shown = null, el = null } = {}) {
+  set(label, iconName, enabled, onTap, { selected = false, accent = UI.bronzeLight, tip = null, emblem = null, ring = null, shown = null, el = null, fill = null, pulse = false } = {}) {
     this.el = el; // the skill's element, for its small icon in the HTML list (src/skillIcons.js)
+    this.fill = fill; // a skill's wait as a share filled (0 to 1), drawn round its icon (Call Spirit, 6.99); null = none
+    this.pulse = !!pulse; // a soft glowing pulse (Call Spirit ready again, 6.99)
     this.shown = shown; // the word shown, when it differs from the label ("Attack" for Thrust)
     this.tip = tip;
     const visible = label !== null;

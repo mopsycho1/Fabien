@@ -197,6 +197,32 @@ const SOUNDS = {
     hiss({ length: 0.45, volume: 0.28, from: 300, to: 3000, q: 0.8 });
     tone({ type: 'sawtooth', from: 110, to: 220, length: 0.4, volume: 0.06 });
   },
+  // Call Spirit (6.99): the runes cracking open in the ground, a low shimmer
+  rune() {
+    tone({ type: 'sine', from: 110, to: 165, length: 0.6, volume: 0.22 });
+    hiss({ length: 0.5, volume: 0.12, from: 2000, to: 5000, q: 3 });
+    [880, 1320].forEach((f, i) => tone({ type: 'sine', from: f, start: 0.1 + i * 0.12, length: 0.5, volume: 0.04 }));
+  },
+  // ...the sting as the spirit's name sweeps across: a drum and a rising chord
+  sting() {
+    tone({ type: 'sine', from: 160, to: 80, length: 0.4, volume: 0.5 });
+    [392, 494, 587, 784].forEach((f, i) => tone({ type: 'triangle', from: f, start: 0.03 * i, length: 0.9, volume: 0.09 }));
+    hiss({ length: 0.35, volume: 0.15, from: 400, to: 3500, q: 0.8 });
+  },
+  // ...and the quiet chime when Call Spirit is ready again
+  chime() {
+    tone({ type: 'sine', from: 1175, length: 0.7, volume: 0.07 });
+    tone({ type: 'sine', from: 1568, start: 0.12, length: 0.9, volume: 0.06 });
+  },
+  // Fire catching (an Ember Spirit, a burn)
+  fire() {
+    hiss({ length: 0.5, volume: 0.25, filter: 'lowpass', from: 1200, to: 600, q: 0.7 });
+    hiss({ length: 0.3, volume: 0.1, filter: 'highpass', from: 3000 });
+  },
+  // Water and healing (a Tide Spirit, Renewal)
+  heal() {
+    [523, 659, 784].forEach((f, i) => tone({ type: 'sine', from: f, to: f * 1.02, start: i * 0.07, length: 0.5, volume: 0.07 }));
+  },
   // A big talking-drum hit
   drum() {
     tone({ type: 'sine', from: 180, to: 90, length: 0.35, volume: 0.6 });

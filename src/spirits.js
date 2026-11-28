@@ -21,7 +21,8 @@ import spells from './data/spells.json';
 import { tileToScreen, getHeight, depthFor } from './grid.js';
 import { GRID_SIZE } from './config.js';
 import { distance, inReach } from './combat.js';
-import { applyBurn, isDrenched, canAfford } from './status.js';
+import { applyBurn, isDrenched, canAfford, cooldownOf } from './status.js';
+import { summonShow, spiritFade, spiritReadyCheck } from './summonFx.js';
 import { terrainAt } from './boardArt.js';
 import { floorLight, lightNearby, chargeUp, afterglow, energyWaves } from './fxLayers.js';
 import { buffCastFx, sfxHas, sfxAt } from './spellArt.js';
@@ -91,36 +92,28 @@ export const spiritMethods = {
   },
 
   // ---------- Call Spirit ----------
+  // The summon is a show (src/summonFx.js, 6.99): about 3 seconds the first time in a battle, about 1.5 after; a tap
+  // speeds it up. The spirit's first move comes at the end of it.
   castCallSpirit(caster, tile, spell, onDone) {
     const kind = this.spiritKindAt(caster, tile);
     const S = SPIRITS[kind];
     const old = this.spiritOf(caster);
     if (old) this.removeSpirit(old, 'Gone back');
-    const p = tileToScreen(tile.col, tile.row);
-    const dx = p.x - caster.view.x || 1;
-    this.faceToward(caster, dx, p.y - caster.view.y);
-    this.showPose(caster, 'chant', dx);
-    const tone = { ember: 'fire', tide: 'water', stone: 'earth', gale: 'lightning' }[kind];
-    chargeUp(this, caster.view.x + Math.sign(dx) * 12, caster.view.y - caster.topY * 0.7, tone, { ms: 420, size: 0.9, depth: caster.view.depth + 2 });
-    play('select');
-    this.time.delayedCall(420, () => {
-      if (!caster.alive) return;
-      this.showPose(caster, 'cast', dx);
-      play('spell');
-      const sp = this.addSpirit(caster, kind, tile);
-      this.floatText({ view: sp.view, topY: sp.h }, S.name, S.color, { pop: true });
-      this.time.delayedCall(500, () => this.spiritMove(sp, () => {}));
-    });
-    this.time.delayedCall(1700, () => {
-      if (caster.alive) this.showStanding(caster);
-      const outcome = this.checkBattleEnd();
-      if (outcome) { this.battleOver = true; this.busy = false; this.showResult(outcome); return; }
-      onDone();
+    const first = !this.spiritShowSeen;
+    this.spiritShowSeen = true;
+    summonShow(this, caster, tile, kind, S, first, () => this.addSpirit(caster, kind, tile, 'show'), (sp) => {
+      const finish = () => {
+        if (caster.alive) this.showStanding(caster);
+        const outcome = this.checkBattleEnd();
+        if (outcome) { this.battleOver = true; this.busy = false; this.showResult(outcome); return; }
+        onDone();
+      };
+      if (sp && this.spirits.includes(sp)) this.spiritMove(sp, finish); else finish();
     });
   },
 
   // Draws a spirit on its tile: its own picture (Suleiman's four, art.json sp_*), small, hovering, facing the foes.
-  // quiet: no rising (a spirit put back from the save).
+  // quiet: true = no rising (a spirit put back from the save); 'show' = the summon show brings it in (summonFx.js).
   addSpirit(owner, kind, tile, quiet = false) {
     this.spirits = this.spirits || [];
     const S = SPIRITS[kind];
@@ -141,15 +134,16 @@ export const spiritMethods = {
       body = this.add.circle(0, -h / 2, h / 3, Phaser.Display.Color.HexStringToColor(S.color).color, 0.85);
     }
     view.add(body);
+    const bodyScale = body.scaleX;
     // it hovers (the picture already floats above its bottom edge) and breathes
     this.tweens.add({ targets: body, y: body.y - 5, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    if (!quiet) {
-      view.setScale(0.2).setAlpha(0);
-      this.tweens.add({ targets: view, scale: 1, alpha: 1, duration: 380, ease: 'Back.easeOut' });
+    if (!quiet || quiet === 'show') {
+      if (!quiet) view.setScale(0.2).setAlpha(0);
+      if (!quiet) this.tweens.add({ targets: view, scale: 1, alpha: 1, duration: 380, ease: 'Back.easeOut' });
       floorLight(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { size: 1.4, peak: 0.7, ms: 700 });
       energyWaves(this, p.x, p.y, Phaser.Display.Color.HexStringToColor(S.color).color, { count: 2, size: 0.8 });
     }
-    const sp = { kind, owner, col: tile.col, row: tile.row, hp: S.hp, maxHp: S.hp, movesLeft: CALL.turns, view, body, h, side: owner.side };
+    const sp = { kind, owner, col: tile.col, row: tile.row, hp: S.hp, maxHp: S.hp, movesLeft: CALL.turns, view, body, bodyScale, h, side: owner.side, S, depth: view.depth };
     this.spirits.push(sp);
     owner.spiritOut = sp; // (Kofi's card shows it, status.js)
     this.refreshStatusTags();
@@ -229,6 +223,7 @@ export const spiritMethods = {
   // The start of a unit's turn: its spirit uses its move again, or fades when it has none left.
   tickSpirits(unit) {
     this.syncSpiritHolds(); // (a held foe pushed away, or its spirit gone: it is free)
+    if (unit.spells && unit.spells.includes('callSpirit')) spiritReadyCheck(this, unit, cooldownOf(unit, 'callSpirit')); // 'Spirit ready' (6.99)
     const sp = this.spiritOf(unit);
     unit.spiritSwapped = false;
     if (!sp) return;
@@ -242,8 +237,8 @@ export const spiritMethods = {
     if (sp.owner && sp.owner.spiritOut === sp) sp.owner.spiritOut = null;
     this.syncSpiritHolds();
     if (why && sp.view && sp.view.active) this.floatText({ view: sp.view, topY: sp.h }, why, SPIRITS[sp.kind].color, { rise: 20 });
-    const view = sp.view;
-    if (view && view.active) this.tweens.add({ targets: view, alpha: 0, scale: 0.3, duration: 350, onComplete: () => view.destroy() });
+    // it goes back into its element: embers, mist, dust or wind (summonFx.js, 6.99)
+    if (sp.view && sp.view.active) { this.tweens.killTweensOf(sp.view); spiritFade(this, sp); }
     this.refreshStatusTags();
   },
   // Kofi fell: his spirit goes with him.
