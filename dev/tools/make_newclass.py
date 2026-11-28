@@ -228,11 +228,68 @@ HAND = {
     'thief_slash_3.png': {'erase': [[(0, 98), (28, 98), (30, 108), (0, 130)], [(186, 90), (225, 90), (225, 125), (186, 125)], [(165, 115), (186, 115), (186, 125), (165, 125)]],
                           'body': [[(65, 70), (108, 72), (112, 85), (105, 100), (90, 100), (80, 110), (78, 125), (78, 140), (75, 152), (58, 152), (55, 140), (60, 125), (60, 105), (64, 90)],
                                    [(150, 80), (170, 82), (180, 95), (185, 108), (182, 115), (165, 115), (155, 105), (150, 92)]]},
+    # 1.126 (28 Nov): what the rim rule leaves. Victory 1 and 3: the shadow on the tile round his boots goes, his shins and boots
+    # come back. Fallen 1, 3, 4 and trap 2: tile corners left at the sides. (Leol's Hammer Strike: the bits left are his paws and
+    # the hammer, kept.)
+    'thief_victory_1.png': {'erase': [[(48, 129), (94, 129), (94, 170), (48, 170)], [(119, 138), (150, 138), (150, 175), (119, 175)], [(0, 149), (48, 149), (48, 175), (0, 175)]],
+                            'body': [[(30, 118), (48, 118), (48, 130), (46, 142), (38, 148), (24, 148), (22, 140), (30, 130)],
+                                     [(100, 118), (113, 118), (113, 132), (116, 148), (117, 162), (108, 164), (100, 162), (99, 150), (100, 138)]]},
+    'thief_victory_3.png': {'erase': [[(0, 143), (80, 143), (80, 180), (0, 180)], [(58, 134), (82, 134), (82, 143), (58, 143)],
+                                      [(101, 128), (160, 128), (160, 180), (113, 180), (113, 150), (101, 140)]],
+                            'body': [[(38, 120), (58, 120), (58, 138), (50, 143), (38, 140)],
+                                     [(82, 124), (101, 124), (101, 140), (108, 150), (113, 160), (110, 168), (82, 168), (80, 155), (82, 140)]]},
+    'thief_fallen_1.png': {'erase': [[(8, 75), (38, 75), (38, 114), (8, 114)]]},
+    'thief_fallen_3.png': {'erase': [[(6, 75), (32, 75), (32, 110), (6, 110)], [(200, 78), (220, 78), (220, 110), (200, 110)]]},
+    'thief_fallen_4.png': {'erase': [[(6, 74), (25, 74), (25, 106), (6, 106)], [(185, 74), (206, 74), (206, 106), (185, 106)]]},
+    'thief_trap_2.png': {'erase': [[(12, 95), (38, 95), (38, 137), (12, 137)]]},
+    # trap 4: his forearm and hand lie along the edge (the rule took them): put back, the strip with its tufts above them goes.
+    'thief_trap_4.png': {'erase': [[(140, 80), (178, 80), (178, 104), (162, 104), (150, 97), (141, 89)]],
+                         'body': [[(119, 80), (126, 78), (140, 90), (150, 98), (160, 106), (164, 116), (162, 126), (150, 128), (144, 120), (132, 108), (118, 96)]]},
+    # Leol's Hammer Strike 1: the steel hammer head on the tile (lost since the first cut, 1.113) put back.
+    'leol_hstrike_1.png': {'body': [[(111, 113), (125, 108), (139, 114), (139, 141), (126, 148), (111, 142)]],
+                           'erase': [[(12, 104), (24, 104), (24, 122), (12, 122)], [(124, 90), (142, 90), (142, 103), (124, 103)]]},   # (two slivers of rim)
     'leol_down_1.png': {'erase': [[(0, 100), (30, 100), (36, 130), (0, 130)], [(203, 100), (230, 100), (230, 140), (203, 140)]],
                         'body': [[(32, 95), (45, 80), (70, 70), (78, 55), (95, 35), (110, 20), (130, 5), (175, 2), (190, 15), (195, 45), (190, 70), (180, 82), (185, 105),
                                   (200, 118), (202, 126), (190, 130), (172, 128), (168, 110), (160, 96), (145, 92), (128, 96), (126, 112), (124, 126), (122, 138), (105, 140),
                                   (100, 128), (98, 112), (90, 112), (75, 114), (62, 112), (60, 125), (55, 132), (42, 130), (36, 122), (38, 110), (30, 105)]]},
 }
+# 1.126 (28 Nov, Baiyee: the Thief's guard, dodge, hurt, victory, trap and kneel pictures and Leol's Hammer Strike, "the same way
+# as 1.125"). Their strips are the tile's two BACK edges, a "^" behind him, often drawn as a doubled line with grass tufts. Rule,
+# checked by eye on a contact sheet: in a band along those edges (UP px above to DOWN px below, read from the slab's corners), a
+# column's pixels go when nothing of the figure continues above or below the band (legs, robes, daggers and the hammer cross the
+# band; the strips do not); at the side corners the front edges' tips too. The few bits it leaves are marked in HAND below.
+RIM_STRIPS = {'thief_parry_2.png', 'thief_parry_3.png', 'thief_parry_4.png', 'thief_dodge_1.png', 'thief_dodge_2.png', 'thief_hurt_2.png',
+              'thief_hurt_3.png', 'thief_hurt_4.png', 'thief_victory_1.png', 'thief_victory_2.png', 'thief_victory_3.png', 'thief_trap_1.png',
+              'thief_trap_2.png', 'thief_trap_4.png', 'thief_down_1.png', 'thief_fallen_1.png', 'thief_fallen_2.png', 'thief_fallen_3.png',
+              'thief_fallen_4.png', 'leol_hstrike_1.png', 'leol_hstrike_2.png', 'leol_hstrike_3.png', 'leol_hstrike_4.png'}
+def rim_strips(a, raw, up=7, down=14, gap=3, reach=10):
+    from detile import slab_geometry
+    from scipy import ndimage as nd
+    g = slab_geometry(raw)
+    if not g: return a
+    xl, lt, xr, rt, xf, yft, yt, th = g
+    H, W = a.shape[:2]
+    sol = a[..., 3] > 20
+    out = a.copy()
+    back_y = lambda x: lt + (yt - lt) * (x - xl) / (xf - xl) if x <= xf else yt + (rt - yt) * (x - xf) / (xr - xf)
+    front_y = lambda x: lt + (yft - lt) * (x - xl) / (xf - xl) if x <= xf else yft + (rt - yft) * (x - xf) / (xr - xf)
+    for x in range(max(0, int(xl) - 3), min(W, int(xr) + 4)):
+        xc = min(max(x, xl), xr)
+        bands = [back_y(xc)] + ([front_y(xc)] if x < xl + 16 or x > xr - 16 else [])
+        for yb in bands:
+            y0, y1 = int(round(yb - up)), int(round(yb + down))
+            y0c, y1c = max(0, y0), min(H, y1 + 1)
+            if y1c <= y0c or not sol[y0c:y1c, x].any(): continue
+            above = sol[max(0, y0 - gap - reach):max(0, y0 - gap), x].any()
+            below = sol[min(H, y1 + gap):min(H, y1 + gap + reach), x].any()
+            if not above and not below: out[y0c:y1c, x, 3] = 0
+    s = out[..., 3] > 20; lab, k = nd.label(s)   # specks left apart from the figure go
+    if k > 1:
+        sz = nd.sum(s, lab, range(1, k + 1))
+        for i in range(1, k + 1):
+            if sz[i - 1] < 0.01 * sz.max(): out[lab == i, 3] = 0
+    return out
+
 def hand_clean(a, raw, h):
     from scipy import ndimage as nd
     H, W = raw.shape[:2]
@@ -308,6 +365,7 @@ def cut_all(prefix):
             name = '%s_%d.png' % (sheet, i + 1)
             if only and name not in only: continue
             a, raw = cut_cell(sheet, i, cl, box, prefix)
+            if name in RIM_STRIPS: a = rim_strips(a, raw)   # 1.126: the tile's back edges
             if name in HAND: a = hand_clean(a, raw, HAND[name])   # 1.125: cleaned by hand
             im = Image.fromarray(a); bb = im.getbbox()
             if bb: im = im.crop(bb)

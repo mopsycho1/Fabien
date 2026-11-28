@@ -7169,16 +7169,16 @@
         "footX": 0.241
       },
       "leol_hstrike_2.png": {
-        "footX": 0.394
+        "footX": 0.312
       },
       "leol_hstrike_3.png": {
-        "footX": 0.621
+        "footX": 0.648
       },
       "leol_hstrike_1.png": {
-        "footX": 0.448
+        "footX": 0.696
       },
       "leol_hstrike_4.png": {
-        "footX": 0.709
+        "footX": 0.731
       },
       "leol_hraise_2.png": {
         "footX": 0.514
@@ -7533,14 +7533,11 @@
       "thief_slash_1.png": {
         "footX": 0.151
       },
-      "thief_parry_2.png": {
-        "footX": 0.458
-      },
       "thief_parry_4.png": {
-        "footX": 0.642
+        "footX": 0.564
       },
       "thief_parry_3.png": {
-        "footX": 0.35
+        "footX": 0.294
       },
       "thief_dodge_2.png": {
         "footX": 0.435
@@ -7548,20 +7545,26 @@
       "thief_dodge_1.png": {
         "footX": 0.583
       },
+      "thief_hurt_2.png": {
+        "footX": 0.391
+      },
       "thief_hurt_4.png": {
-        "footX": 0.57
+        "footX": 0.645
       },
       "thief_hurt_3.png": {
-        "footX": 0.55
+        "footX": 0.688
       },
       "thief_down_1.png": {
-        "footX": 0.474
+        "footX": 0.471
       },
       "thief_victory_2.png": {
-        "footX": 0.463
+        "footX": 0.466
       },
       "thief_victory_3.png": {
-        "footX": 0.617
+        "footX": 0.625
+      },
+      "thief_victory_1.png": {
+        "footX": 0.538
       },
       "thief_ambush_2.png": {
         "footX": 0.577
@@ -7585,19 +7588,25 @@
         "footX": 0.329
       },
       "thief_trap_2.png": {
-        "footX": 0.631
+        "footX": 0.739
       },
       "thief_trap_4.png": {
-        "footX": 0.39
+        "footX": 0.422
       },
       "thief_trap_1.png": {
-        "footX": 0.573
+        "footX": 0.761
+      },
+      "thief_fallen_2.png": {
+        "footX": 0.694
+      },
+      "thief_fallen_4.png": {
+        "footX": 0.314
       },
       "thief_fallen_3.png": {
-        "footX": 0.511
+        "footX": 0.414
       },
       "thief_fallen_1.png": {
-        "footX": 0.439
+        "footX": 0.751
       }
     },
     "note_ruler": "Size ruler (roadmap 18.2): how much each picture is scaled when drawn so the head is the same size as in the standing picture (\"scale\"), where the ground is down the picture (\"feet\", 1 = the bottom edge), and where the feet are across it (\"footX\", checklist B3: that point sits on the middle of the tile). Written by dev/tools/ruler.py; hand corrections go in dev/tools/ruler_marks.json, not here."
