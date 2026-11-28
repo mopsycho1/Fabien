@@ -60,11 +60,12 @@ export const kingMethods = {
     // Shadow Step and Shadow Passage (10.53): once a turn, paid in masks
     if (spell.kind === 'shadowStep' || spell.kind === 'passage') {
       if (unit.passaged) return 'once a turn';
-      if ((unit.mask || 0) < PASSAGE.soloCost) return 'Mask ' + (unit.mask || 0) + '/' + MASK_MAX;
+      // 10.57 (Baiyee 28 Nov): the greyed row says what it needs, not only the gauge
+      if ((unit.mask || 0) < PASSAGE.soloCost) return spell.kind === 'passage' ? 'needs 1 mask per foe' : 'needs 1 mask';
       if (unit.channel) return 'channelling';
       if (spell.kind === 'shadowStep' && (unit.hasMoved || (unit.stepsUsed || 0) > 0)) return 'he has walked';
       if (spell.kind === 'shadowStep' && !this.shadowStepTiles(unit).length) return 'no room';
-      if (spell.kind === 'passage' && !this.passageFoes(unit).length) return 'nobody to take';
+      if (spell.kind === 'passage' && !this.passageFoes(unit).length) return 'no foe within ' + PASSAGE.carryRange;
       if (spell.kind === 'passage' && !this.passageSpot(unit, this.passageFoes(unit).slice(0, 1))) return 'no room';
     }
     if (spell.verseSkill && !verseSkillsNow(unit).some((s) => s.id === id)) return 'needs ' + spells[spell.verseSkill].button;

@@ -3309,7 +3309,9 @@ export default class BattleScene extends Phaser.Scene {
         seen.add(group);
         list.push({
           label: group + '  >',
-          enabled: visible.some((s) => (spells[s].category === group || spells[s].group === group) && entry(s).enabled), // live only when a skill in it can be used now
+          // 10.57 (28 Nov): a group always opens, even when nothing in it can be used now, so the player can read why
+          // (Gadara's Spells were greyed out with 0 masks after a walk, and Shadow Passage could never be found)
+          enabled: !this.busy && (!unit.hasActed || visible.some((s) => (spells[s].category === group || spells[s].group === group) && entry(s).enabled)),
           onTap: () => this.openSpellGroup(group),
           selected: false,
           accent: GOLD,

@@ -35,6 +35,8 @@ const MOVES = {
   sudeen_melee: { who: 'h1', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // the code lean-back (18.29)
   alagara_melee: { who: 'h5', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // his own drawn slash (photo 1768) stays
   alagara_claim_spirit: { who: 'h5', at: [3, 7], foe: 'e2', foeAt: [8, 7], js: "b.addSpirit(foe, 'ember', { col: 5, row: 7 }, true); setTimeout(() => b.castSpell(who, { col: 5, row: 7 }, 'claim', done), 600);" }, // Claim from a foe's spirit: its light streams into him (10.56)
+  gadara_passage_1: { who: 'e5', at: [4, 7], foe: 'h2', foeAt: [3, 7], js: "who.mask = 3; who.passaged = false; b.castSpell(who, { passengers: [foe], col: who.col, row: who.row }, 'shadowPassage', () => setTimeout(done, 600));" }, // Shadow Passage on 1 foe: the Swirling Shadow Cloak takes both (10.57)
+  gadara_passage_2: { who: 'e5', at: [4, 7], foe: 'h2', foeAt: [3, 7], js: "const f2 = b.units.find((u) => u.id === 'h3'); b.placeUnit(f2, 4, 6); who.mask = 3; who.passaged = false; b.castSpell(who, { passengers: [foe, f2], col: who.col, row: who.row }, 'shadowPassage', () => setTimeout(done, 600));" }, // Shadow Passage on 2 foes (10.57)
   rabdul_melee: { who: 'e4', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   bull_melee: { who: 'e2', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },

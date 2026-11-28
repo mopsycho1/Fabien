@@ -57,6 +57,7 @@ settings_for() {
     n128) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;; # Kofi's Renewal, his own spell again (13.82)
     n129) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Gadara's masks easier to fill (10.55)
     n130) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Alagara's Claim from spirits (10.56)
+    n131) echo 'FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 FABIEN_SIDES={"e5":"hero"}' ;; # a player casts Shadow Passage; the greyed Spells group opens (10.57)
     n125) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=" ;; # the Thief's Steal (19.11)
     n122) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Gadara the tank, Shadow Step and Shadow Passage (10.53)
     n119|n120) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_KINGS=1 FABIEN_BENCH=" ;; # part 0 bugs 26 Nov: Sudeen walks after each skill, everyone back in his stance

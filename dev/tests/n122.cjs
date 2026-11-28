@@ -75,7 +75,7 @@ const dist = (a, c) => Math.abs(a.col - c.col) + Math.abs(a.row - c.row);
   check('...drawn as solid cloth (normal blending), not as light', cloak && cloak.img.blendMode === 0, cloak && cloak.img.blendMode);
   check('once a turn: Shadow Step and Shadow Passage are blocked now', b.kingBlock(gad, 'shadowStep') === 'once a turn' && b.kingBlock(gad, 'shadowPassage') === 'once a turn');
   fresh0(); gad.mask = 0;
-  check('with no mask it cannot be used', /^Mask 0/.test(b.kingBlock(gad, 'shadowStep') || ''), b.kingBlock(gad, 'shadowStep'));
+  check('with no mask it cannot be used, and says so', b.kingBlock(gad, 'shadowStep') === 'needs 1 mask' && b.kingBlock(gad, 'shadowPassage') === 'needs 1 mask per foe', b.kingBlock(gad, 'shadowStep') + ' / ' + b.kingBlock(gad, 'shadowPassage'));
   fresh0(); gad.mask = 1; gad.stepsUsed = 1;
   check('...nor after he has walked', b.kingBlock(gad, 'shadowStep') === 'he has walked', b.kingBlock(gad, 'shadowStep'));
 
