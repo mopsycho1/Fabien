@@ -630,3 +630,6 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - The summon show: the beats in milliseconds are SUMMON at the top of src/summonFx.js (the first summon of a battle), LATER (0.5) for the others, DIM_ALPHA (how dark the board goes) and ZOOM (how close the camera comes).
 - Kofi's Renewal: spells.json "kofiRenewal" ("mp" 2, "range" 3, "cooldown" 2); how much it heals and for how long is the Renewal Verse, spells.json "renewal" ("regen" 0.05, "minHeal" 3, "cleanse" 1, "turns" 3).
 - Thief and Leol pictures cleaned by hand (1.126): dev/tools/make_newclass.py RIM_STRIPS (which pictures the tile-edge rule runs on) and HAND (areas marked by eye). Re-cut one with `ONLY=thief_trap_4.png MODE=cut ~/.fabien-tools/venv/bin/python dev/tools/make_newclass.py <work folder> thief`, then make_normals.py, make_webp.py and ruler.py measure.
+
+## The kings, 28 Nov (roadmap 10.55, 10.56)
+- Gadara's masks: src/data/kings.json "gadara" "mask": "start" (masks at the start of a battle, 1) and "turn" (masks at the start of each of his turns, 1). "perFoeHit" and "hitCap" are the hits.

@@ -55,6 +55,7 @@ settings_for() {
     n126) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # spirits finished: struck by anyone, the AI weighs them, the clash take-over, the save (28 Nov)
     n127) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Call Spirit as an event: the summon show, the fade, the wait (6.99)
     n128) echo "FABIEN_MAP=cavern FABIEN_BENCH=" ;; # Kofi's Renewal, his own spell again (13.82)
+    n129) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Gadara's masks easier to fill (10.55)
     n125) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_BENCH=" ;; # the Thief's Steal (19.11)
     n122) echo "FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1" ;; # Gadara the tank, Shadow Step and Shadow Passage (10.53)
     n119|n120) echo "FABIEN_MAP=cavern FABIEN_NEW=1 FABIEN_KINGS=1 FABIEN_BENCH=" ;; # part 0 bugs 26 Nov: Sudeen walks after each skill, everyone back in his stance

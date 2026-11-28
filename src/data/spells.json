@@ -915,7 +915,7 @@
     "mp": 0,
     "use": "tile",
     "note": "10.53 (Suleiman's Shadow Passage draft, Solo Passage; decided by Baiyee 27 Nov). Costs 1 mask (kings.json gadara.passage.soloCost), not MP. The cloak is Suleiman's Swirling Shadow Cloak GIF (6.95).",
-    "text": "1 mask. He folds into his cloak and steps out on an empty tile up to 3 away: walls and heights do not stop him, and it gets him out of a clash. It is his walk for the turn; he keeps his action. Once a turn (Shadow Step or Shadow Passage)."
+    "text": "1 mask (he starts each battle with 1 and gains 1 at the start of each of his turns and for each foe he hits). He folds into his cloak and steps out on an empty tile up to 3 away: walls and heights do not stop him, and it gets him out of a clash. It is his walk for the turn; he keeps his action. Once a turn (Shadow Step or Shadow Passage)."
   },
   "shadowPassage": {
     "category": "Spells",

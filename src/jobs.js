@@ -1,5 +1,6 @@
 import { startBag } from './items.js';
 import combatRules from './data/engagement.json'; // healthScale (battle length, 18.32)
+import kings from './data/kings.json'; // Gadara's starting masks (10.55)
 // Jobs: a job is a bundle of battle numbers (health, attack, speed, and so on).
 // Instead of typing every number for every unit, a unit in units.json just
 // says which job it has. The numbers for each job live in src/data/jobs.json.
@@ -79,7 +80,7 @@ export function buildUnit(entry, jobs) {
     engagedWith: null, // the unit it is locked in an engagement with, if any
     // The two kings (Phase 10, src/kings.js): Gadara's sword-staff end and Mask Gauge, Alagara's Verse slots
     grip: job && job.grip ? job.grip : null, // 'fork' or 'blade' (Gadara's Reverse Grip)
-    mask: job && job.maskGauge ? 0 : null, // Gadara's Mask Gauge, 0 to 5 (10.53)
+    mask: job && job.maskGauge ? kings.gadara.mask.start : null, // Gadara's Mask Gauge, 0 to 5 (10.53); he starts with 1 (10.55)
     dominion: !!(job && job.dominion), // Gadara's passive: foes' buffs near him are a step weaker
     attune: job && job.attunement ? { echo: null, swapped: false } : null, // Alagara: his Echo Verse
     status: { offBalance: false, buff: null, hex: null, cooldowns: {} },

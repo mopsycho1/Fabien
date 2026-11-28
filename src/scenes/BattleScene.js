@@ -2172,6 +2172,9 @@ export default class BattleScene extends Phaser.Scene {
     this.activeUnit.weaponSwitched = false; // one free weapon switch a turn (13.29)
     this.activeUnit.gripSwitched = false; // Gadara: one free Reverse Grip a turn (Phase 10)
     this.activeUnit.maskRound = {}; // Gadara: the once-between-turns masks (a held beat, a hit taken) can come again (10.53)
+    // Gadara: +1 mask at the start of each of his turns (10.55; not while Singularity charges, the gauge is full then)
+    const turnMask = this.activeUnit.channel ? 0 : feedMask(this.activeUnit, KING_RULES.gadara.mask.turn);
+    if (turnMask) { const g = this.activeUnit; this.time.delayedCall(350, () => g.alive && this.floatText(g, 'Mask +' + turnMask, '#c9a8ff', { rise: 40 })); }
     this.activeUnit.passaged = false; // Gadara: one Shadow Step or Shadow Passage a turn (10.53)
     this.spellPage = 0; // the skills list opens on its first page
     if (this.activeUnit.attune) this.activeUnit.attune.swapped = false; // Alagara: one free Verse swap a turn
