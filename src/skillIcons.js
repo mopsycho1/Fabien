@@ -30,12 +30,12 @@ const ELEMENT_ART = {
 // Which element a skill is. A skill's own "element" in spells.json when it names one of ours; else by its id or
 // its kind. Moves with a weapon (spear throw, lunge, charge...) are "steel"; the kings' Verse skills follow the Verse.
 const BY_ID = {
-  swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex', renewal: 'heal',
+  swiftness: 'wind', stone: 'earth', fury: 'fire', slow: 'hex', renewal: 'heal', kofiRenewal: 'heal',
   herbs: 'heal', poison: 'poison', haunt: 'spirit', infuse: 'spirit', husk: 'wind', smoke: 'wind', meditate: 'spirit',
   galeCut: 'wind', rendingDraw: 'fire', unmoved: 'earth', bulwarkShield: 'earth', singularity: 'hex', claim: 'spirit', mantle: 'spirit',
   verseSwap: 'spirit', enchant: 'spirit', earthDrive: 'earth', clap: 'sound',
 };
-const BY_KIND = { heal: 'heal', poison: 'poison', hex: 'hex', haunt: 'spirit', infuse: 'spirit', buff: 'spirit', rest: 'spirit', escape: 'wind', smoke: 'wind', enchant: 'spirit',
+const BY_KIND = { heal: 'heal', renew: 'heal', poison: 'poison', hex: 'hex', haunt: 'spirit', infuse: 'spirit', buff: 'spirit', rest: 'spirit', escape: 'wind', smoke: 'wind', enchant: 'spirit',
   earthDrive: 'earth', clap: 'sound', sunder: 'steel', cleave: 'steel', hook: 'steel', grip: 'steel', drawn: 'steel', gale: 'wind', rending: 'fire', unmoved: 'earth', shield: 'earth',
   singularity: 'hex', claim: 'spirit', mantle: 'spirit', swap: 'spirit', callSpirit: 'spirit', spiritSwap: 'spirit', shadowStep: 'hex', passage: 'hex' };
 export function skillElement(id) {

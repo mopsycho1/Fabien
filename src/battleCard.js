@@ -127,7 +127,7 @@ export function skillWords(id) {
 // Which of Suleiman's emblems stands for a skill (roadmap 6.53). Every other skill shows "Skills".
 export function emblemFor(id) {
   const sp = spells[id] || {};
-  const own = { husk: 'husk', meditate: 'meditate', haunt: 'haunt', infuse: 'infuse', wardSwitch: 'ward' }; // (Sudeen's Ward: his shield, 6.93)
+  const own = { husk: 'husk', meditate: 'meditate', haunt: 'haunt', infuse: 'infuse', kofiRenewal: 'infuse', wardSwitch: 'ward' }; // (Kofi's Renewal keeps his blessing emblem, 28 Nov) // (Sudeen's Ward: his shield, 6.93)
   if (own[id]) return own[id];
   if (sp.group === 'Blessings' || sp.kind === 'buff') return 'blessings';
   if (sp.group === 'Hexes' || sp.kind === 'hex') return 'hexes';

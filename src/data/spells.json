@@ -164,6 +164,20 @@
     "note": "6.49 (Suleiman 15 Nov: Kofi switches places with the spirits he summons). Free, once a turn, no action. In a clash (Kofi's sheet, built 28 Nov) the spirit takes the clash over: Kofi is free, the foe is held (no walking, its plain attack only on the spirit) until the spirit breaks, fades or leaves its side.",
     "text": "Free, once a turn, no action: Kofi and his spirit trade places. In a clash the spirit takes it over: Kofi is free, and the foe is held by the spirit until it breaks it."
   },
+  "kofiRenewal": {
+    "name": "Renewal",
+    "button": "Renewal",
+    "short": "RENEW",
+    "kind": "renew",
+    "gives": "renewal",
+    "color": "#7fd6c4",
+    "range": 3,
+    "cooldown": 2,
+    "mp": 2,
+    "use": "ally",
+    "note": "28 Nov (Baiyee): Kofi's healing back as his own spell, not through Infuse, with the numbers it had under Infuse (2 MP, a friend within 3 or himself, ready again after 2 turns). It gives the Renewal Verse (\"renewal\" below: about 5 percent of health, at least 3, and one weak status lifted, at once and at the start of each of its 3 turns, 1.79). Not on a friend locked in a clash (1.65: it does not tick there).",
+    "text": "Heals a friend within 3 tiles, or Kofi: about 5% of its health (at least 3) and one weak status lifted (poison, burn, blinded, disoriented) at once, then again at the start of each of its next 3 turns. Not on a friend in a clash. Ready again after 2 turns."
+  },
   "infuse": {
     "name": "Infuse",
     "button": "Infuse",
@@ -196,7 +210,7 @@
     "minHeal": 3,
     "cleanse": 1,
     "boosts": {},
-    "text": "Kofi's Water blessing (only through Infuse, roadmap 1.49, 6.38). It heals as soon as it is given, and again at the start of each of its turns: each time about 5% of its health (at least 3 points) and one weak status lifted (poison, burn, blinded or disoriented). Lasts 3 turns.",
+    "text": "Kofi's healing blessing (his Renewal spell; Alagara's Claim draws it from water). It heals as soon as it is given, and again at the start of each of its turns: each time about 5% of its health (at least 3 points) and one weak status lifted (poison, burn, blinded or disoriented). Lasts 3 turns.",
     "mp": 0,
     "use": "both"
   },

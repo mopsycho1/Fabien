@@ -2090,7 +2090,7 @@ export default class BattleScene extends Phaser.Scene {
   // True when this skill heals its target: Herbs, or Kofi's Infuse while it would give Renewal (1.65 uses it).
   healsTarget(caster, id) {
     const spell = spells[id];
-    if (spell.kind === 'heal') return true;
+    if (spell.kind === 'heal' || spell.kind === 'renew') return true; // (Kofi's Renewal, his own spell again, 28 Nov)
     return spell.kind === 'infuse' && spell.verses[this.reading(caster).element] === 'renewal';
   }
 
@@ -3536,7 +3536,7 @@ export default class BattleScene extends Phaser.Scene {
 
     this.mode = 'spellTarget';
     const foesOnly = ['hornCharge', 'sweep', 'pin', 'haunt', 'hex', 'throw', 'poison', 'toss', 'charge', 'lunge', 'double', 'javelin', 'dive', 'elementBlast', 'concussive', 'hammerStrike', 'ambush', 'steal'].includes(spell.kind);
-    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'allySwap' || spell.kind === 'smokePellet';
+    const friendsOnly = spell.kind === 'heal' || spell.kind === 'infuse' || spell.kind === 'renew' || spell.kind === 'allySwap' || spell.kind === 'smokePellet';
     this.targetsInRange = spell.kind === 'prime' || spell.kind === 'zoneWard' || spell.kind === 'coat' || (spell.kind === 'enchant' && spell.self) ? [unit] : KING_KINDS.includes(spell.kind) ? this.kingTargets(unit, id) : this.units.filter(
       (u) =>
         u.alive && this.canSee(unit, u) && (spell.kind === 'hornCharge' ? !!this.hornLine(unit, u, spell) : spell.kind === 'charge' ? !!this.chargeTile(unit, u, spell) : spell.kind === 'lunge' ? !!this.lungeSpot(unit, u, spell) : distance(unit, u) <= this.spellReach(unit, u, spell)) &&
@@ -3551,7 +3551,7 @@ export default class BattleScene extends Phaser.Scene {
         (spell.kind !== 'heal' || u.hp < u.maxHp || isPoisoned(u) || isBurning(u)) &&
         // 1.65: no Renewal blessing on a fighter locked in a clash (it does not tick there). 1.69: Herbs may heal a locked
         // friend (the caster stands free beside him), which 1.65 had blocked by mistake
-        !(spell.kind === 'infuse' && this.healsTarget(unit, id) && u.engagedWith)
+        !((spell.kind === 'infuse' || spell.kind === 'renew') && this.healsTarget(unit, id) && u.engagedWith)
     );
     if (this.targetsInRange.length === 0 && spell.kind === 'heal') {
       this.showMessage('Nobody in reach needs healing');
@@ -7152,6 +7152,7 @@ export default class BattleScene extends Phaser.Scene {
     if (NEW_KINDS.includes(spell.kind)) return this.castNewSkill(caster, target, id, onDone); // Leol and the Thief (19.1, 19.2)
     if (spell.kind === 'haunt') return this.castHaunt(caster, target, spell, onDone);
     if (spell.kind === 'callSpirit') return this.castCallSpirit(caster, target, spell, onDone); // Kofi (13.72)
+    if (spell.kind === 'renew') return this.castSpell(caster, target, spell.gives, onDone, true); // Kofi's Renewal (28 Nov): the Verse, cast as Infuse cast it
     if (spell.kind === 'infuse') {
       // the blessing for what he reads, always a spirit's Verse that lasts (1.49): Stone, Swiftness, Fury or
       // Renewal (Water). It used to be a plain herb-pouch heal in Water, which threw a pouch at the ally.
@@ -7391,6 +7392,16 @@ export default class BattleScene extends Phaser.Scene {
   //    finish somebody. He keeps 3 MP back for Call Spirit while no spirit is out.
   shamanChoice(unit) {
     const foes = this.units.filter((o) => o.alive && o.side !== unit.side && !o.hidden && !o.isDecoy);
+    // Renewal (his own spell again, 28 Nov; as Infuse in Water chose before 13.72): the friend in reach who needs it most,
+    // at 70 percent of its health or under, not under a Verse already and not locked in a clash (it does not tick there, 1.65);
+    // on a tie a friend before himself
+    if (unit.spells.includes('kofiRenewal') && canAfford(unit, 'kofiRenewal')) {
+      const sp = spells.kofiRenewal;
+      const ratio = (a) => a.hp / a.maxHp;
+      const pick = this.units.filter((a) => a.alive && a.side === unit.side && !a.isDecoy && distance(unit, a) <= sp.range && !buffOf(a) && !a.engagedWith && ratio(a) <= 0.7)
+        .sort((a, b) => ratio(a) - ratio(b) || (a === unit) - (b === unit))[0];
+      if (pick) return { id: 'kofiRenewal', target: pick };
+    }
     // Call Spirit (13.72, src/spirits.js): where a spirit would do most now (it replaced Infuse)
     const call = this.spiritChoice(unit);
     if (call) return call;

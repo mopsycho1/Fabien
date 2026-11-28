@@ -27,11 +27,15 @@ let fails = 0; const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL '
   setReading('water'); stage();
   b.placeUnit(mates[0], 5, 6); mates[0].hp = Math.round(mates[0].maxHp * 0.4);
   let pick = b.shamanChoice(k);
-  check('water: a hurt friend in reach gets a Tide Spirit beside him', pick && pick.id === 'callSpirit' && dist(pick.target, mates[0]) <= 1 && b.spiritKindAt(k, pick.target) === 'tide', pick && pick.id + ' ' + JSON.stringify(pick.target));
+  check('a hurt friend in reach gets Renewal first (his own spell again, 13.82)', pick && pick.id === 'kofiRenewal' && pick.target === mates[0], pick && pick.id);
+  k.status.cooldowns = { kofiRenewal: 1 }; pick = b.shamanChoice(k);
+  check('water, Renewal waiting: a hurt friend in reach gets a Tide Spirit beside him', pick && pick.id === 'callSpirit' && dist(pick.target, mates[0]) <= 1 && b.spiritKindAt(k, pick.target) === 'tide', pick && pick.id + ' ' + JSON.stringify(pick.target));
   // 2. himself on low health, nobody else near: a Tide Spirit beside himself
   stage([5, 1]); k.hp = Math.round(k.maxHp * 0.3); /* (plain floor round him, away from the others) */
   pick = b.shamanChoice(k);
-  check('water: Kofi on low health with nobody near calls a Tide Spirit beside himself', pick && pick.id === 'callSpirit' && dist(pick.target, k) <= 1, pick && pick.id + ' ' + JSON.stringify(pick.target));
+  check('Kofi on low health with nobody near: Renewal on himself (13.82)', pick && pick.id === 'kofiRenewal' && pick.target === k, pick && pick.id);
+  k.status.cooldowns = { kofiRenewal: 1 }; pick = b.shamanChoice(k);
+  check('water, Renewal waiting: Kofi on low health with nobody near calls a Tide Spirit beside himself', pick && pick.id === 'callSpirit' && dist(pick.target, k) <= 1, pick && pick.id + ' ' + JSON.stringify(pick.target));
   // 3. everyone healthy, a foe within 4: Haunt on the foe
   stage(); b.placeUnit(foes[0], 5, 8);
   pick = b.shamanChoice(k);

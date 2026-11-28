@@ -623,3 +623,10 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 - Alagara's Claim from nature: spells.json "claim" "nature" (which Verse each kind of ground gives) and "turns" (2).
 - The Thief's Steal: spells.json "steal" ("turns" a stolen blessing lasts, "cooldown").
 - A fighter who dies in his own turn: DEAD_TURN_SETTLE_MS and DEAD_TURN_NET_MS at the top of src/scenes/BattleScene.js (how soon the turn moves on by itself).
+
+## Kofi's spirits and Renewal, 28 Nov (roadmap 13.81, 6.99, 6.100, 13.82, 1.126)
+- A spirit's colour (the runes, the banner, its tiles): src/data/spells.json "callSpirit" "spirits" each "color" (Ember #ff8a3c, Tide #6ab8ff, Stone #c9a060, Gale #b4f0b4). Its health is "hp" there; a blow on a spirit is the striker's attack, at least 1.
+- When the computer strikes a spirit: src/spirits.js spiritToStrike (it breaks it with this blow and the spirit's next move is worth 4 or more, unless it can finish a fighter instead).
+- The summon show: the beats in milliseconds are SUMMON at the top of src/summonFx.js (the first summon of a battle), LATER (0.5) for the others, DIM_ALPHA (how dark the board goes) and ZOOM (how close the camera comes).
+- Kofi's Renewal: spells.json "kofiRenewal" ("mp" 2, "range" 3, "cooldown" 2); how much it heals and for how long is the Renewal Verse, spells.json "renewal" ("regen" 0.05, "minHeal" 3, "cleanse" 1, "turns" 3).
+- Thief and Leol pictures cleaned by hand (1.126): dev/tools/make_newclass.py RIM_STRIPS (which pictures the tile-edge rule runs on) and HAND (areas marked by eye). Re-cut one with `ONLY=thief_trap_4.png MODE=cut ~/.fabien-tools/venv/bin/python dev/tools/make_newclass.py <work folder> thief`, then make_normals.py, make_webp.py and ruler.py measure.
