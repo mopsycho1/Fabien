@@ -1,5 +1,5 @@
-// Kofi's spirits (roadmap 13.72, 6.38, 6.49; decided by Baiyee 27 Nov) and the ground's elements that Alagara's Claim
-// also draws on. These are methods of the battle scene (BattleScene.js adds them with Object.assign), like the kings'.
+// Kofi's spirits (roadmap 13.72, 6.38, 6.49; decided by Baiyee 27 Nov) and the ground's elements. Alagara's Claim draws
+// on the spirits themselves since 10.56 (kingsScene.js claimSpirits), no longer on the ground. These are methods of the battle scene (BattleScene.js adds them with Object.assign), like the kings'.
 //
 // CALL SPIRIT (it replaces Kofi's Infuse): he picks an empty tile up to 3 away and the ground there picks the spirit:
 //   by a lamp (the lamp's own tile or next to it)  -> the Ember Spirit (fire)
@@ -41,7 +41,7 @@ export function setSpiritMap(map) { mapData = map; }
 export const spiritMethods = {
   // ---------- the ground ----------
   // The element a tile holds, or null for plain floor: by a lamp fire, water water, sand or rubble earth, high ground storm.
-  // (Kofi's Call Spirit and Alagara's Claim from nature both read the ground this way, 13.72.)
+  // (Kofi's Call Spirit reads the ground this way, 13.72.)
   natureAt(tile) {
     const map = mapData || this.mapData || null;
     if (!map) return null;

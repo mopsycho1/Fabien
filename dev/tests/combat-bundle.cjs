@@ -282,7 +282,7 @@ var spells_default = {
     cooldown: 2,
     mp: 2,
     use: "ally",
-    note: `Kofi's until 27 Nov (13.72: Call Spirit replaces it in his kit). Not in anyone's kit now; its verses map is the one Alagara's Claim from nature uses (claim "nature").`,
+    note: `Kofi's until 27 Nov (13.72: Call Spirit replaces it in his kit). Not in anyone's kit now; its verses map was the one Alagara's Claim from nature uses (claim "nature").`,
     text: "A blessing for an ally within 3 tiles, or himself, from what Kofi reads. Earth: the Stone Verse. Storm: Swiftness. Fire: Fury. Water: Renewal, a healing that starts at once and goes on for 3 turns. Ready again after 2 turns."
   },
   renewal: {
@@ -298,7 +298,7 @@ var spells_default = {
     minHeal: 3,
     cleanse: 1,
     boosts: {},
-    text: "Kofi's healing blessing (his Renewal spell; Alagara's Claim draws it from water). It heals as soon as it is given, and again at the start of each of its turns: each time about 5% of its health (at least 3 points) and one weak status lifted (poison, burn, blinded or disoriented). Lasts 3 turns.",
+    text: "Kofi's healing blessing (his Renewal spell; Alagara's Claim draws it from a Tide Spirit). It heals as soon as it is given, and again at the start of each of its turns: each time about 5% of its health (at least 3 points) and one weak status lifted (poison, burn, blinded or disoriented). Lasts 3 turns.",
     mp: 0,
     use: "both"
   },
@@ -1059,9 +1059,11 @@ var spells_default = {
     cooldown: 3,
     mp: 0,
     use: "both",
-    nature: { fire: "fury", water: "renewal", earth: "stone", storm: "swiftness" },
-    natureNote: "13.72 (decided by Baiyee 27 Nov): Claim can also draw a Verse from the ground, his own tile or an empty tile next to him (src/spirits.js natureAt, the same ground Kofi's spirits read): by a lamp Fury, water Renewal, sand or rubble Earth's Bulwark (Stone), high ground Swiftness. It is his action, no MP, the Verse lasts 2 turns ('turns'), the same cooldown. Plain floor gives nothing.",
-    text: "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. Or draw one from the ground, his own tile or an empty tile next to him: by a lamp Fury, water Renewal, sand or rubble Earth's Bulwark, high ground Swiftness (2 turns). A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
+    spirits: { ember: "fury", tide: "renewal", stone: "stone", gale: "swiftness" },
+    spiritRange: 2,
+    friendCost: 1,
+    spiritNote: "10.56 (Suleiman 28 Nov, decided by Baiyee): Claim draws from spirits, not tiles (Claim from nature, 13.72, removed). Any spirit within 'spiritRange' tiles of him, either side: Ember gives Fury, Tide Renewal, Stone Earth's Bulwark, Gale Swiftness, for 'turns' (2). A foe's spirit claimed is destroyed; his own side's loses 'friendCost' turns of its life (it fades if none are left). Stealing a blessing from the unit next to him stays.",
+    text: "Take one blessing from the unit next to him, ally or foe (a Verse, an Enchanted weapon, or Bloodied stacks: those take a point off every hit on him): it leaves them and is his for 2 turns. Or draw one from a spirit within 2 tiles: Ember gives Fury, Tide Renewal, Stone Earth's Bulwark, Gale Swiftness (2 turns). A foe's spirit is destroyed; a friendly one loses a turn of its life. A Verse goes in his Active slot (the old one to the Echo). Ready again after 3 turns."
   },
   mantle: {
     category: "Forms",

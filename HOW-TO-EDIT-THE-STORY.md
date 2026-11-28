@@ -620,7 +620,7 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 ## Kits of 27 Nov (roadmap 10.53, 13.72, 19.11, 1.127, 1.128)
 - Gadara the tank: his health, defense and clash guard are in src/data/jobs.json "sovereign". The Mask Gauge and Shadow Passage numbers are in src/data/kings.json "gadara": "mask" (max 5, +1 per foe hit up to "hitCap" 3, Sunder "strip" 2, a held beat and a hit taken once between his turns) and "passage" ("soloCost" 1, "soloRange" 3, "carryRange" 2, "maxCarry" 4, "minDistance" 4). "ai.saveFor" (4) is how many masks he keeps for Singularity. The skills' words are in spells.json "shadowStep" and "shadowPassage".
 - Kofi's spirits: src/data/spells.json "callSpirit": "mp", "range", "cooldown", "turns" (how many moves a spirit makes), "size" (its height next to Kofi's), and in "spirits" each spirit's "hp" and its move's numbers ("damage", "heal", "guard", "push") and words. Which ground gives which spirit is written in src/spirits.js (natureAt).
-- Alagara's Claim from nature: spells.json "claim" "nature" (which Verse each kind of ground gives) and "turns" (2).
+- Alagara's Claim from nature was removed on 28 Nov (10.56); see the kings, 28 Nov.
 - The Thief's Steal: spells.json "steal" ("turns" a stolen blessing lasts, "cooldown").
 - A fighter who dies in his own turn: DEAD_TURN_SETTLE_MS and DEAD_TURN_NET_MS at the top of src/scenes/BattleScene.js (how soon the turn moves on by itself).
 
@@ -633,3 +633,4 @@ Rabdul (Oct 27, evening) keeps his job's own health (34) and is slower than Gaha
 
 ## The kings, 28 Nov (roadmap 10.55, 10.56)
 - Gadara's masks: src/data/kings.json "gadara" "mask": "start" (masks at the start of a battle, 1) and "turn" (masks at the start of each of his turns, 1). "perFoeHit" and "hitCap" are the hits.
+- Alagara's Claim from spirits: src/data/spells.json "claim": "spirits" (which Verse each spirit gives), "spiritRange" (2 tiles), "turns" (2), "friendCost" (turns of life a friendly spirit loses, 1). The light stream is claimStream in src/kingsScene.js (MOTES, how many specks of light).

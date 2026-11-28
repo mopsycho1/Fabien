@@ -17,7 +17,7 @@ import { getReachableTiles } from './movement.js';
 import { KING_RULES, MASK_MAX, PASSAGE, carryable, maskFromHits, otherGrip, gripAttackName, maskFull, feedMask, singularityTiles, singularityCatch, canSwap, swapVerses, verseSkillsNow, giveShield, soakShield, fromEcho, verseSkillPower, isAttuned, echoOf } from './kings.js';
 import { sfxHas, sfxAt, sfxLoop, crownOver, aegisDome, sfxInfo, buffLoopFx, hasBuffPart } from './spellArt.js';
 import { play } from './audio.js';
-import { floorLight, lightNearby } from './fxLayers.js';
+import { floorLight, lightNearby, energyWaves } from './fxLayers.js';
 import { screenShake } from './effects.js';
 import terrain from './data/terrain.json';
 import conditions from './data/conditions.json';
@@ -86,8 +86,8 @@ export const kingMethods = {
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && distance(unit, t) >= 1 && distance(unit, t) <= spell.range && this.hookLineClear(unit, t));
       case 'sunder':
         return seen.filter((t) => foeOf(unit, t) && distance(unit, t) === 1 && hasBlessing(t));
-      case 'claim': // a blessed unit next to him; himself too when his own tile holds a Verse (13.72, Claim from nature)
-        return [...seen.filter((t) => t !== unit && !t.isDecoy && distance(unit, t) === 1 && hasBlessing(t)), ...(this.natureVerse({ col: unit.col, row: unit.row }) ? [unit] : [])];
+      case 'claim': // a blessed unit next to him (the spirits within 2 tiles are tiles, claimTiles; 10.56)
+        return seen.filter((t) => t !== unit && !t.isDecoy && distance(unit, t) === 1 && hasBlessing(t));
       case 'gale':
         return seen.filter((t) => foeOf(unit, t) && straight(unit, t) && this.galePlan(unit, t).hits.includes(t));
       case 'rift': // Radiant Rift (10.52): a foe up to its range away in a clear line
@@ -734,50 +734,92 @@ export const kingMethods = {
   },
 
   // ---------- Alagara: Claim ----------
-  // The Verse the ground on this tile gives (13.72): by a lamp Fury, water Renewal, sand or rubble Stone, high ground
-  // Swiftness; plain floor null. The ground is read as for Kofi's spirits (src/spirits.js natureAt).
-  natureVerse(tile) {
-    const el = this.natureAt(tile);
-    return el ? spells.claim.nature[el] : null;
+  // 10.56 (Suleiman 28 Nov, decided by Baiyee): Claim draws from SPIRITS, not from the ground (Claim from nature, 13.72, is
+  // gone). Any spirit within 2 tiles of him, his side's or the foe's, gives the Verse of its element for 2 turns:
+  // Ember Fury, Tide Renewal, Stone Earth's Bulwark, Gale Swiftness (spells.json claim "spirits", "spiritRange").
+  // A foe's spirit claimed is destroyed; a friendly one loses 1 turn of its life (it fades if that was its last).
+  claimVerse(sp) {
+    return sp ? spells.claim.spirits[sp.kind] || null : null;
   },
-  // The empty tiles next to him whose ground gives a Verse (Claim from nature picks one of these, or his own tile).
-  natureTiles(unit) {
-    return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dc, dr]) => ({ col: unit.col + dc, row: unit.row + dr }))
-      .filter((t) => t.col >= 0 && t.row >= 0 && t.col < GRID_SIZE && t.row < GRID_SIZE && !this.isBlocked(t.col, t.row) && this.natureVerse(t));
+  // The spirits he can claim now: within spiritRange of him, any side.
+  claimSpirits(unit) {
+    return (this.spirits || []).filter((sp) => distance(unit, sp) <= spells.claim.spiritRange && this.claimVerse(sp));
   },
-  // Takes one blessing from the unit next to him (ally or foe): it leaves them and is his for 2 turns.
-  // target = himself or an empty tile: he draws the Verse of the ground there instead (13.72).
+  // ...as tiles, for the target highlights and the taps (a spirit is not a unit)
+  claimTiles(unit) {
+    return this.claimSpirits(unit).map((sp) => ({ col: sp.col, row: sp.row }));
+  },
+  // The claim's effect: the spirit's light streams into him, a ribbon of motes along a low arc (ADD blending),
+  // a floor light under the spirit as it gives and a flare round him as it lands. About 0.7 s.
+  claimStream(caster, sp, color) {
+    if (!sp.view || !caster.view) return;
+    const from = { x: sp.view.x, y: sp.view.y - (sp.h || 40) * 0.55 };
+    const to = this.centerOf(caster);
+    floorLight(this, sp.view.x, sp.view.y, color, { size: 1.3, peak: 0.7, ms: 700 });
+    const depth = Math.max(caster.view.depth, sp.view.depth || 0) + 3;
+    const lift = Math.min(60, 18 + Phaser.Math.Distance.Between(from.x, from.y, to.x, to.y) * 0.25); // the arc's height
+    const MOTES = 16;
+    for (let i = 0; i < MOTES; i++) {
+      const g = this.add.graphics().setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+      const r = 2 + (i % 3); // (drawn at 0,0 and placed, so it never slides when tweened)
+      g.fillStyle(color, 0.35).fillCircle(0, 0, r * 2.2);
+      g.fillStyle(0xffffff, 0.9).fillCircle(0, 0, r * 0.8);
+      g.setPosition(from.x, from.y).setAlpha(0);
+      const wob = (Math.random() - 0.5) * 14; // each mote takes its own line, so it reads as a stream, not a bead string
+      const state = { t: 0 };
+      this.tweens.add({
+        targets: state, t: 1, delay: i * 28, duration: 380, ease: 'Sine.easeIn',
+        onStart: () => g.setAlpha(1),
+        onUpdate: () => {
+          const t = state.t;
+          g.setPosition(from.x + (to.x - from.x) * t + wob * Math.sin(t * Math.PI), from.y + (to.y - from.y) * t - lift * Math.sin(t * Math.PI));
+          g.setScale(1 - 0.45 * t);
+        },
+        onComplete: () => g.destroy(),
+      });
+    }
+    this.time.delayedCall(MOTES * 28 + 340, () => {
+      if (!caster.alive || !caster.view) return;
+      const c = this.centerOf(caster);
+      lightNearby(this, c.x, c.y, color, { radius: 120, peak: 0.45, ms: 380 });
+      energyWaves(this, caster.view.x, caster.view.y, color, { count: 2, size: 0.8, ms: 420 });
+    });
+  },
   castClaim(caster, target, spell, onDone) {
     let taken = null;
-    if (target === caster || !target.status) {
-      const tile = { col: target.col, row: target.row };
-      const verse = this.natureVerse(tile);
-      if (verse) {
-        taken = verse;
-        applyBuff(caster, verse, 1);
-        caster.status.buff.turnsLeft = spell.turns;
-        caster.status.buff.fromGround = true;
-      }
-      const p = tileToScreen(tile.col, tile.row);
-      const dx = (p.x - caster.view.x) || 1;
-      this.faceToward(caster, dx, p.y - caster.view.y);
+    const sp = !target.status ? this.spiritAt(target.col, target.row) : null;
+    if (sp) { // a spirit's tile (10.56): its element's Verse for 2 turns
+      const verse = this.claimVerse(sp);
+      taken = verse;
+      applyBuff(caster, verse, 1);
+      caster.status.buff.turnsLeft = spell.turns;
+      caster.status.buff.fromSpirit = sp.kind;
+      const foes = sp.side !== caster.side;
+      // the spirit pays at once (the show follows): a foe's is destroyed, his own side's loses a turn of its life
+      if (!foes) sp.movesLeft = (sp.movesLeft || 0) - spells.claim.friendCost;
+      const color = Phaser.Display.Color.HexStringToColor(sp.S && sp.S.color ? sp.S.color : spells[verse].color || '#f2c14e').color;
+      const dx = (sp.view.x - caster.view.x) || 1;
+      this.faceToward(caster, dx, sp.view.y - caster.view.y);
       if (this.hasPose(caster, 'claimReach')) this.showPose(caster, 'claimReach', dx);
       play('select');
-      const color = verse && spells[verse].color ? Phaser.Display.Color.HexStringToColor(spells[verse].color).color : 0xf2c14e;
-      floorLight(this, p.x, p.y, color, { size: 1.5, peak: 0.75, ms: 800 });
-      sfxAt(this, 'claim_take', p.x, p.y - 20, { depth: depthFor(tile.col, tile.row) + 2 });
+      sfxAt(this, 'claim_take', sp.view.x, sp.view.y - 20, { depth: (sp.view.depth || depthFor(sp.col, sp.row)) + 2 });
+      this.claimStream(caster, sp, color);
       this.time.delayedCall(380, () => { if (this.hasPose(caster, 'claimSnatch')) this.showPose(caster, 'claimSnatch', dx); });
       this.time.delayedCall(700, () => {
         if (this.hasPose(caster, 'claimStore')) this.showPose(caster, 'claimStore', dx);
         const c = this.centerOf(caster);
         sfxAt(this, 'claim_absorb', c.x, c.y, { depth: caster.view.depth + 2 });
         play('spell');
-        this.floatText(caster, taken ? 'Claimed from the ground: ' + (spells[taken].effect || spells[taken].button) : 'Nothing to claim', spell.color, { pop: true });
+        this.floatText(caster, 'Claimed: ' + (spells[verse].effect || spells[verse].button), spell.color, { pop: true });
+        if (foes) this.removeSpirit(sp, 'Claimed');
+        else if (sp.movesLeft <= 0) this.removeSpirit(sp, 'Fades');
+        else if (sp.view && sp.view.active) this.floatText({ view: sp.view, topY: sp.h }, '-1 turn', sp.S ? sp.S.color : spell.color, { rise: 20 });
         this.refreshStatusTags();
       });
       this.time.delayedCall(1300, () => caster.alive && this.showStanding(caster));
       return this.kingFinish(onDone, 1500);
     }
+    if (!target.status) return this.kingFinish(onDone, 0); // (an empty tile: nothing there)
     if (target.status.buff && spells[target.status.buff.id] && spells[target.status.buff.id].kind === 'buff') {
       const b = target.status.buff;
       taken = b.id;
@@ -1208,19 +1250,18 @@ export const kingMethods = {
       const marks = this.kingTargets(unit, 'claim').filter((t) => t !== unit && (t.side !== unit.side || !(unit.status && unit.status.buff)));
       marks.sort((a, b) => (a.side === unit.side) - (b.side === unit.side));
       if (marks.length) return this.aiCast(unit, marks[0], 'claim', finish);
-      // Claim from nature (13.72): no Verse on him (or his last turn of one), and the ground here or next to him gives one.
-      // The Verse he wants: Renewal when hurt (60 percent or less), Fury with a foe next to him, else Swiftness; any other
-      // the ground gives is still better than none
-      // (only with no foe next to him, or for Renewal when hurt: a foe beside him gets his blade, or his Drawn Blade frees a
-      // friend from a clash first; 27 Nov, n87 and n104)
+      // Claim from a spirit (10.56): a foe's spirit first (it is destroyed, and its next move with it) when its move is
+      // worth 4 or more or he has no Verse; his own side's only when he has no Verse (or his last turn of one), as it
+      // costs the spirit a turn. The Verse he wants: Renewal when hurt (60 percent or less), Fury with a foe next to
+      // him, else Swiftness; any other is still better than none.
       const buff = unit.status && unit.status.buff;
-      if (!buff || (buff.turnsLeft || 0) <= 1) {
-        const spots = [{ col: unit.col, row: unit.row }, ...this.natureTiles(unit)].filter((t) => this.natureVerse(t));
-        const hurt = unit.hp / unit.maxHp <= 0.6;
-        const want = hurt ? 'renewal' : 'swiftness';
-        const pick = near.length ? (hurt ? spots.find((t) => this.natureVerse(t) === 'renewal') : null) : spots.find((t) => this.natureVerse(t) === want) || spots[0];
-        if (pick) return this.aiCast(unit, pick.col === unit.col && pick.row === unit.row ? unit : pick, 'claim', finish);
-      }
+      const bare = !buff || (buff.turnsLeft || 0) <= 1;
+      const hurt = unit.hp / unit.maxHp <= 0.6;
+      const want = hurt ? 'renewal' : near.length ? 'fury' : 'swiftness';
+      const score = (sp) => (this.claimVerse(sp) === want ? 2 : 0) + (sp.side !== unit.side ? 1 + this.spiritThreat(sp) / 4 : 0);
+      const pool = this.claimSpirits(unit).filter((sp) => (sp.side !== unit.side ? bare || this.spiritThreat(sp) >= 4 : bare));
+      pool.sort((x, y) => score(y) - score(x));
+      if (pool.length) return this.aiCast(unit, { col: pool[0].col, row: pool[0].row }, 'claim', finish);
     }
     // Mantle: his Verse on allies in reach (3 tiles)
     if (this.aiReady(unit, 'mantle') && this.mantleAllies(unit).length) {

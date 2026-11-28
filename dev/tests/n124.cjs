@@ -2,7 +2,7 @@
 //   Kofi: Haunt, Call Spirit, Spirit Swap. The tile picks the spirit: by a lamp Ember, water Tide, sand or rubble Stone,
 //   high ground Gale, plain floor what he reads. Each spirit is a small ally on its tile with one move (when it comes, then
 //   at the start of his next 2 turns), then it fades; foes can break it; it goes when he falls; one at a time.
-//   Alagara: Claim also takes the Verse of the ground (his tile or an empty one next to him) for 2 turns, no MP.
+//   Alagara: Claim from the ground was removed on 28 Nov (10.56: Claim draws from spirits, n130).
 // Run:  FABIEN_MAP=cavern FABIEN_BENCH= FABIEN_KINGS=1 node n124.cjs
 const { start, battle } = require('./boot.cjs');
 const spells = require('../../src/data/spells.json');
@@ -121,32 +121,18 @@ const dist = (a, c) => Math.abs(a.col - c.col) + Math.abs(a.row - c.row);
   const sc = b.shamanChoice(kofi);
   check('...through his usual choice (shamanChoice)', sc && sc.id === 'callSpirit', sc && sc.id);
 
-  // ---------- Alagara: Claim from nature ----------
+  // ---------- Alagara: Claim from nature was removed (10.56, 28 Nov: Claim draws from spirits, test n130) ----------
   park(); b.placeUnit(ala, 4, 3); b.activeUnit = ala; ala.attune = { echo: null, swapped: false };
-  check("Alagara's own tile by a lamp gives Fury", b.natureVerse({ col: 4, row: 3 }) === 'fury');
-  check('...so Claim can target himself', b.kingTargets(ala, 'claim').includes(ala));
-  await waitDone((d) => b.castSpell(ala, ala, 'claim', d));
-  check('Claim from the ground: Fury for 2 turns', ala.status.buff && ala.status.buff.id === 'fury' && ala.status.buff.turnsLeft === 2, JSON.stringify(ala.status.buff));
-  check('...his action, no MP, the usual cooldown', ala.hasActed && St.cooldownOf(ala, 'claim') > 0);
-  // a tile next to him: water (3,3)
-  park(); b.placeUnit(ala, 2, 3); b.activeUnit = ala; ala.attune = { echo: null, swapped: false }; ala.hasActed = false;
+  check('10.56: his own tile by a lamp no longer makes him a Claim target', !b.kingTargets(ala, 'claim').includes(ala));
+  park(); b.placeUnit(ala, 2, 3); b.activeUnit = ala; ala.hasActed = false; b.placeUnit(bull, 2, 4); St.applyBuff(bull, 'stone');
   b.chooseSpell('claim');
-  check('picking Claim lights the ground tiles next to him', b.spellTiles && b.spellTiles.has('3,3'), b.spellTiles && [...b.spellTiles].join(' '));
-  b.pendingTile = { col: 3, row: 3 }; b.refreshStatus();
-  check('...the hint names the Verse (Renewal)', /Renewal/i.test(b.statusText.text), b.statusText.text);
-  await waitDone((d) => b.castSpell(ala, { col: 3, row: 3 }, 'claim', d));
-  check('...and he claims it', ala.status.buff && ala.status.buff.id === 'renewal', JSON.stringify(ala.status.buff));
+  check('...and the water tile next to him is not lit', !(b.spellTiles && b.spellTiles.has('3,3')), b.spellTiles && [...b.spellTiles].join(' '));
+  b.cancelMode();
   // he can still steal a foe's Verse
   park(); b.placeUnit(ala, 5, 5); b.placeUnit(bull, 5, 6); b.activeUnit = ala; ala.attune = { echo: null, swapped: false };
   St.applyBuff(bull, 'stone');
   await waitDone((d) => b.castSpell(ala, bull, 'claim', d));
   check("Claim still takes a foe's Verse", ala.status.buff && ala.status.buff.id === 'stone' && !bull.status.buff);
-  // the AI uses the ground when he has no Verse
-  park(); b.placeUnit(ala, 4, 3); b.placeUnit(bull, 9, 9); b.activeUnit = ala; ala.attune = { echo: null, swapped: false };
-  let aiDone = false; const acted = b.alagaraAi(ala, () => { aiDone = true; });
-  const t0 = Date.now(); while (!aiDone && Date.now() - t0 < 6000) await sleep(30);
-  check('the AI claims a Verse from the ground when he has none', acted && ala.status.buff && ala.status.buff.id === 'fury', JSON.stringify(ala.status.buff));
-
   check('no page errors', errors.filter((e) => !/focus\(\)/.test(e)).length === 0, errors.slice(0, 2).join(' | '));
   console.log(fails ? 'FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);

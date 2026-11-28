@@ -34,6 +34,7 @@ const MOVES = {
   gaha_spear_throw: { who: 'h2', at: [2, 7], foe: 'e1', foeAt: [6, 7], skill: 'spearThrow' }, // his drawn wind-up and release (15 Nov)
   sudeen_melee: { who: 'h1', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // the code lean-back (18.29)
   alagara_melee: { who: 'h5', at: [3, 7], foe: 'e1', foeAt: [4, 7], attack: true }, // his own drawn slash (photo 1768) stays
+  alagara_claim_spirit: { who: 'h5', at: [3, 7], foe: 'e2', foeAt: [8, 7], js: "b.addSpirit(foe, 'ember', { col: 5, row: 7 }, true); setTimeout(() => b.castSpell(who, { col: 5, row: 7 }, 'claim', done), 600);" }, // Claim from a foe's spirit: its light streams into him (10.56)
   rabdul_melee: { who: 'e4', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   bull_melee: { who: 'e2', at: [4, 7], foe: 'h2', foeAt: [3, 7], attack: true },
   archer_shot: { who: 'e3', at: [6, 7], foe: 'h2', foeAt: [2, 7], attack: true },

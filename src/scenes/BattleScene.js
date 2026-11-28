@@ -2654,11 +2654,10 @@ export default class BattleScene extends Phaser.Scene {
     } else if (this.mode === 'spell') {
       text = (this.spellGroup ? 'Choose from the ' + this.spellGroup : 'Choose a Verse') + '  (' + unit.mp + ' MP)';
     } else if (this.mode === 'spellTarget' && this.pendingTile && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'claim') {
-      const v = this.natureVerse(this.pendingTile); // Claim from the ground (13.72)
-      text = 'Claim ' + (v ? spells[v].effect || spells[v].button : 'nothing') + ' from the ground here (2 turns)? Tap it again.';
-    } else if (this.mode === 'spellTarget' && this.pendingTarget === unit && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'claim') {
-      const v = this.natureVerse(unit);
-      text = 'Claim ' + (v ? spells[v].effect || spells[v].button : 'nothing') + ' from the ground under him (2 turns)? Tap again.';
+      const sp = this.spiritAt(this.pendingTile.col, this.pendingTile.row); // Claim from a spirit (10.56)
+      const v = this.claimVerse(sp);
+      const cost = !sp ? '' : sp.side !== unit.side ? ' It destroys the spirit.' : sp.movesLeft <= 1 ? ' The spirit fades.' : ' The spirit loses a turn.';
+      text = 'Claim ' + (v ? spells[v].effect || spells[v].button : 'nothing') + ' from this spirit (2 turns)?' + cost + ' Tap it again.';
     } else if (this.mode === 'spellTarget' && spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'passage') {
       // Gadara's Shadow Passage (10.53): the foes he picks so far, and how to go
       const n = (this.passengers || []).length;
@@ -3562,8 +3561,8 @@ export default class BattleScene extends Phaser.Scene {
       this.mode = 'spell';
       return;
     }
-    // Alagara's Claim from nature (13.72): the empty tiles next to him whose ground gives a Verse can be picked too
-    const groundTiles = spell.kind === 'claim' ? this.natureTiles(unit) : [];
+    // Alagara's Claim (10.56): the spirits within 2 tiles (his side's or the foe's) can be picked too
+    const groundTiles = spell.kind === 'claim' ? this.claimTiles(unit) : [];
     this.spellTiles = groundTiles.length ? new Set(groundTiles.map((t) => t.col + ',' + t.row)) : null;
     if (this.targetsInRange.length === 0 && !groundTiles.length) {
       this.showMessage(spell.kind === 'claim' ? 'Nothing to claim here' : 'No enemy in reach');
@@ -3796,7 +3795,7 @@ export default class BattleScene extends Phaser.Scene {
     // Choosing who gets a spell: first tap explains it, second tap casts it
     if (this.mode === 'spellTarget') {
       if (spells[this.selectedSpell] && spells[this.selectedSpell].kind === 'passage') return this.passageTap(col, row); // Shadow Passage: pick foes, then him (10.53)
-      // Claim from a ground tile (13.72): first tap shows it, second claims
+      // Claim from a spirit's tile (10.56): first tap shows it, second claims
       if (this.spellTiles && this.spellTiles.has(col + ',' + row) && !this.getUnitAt(col, row)) {
         if (this.pendingTile && this.pendingTile.col === col && this.pendingTile.row === row) { this.confirmSpell(); return; }
         play('select');
@@ -10684,7 +10683,7 @@ export default class BattleScene extends Phaser.Scene {
     this.spellGroup = null;
     this.pendingTarget = null;
     this.pendingTile = null;
-    this.spellTiles = null; // (Claim's ground tiles, 13.72)
+    this.spellTiles = null; // (Claim's spirit tiles, 10.56)
     this.spiritTargets = []; this.pendingSpirit = null; // (a foe's spirit to strike, 28 Nov)
     this.passengers = []; // (Shadow Passage's picks, 10.53)
     this.approach = null;
